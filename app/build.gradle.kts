@@ -19,6 +19,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("io.micrometer:micrometer-registry-prometheus")
 
+    // Todo remove before squashing
+    implementation("io.strmprivacy.grpc.common:kotlin-grpc-common:3.22.0")
+
     implementation("io.strmprivacy.api:api-definitions-kotlin:3.18.4")
     implementation("build.buf.gen:getstrm_daps_grpc_java:1.58.0.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_daps_grpc_kotlin:1.3.1.1.$generatedBufDependencyVersion")
