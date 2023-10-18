@@ -1,0 +1,13 @@
+.idea
+target
+
+node_modules
+
+out/
+
+/.gradle/
+/build/
+/app/build/
+output/
+
+.common-protos

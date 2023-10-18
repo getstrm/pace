@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/data-policy-service
+    hikari:
+      username: data-policy-service_user
+      password: B1D#Y_odaZ9*cdzz7iaWsIU!A3a8TPfFfnx3(7U*vGKmQH65%B8T4#401ylu
+grpc:
+  server:
+    port: 50051
+
+management:
+  endpoints:
+    web.exposure.include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
