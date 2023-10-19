@@ -1,21 +1,56 @@
 package com.getstrm.daps.api
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicyServiceGrpcKt
-import build.buf.gen.getstrm.api.data_policies.v1alpha.ListProcessingPlatformsRequest
-import build.buf.gen.getstrm.api.data_policies.v1alpha.ListProcessingPlatformsResponse
+import ProcessingPlatformsService
+import build.buf.gen.getstrm.api.data_policies.v1alpha.*
+import io.strmprivacy.management.data_policy_service.service.DataPolicyService
 import net.devh.boot.grpc.server.service.GrpcService
 
 @GrpcService
-class DataPolicyApi : DataPolicyServiceGrpcKt.DataPolicyServiceCoroutineImplBase() {
+class DataPolicyApi(
+    private val dataPolicyService: DataPolicyService,
+    private val processingPlatformsService: ProcessingPlatformsService,
+) : DataPolicyServiceGrpcKt.DataPolicyServiceCoroutineImplBase() {
 
-    override suspend fun listProcessingPlatforms(request: ListProcessingPlatformsRequest): ListProcessingPlatformsResponse {
-        return ListProcessingPlatformsResponse.newBuilder()
-            .addProcessingPlatforms(
-                DataPolicy.ProcessingPlatform.newBuilder()
-                    .setId("test")
-                    .setPlatformType(DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE)
-            )
+    override suspend fun listDataPolicies(request: ListDataPoliciesRequest): ListDataPoliciesResponse {
+        return ListDataPoliciesResponse.newBuilder()
+            .addAllDataPolicies(dataPolicyService.listDataPolicies())
             .build()
     }
+
+    override suspend fun upsertDataPolicy(request: UpsertDataPolicyRequest): UpsertDataPolicyResponse {
+        return UpsertDataPolicyResponse.newBuilder()
+            .setDataPolicy(dataPolicyService.upsertDataPolicy(request.dataPolicy))
+            .build()
+    }
+
+    override suspend fun getDataPolicy(request: GetDataPolicyRequest): GetDataPolicyResponse {
+        return GetDataPolicyResponse.newBuilder()
+            .setDataPolicy(dataPolicyService.getLatestDataPolicy(request.id))
+            .build()
+    }
+
+    override suspend fun listProcessingPlatforms(request: ListProcessingPlatformsRequest): ListProcessingPlatformsResponse =
+        ListProcessingPlatformsResponse.newBuilder().addAllProcessingPlatforms(
+            processingPlatformsService.platforms.map { (id, platform) ->
+                DataPolicy.ProcessingPlatform.newBuilder()
+                    .setId(id)
+                    .setPlatformType(platform.type)
+                    .build()
+            },
+        ).build()
+
+    override suspend fun listProcessingPlatformTables(request: ListProcessingPlatformTablesRequest): ListProcessingPlatformTablesResponse =
+        ListProcessingPlatformTablesResponse.newBuilder().addAllTables(
+            processingPlatformsService.listProcessingPlatformTables(request).map { it.fullName },
+        ).build()
+
+    override suspend fun listProcessingPlatformGroups(request: ListProcessingPlatformGroupsRequest): ListProcessingPlatformGroupsResponse =
+        ListProcessingPlatformGroupsResponse.newBuilder().addAllGroups(
+            processingPlatformsService.listProcessingPlatformGroups(request).map { it.name },
+        ).build()
+
+    override suspend fun getProcessingPlatformBarePolicy(request: GetProcessingPlatformBarePolicyRequest): GetProcessingPlatformBarePolicyResponse =
+        GetProcessingPlatformBarePolicyResponse.newBuilder()
+            .setDataPolicy(processingPlatformsService.createBarePolicy(request.platform, request.table))
+            .build()
 }

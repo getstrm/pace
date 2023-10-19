@@ -14,6 +14,9 @@ val jooqGenerationPath = layout.buildDirectory.dir("generated/source/jooq/data_p
 val postgresPort: Int by rootProject.extra
 val jooqSchema = rootProject.extra["schema"] as String
 val jooqMigrationDir = "$projectDir/src/main/resources/db/migration/postgresql"
+val jooqVersion = rootProject.ext["jooqVersion"] as String
+val openDataDiscoveryOpenApiDir = layout.buildDirectory.dir("generated/source/odd").get()
+
 
 plugins {
     id("org.springframework.boot")
@@ -21,8 +24,10 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.kotlin.plugin.spring")
     id("com.bmuschko.docker-remote-api")
+    id("com.apollographql.apollo3") version "3.8.2"
     id("nu.studer.jooq")
     id("org.flywaydb.flyway")
+    id("org.openapi.generator")
 }
 
 dependencies {
@@ -39,13 +44,48 @@ dependencies {
     // Todo remove before squashing
     implementation("io.strmprivacy.grpc.common:kotlin-grpc-common:3.22.0")
 
+    implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.24.0"))
+    implementation("com.google.cloud:google-cloud-bigquery")
+
     implementation("io.strmprivacy.api:api-definitions-kotlin:3.18.4")
     implementation("build.buf.gen:getstrm_daps_grpc_java:1.58.0.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_daps_grpc_kotlin:1.3.1.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_daps_protocolbuffers_java:24.4.0.1.$generatedBufDependencyVersion")
 
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
+    implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
+
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+
+openApiGenerate {
+    generatorName.set("kotlin")
+    inputSpec.set("$rootDir/data-catalogs/open-data-discovery/openapi.yaml")
+    outputDir.set(openDataDiscoveryOpenApiDir.toString())
+    apiPackage.set("org.opendatadiscovery.generated.api")
+    invokerPackage.set("org.opendatadiscovery.generated.invoker")
+    modelPackage.set("org.opendatadiscovery.generated.model")
+    configOptions.set(
+        mapOf(
+            "serializationLibrary" to "jackson",
+            // Required to ignore unknown properties, as the OpenAPI spec does not fully match the implementation :'(
+            "additionalModelTypeAnnotations" to "@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)"
+        )
+    )
+}
+
+tasks.findByName("compileKotlin")?.dependsOn("downloadCollibraApolloSchemaFromIntrospection")
+tasks.findByName("compileKotlin")?.dependsOn("downloadDatahubApolloSchemaFromIntrospection")
+tasks.findByName("compileKotlin")?.dependsOn("openApiGenerate")
+
+kotlin {
+    val kotlinMainSourceSet = sourceSets["main"].kotlin
+
+    kotlinMainSourceSet.srcDir("$openDataDiscoveryOpenApiDir/src/main/kotlin")
 }
 
 tasks.named<BootJar>("bootJar") {
@@ -130,7 +170,7 @@ val migrateTask =
 
 jooq {
     group = "jooq"
-    version.set(dependencyManagement.importedProperties["jooq.version"] as String)
+    version.set(jooqVersion)
 
     configurations {
         create("main") {
@@ -188,5 +228,28 @@ fun Task.setFakeOutputFileIn(path: Directory) {
         taskOutput.file(".gradle-task-$name").asFile.createNewFile()
     }
     outputs.file(taskOutput.file(".gradle-task-$name"))
+}
+
+
+apollo {
+    service("collibra") {
+        packageName.set("com.collibra.generated")
+        sourceFolder.set("collibra")
+        introspection {
+            endpointUrl.set("https://test-drive.collibra.com/graphql/knowledgeGraph/v1")
+            schemaFile.set(file("src/main/graphql/collibra/schema.graphqls"))
+            headers.set(mapOf("Authorization" to "Basic dGVzdGRyaXZldXNlcjlvMHY4bjRuOk9vY2Vtb2ckNW01cjduOGQ="))
+        }
+    }
+
+    service("datahub") {
+        packageName.set("io.datahubproject.generated")
+        sourceFolder.set("datahub")
+        introspection {
+            endpointUrl.set("http://datahub-datahub-frontend.datahub:9002/api/graphql")
+            schemaFile.set(file("src/main/graphql/datahub/schema.graphqls"))
+            headers.set(mapOf("Authorization" to "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhY3RvclR5cGUiOiJVU0VSIiwiYWN0b3JJZCI6ImRhdGFodWIiLCJ0eXBlIjoiUEVSU09OQUwiLCJ2ZXJzaW9uIjoiMiIsImp0aSI6IjE4YWExMjA3LWY2NTQtNDc4OS05MTU3LTkwYTMyMjExMWJkYyIsInN1YiI6ImRhdGFodWIiLCJpc3MiOiJkYXRhaHViLW1ldGFkYXRhLXNlcnZpY2UifQ.8-NksHdL4p3o9_Bryst2MOvH-bATl-avC8liB-E2_sM"))
+        }
+    }
 }
 

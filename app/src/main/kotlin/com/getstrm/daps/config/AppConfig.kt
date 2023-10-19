@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class AppConfig {
+    val processingPlatformConfig: List<ProcessingPlatformConfig> = emptyList()
+    val catalogConfig: List<CatalogConfig> = emptyList()
 
     @GrpcGlobalServerInterceptor
     fun exceptionInterceptor(): ExceptionHandlerInterceptor {
