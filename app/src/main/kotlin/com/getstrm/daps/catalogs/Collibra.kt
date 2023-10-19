@@ -6,10 +6,11 @@ import com.collibra.generated.ListPhysicalDataAssetsQuery
 import com.collibra.generated.ListSchemaIdsQuery
 import com.collibra.generated.ListTablesInSchemaQuery
 import com.collibra.generated.TableWithColumnsQuery
-import com.getstrm.daps.config.DataCatalog
+import com.getstrm.daps.config.CatalogConfiguration
+import com.getstrm.daps.domain.DataCatalog
 import java.util.*
 
-class CollibraCatalog(config: Configuration = Configuration()) : DataCatalog() {
+class CollibraCatalog(config: CatalogConfiguration) : DataCatalog() {
     private val client = config.apolloClient()
     override fun close() {
         client.close()

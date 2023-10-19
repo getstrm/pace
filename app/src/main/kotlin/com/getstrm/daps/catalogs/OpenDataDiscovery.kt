@@ -1,7 +1,8 @@
 package com.getstrm.daps.catalogs
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
-import com.getstrm.daps.config.DataCatalog
+import com.getstrm.daps.config.CatalogConfiguration
+import com.getstrm.daps.domain.DataCatalog
 import org.opendatadiscovery.generated.api.DataSetApi
 import org.opendatadiscovery.generated.api.DataSourceApi
 import org.opendatadiscovery.generated.api.SearchApi
@@ -11,7 +12,7 @@ import java.util.*
 /**
  * Interface to ODD Data Catalogs. Can be optimized using a cache.
  */
-class OpenDataDiscoveryCatalog(configuration: ODDConfiguration = ODDConfiguration()) : DataCatalog() {
+class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration = ODDConfiguration()) : DataCatalog() {
     private val searchClient = SearchApi(configuration.serverUrl)
     private val datasetsClient = DataSetApi(configuration.serverUrl)
     private val dataSourceClient = DataSourceApi(configuration.serverUrl)

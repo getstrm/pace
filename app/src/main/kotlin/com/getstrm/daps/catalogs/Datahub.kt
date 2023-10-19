@@ -2,11 +2,12 @@ package com.getstrm.daps.catalogs
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import com.apollographql.apollo3.ApolloClient
-import com.getstrm.daps.config.DataCatalog
+import com.getstrm.daps.config.CatalogConfiguration
+import com.getstrm.daps.domain.DataCatalog
 import io.datahubproject.generated.GetDatasetDetailsQuery
 import io.datahubproject.generated.ListDatasetsQuery
 
-class DatahubCatalog(private val config: DatahubConfiguration = DatahubConfiguration()) : DataCatalog() {
+class DatahubCatalog(private val config: CatalogConfiguration = DatahubConfiguration()) : DataCatalog() {
     val client = config.apolloClient()
 
     override fun close() {

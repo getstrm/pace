@@ -7,6 +7,7 @@ import build.buf.gen.getstrm.api.data_policies.v1alpha.ListProcessingPlatformGro
 import build.buf.gen.getstrm.api.data_policies.v1alpha.ListProcessingPlatformTablesRequest
 import com.getstrm.daps.bigquery.BigQueryClient
 import com.getstrm.daps.config.AppConfig
+import com.getstrm.daps.config.ProcessingPlatformConfiguration
 import com.getstrm.daps.dao.TokensDao
 import com.getstrm.daps.databricks.DatabricksClient
 import com.getstrm.daps.domain.Group
@@ -17,17 +18,17 @@ import org.springframework.stereotype.Component
 
 @Component
 class ProcessingPlatformsService(
-    private val appConfig: AppConfig,
+    private val config: ProcessingPlatformConfiguration,
     private val tokensDao: TokensDao,
 ) {
-    val platforms: Map<String, ProcessingPlatformInterface> = appConfig.processingPlatformConfig.mapNotNull { config ->
-        when (config.type) {
-            DataPolicy.ProcessingPlatform.PlatformType.DATABRICKS -> DatabricksClient(config)
-            DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE -> SnowflakeClient(config, tokensDao)
-            DataPolicy.ProcessingPlatform.PlatformType.BIGQUERY -> BigQueryClient(config)
-            else -> null
-        }
-    }.associateBy { it.id }
+    final val platforms: Map<String, ProcessingPlatformInterface>
+
+    init {
+        val databricks = config.databricks.map { DatabricksClient(it) }
+        val snowflake = config.snowflake.map { SnowflakeClient(it, tokensDao) }
+        val bigQuery = config.bigquery.map { BigQueryClient(it) }
+        platforms = (databricks + snowflake + bigQuery).associateBy { it.id }
+    }
 
     suspend fun listGroups(platformId: String): List<Group> =
         platforms[platformId]?.listGroups() ?: throw ProcessingPlatformNotFoundException(platformId)
