@@ -1,15 +1,18 @@
 import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerRemoveContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
+import nu.studer.gradle.jooq.JooqGenerate
 import org.flywaydb.gradle.task.FlywayMigrateTask
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import java.net.InetAddress
 import java.net.Socket
 import kotlin.system.exitProcess
 
-val generatedBufDependencyVersion = rootProject.extra["generatedBufDependencyVersion"] as String
+val generatedBufDependencyVersion: String by rootProject.extra
 val jooqGenerationPath = layout.buildDirectory.dir("generated/source/jooq/data_policy_service").get()
 val postgresPort: Int by rootProject.extra
+val jooqSchema = rootProject.extra["schema"] as String
 val jooqMigrationDir = "$projectDir/src/main/resources/db/migration/postgresql"
 
 plugins {
@@ -31,6 +34,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("io.micrometer:micrometer-registry-prometheus")
+    jooqGenerator("org.postgresql:postgresql")
 
     // Todo remove before squashing
     implementation("io.strmprivacy.grpc.common:kotlin-grpc-common:3.22.0")
@@ -52,7 +56,7 @@ tasks.named<BootJar>("bootJar") {
 }
 
 val removePostgresContainer =
-    tasks.register("jooqPostgresRemove", com.bmuschko.gradle.docker.tasks.container.DockerRemoveContainer::class) {
+    tasks.register("jooqPostgresRemove", DockerRemoveContainer::class) {
         group = "postgres"
         targetContainerId("jooq-postgres")
         force.set(true)
@@ -114,7 +118,6 @@ val stopPostgresContainer =
 
 val migrateTask =
     tasks.register("jooqMigrate", FlywayMigrateTask::class) {
-        println("filesystem:${sourceSets.main.get().resources.srcDirs.first().absolutePath}/db/migration/postgresql")
         dependsOn(startPostgresContainer)
         setGroup("flyway")
 
@@ -122,15 +125,12 @@ val migrateTask =
         url = "jdbc:postgresql://localhost:$postgresPort/postgres"
         user = "postgres"
         password = "postgres"
-        locations =
-            arrayOf(
-                "filesystem:${sourceSets.main.get().resources.srcDirs.first().absolutePath}/db/migration/postgresql",
-            )
+        locations = arrayOf("filesystem:$jooqMigrationDir")
     }
 
 jooq {
     group = "jooq"
-    version.set(jooq.version)
+    version.set(dependencyManagement.importedProperties["jooq.version"] as String)
 
     configurations {
         create("main") {
@@ -159,14 +159,13 @@ jooq {
     }
 }
 
-tasks.named<nu.studer.gradle.jooq.JooqGenerate>("generateJooq") {
+tasks.named<JooqGenerate>("generateJooq") {
     dependsOn(migrateTask)
     allInputsDeclared.set(true)
     setFakeOutputFileIn(jooqGenerationPath)
     inputs.dir(jooqMigrationDir)
 }
 
-// Ensure Jooq Generation Tasks are only executed when files in the migration path change
 gradle.taskGraph.whenReady {
     // Disable starting postgres in docker in CI
     allTasks
@@ -175,7 +174,7 @@ gradle.taskGraph.whenReady {
 
     // Set inputs and outputs for all tasks for Jooq generation
     allTasks
-        .filter { listOf("postgres", "flyway", "jooq").contains(it.group) }
+        .filter { it.group in listOf("postgres", "flyway", "jooq") }
         .forEach {
             it.inputs.dir(jooqMigrationDir)
             it.setFakeOutputFileIn(jooqGenerationPath)
