@@ -1,36 +1,35 @@
-package io.strmprivacy.management.data_policy_service.service
+package com.getstrm.daps.service
 
-import DataPolicyDao
+import com.getstrm.daps.dao.DataPolicyDao
 import InvalidDataPolicyEmptyFieldTransforms
 import InvalidDataPolicyMissingAttribute
 import InvalidDataPolicyNonEmptyLastFieldTransform
 import InvalidDataPolicyOverlappingAttributes
 import InvalidDataPolicyOverlappingPrincipals
 import InvalidDataPolicyUnknownGroup
-import ProcessingPlatformsService
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import coWithTransactionResult
 import io.strmprivacy.api.account.v1.AccountServiceGrpcKt
 import io.strmprivacy.api.account.v1.GetAccountDetailsRequest
 import io.strmprivacy.grpc.common.auth.withCallerPrincipal
 import org.jooq.DSLContext
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import pathString
 
 @Component
 class DataPolicyService(
+    @Value("\${app.context}") private val context: String,
     private val dataPolicyDao: DataPolicyDao,
-    private val accountService: AccountServiceGrpcKt.AccountServiceCoroutineStub,
     private val processingPlatforms: ProcessingPlatformsService,
     private val jooq: DSLContext,
 ) {
-    suspend fun listDataPolicies(): List<DataPolicy> = dataPolicyDao.listDataPolicies(getOrganizationId())
+    suspend fun listDataPolicies(): List<DataPolicy> = dataPolicyDao.listDataPolicies(context)
 
     suspend fun upsertDataPolicy(dataPolicy: DataPolicy): DataPolicy {
-        val organizationId = getOrganizationId()
         validate(dataPolicy)
         return jooq.coWithTransactionResult {
-            val newDataPolicy = dataPolicyDao.upsertDataPolicy(dataPolicy, organizationId, it)
+            val newDataPolicy = dataPolicyDao.upsertDataPolicy(dataPolicy, context, it)
             enforceStatement(newDataPolicy)
             newDataPolicy
         }
@@ -106,10 +105,6 @@ class DataPolicyService(
     }
 
     fun getLatestDataPolicy(id: String) = dataPolicyDao.getLatestDataPolicy(id)
-
-    private suspend fun getOrganizationId(): String = withCallerPrincipal { metadata ->
-        accountService.getAccountDetails(GetAccountDetailsRequest.getDefaultInstance(), metadata)
-    }.organizationId
 
     private suspend fun enforceStatement(dataPolicy: DataPolicy) {
         // TODO: replace with switch based on platform identifier instead of type. Possibly multiple platforms of the same type.

@@ -1,8 +1,8 @@
 package com.getstrm.daps.api
 
-import ProcessingPlatformsService
+import com.getstrm.daps.service.ProcessingPlatformsService
 import build.buf.gen.getstrm.api.data_policies.v1alpha.*
-import io.strmprivacy.management.data_policy_service.service.DataPolicyService
+import com.getstrm.daps.service.DataPolicyService
 import net.devh.boot.grpc.server.service.GrpcService
 
 @GrpcService

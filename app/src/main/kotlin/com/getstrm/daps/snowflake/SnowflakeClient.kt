@@ -13,7 +13,6 @@ import com.getstrm.jooq.generated.tables.records.ProcessingPlatformTokensRecord
 import io.github.bonigarcia.wdm.WebDriverManager
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.io.output.NullOutputStream
-import org.bouncycastle.asn1.cms.CMSAttributes.contentType
 import org.openqa.selenium.By
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeDriverService
@@ -24,11 +23,16 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForEntity
-import java.util.*
+import toOffsetDateTime
+import java.net.URLEncoder
+import java.time.Duration
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 class SnowflakeClient(
     override val id: String,
@@ -74,86 +78,54 @@ class SnowflakeClient(
         get() = SNOWFLAKE
 
 
-    override suspend fun applyPolicy(dataPolicy: DataPolicy) {
+    private fun executeRequest(request: SnowflakeRequest): ResponseEntity<SnowflakeResponse> {
         handleTokenExpiry()
-        val statement = SnowflakeDynamicViewGenerator(dataPolicy).toDynamicViewSQL().replace("\\n".toRegex(), "\\\\n")
-
-        val request = HttpEntity(
-            """{
-                    "statement": "$statement",
-                    "timeout": 60,
-                    "resultSetMetaData": { "format": "json" },
-                    "database": "STRM",
-                    "warehouse": "COMPUTE_WH",
-                    "parameters": { "MULTI_STATEMENT_COUNT": "${statement.mapNotNull { element -> element.takeIf { it == ';' } }.size}" }
-                }
-                """.trimIndent(),
-            HttpHeaders().apply {
-                accept = listOf(MediaType.ALL)
-                contentType = MediaType.APPLICATION_JSON
-                setBearerAuth(tokens?.accessToken.orEmpty())
-            },
-        )
-
         try {
-            restTemplate.postForEntity<Tokens>(
-                "$url/api/v2/statements", request
+            return restTemplate.postForEntity<SnowflakeResponse>(
+                "$url/api/v2/statements",
+                HttpEntity(request, jsonHeaders())
             )
         } catch (e: HttpStatusCodeException) {
-            log.warn("SQL:\n{}", statement)
+            log.warn("Statement: {}", request.statement)
             log.warn("Caused error {} {}", e.message, e.responseBodyAsString)
             throw ProcessingPlatformExecuteException(id, e.responseBodyAsString)
         }
     }
 
-    override suspend fun listTables(): List<Table> {
-        handleTokenExpiry()
-        val headers = HttpHeaders().apply {
-            setBearerAuth(tokens?.accessToken.orEmpty())
-            contentType = MediaType.APPLICATION_JSON
-            accept = listOf(MediaType.APPLICATION_JSON)
-        }
+    override suspend fun applyPolicy(dataPolicy: DataPolicy) {
+        val statement = SnowflakeDynamicViewGenerator(dataPolicy).toDynamicViewSQL().replace("\\n".toRegex(), "\\\\n")
+        val statementCount = statement.mapNotNull { element -> element.takeIf { it == ';' } }.size.toString()
+        val request = SnowflakeRequest(
+            statement = statement,
+            database = database,
+            warehouse = warehouse,
+            parameters = mapOf("MULTI_STATEMENT_COUNT" to statementCount),
+        )
+        executeRequest(request)
+    }
 
-        val request = HttpEntity(
-            """{
-                    "statement": "select table_schema, table_name, table_type, created as create_date, last_altered as modify_date from information_schema.tables where table_type = 'BASE TABLE';",
-                    "timeout": 60,
-                    "resultSetMetaData": { "format": "json" },
-                    "database": "STRM",
-                    "warehouse": "COMPUTE_WH"
-                }
-                    """.trimIndent(),
-            headers
+    override suspend fun listTables(): List<Table> {
+        val statement =
+            "select table_schema, table_name, table_type, created as create_date, last_altered as modify_date from information_schema.tables where table_type = 'BASE TABLE';"
+        val request = SnowflakeRequest(
+            statement = statement,
+            database = database,
+            warehouse = warehouse,
         )
-        val snowflakeResponse = restTemplate.postForEntity<SnowflakeResponse>(
-            "$url/api/v2/statements",
-            request
-        )
-        return snowflakeResponse.body?.data.orEmpty().map { (schemaName, tableName) ->
+        return executeRequest(request).body?.data.orEmpty().map { (schemaName, tableName) ->
             val fullName = "$schemaName.$tableName"
             SnowflakeTable(fullName, tableName, schemaName, this)
         }
     }
 
     fun describeTable(schema: String, table: String): SnowflakeResponse? {
-        val body = """{
-                    "statement": "DESCRIBE TABLE \"$schema\".\"$table\"",
-                    "timeout": 60,
-                    "resultSetMetaData": { "format": "json" },
-                    "database": "$database",
-                    "schema": "$schema",
-                    "warehouse": "$warehouse"
-                }
-        """.trimIndent()
-        val headers = HttpHeaders().apply {
-            setBearerAuth(tokens?.accessToken.orEmpty())
-            contentType = MediaType.APPLICATION_JSON
-            accept = listOf(MediaType.APPLICATION_JSON)
-        }
-
-        val request = HttpEntity(body, headers)
-        val snowflakeResponse = restTemplate.postForEntity<SnowflakeResponse>("$url/api/v2/statements", request)
-
+        val request = SnowflakeRequest(
+            statement = "DESCRIBE TABLE \"$schema\".\"$table\"",
+            database = database,
+            warehouse = warehouse,
+            schema = schema,
+        )
+        val snowflakeResponse = executeRequest(request)
 
         if (snowflakeResponse.body?.message != "Statement executed successfully.") {
             log.error("{}", snowflakeResponse)
@@ -163,24 +135,15 @@ class SnowflakeClient(
     }
 
     override suspend fun listGroups(): List<Group> {
-        handleTokenExpiry()
+        val request = SnowflakeRequest(
+            statement = "SHOW ROLES",
+        )
+        val response = executeRequest(request)
 
-        val response = httpClient.post("$url/api/v2/statements") {
-            setHeaders(this, tokens?.accessToken.orEmpty())
-            setBody(
-                """{
-                    "statement": "SHOW ROLES",
-                    "timeout": 60,
-                    "resultSetMetaData": { "format": "json" }
-                }
-                    """.trimIndent(),
-            )
+        if (response.body?.message != "Statement executed successfully.") {
+            throw RuntimeException(response.body?.message)
         }
-        val snowflakeResponse = objectMapper.readValue(response.body<String>(), SnowflakeResponse::class.java)
-        if (snowflakeResponse.message != "Statement executed successfully.") {
-            throw RuntimeException(snowflakeResponse.message)
-        }
-        return snowflakeResponse.data.orEmpty().mapNotNull {
+        return response.body?.data.orEmpty().mapNotNull {
             val owner = it[8]
             if (owner.isEmpty()) {
                 null
@@ -190,26 +153,30 @@ class SnowflakeClient(
         }
     }
 
-    private fun setHeaders(
-        builder: HttpRequestBuilder,
-        accessToken: String,
-    ) {
-        builder.contentType(ContentType.Application.Json)
-        builder.headers {
-            builder.accept(ContentType.Application.Json)
-            append("Authorization", "Bearer $accessToken")
+    private fun jsonHeaders() = HttpHeaders().apply {
+        setBearerAuth(tokens?.accessToken.orEmpty())
+        contentType = MediaType.APPLICATION_JSON
+        accept = listOf(MediaType.APPLICATION_JSON)
         }
-    }
 
-    private fun getAccessToken() {
-        val tokenCode = getAuthenticationCode()
-        val requestBody = LinkedMultiValueMap(
-            mapOf(
-                "grant_type" to listOf("authorization_code"),
-                "code" to listOf(tokenCode),
-                "redirect_uri" to listOf(redirectUri),
+    private fun getAccessToken(refresh: Boolean = false) {
+        val requestBody = if (refresh) {
+            LinkedMultiValueMap(
+                mapOf(
+                    "grant_type" to listOf("refresh_token"),
+                    "refresh_token" to listOf(tokens?.refreshToken.orEmpty()),
+                )
             )
-        )
+        } else {
+            val tokenCode = getAuthenticationCode()
+            LinkedMultiValueMap(
+                mapOf(
+                    "grant_type" to listOf("authorization_code"),
+                    "code" to listOf(tokenCode),
+                    "redirect_uri" to listOf(redirectUri),
+                )
+            )
+        }
 
         val request = HttpEntity(
             requestBody,
@@ -220,32 +187,7 @@ class SnowflakeClient(
             },
         )
 
-        restTemplate.postForEntity<Tokens>(
-            "$url/oauth/token-request", request
-        ).also {
-            tokensDao.upsertToken(id, it.body!!)
-        }
-    }
-
-    private fun refreshAccessToken() {
-        val requestBody = LinkedMultiValueMap(
-            mapOf(
-                "grant_type" to listOf("refresh_token"),
-                "refresh_token" to listOf(tokens?.refreshToken.orEmpty()),
-            )
-        )
-        val request = HttpEntity(
-            requestBody,
-            HttpHeaders().apply {
-                accept = listOf(MediaType.ALL)
-                contentType = MediaType.APPLICATION_FORM_URLENCODED
-                setBasicAuth(clientId, clientSecret)
-            },
-        )
-
-        restTemplate.postForEntity<Tokens>(
-            "$url/oauth/token-request", request
-        ).also {
+        restTemplate.postForEntity<Tokens>("$url/oauth/token-request", request).also {
             tokensDao.upsertToken(id, it.body!!)
         }
     }
@@ -297,7 +239,7 @@ class SnowflakeClient(
         return authenticationCode
     }
 
-    private suspend fun handleTokenExpiry() {
+    private fun handleTokenExpiry() {
         val now = Instant.now().toOffsetDateTime()
         val deltaRefresh = tokens!!.refreshTokenExpiresAt!!.until(now, ChronoUnit.SECONDS)
         val deltaAccess = tokens!!.expiresAt!!.until(now, ChronoUnit.SECONDS)
@@ -306,11 +248,21 @@ class SnowflakeClient(
         } else {
             // refresh if either are within 60 seconds of expiry
             if (deltaAccess > -60) {
-                refreshAccessToken()
+                getAccessToken(refresh = true)
             }
         }
     }
 }
+
+private data class SnowflakeRequest(
+    val statement: String,
+    val timeout: Int = 60,
+    val resultSetMetaData: Map<String, String> = mapOf("format" to "json"),
+    val database: String? = null,
+    val schema: String? = null,
+    val warehouse: String? = null,
+    val parameters: Map<String, String> = emptyMap(),
+)
 
 class SnowflakeTable(
     override val fullName: String,
@@ -319,6 +271,7 @@ class SnowflakeTable(
     private val client: SnowflakeClient,
 ) : Table() {
     override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
-        return client.describeTable(schema, table).toDataPolicy(platform, this)
+        TODO()
+        // return client.describeTable(schema, table)?.toDataPolicy(platform, this) ?:  throw NotFoundException(table)
     }
 }

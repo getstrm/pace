@@ -1,9 +1,14 @@
+package com.getstrm.daps.dao
+
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import com.getstrm.jooq.generated.tables.Policies.Companion.POLICIES
 import com.getstrm.jooq.generated.tables.records.PoliciesRecord
 import com.google.protobuf.util.JsonFormat
 import org.jooq.DSLContext
 import org.springframework.stereotype.Component
+import toJsonb
+import toOffsetDateTime
+import toTimestamp
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -11,16 +16,17 @@ import java.util.*
 class DataPolicyDao(
     private val jooq: DSLContext,
 ) {
-    fun listDataPolicies(organizationId: String): List<DataPolicy> = jooq.select()
+    fun listDataPolicies(context: String): List<DataPolicy> = jooq.select()
         .from(POLICIES)
-        .where(POLICIES.ORGANIZATION_ID.eq(organizationId))
+        // Todo: modify schema, rename to context
+        .where(POLICIES.ORGANIZATION_ID.eq(context))
         .fetchInto(POLICIES)
         .map { it.toApiDataPolicy() }
 
-    fun upsertDataPolicy(dataPolicy: DataPolicy, organizationId: String, context: DSLContext = jooq): DataPolicy {
+    fun upsertDataPolicy(dataPolicy: DataPolicy, context: String, dslContext: DSLContext = jooq): DataPolicy {
         val oldPolicy = with(dataPolicy.info) {
-            getDataPolicy(title, organizationId, version, context)?.also {
-                deactivateDataPolicy(title, organizationId, version, updateTime.toOffsetDateTime(), context)
+            getDataPolicy(title, context, version, dslContext)?.also {
+                deactivateDataPolicy(title, context, version, updateTime.toOffsetDateTime(), dslContext)
             }
         }
         val updateTimestamp = OffsetDateTime.now()
@@ -30,11 +36,11 @@ class DataPolicyDao(
                 dataPolicy.info.toBuilder()
                     .setUpdateTime(updateTimestamp.toTimestamp())
                     .setCreateTime(oldPolicy?.info?.createTime ?: updateTimestamp.toTimestamp())
-                    .setOrganizationId(organizationId)
+                    .setOrganizationId(context)
                     .build()
             ).build()
 
-        context.newRecord(POLICIES).apply {
+        dslContext.newRecord(POLICIES).apply {
             this.policy = updatedPolicy.toJsonb()
             this.id = updatedPolicy.id
             this.updatedAt = updateTimestamp
@@ -43,7 +49,7 @@ class DataPolicyDao(
             this.title = updatedPolicy.info.title
             this.description = updatedPolicy.info.description
             this.version = updatedPolicy.info.version
-            this.organizationId = organizationId
+            this.organizationId = context
         }.also {
             it.store()
         }
@@ -51,21 +57,21 @@ class DataPolicyDao(
         return updatedPolicy
     }
 
-    private fun deactivateDataPolicy(title: String, organizationId: String, version: String, updateTime: OffsetDateTime, context: DSLContext = jooq) {
-        context.update(POLICIES)
+    private fun deactivateDataPolicy(title: String, context: String, version: String, updateTime: OffsetDateTime, dslContext: DSLContext = jooq) {
+        dslContext.update(POLICIES)
             .set(POLICIES.ACTIVE, false)
             .where(POLICIES.TITLE.eq(title))
-            .and(POLICIES.ORGANIZATION_ID.eq(organizationId))
+            .and(POLICIES.ORGANIZATION_ID.eq(context))
             .and(POLICIES.VERSION.eq(version))
             .and(POLICIES.UPDATED_AT.eq(updateTime))
             .execute()
     }
 
-    private fun getDataPolicy(title: String, organizationId: String, version: String, context: DSLContext = jooq): DataPolicy? {
-        return context.select()
+    private fun getDataPolicy(title: String, context: String, version: String, dslContext: DSLContext = jooq): DataPolicy? {
+        return dslContext.select()
             .from(POLICIES)
             .where(POLICIES.TITLE.eq(title))
-            .and(POLICIES.ORGANIZATION_ID.eq(organizationId))
+            .and(POLICIES.ORGANIZATION_ID.eq(context))
             .and(POLICIES.VERSION.eq(version))
             .orderBy(POLICIES.UPDATED_AT.desc())
             .limit(1)
@@ -73,8 +79,8 @@ class DataPolicyDao(
             .toApiDataPolicy()
     }
 
-    fun getLatestDataPolicy(id: String, context: DSLContext = jooq): DataPolicy? {
-        return context.select()
+    fun getLatestDataPolicy(id: String, dslContext: DSLContext = jooq): DataPolicy? {
+        return dslContext.select()
             .from(POLICIES)
             .where(POLICIES.ID.eq(id))
             .orderBy(POLICIES.UPDATED_AT.desc())

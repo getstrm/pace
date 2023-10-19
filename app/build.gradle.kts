@@ -35,6 +35,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.postgresql:postgresql")
+    // Todo: maybe we can use grpc-spring-boot-starter instead to also create gRPC clients
     implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
