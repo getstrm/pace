@@ -16,7 +16,6 @@ import com.google.cloud.bigquery.JobException
 import com.google.cloud.bigquery.QueryJobConfiguration
 import com.google.cloud.bigquery.TableId
 import io.strmprivacy.management.data_policy_service.bigquery.BigQueryDynamicViewGenerator
-import io.strmprivacy.management.data_policy_service.bigquery.toDataPolicy
 import org.slf4j.LoggerFactory
 import toFullName
 import com.google.cloud.bigquery.Table as BQTable

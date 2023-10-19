@@ -2,6 +2,10 @@ package com.getstrm.daps.catalogs
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import com.getstrm.daps.config.DataCatalog
+import org.opendatadiscovery.generated.api.DataSetApi
+import org.opendatadiscovery.generated.api.DataSourceApi
+import org.opendatadiscovery.generated.api.SearchApi
+import org.opendatadiscovery.generated.model.*
 import java.util.*
 
 /**

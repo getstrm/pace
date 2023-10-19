@@ -1,7 +1,7 @@
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import com.getstrm.jooq.generated.tables.Policies.Companion.POLICIES
+import com.getstrm.jooq.generated.tables.records.PoliciesRecord
 import com.google.protobuf.util.JsonFormat
-import io.strmprivacy.jooq.generated.tables.records.PoliciesRecord
-import io.strmprivacy.jooq.generated.tables.references.POLICIES
 import org.jooq.DSLContext
 import org.springframework.stereotype.Component
 import java.time.OffsetDateTime

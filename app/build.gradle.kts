@@ -40,6 +40,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("io.micrometer:micrometer-registry-prometheus")
     jooqGenerator("org.postgresql:postgresql")
+    implementation("com.databricks:databricks-sdk-java:0.10.0")
+
+    // fixme Only for login to snowflake
+    implementation("org.seleniumhq.selenium:selenium-java:4.14.1")
+    implementation("io.github.bonigarcia:webdrivermanager:5.5.3")
+
 
     // Todo remove before squashing
     implementation("io.strmprivacy.grpc.common:kotlin-grpc-common:3.22.0")
@@ -89,6 +95,7 @@ kotlin {
 }
 
 tasks.named<BootJar>("bootJar") {
+    mainClass =  "com.getstrm.daps.ApplicationKt"
     manifest {
         attributes["Implementation-Title"] = "Data Policy Service"
         attributes["Implementation-Version"] = version
@@ -190,7 +197,7 @@ jooq {
                         includes = ".*"
                     }
                     target.apply {
-                        packageName = "io.strmprivacy.jooq.generated"
+                        packageName = "com.getstrm.jooq.generated"
                         directory = jooqGenerationPath.asFile.absolutePath
                     }
                 }

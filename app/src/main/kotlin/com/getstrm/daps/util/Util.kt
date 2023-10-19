@@ -71,11 +71,12 @@ suspend fun <T> DSLContext.transactionCoroutine(transactional: suspend (Configur
         "No ZedTokenContext found in coroutine context - should be set by the ZedTokenRequestServerInterceptor"
     }
 
-    return transactionPublisher { c ->
-        mono(context = context) {
-            transactional.invoke(c)
-        }
-    }.awaitFirstOrNull() as T
+    return transactional as T
+//    return transactionPublisher { c ->
+//        mono(context = context) {
+//            transactional.invoke(c)
+//        }
+//    }.awaitFirstOrNull() as T
 }
 
 val mapper = jacksonObjectMapper()

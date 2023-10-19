@@ -2,6 +2,8 @@ package com.getstrm.daps.catalogs
 
 import kotlinx.coroutines.coroutineScope
 
+import toYaml
+
 /**
  * In order to run this, you need:
  * 1. A trial account to Collibra Data Intelligence Cloud (expires after 14 days)
