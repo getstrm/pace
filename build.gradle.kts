@@ -46,3 +46,5 @@ allprojects {
         useJUnitPlatform()
     }
 }
+
+ext["postgresPort"] = if (ext.has("ciBuild")) 5432 else 5444

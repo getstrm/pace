@@ -13,6 +13,8 @@ pluginManagement {
         id("com.google.cloud.artifactregistry.gradle-plugin") version "2.2.1"
         id("nu.studer.jooq") version "8.2.1"
         id("org.openapi.generator") version "7.0.1"
+        id("com.bmuschko.docker-remote-api") version "9.3.4"
+        id("org.flywaydb.flyway") version "9.22.3"
     }
 }
 

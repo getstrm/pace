@@ -1,12 +1,25 @@
+import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
+import org.flywaydb.gradle.task.FlywayMigrateTask
 import org.springframework.boot.gradle.tasks.bundling.BootJar
+import java.net.InetAddress
+import java.net.Socket
+import kotlin.system.exitProcess
 
 val generatedBufDependencyVersion = rootProject.extra["generatedBufDependencyVersion"] as String
+val jooqGenerationPath = layout.buildDirectory.dir("generated/source/jooq/data_policy_service").get()
+val postgresPort: Int by rootProject.extra
+val jooqMigrationDir = "$projectDir/src/main/resources/db/migration/postgresql"
 
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.kotlin.plugin.spring")
+    id("com.bmuschko.docker-remote-api")
+    id("nu.studer.jooq")
+    id("org.flywaydb.flyway")
 }
 
 dependencies {
@@ -36,5 +49,145 @@ tasks.named<BootJar>("bootJar") {
         attributes["Implementation-Title"] = "Data Policy Service"
         attributes["Implementation-Version"] = version
     }
+}
+
+val removePostgresContainer =
+    tasks.register("jooqPostgresRemove", com.bmuschko.gradle.docker.tasks.container.DockerRemoveContainer::class) {
+        group = "postgres"
+        targetContainerId("jooq-postgres")
+        force.set(true)
+        onError {
+            // noop
+        }
+    }
+
+val createPostgresContainer =
+    tasks.register("jooqPostgresCreate", DockerCreateContainer::class) {
+        dependsOn(removePostgresContainer)
+        group = "postgres"
+        targetImageId("postgres:12")
+        containerName.set("jooq-postgres")
+        hostConfig.portBindings.set(listOf("$postgresPort:5432"))
+        hostConfig.autoRemove.set(true)
+        envVars.set(
+            mapOf(
+                "POSTGRES_USER" to "postgres",
+                "POSTGRES_PASSWORD" to "postgres",
+                "POSTGRES_DB" to "postgres"
+            )
+        )
+        attachStderr.set(true)
+        attachStdout.set(true)
+        tty.set(true)
+    }
+
+val startPostgresContainer =
+    tasks.register("jooqPostgresStart", DockerStartContainer::class) {
+        group = "postgres"
+        dependsOn(createPostgresContainer)
+        targetContainerId("jooq-postgres")
+        doLast {
+            val tries = 100
+            for (i in 1..tries) {
+                try {
+                    Socket(InetAddress.getLocalHost().hostName, postgresPort)
+                    // It might take postgres a while to be ready for connections
+                    project.logger.lifecycle("Connection to port $postgresPort succeeded, waiting 2 seconds for Postgres to finish initialization")
+                    Thread.sleep(2000)
+                    break
+                } catch (e: Exception) {
+                    Thread.sleep(100)
+                }
+                if (i == tries) {
+                    project.logger.lifecycle("No connection to port $postgresPort was established")
+                    exitProcess(1)
+                }
+            }
+        }
+    }
+
+val stopPostgresContainer =
+    tasks.register("jooqPostgresStop", DockerStopContainer::class) {
+        group = "postgres"
+        targetContainerId("jooq-postgres")
+    }
+
+val migrateTask =
+    tasks.register("jooqMigrate", FlywayMigrateTask::class) {
+        println("filesystem:${sourceSets.main.get().resources.srcDirs.first().absolutePath}/db/migration/postgresql")
+        dependsOn(startPostgresContainer)
+        setGroup("flyway")
+
+        driver = "org.postgresql.Driver"
+        url = "jdbc:postgresql://localhost:$postgresPort/postgres"
+        user = "postgres"
+        password = "postgres"
+        locations =
+            arrayOf(
+                "filesystem:${sourceSets.main.get().resources.srcDirs.first().absolutePath}/db/migration/postgresql",
+            )
+    }
+
+jooq {
+    group = "jooq"
+    version.set(jooq.version)
+
+    configurations {
+        create("main") {
+            jooqConfiguration.apply {
+                logging = org.jooq.meta.jaxb.Logging.WARN
+                jdbc.apply {
+                    driver = "org.postgresql.Driver"
+                    url = "jdbc:postgresql://localhost:$postgresPort/postgres"
+                    user = "postgres"
+                    password = "postgres"
+                }
+                generator.apply {
+                    name = "org.jooq.codegen.KotlinGenerator"
+                    database.apply {
+                        name = "org.jooq.meta.postgres.PostgresDatabase"
+                        inputSchema = rootProject.extra["schema"] as String
+                        includes = ".*"
+                    }
+                    target.apply {
+                        packageName = "io.strmprivacy.jooq.generated"
+                        directory = jooqGenerationPath.asFile.absolutePath
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.named<nu.studer.gradle.jooq.JooqGenerate>("generateJooq") {
+    dependsOn(migrateTask)
+    allInputsDeclared.set(true)
+    setFakeOutputFileIn(jooqGenerationPath)
+    inputs.dir(jooqMigrationDir)
+}
+
+// Ensure Jooq Generation Tasks are only executed when files in the migration path change
+gradle.taskGraph.whenReady {
+    // Disable starting postgres in docker in CI
+    allTasks
+        .filter { it.group == "postgres" }
+        .forEach { it.onlyIf { !(rootProject.ext.has("ciBuild")) } }
+
+    // Set inputs and outputs for all tasks for Jooq generation
+    allTasks
+        .filter { listOf("postgres", "flyway", "jooq").contains(it.group) }
+        .forEach {
+            it.inputs.dir(jooqMigrationDir)
+            it.setFakeOutputFileIn(jooqGenerationPath)
+        }
+}
+
+fun Task.setFakeOutputFileIn(path: Directory) {
+    val taskOutput = path.dir("..")
+
+    doLast {
+        taskOutput.file(".gradle-task-$name").asFile.createNewFile()
+    }
+    outputs.file(taskOutput.file(".gradle-task-$name"))
 }
 
