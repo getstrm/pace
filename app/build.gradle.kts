@@ -7,6 +7,7 @@ import org.flywaydb.gradle.task.FlywayMigrateTask
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import java.net.InetAddress
 import java.net.Socket
+import java.util.*
 import kotlin.system.exitProcess
 
 val generatedBufDependencyVersion: String by rootProject.extra
@@ -44,8 +45,9 @@ dependencies {
     implementation("com.databricks:databricks-sdk-java:0.10.0")
 
     // fixme Only for login to snowflake
-    implementation("org.seleniumhq.selenium:selenium-java:4.14.1")
-    implementation("io.github.bonigarcia:webdrivermanager:5.5.3")
+    implementation("org.seleniumhq.selenium:selenium-java:4.14.1") // todo remove
+    implementation("io.github.bonigarcia:webdrivermanager:5.5.3") // todo remove
+    implementation("com.nimbusds:nimbus-jose-jwt:9.37")
 
 
     // Todo remove before squashing
@@ -89,6 +91,23 @@ openApiGenerate {
 tasks.findByName("compileKotlin")?.dependsOn("downloadCollibraApolloSchemaFromIntrospection")
 tasks.findByName("compileKotlin")?.dependsOn("downloadDatahubApolloSchemaFromIntrospection")
 tasks.findByName("compileKotlin")?.dependsOn("openApiGenerate")
+
+gradle.taskGraph.whenReady {
+    val apolloTaskNameRegex = "download(.+)ApolloSchemaFromIntrospection".toRegex()
+
+    // Disable introspection tasks if the schema file already exists
+    allTasks
+        .filter { "ApolloSchemaFromIntrospection" in it.name }
+        .forEach {
+            apolloTaskNameRegex.find(it.name)?.let { matchResult ->
+                val catalogName = matchResult.groupValues[1].lowercase(Locale.getDefault())
+                val catalogGraphQlSchemaFileExists =
+                    File("$rootDir/app/src/main/graphql/$catalogName/schema.graphqls").exists()
+
+                it.onlyIf { !catalogGraphQlSchemaFileExists }
+            }
+        }
+}
 
 kotlin {
     val kotlinMainSourceSet = sourceSets["main"].kotlin
