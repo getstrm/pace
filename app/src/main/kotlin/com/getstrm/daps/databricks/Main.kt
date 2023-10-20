@@ -1,16 +1,13 @@
-package io.strmprivacy.management.data_policy_service.databricks
+package com.getstrm.daps.databricks
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
-import com.getstrm.daps.config.ProcessingPlatformConfig
-import com.getstrm.daps.databricks.DatabricksClient
-import com.getstrm.daps.databricks.DatabricksDynamicViewGenerator
-import com.getstrm.daps.databricks.toDataPolicy
+import com.getstrm.daps.config.DatabricksConfig
 import kotlinx.coroutines.runBlocking
 
 fun main() {
     val databricksClient = DatabricksClient(
-        id = "hoi",
-        ProcessingPlatformConfig.DatabricksConfig(
+        DatabricksConfig(
+            id = "hoi",
             workspaceHost = "https://dbc-f822d343-8733.cloud.databricks.com",
             accountHost = "https://accounts.cloud.databricks.com",
             accountId = "b327b34e-82c3-4efc-ae24-a29c3e917651",
@@ -18,7 +15,7 @@ fun main() {
             clientSecret = "dosea3be942f4f457e32b3ae614d63addfbc",
             warehouseId = "3346a0ea3ab1c8db",
             catalog = "strm",
-        )
+        ),
     )
 
     runBlocking { println(databricksClient.listGroups()) }

@@ -3,7 +3,7 @@ package com.getstrm.daps.bigquery
 import ProcessingPlatformExecuteException
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.BIGQUERY
-import com.getstrm.daps.config.ProcessingPlatformConfig
+import com.getstrm.daps.config.BigQueryConfig
 import com.getstrm.daps.domain.Group
 import com.getstrm.daps.domain.ProcessingPlatformInterface
 import com.getstrm.daps.domain.Table
@@ -26,11 +26,11 @@ class BigQueryClient(
     projectId: String,
     private val userGroupsTable: String,
 ) : ProcessingPlatformInterface {
-    constructor(config: ProcessingPlatformConfig) : this(
+    constructor(config: BigQueryConfig) : this(
         config.id,
-        checkNotNull(config.bigqueryConfig) { "Config should be of type BIGQUERY" }.serviceAccountKeyJson,
-        config.bigqueryConfig.projectId,
-        config.bigqueryConfig.userGroupsTable,
+        config.serviceAccountKeyJson,
+        config.projectId,
+        config.userGroupsTable,
     )
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }

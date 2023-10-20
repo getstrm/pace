@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class ProcessingPlatformsService(
-    private val config: ProcessingPlatformConfiguration,
+    config: ProcessingPlatformConfiguration,
     private val tokensDao: TokensDao,
 ) {
     final val platforms: Map<String, ProcessingPlatformInterface>

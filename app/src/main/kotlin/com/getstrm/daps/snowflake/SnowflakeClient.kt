@@ -3,7 +3,7 @@ package com.getstrm.daps.snowflake
 import ProcessingPlatformExecuteException
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE
-import com.getstrm.daps.config.ProcessingPlatformConfig
+import com.getstrm.daps.config.SnowflakeConfig
 import com.getstrm.daps.dao.Tokens
 import com.getstrm.daps.dao.TokensDao
 import com.getstrm.daps.domain.Group
@@ -45,16 +45,12 @@ class SnowflakeClient(
     private val tokensDao: TokensDao,
 ) : ProcessingPlatformInterface {
 
-    constructor(config: ProcessingPlatformConfig, tokensDao: TokensDao) : this(
-        config.id, config.snowflakeConfig!!, tokensDao
-    )
-
-    constructor(id: String, config: ProcessingPlatformConfig.SnowflakeConfig, tokensDao: TokensDao) : this(
-        id = id,
+    constructor(config: SnowflakeConfig, tokensDao: TokensDao) : this(
+        id = config.id,
         url = config.serverUrl,
-        clientId = config.clientId!!,
-        clientSecret = config.clientSecret!!,
-        redirectUri = config.redirectUri!!,
+        clientId = config.clientId,
+        clientSecret = config.clientSecret,
+        redirectUri = config.redirectUri,
         database = config.database,
         warehouse = config.warehouse,
         tokensDao = tokensDao,

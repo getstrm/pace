@@ -5,33 +5,33 @@ import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.DATABRICKS
 import com.databricks.sdk.AccountClient
 import com.databricks.sdk.WorkspaceClient
-import com.databricks.sdk.core.DatabricksConfig
+import com.databricks.sdk.core.DatabricksConfig as DatabricksClientConfig
 import com.databricks.sdk.service.catalog.TableInfo
 import com.databricks.sdk.service.iam.ListAccountGroupsRequest
 import com.databricks.sdk.service.sql.ExecuteStatementRequest
 import com.databricks.sdk.service.sql.ExecuteStatementResponse
 import com.databricks.sdk.service.sql.StatementState
-import com.getstrm.daps.config.ProcessingPlatformConfig
+import com.getstrm.daps.config.DatabricksConfig
 import com.getstrm.daps.domain.*
 import org.slf4j.LoggerFactory
 
 class DatabricksClient(
     override val id: String,
-    val config: ProcessingPlatformConfig.DatabricksConfig,
+    val config: DatabricksConfig,
 ) : ProcessingPlatformInterface {
 
-    constructor(config: ProcessingPlatformConfig) : this(config.id, config.dataBricksConfig!!)
+    constructor(config: DatabricksConfig) : this(config.id, config)
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-    private val workspaceClient = DatabricksConfig()
+    private val workspaceClient = DatabricksClientConfig()
         .setHost(config.workspaceHost)
         .setClientId(config.clientId)
         .setClientSecret(config.clientSecret).let { config ->
             WorkspaceClient(config)
         }
 
-    private val accountClient = DatabricksConfig()
+    private val accountClient = DatabricksClientConfig()
         .setHost(config.accountHost)
         .setAccountId(config.accountId)
         .setClientId(config.clientId)

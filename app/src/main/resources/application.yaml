@@ -39,11 +39,11 @@ app:
           }
     databricks:
       - id: "databricks-pim@getstrm.com"
-        workspaceHost: "https://dbc-f822d343-8733.cloud.databricks.com",
-        accountHost: "https://accounts.cloud.databricks.com",
-        accountId: "b327b34e-82c3-4efc-ae24-a29c3e917651",
-        clientId: "78c80306-37a5-49b9-ae75-dd9e15a93727",
-        clientSecret: "dosea3be942f4f457e32b3ae614d63addfbc",
+        workspaceHost: "https://dbc-f822d343-8733.cloud.databricks.com"
+        accountHost: "https://accounts.cloud.databricks.com"
+        accountId: "b327b34e-82c3-4efc-ae24-a29c3e917651"
+        clientId: "78c80306-37a5-49b9-ae75-dd9e15a93727"
+        clientSecret: "dosea3be942f4f457e32b3ae614d63addfbc"
         warehouseId: "1120735ed709088b"
         catalog: "strm"
     snowflake:
