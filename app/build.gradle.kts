@@ -97,11 +97,16 @@ kotlin {
 }
 
 tasks.named<BootJar>("bootJar") {
-    mainClass =  "com.getstrm.daps.ApplicationKt"
+    mainClass =  "com.getstrm.daps.DataPolicyServiceApplicationKt"
     manifest {
         attributes["Implementation-Title"] = "Data Policy Service"
         attributes["Implementation-Version"] = version
     }
+}
+
+tasks.jar {
+    // Disables the "-plain.jar" (builds only the bootJar)
+    enabled = false
 }
 
 val removePostgresContainer =
@@ -239,6 +244,84 @@ fun Task.setFakeOutputFileIn(path: Directory) {
     outputs.file(taskOutput.file(".gradle-task-$name"))
 }
 
+val createProtoDescriptor =
+    tasks.register<Exec>("createProtoDescriptor") {
+        group = "docker"
+        if (rootProject.ext.has("ciBuild")) {
+            workingDir("$rootDir/generated")
+            commandLine("cp", "descriptor.binpb", "$projectDir/build/docker/descriptor.binpb")
+        } else {
+            workingDir("$rootDir/protos")
+            commandLine(
+                "buf",
+                "build",
+                "-o",
+                "$projectDir/build/docker/descriptor.binpb"
+            )
+        }
+    }
+
+val copyDocker =
+    tasks.register<Copy>("copyDocker") {
+        group = "docker"
+        from("src/main/docker")
+        include("*")
+        into("build/docker")
+        expand(
+            "version" to project.version,
+        )
+    }
+
+val copyJarIntoDockerDir =
+    tasks.register<Copy>("copyJarIntoDocker") {
+        group = "docker"
+        dependsOn("bootJar")
+
+        val bootJar: BootJar by tasks
+
+        from("build/libs/${bootJar.archiveFileName.get()}")
+        rename(".*.jar", "app.jar")
+        into("build/docker")
+    }
+
+val prepareForDocker =
+    tasks.register("prepareForDocker") {
+        group = "docker"
+        dependsOn("build", copyDocker, createProtoDescriptor, copyJarIntoDockerDir)
+    }
+
+val buildDocker =
+    tasks.register<Exec>("buildDocker") {
+        group = "docker"
+        dependsOn(prepareForDocker)
+        workingDir("build/docker")
+
+        if (System.getProperty("os.name") == "Mac OS X" && System.getProperty("os.arch") == "aarch64") {
+            println("Building docker image on ARM Mac system. If you don't have a cross platform builder instance yet, create one using:")
+            println("  docker buildx create --use")
+            commandLine(
+                "/usr/bin/env",
+                "docker",
+                "buildx",
+                "build",
+                "--platform",
+                "linux/amd64",
+                "-t",
+                project.properties["dockertag"],
+                "."
+            )
+        } else {
+            commandLine("/usr/bin/env", "docker", "build", ".", "-t", project.properties["dockertag"])
+        }
+    }
+
+val pushDocker = tasks.register<Exec>("pushDocker") {
+    group = "docker"
+    dependsOn(buildDocker)
+    workingDir("build/docker")
+
+    commandLine("/usr/bin/env", "docker", "push", project.properties["dockertag"])
+}
 
 apollo {
     service("collibra") {

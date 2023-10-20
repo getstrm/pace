@@ -42,3 +42,5 @@ buf-publish-current-branch:
 	commit_hash_short=$$(echo "$$commit_hash" | cut -c1-12) && \
 	$$SED -i "s|generatedBufDependencyVersion=.*|generatedBufDependencyVersion=00000000000000.$$commit_hash_short|g" gradle.properties
 
+run-docker-local:
+	./gradlew buildDocker && docker run -p 8080:8080 -p 9090:9090 -p 50051:50051 -e SPRING_PROFILES_ACTIVE=dockerdev data-policy-service:latest
