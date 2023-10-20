@@ -8,8 +8,10 @@ import com.nimbusds.jose.crypto.RSASSASigner
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import org.apache.commons.codec.binary.Base64
+import org.bouncycastle.util.io.pem.PemReader
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.io.StringReader
 import java.security.KeyFactory
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
@@ -24,13 +26,16 @@ import java.util.*
 /**
  * Based on https://github.com/snowflakedb/snowflake-jdbc/blob/b0841291cdc6974b42b47617924dd84f3e0b9a45/src/main/java/net/snowflake/client/core/SessionUtilKeyPair.java
  */
-class SnowflakeJwtIssuer(
+class SnowflakeJwtIssuer private constructor(
     privateKeyResourcePath: String,
-    accountName: String,
+    /**
+     * Make sure this is the accountName (the prefix for your account URL), not the account ID
+     */
+    accountIdentifier: String,
     userName: String
 ) {
     private val userName: String
-    private val accountName: String
+    private val accountIdentifier: String
     private val privateKey: RSAPrivateCrtKey
     private var publicKey: PublicKey? = null
 
@@ -38,14 +43,18 @@ class SnowflakeJwtIssuer(
 
     init {
         this.userName = userName.uppercase(Locale.getDefault())
-        this.accountName = accountName.uppercase(Locale.getDefault())
+        this.accountIdentifier = accountIdentifier.uppercase(Locale.getDefault())
 
         val keyFactory = KeyFactory.getInstance("RSA")
-        val privateKeyBytes = File(
+        val privateKeyContent = File(
             this::class.java.classLoader.getResource(privateKeyResourcePath)?.toURI() ?: throw IllegalArgumentException(
                 "Private key not found"
             )
-        ).readBytes()
+        ).readText()
+
+        val privateKeyBytes = PemReader(StringReader(privateKeyContent))
+            .use { it.readPemObject().content }
+
         val keySpec = PKCS8EncodedKeySpec(privateKeyBytes)
         val privateKey = keyFactory.generatePrivate(keySpec)
 
@@ -63,10 +72,10 @@ class SnowflakeJwtIssuer(
 
     fun issueJwtToken(): String {
         val builder = JWTClaimsSet.Builder()
-        val sub = String.format(SUBJECT_FMT, accountName, userName)
+        val sub = String.format(SUBJECT_FMT, accountIdentifier, userName)
         val iss = String.format(
             ISSUER_FMT,
-            accountName,
+            accountIdentifier,
             userName,
             calculatePublicKeyFingerprint(publicKey)
         )
@@ -90,7 +99,9 @@ class SnowflakeJwtIssuer(
             iss,
             sub, (iat.time / 1000).toString(), (exp.time / 1000).toString()
         )
-        return signedJWT.serialize()
+        return signedJWT.serialize().also {
+            log.debug("JWT: {}", it)
+        }
     }
 
     private fun calculatePublicKeyFingerprint(publicKey: PublicKey?): String {
@@ -107,5 +118,33 @@ class SnowflakeJwtIssuer(
         private val log by lazy { LoggerFactory.getLogger(SnowflakeJwtIssuer::class.java) }
         private const val ISSUER_FMT = "%s.%s.%s"
         private const val SUBJECT_FMT = "%s.%s"
+
+        /**
+         * Legacy based account identifiers
+         * https://docs.snowflake.com/en/user-guide/admin-account-identifier#format-2-legacy-account-locator-in-a-region
+         */
+        fun fromAccountLocator(
+            privateKeyResourcePath: String,
+            accountLocator: String,
+            userName: String
+        ): SnowflakeJwtIssuer {
+            // Make sure to strip off the location info (e.g. "us-east-1") from the account locator
+            val accountIdentifier = accountLocator.split(".").first()
+            return SnowflakeJwtIssuer(privateKeyResourcePath, accountIdentifier, userName)
+        }
+
+        /**
+         * Modern account identifiers
+         * https://docs.snowflake.com/en/user-guide/admin-account-identifier#format-1-preferred-account-name-in-your-organization
+         */
+        fun fromOrganizationAndAccountName(
+            privateKeyResourcePath: String,
+            organizationName: String,
+            accountName: String,
+            userName: String
+        ): SnowflakeJwtIssuer {
+            val accountIdentifier = "$organizationName-$accountName"
+            return SnowflakeJwtIssuer(privateKeyResourcePath, accountIdentifier, userName)
+        }
     }
 }

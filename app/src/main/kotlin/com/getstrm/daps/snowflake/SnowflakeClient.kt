@@ -26,8 +26,9 @@ class SnowflakeClient(
     private val tokensDao: TokensDao,
 ) : ProcessingPlatformInterface {
 
-    private val snowflakeJwtIssuer = SnowflakeJwtIssuer(
-        privateKeyResourcePath = "daps-snowflake-private-key.p8",
+    private val snowflakeJwtIssuer = SnowflakeJwtIssuer.fromOrganizationAndAccountName(
+        privateKeyResourcePath = "snowflake/daps-snowflake-private-key.p8",
+        organizationName = "IYGEJWG",
         accountName = "RQ45750",
         userName = "ivangetstrm"
     )
@@ -133,6 +134,7 @@ class SnowflakeClient(
         setBearerAuth(snowflakeJwtIssuer.issueJwtToken())
         contentType = MediaType.APPLICATION_JSON
         accept = listOf(MediaType.APPLICATION_JSON)
+        set("X-Snowflake-Authorization-Token-Type", "KEYPAIR_JWT")
     }
 }
 
