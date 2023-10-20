@@ -54,7 +54,6 @@ dependencies {
     implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.24.0"))
     implementation("com.google.cloud:google-cloud-bigquery")
 
-    implementation("io.strmprivacy.api:api-definitions-kotlin:3.18.4")
     implementation("build.buf.gen:getstrm_daps_grpc_java:1.58.0.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_daps_grpc_kotlin:1.3.1.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_daps_protocolbuffers_java:24.4.0.1.$generatedBufDependencyVersion")

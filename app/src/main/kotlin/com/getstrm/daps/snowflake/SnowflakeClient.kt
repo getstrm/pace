@@ -243,7 +243,7 @@ class SnowflakeClient(
             getAccessToken()
         } else {
             // refresh if either are within 60 seconds of expiry
-            if (deltaAccess > -60) {
+            if (deltaAccess <= -60) {
                 getAccessToken(refresh = true)
             }
         }

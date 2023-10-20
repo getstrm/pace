@@ -9,9 +9,6 @@ import InvalidDataPolicyOverlappingPrincipals
 import InvalidDataPolicyUnknownGroup
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import coWithTransactionResult
-import io.strmprivacy.api.account.v1.AccountServiceGrpcKt
-import io.strmprivacy.api.account.v1.GetAccountDetailsRequest
-import io.strmprivacy.grpc.common.auth.withCallerPrincipal
 import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
