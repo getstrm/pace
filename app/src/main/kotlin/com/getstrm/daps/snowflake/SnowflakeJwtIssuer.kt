@@ -25,6 +25,8 @@ import java.util.*
 
 /**
  * Based on https://github.com/snowflakedb/snowflake-jdbc/blob/b0841291cdc6974b42b47617924dd84f3e0b9a45/src/main/java/net/snowflake/client/core/SessionUtilKeyPair.java
+ *
+ * TODO make sure to handle the 401 properly, because that is most often caused by an incorrect account identifier, which leads to an incorrect JWT
  */
 class SnowflakeJwtIssuer private constructor(
     privateKeyResourcePath: String,
