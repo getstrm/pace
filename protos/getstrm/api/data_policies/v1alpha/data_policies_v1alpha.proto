@@ -1,0 +1,162 @@
+syntax = "proto3";
+
+package getstrm.api.data_policies.v1alpha;
+
+import "getstrm/api/data_policies/v1alpha/entities_v1alpha.proto";
+import "google/api/annotations.proto";
+
+option java_package = "com.getstrm.api.data_policies.v1alpha";
+option java_multiple_files = true;
+
+service DataPolicyService {
+    rpc ListDataPolicies (ListDataPoliciesRequest) returns (ListDataPoliciesResponse) {
+        option (google.api.http) = {
+            get: "/data-policies"
+        };
+    };
+    rpc UpsertDataPolicy (UpsertDataPolicyRequest) returns (UpsertDataPolicyResponse) {
+        option (google.api.http) = {
+            post: "/data-policy"
+            body: "*"
+        };
+    };
+    // returns latest policy for an id
+    rpc GetDataPolicy (GetDataPolicyRequest) returns (GetDataPolicyResponse) {
+        option (google.api.http) = {
+            get: "/data-policy/{id}"
+        };
+    };
+    // return configured processing platforms in DPS
+    rpc ListProcessingPlatforms (ListProcessingPlatformsRequest) returns (ListProcessingPlatformsResponse) {
+        option (google.api.http) = {
+            get: "/processing-platforms"
+        };
+    };
+    // return table names as known by the platform
+    rpc ListProcessingPlatformTables (ListProcessingPlatformTablesRequest) returns (ListProcessingPlatformTablesResponse) {
+        option (google.api.http) = {
+            get: "/processing-platforms/{platform}/tables"
+        };
+    };
+    // return groups as known by the platform
+    rpc ListProcessingPlatformGroups (ListProcessingPlatformGroupsRequest) returns (ListProcessingPlatformGroupsResponse) {
+        option (google.api.http) = {
+            get: "/processing-platforms/{platform}/groups"
+        };
+    };
+    // return a data-policy without rules sets as built from the table description on the platform
+    rpc GetProcessingPlatformBarePolicy (GetProcessingPlatformBarePolicyRequest) returns (GetProcessingPlatformBarePolicyResponse) {
+        option (google.api.http) = {
+            get: "/processing-platforms/{platform}/tables/{table}/bare-policy"
+        };
+    };
+    rpc ListCatalogs (ListCatalogsRequest) returns (ListCatalogsResponse);
+    rpc ListDatabases (ListDatabasesRequest) returns (ListDatabasesResponse);
+    rpc ListSchemas (ListSchemasRequest) returns (ListSchemasResponse);
+    rpc ListTables (ListTablesRequest) returns (ListTablesResponse);
+    // return a data-policy without rules sets as built from the table description on the platform
+    rpc GetCatalogBarePolicy (GetCatalogBarePolicyRequest) returns (GetCatalogBarePolicyResponse);
+}
+
+message GetCatalogBarePolicyRequest {
+    DataCatalog.Table table = 1;
+}
+
+message GetCatalogBarePolicyResponse {
+    DataPolicy data_policy = 1;
+}
+
+message ListCatalogsRequest {
+}
+
+message ListCatalogsResponse {
+    repeated DataCatalog catalogs = 1;
+}
+
+message ListDatabasesRequest {
+    DataCatalog catalog = 1;
+}
+
+message ListDatabasesResponse {
+    repeated DataCatalog.DataBase databases = 1;
+}
+
+message ListSchemasRequest {
+    DataCatalog.DataBase database = 1;
+}
+
+// (-- api-linter: core::0158::response-plural-first-field=disabled
+//     aip.dev/not-precedent: Schemata? Get real. --)
+message ListSchemasResponse {
+    repeated DataCatalog.Schema schemas = 1;
+}
+
+message ListTablesRequest {
+    DataCatalog.Schema schema = 1;
+}
+
+message ListTablesResponse {
+    repeated DataCatalog.Table tables = 1;
+}
+
+message ListProcessingPlatformsRequest {
+}
+
+message ListProcessingPlatformsResponse {
+    repeated DataPolicy.ProcessingPlatform processing_platforms = 1;
+}
+
+message ListProcessingPlatformTablesRequest {
+    DataPolicy.ProcessingPlatform platform = 1;
+}
+
+message ListProcessingPlatformTablesResponse {
+    repeated string tables = 1;
+}
+
+message ListProcessingPlatformGroupsRequest {
+    DataPolicy.ProcessingPlatform platform = 1;
+}
+
+message ListProcessingPlatformGroupsResponse {
+    repeated string groups = 1;
+}
+
+message GetProcessingPlatformBarePolicyRequest {
+    DataPolicy.ProcessingPlatform platform = 1;
+    string table = 2;
+}
+
+message GetProcessingPlatformBarePolicyResponse {
+    DataPolicy data_policy = 1;
+}
+
+
+message GetDataPolicyRequest {
+    string id = 1;
+}
+
+message GetDataPolicyResponse {
+    DataPolicy data_policy = 1;
+}
+
+/**
+inserts or updates a DataPolicy into the DPS
+AND applies it to the processing platform.
+ */
+message UpsertDataPolicyRequest {
+    DataPolicy data_policy = 1;
+}
+
+message UpsertDataPolicyResponse {
+    DataPolicy data_policy = 1;
+}
+
+message ListDataPoliciesRequest {
+}
+
+message ListDataPoliciesResponse {
+    repeated DataPolicy data_policies = 1;
+}
+
+
