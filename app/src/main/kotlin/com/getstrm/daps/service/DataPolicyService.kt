@@ -1,12 +1,12 @@
 package com.getstrm.daps.service
 
 import com.getstrm.daps.dao.DataPolicyDao
-import InvalidDataPolicyEmptyFieldTransforms
-import InvalidDataPolicyMissingAttribute
-import InvalidDataPolicyNonEmptyLastFieldTransform
-import InvalidDataPolicyOverlappingAttributes
-import InvalidDataPolicyOverlappingPrincipals
-import InvalidDataPolicyUnknownGroup
+import com.getstrm.daps.domain.InvalidDataPolicyEmptyFieldTransforms
+import com.getstrm.daps.domain.InvalidDataPolicyMissingAttribute
+import com.getstrm.daps.domain.InvalidDataPolicyNonEmptyLastFieldTransform
+import com.getstrm.daps.domain.InvalidDataPolicyOverlappingAttributes
+import com.getstrm.daps.domain.InvalidDataPolicyOverlappingPrincipals
+import com.getstrm.daps.domain.InvalidDataPolicyUnknownGroup
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import coWithTransactionResult
 import org.jooq.DSLContext

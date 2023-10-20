@@ -1,6 +1,6 @@
 package com.getstrm.daps.bigquery
 
-import ProcessingPlatformExecuteException
+import com.getstrm.daps.domain.ProcessingPlatformExecuteException
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.BIGQUERY
 import com.getstrm.daps.config.BigQueryConfig
@@ -15,7 +15,6 @@ import com.google.cloud.bigquery.BigQueryOptions
 import com.google.cloud.bigquery.JobException
 import com.google.cloud.bigquery.QueryJobConfiguration
 import com.google.cloud.bigquery.TableId
-import io.strmprivacy.management.data_policy_service.bigquery.BigQueryDynamicViewGenerator
 import org.slf4j.LoggerFactory
 import toFullName
 import com.google.cloud.bigquery.Table as BQTable

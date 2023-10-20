@@ -1,6 +1,6 @@
 package com.getstrm.daps.snowflake
 
-import ProcessingPlatformExecuteException
+import com.getstrm.daps.domain.ProcessingPlatformExecuteException
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE
 import com.getstrm.daps.config.SnowflakeConfig

@@ -1,7 +1,10 @@
+package com.getstrm.daps.domain
+
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import io.grpc.Status
 import io.strmprivacy.grpc.common.server.NotFoundException
 import io.strmprivacy.grpc.common.server.StrmStatusException
+import toJson
 
 class ProcessingPlatformNotFoundException(id: String) : NotFoundException("Processing Platform", id)
 class ProcessingPlatformConfigurationError(description: String) : StrmStatusException(Status.INVALID_ARGUMENT, description)

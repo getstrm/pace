@@ -1,4 +1,4 @@
-package io.strmprivacy.management.data_policy_service.bigquery
+package com.getstrm.daps.bigquery
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import com.getstrm.daps.common.AbstractDynamicViewGenerator

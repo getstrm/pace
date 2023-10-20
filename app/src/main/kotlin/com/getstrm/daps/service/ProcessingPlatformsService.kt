@@ -1,12 +1,11 @@
 package com.getstrm.daps.service
 
-import ProcessingPlatformConfigurationError
-import ProcessingPlatformNotFoundException
+import com.getstrm.daps.domain.ProcessingPlatformConfigurationError
+import com.getstrm.daps.domain.ProcessingPlatformNotFoundException
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.ListProcessingPlatformGroupsRequest
 import build.buf.gen.getstrm.api.data_policies.v1alpha.ListProcessingPlatformTablesRequest
 import com.getstrm.daps.bigquery.BigQueryClient
-import com.getstrm.daps.config.AppConfig
 import com.getstrm.daps.config.ProcessingPlatformConfiguration
 import com.getstrm.daps.dao.TokensDao
 import com.getstrm.daps.databricks.DatabricksClient

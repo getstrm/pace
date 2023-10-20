@@ -1,6 +1,5 @@
 package com.getstrm.daps.domain
 
-import ProcessingPlatformTableNotFound
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 
 interface ProcessingPlatformInterface {
