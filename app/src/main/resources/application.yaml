@@ -17,6 +17,7 @@ management:
       enabled: true
 
 app:
+  # TODO allow arbitrary config providers (interface / SPI construct)
   context: "120ee556-8666-4438-9c2b-315a0ab2f494"
   processing-platforms:
     bigquery:
