@@ -1,4 +1,8 @@
-# daps
+# PACE
+
+![pace-logo](./assets/pace-logo.svg)
+
+PACE is the _Policy and Contract Engine_, whose goal is to ensure that data is only used by those allowed, the way it was intended to be used.
 
 ## Running locally
 
