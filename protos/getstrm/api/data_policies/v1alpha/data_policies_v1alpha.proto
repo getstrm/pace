@@ -4,6 +4,7 @@ package getstrm.api.data_policies.v1alpha;
 
 import "getstrm/api/data_policies/v1alpha/entities_v1alpha.proto";
 import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
 
 option java_package = "com.getstrm.api.data_policies.v1alpha";
 option java_multiple_files = true;
@@ -124,7 +125,7 @@ message ListProcessingPlatformGroupsResponse {
 
 message GetProcessingPlatformBarePolicyRequest {
     DataPolicy.ProcessingPlatform platform = 1;
-    string table = 2;
+    string table = 2 [(buf.validate.field) = {string: {min_len: 1}, ignore_empty: false}];
 }
 
 message GetProcessingPlatformBarePolicyResponse {
@@ -133,7 +134,7 @@ message GetProcessingPlatformBarePolicyResponse {
 
 
 message GetDataPolicyRequest {
-    string id = 1;
+    string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message GetDataPolicyResponse {
