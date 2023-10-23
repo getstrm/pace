@@ -1,0 +1,73 @@
+{
+  "devDependencies": {
+    "@commitlint/config-conventional": "17.8.1",
+    "@google/semantic-release-replace-plugin": "1.2.7",
+    "@semantic-release/changelog": "6.0.3",
+    "@semantic-release/exec": "6.0.3",
+    "@semantic-release/git": "10.0.1",
+    "@semantic-release/github": "9.2.1",
+    "commitlint": "17.6.7",
+    "conventional-changelog-conventionalcommits": "6.1.0",
+    "cz-conventional-changelog": "3.3.0",
+    "husky": "8.0.3",
+    "semantic-release": "21.0.9"
+  },
+  "scripts": {
+    "postinstall": "husky install",
+    "semantic-release": "semantic-release"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      [
+        "@google/semantic-release-replace-plugin",
+        {
+          "replacements": [
+            {
+              "files": [
+                "gradle.properties"
+              ],
+              "from": "version\\s?=\\s?.*",
+              "to": "version = ${nextRelease.version}",
+              "results": [
+                {
+                  "file": "gradle.properties",
+                  "hasChanged": true,
+                  "numMatches": 1,
+                  "numReplacements": 1
+                }
+              ],
+              "countMatches": true
+            }
+          ]
+        }
+      ],
+      [
+        "@semantic-release/git",
+        {
+          "message": "chore(release): ${nextRelease.version}\n\n${nextRelease.notes}",
+          "assets": [
+            "gradle.properties",
+            "CHANGELOG.md"
+          ]
+        }
+      ],
+      "@semantic-release/github"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  }
+}
