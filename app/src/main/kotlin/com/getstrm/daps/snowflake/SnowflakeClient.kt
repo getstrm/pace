@@ -3,12 +3,10 @@ package com.getstrm.daps.snowflake
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE
 import com.getstrm.daps.config.SnowflakeConfig
-import com.getstrm.daps.dao.TokensDao
 import com.getstrm.daps.domain.Group
 import com.getstrm.daps.domain.ProcessingPlatformExecuteException
 import com.getstrm.daps.domain.ProcessingPlatformInterface
 import com.getstrm.daps.domain.Table
-import com.getstrm.jooq.generated.tables.records.ProcessingPlatformTokensRecord
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -20,46 +18,27 @@ import org.springframework.web.client.postForEntity
 
 class SnowflakeClient(
     override val id: String,
-    private val url: String,
-    private val database: String,
-    private val warehouse: String,
-    private val tokensDao: TokensDao,
+    private val config: SnowflakeConfig
 ) : ProcessingPlatformInterface {
+    constructor(config: SnowflakeConfig) : this(config.id, config)
 
     private val snowflakeJwtIssuer = SnowflakeJwtIssuer.fromOrganizationAndAccountName(
-        privateKeyResourcePath = "snowflake/daps-snowflake-private-key.p8",
-        organizationName = "IYGEJWG",
-        accountName = "RQ45750",
-        userName = "ivangetstrm"
-    )
-
-    constructor(config: SnowflakeConfig, tokensDao: TokensDao) : this(
-        id = config.id,
-        url = config.serverUrl,
-        database = config.database,
-        warehouse = config.warehouse,
-        tokensDao = tokensDao,
+        privateKeyResourcePath = config.privateKeyPath,
+        organizationName = config.organizationName,
+        accountName = config.accountName,
+        userName = config.userName
     )
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
     private val restTemplate = RestTemplate()
-    private var tokens: ProcessingPlatformTokensRecord? = null
-
-    init {
-        tokensDao.getRecord(id)?.let {
-            log.debug("Retrieved access token for $id from database")
-            tokens = it
-        }
-    }
 
     override val type
         get() = SNOWFLAKE
 
-
     private fun executeRequest(request: SnowflakeRequest): ResponseEntity<SnowflakeResponse> {
         try {
             return restTemplate.postForEntity<SnowflakeResponse>(
-                "$url/api/v2/statements",
+                "${config.serverUrl}/api/v2/statements",
                 HttpEntity(request, jsonHeaders())
             )
         } catch (e: HttpStatusCodeException) {
@@ -74,8 +53,8 @@ class SnowflakeClient(
         val statementCount = statement.mapNotNull { element -> element.takeIf { it == ';' } }.size.toString()
         val request = SnowflakeRequest(
             statement = statement,
-            database = database,
-            warehouse = warehouse,
+            database = config.database,
+            warehouse = config.warehouse,
             parameters = mapOf("MULTI_STATEMENT_COUNT" to statementCount),
         )
         executeRequest(request)
@@ -86,8 +65,8 @@ class SnowflakeClient(
             "select table_schema, table_name, table_type, created as create_date, last_altered as modify_date from information_schema.tables where table_type = 'BASE TABLE';"
         val request = SnowflakeRequest(
             statement = statement,
-            database = database,
-            warehouse = warehouse,
+            database = config.database,
+            warehouse = config.warehouse,
         )
         return executeRequest(request).body?.data.orEmpty().map { (schemaName, tableName) ->
             val fullName = "$schemaName.$tableName"
@@ -98,8 +77,8 @@ class SnowflakeClient(
     fun describeTable(schema: String, table: String): SnowflakeResponse? {
         val request = SnowflakeRequest(
             statement = "DESCRIBE TABLE \"$schema\".\"$table\"",
-            database = database,
-            warehouse = warehouse,
+            database = config.database,
+            warehouse = config.warehouse,
             schema = schema,
         )
         val snowflakeResponse = executeRequest(request)
@@ -134,6 +113,7 @@ class SnowflakeClient(
         setBearerAuth(snowflakeJwtIssuer.issueJwtToken())
         contentType = MediaType.APPLICATION_JSON
         accept = listOf(MediaType.APPLICATION_JSON)
+        // Required for Keypair authentication
         set("X-Snowflake-Authorization-Token-Type", "KEYPAIR_JWT")
     }
 }
