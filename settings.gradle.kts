@@ -1,4 +1,4 @@
-rootProject.name = "data-policy-service"
+rootProject.name = "pace"
 include(":app")
 
 pluginManagement {

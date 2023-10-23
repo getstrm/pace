@@ -1,19 +1,19 @@
-CREATE SCHEMA data_policies;
-SET search_path TO pg_catalog,public,data_policies;
+create schema pace;
+set search_path to pg_catalog,public,pace;
 
-CREATE
-    EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA data_policies;
+create
+    extension if not exists "uuid-ossp" schema pace;
 
-CREATE TABLE data_policies.policies
+create table pace.data_policies
 (
-    id              varchar                   NOT NULL,
-    title           varchar                   NOT NULL,
+    id              varchar                   not null,
+    title           varchar                   not null,
     description     varchar,
-    version         varchar                   NOT NULL,
-    organization_id varchar                   NOT NULL,
-    created_at      timestamptz DEFAULT now() NOT NULL,
-    updated_at      timestamptz DEFAULT now() NOT NULL,
-    policy          jsonb                     NOT NULL,
-    active          boolean     DEFAULT false NOT NULL,
-    CONSTRAINT test_pk PRIMARY KEY (id, updated_at)
+    version         varchar                   not null,
+    organization_id varchar                   not null,
+    created_at      timestamptz default now() not null,
+    updated_at      timestamptz default now() not null,
+    policy          jsonb                     not null,
+    active          boolean     default false not null,
+    constraint test_pk primary key (id, updated_at)
 );

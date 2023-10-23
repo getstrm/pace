@@ -11,7 +11,7 @@ import java.util.*
 import kotlin.system.exitProcess
 
 val generatedBufDependencyVersion: String by rootProject.extra
-val jooqGenerationPath = layout.buildDirectory.dir("generated/source/jooq/data_policy_service").get()
+val jooqGenerationPath = layout.buildDirectory.dir("generated/source/jooq/pace").get()
 val postgresPort: Int by rootProject.extra
 val jooqSchema = rootProject.extra["schema"] as String
 val jooqMigrationDir = "$projectDir/src/main/resources/db/migration/postgresql"

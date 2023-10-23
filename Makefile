@@ -43,4 +43,4 @@ buf-publish-current-branch:
 	$$SED -i "s|generatedBufDependencyVersion=.*|generatedBufDependencyVersion=00000000000000.$$commit_hash_short|g" gradle.properties
 
 run-docker-local:
-	./gradlew buildDocker && docker run -p 8080:8080 -p 9090:9090 -p 50051:50051 -e SPRING_PROFILES_ACTIVE=dockerdev data-policy-service:latest
+	./gradlew buildDocker && docker run -p 8080:8080 -p 9090:9090 -p 50051:50051 -e SPRING_PROFILES_ACTIVE=dockerdev pace:latest

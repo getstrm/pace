@@ -57,7 +57,7 @@ if [ -f "$IML_FILE" ]; then
 
   $SED -i 's|<content url="file://$MODULE_DIR$" />|<content url="file://$MODULE_DIR$"><sourceFolder url="file://$MODULE_DIR$/protos" isTestSource="false" /></content>|g' "$IML_FILE"
 else
-cat <<-EOF > "$IDEA_DIR/data-policy-service.iml"
+cat <<-EOF > "$IDEA_DIR/pace.iml"
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
   <component name="Go" enabled="true" />
