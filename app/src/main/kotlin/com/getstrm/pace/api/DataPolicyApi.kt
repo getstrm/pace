@@ -25,7 +25,7 @@ class DataPolicyApi(
 
     override suspend fun getDataPolicy(request: GetDataPolicyRequest): GetDataPolicyResponse {
         return GetDataPolicyResponse.newBuilder()
-            .setDataPolicy(dataPolicyService.getLatestDataPolicy(request.id))
+            .setDataPolicy(dataPolicyService.getLatestDataPolicy(request.dataPolicyId))
             .build()
     }
 
@@ -51,6 +51,6 @@ class DataPolicyApi(
 
     override suspend fun getProcessingPlatformBarePolicy(request: GetProcessingPlatformBarePolicyRequest): GetProcessingPlatformBarePolicyResponse =
         GetProcessingPlatformBarePolicyResponse.newBuilder()
-            .setDataPolicy(processingPlatformsService.createBarePolicy(request.platform, request.table))
+            .setDataPolicy(processingPlatformsService.createBarePolicy(request.platformId, request.tableId))
             .build()
 }

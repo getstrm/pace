@@ -56,9 +56,9 @@ dependencies {
     implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.24.0"))
     implementation("com.google.cloud:google-cloud-bigquery")
 
-    implementation("build.buf.gen:getstrm_daps_grpc_java:1.58.0.1.$generatedBufDependencyVersion")
-    implementation("build.buf.gen:getstrm_daps_grpc_kotlin:1.3.1.1.$generatedBufDependencyVersion")
-    implementation("build.buf.gen:getstrm_daps_protocolbuffers_java:24.4.0.1.$generatedBufDependencyVersion")
+    implementation("build.buf.gen:getstrm_pace_grpc_java:1.58.0.1.$generatedBufDependencyVersion")
+    implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.3.1.1.$generatedBufDependencyVersion")
+    implementation("build.buf.gen:getstrm_pace_protocolbuffers_java:24.4.0.1.$generatedBufDependencyVersion")
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
@@ -116,9 +116,9 @@ kotlin {
 }
 
 tasks.named<BootJar>("bootJar") {
-    mainClass =  "com.getstrm.daps.DataPolicyServiceApplicationKt"
+    mainClass =  "com.getstrm.pace.DataPolicyServiceApplicationKt"
     manifest {
-        attributes["Implementation-Title"] = "Data Policy Service"
+        attributes["Implementation-Title"] = "Policy and Contract Engine"
         attributes["Implementation-Version"] = version
     }
 }
