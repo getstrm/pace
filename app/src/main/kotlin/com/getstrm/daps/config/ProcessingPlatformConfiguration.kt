@@ -12,13 +12,12 @@ data class ProcessingPlatformConfiguration(
 data class SnowflakeConfig(
     val id: String,
     val serverUrl: String,
-    val clientId: String,
-    val clientSecret: String,
-    val redirectUri: String,
     val database: String,
     val warehouse: String,
     val userName: String,
-    val password: String,
+    val accountName: String,
+    val organizationName: String,
+    val privateKeyPath: String,
 )
 
 data class BigQueryConfig(

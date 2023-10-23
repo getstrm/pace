@@ -17,6 +17,7 @@ management:
       enabled: true
 
 app:
+  # TODO allow arbitrary config providers (interface / SPI construct)
   context: "120ee556-8666-4438-9c2b-315a0ab2f494"
   processing-platforms:
     bigquery:
@@ -49,13 +50,13 @@ app:
     snowflake:
       - id: "snowflake-demo"
         serverUrl: "https://an49711.eu-central-1.snowflakecomputing.com"
-        clientId: "PkbL/QCMROFrFJvqIjKy4RgqXQA="
-        clientSecret: "WBAvUMAm3pLdeDQwishB4vFU2Q0KerAR6L4rVvt6GNI="
-        redirectUri: "https://www.getstrm.com/auth-success"
         database: "STRM"
         warehouse: "COMPUTE_WH"
         userName: "ivangetstrm"
-        password: "TPG7wux9gmb3uza!cxq"
+        accountName: "RQ45750"
+        organizationName: "IYGEJWG"
+        # TODO for now this is a resources only path, we should support arbitrary paths
+        privateKeyPath: "snowflake/daps-snowflake-private-key.p8"
   catalogs:
     - id: "COLLIBRA-testdrive"
       type: "COLLIBRA"

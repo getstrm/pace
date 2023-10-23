@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5430/data-policy-service
+
+logging:
+  level:
+    com.getstrm.daps.snowflake.SnowflakeJwtIssuer: DEBUG
