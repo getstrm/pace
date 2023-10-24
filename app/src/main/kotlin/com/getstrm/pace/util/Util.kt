@@ -49,6 +49,7 @@ private fun getFirstStrmStatusException(throwable: Throwable): StrmStatusExcepti
     }
     return null
 }
+/*
 
 suspend fun <R> DSLContext.coWithTransactionResult(transactionalBlock: suspend (DSLContext) -> R): R =
     coUnwrapStatusException {
@@ -80,6 +81,8 @@ suspend fun <T> DSLContext.transactionCoroutine(transactional: suspend (Configur
 //        }
 //    }.awaitFirstOrNull() as T
 }
+
+ */
 
 val mapper = jacksonObjectMapper()
 

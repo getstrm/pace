@@ -1,0 +1,85 @@
+info:
+  create_time: 2023-10-13T07:47:55.189Z
+  description: Created by the file upload UI
+  title: cdc_diabetes
+  update_time: 2023-10-13T07:47:55.189Z
+platform:
+  id: databricks-pim@getstrm.com
+  platform_type: DATABRICKS
+rule_sets:
+  - target:
+      fullname: "strm.poc.cdc_diabetes_view"
+    field_transforms:
+      - attribute:
+          path_components: [ HighChol ]
+        transforms:
+          - principals: []
+            fixed:
+              value:  bla bla bla
+source:
+  attributes:
+    - path_components:
+        - HighBP
+      type: bigint
+    - path_components:
+        - HighChol
+      type: bigint
+    - path_components:
+        - CholCheck
+      type: bigint
+    - path_components:
+        - BMI
+      type: bigint
+    - path_components:
+        - Smoker
+      type: bigint
+    - path_components:
+        - Stroke
+      type: bigint
+    - path_components:
+        - HeartDiseaseorAttack
+      type: bigint
+    - path_components:
+        - PhysActivity
+      type: bigint
+    - path_components:
+        - Fruits
+      type: bigint
+    - path_components:
+        - Veggies
+      type: bigint
+    - path_components:
+        - HvyAlcoholConsump
+      type: bigint
+    - path_components:
+        - AnyHealthcare
+      type: bigint
+    - path_components:
+        - NoDocbcCost
+      type: bigint
+    - path_components:
+        - GenHlth
+      type: bigint
+    - path_components:
+        - MentHlth
+      type: bigint
+    - path_components:
+        - PhysHlth
+      type: bigint
+    - path_components:
+        - DiffWalk
+      type: bigint
+    - path_components:
+        - Sex
+      type: bigint
+    - path_components:
+        - Age
+      type: bigint
+    - path_components:
+        - Education
+      type: bigint
+    - path_components:
+        - Income
+      type: bigint
+  ref: strm.poc.cdc_diabetes
+  type: DATABRICKS

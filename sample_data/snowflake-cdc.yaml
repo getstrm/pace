@@ -1,0 +1,102 @@
+info: {}
+platform:
+  id: snowflake-demo
+  platform_type: SNOWFLAKE
+rule_sets:
+  - target:
+      fullname: "POC.CDC_DIABETES_VIEW"
+    field_transforms:
+      - attribute:
+          path_components: [ HIGHCHOL ]
+        transforms:
+          - principals: []
+            fixed:
+              value:  bla bla
+source:
+  attributes:
+    - path_components:
+        - HIGHBP
+      required: true
+      type: numeric
+    - path_components:
+        - HIGHCHOL
+      required: true
+      type: numeric
+    - path_components:
+        - CHOLCHECK
+      required: true
+      type: numeric
+    - path_components:
+        - BMI
+      required: true
+      type: numeric
+    - path_components:
+        - SMOKER
+      required: true
+      type: numeric
+    - path_components:
+        - STROKE
+      required: true
+      type: numeric
+    - path_components:
+        - HEARTDISEASEORATTACK
+      required: true
+      type: numeric
+    - path_components:
+        - PHYSACTIVITY
+      required: true
+      type: numeric
+    - path_components:
+        - FRUITS
+      required: true
+      type: numeric
+    - path_components:
+        - VEGGIES
+      required: true
+      type: numeric
+    - path_components:
+        - HVYALCOHOLCONSUMP
+      required: true
+      type: numeric
+    - path_components:
+        - ANYHEALTHCARE
+      required: true
+      type: numeric
+    - path_components:
+        - NODOCBCCOST
+      required: true
+      type: numeric
+    - path_components:
+        - GENHLTH
+      required: true
+      type: numeric
+    - path_components:
+        - MENTHLTH
+      required: true
+      type: numeric
+    - path_components:
+        - PHYSHLTH
+      required: true
+      type: numeric
+    - path_components:
+        - DIFFWALK
+      required: true
+      type: numeric
+    - path_components:
+        - SEX
+      required: true
+      type: numeric
+    - path_components:
+        - AGE
+      required: true
+      type: numeric
+    - path_components:
+        - EDUCATION
+      required: true
+      type: numeric
+    - path_components:
+        - INCOME
+      required: true
+      type: numeric
+  ref: POC.CDC_DIABETES
+  type: SNOWFLAKE

@@ -1,7 +1,6 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
-import coWithTransactionResult
 import com.getstrm.pace.dao.DataPolicyDao
 import com.getstrm.pace.domain.*
 import org.jooq.DSLContext
@@ -20,12 +19,11 @@ class DataPolicyService(
 
     suspend fun upsertDataPolicy(dataPolicy: DataPolicy): DataPolicy {
         validate(dataPolicy)
-        return jooq.coWithTransactionResult {
-            // TODO should it remove old ruleset targets?
-            val newDataPolicy = dataPolicyDao.upsertDataPolicy(dataPolicy, context, it)
-            enforceStatement(newDataPolicy)
-            newDataPolicy
-        }
+        // TODO should it remove old ruleset targets?
+        // TODO the two statements below should be wrapped in a transaction
+        val newDataPolicy = dataPolicyDao.upsertDataPolicy(dataPolicy, context, jooq)
+        enforceStatement(newDataPolicy)
+        return newDataPolicy
     }
 
     suspend fun validate(dataPolicy: DataPolicy) {
