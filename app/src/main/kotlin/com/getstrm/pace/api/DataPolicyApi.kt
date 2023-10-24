@@ -1,14 +1,16 @@
 package com.getstrm.pace.api
 
-import com.getstrm.pace.service.ProcessingPlatformsService
 import build.buf.gen.getstrm.api.data_policies.v1alpha.*
+import com.getstrm.pace.service.CatalogService
 import com.getstrm.pace.service.DataPolicyService
+import com.getstrm.pace.service.ProcessingPlatformsService
 import net.devh.boot.grpc.server.service.GrpcService
 
 @GrpcService
 class DataPolicyApi(
     private val dataPolicyService: DataPolicyService,
     private val processingPlatformsService: ProcessingPlatformsService,
+    private val catalogService: CatalogService,
 ) : DataPolicyServiceGrpcKt.DataPolicyServiceCoroutineImplBase() {
 
     override suspend fun listDataPolicies(request: ListDataPoliciesRequest): ListDataPoliciesResponse {
@@ -53,4 +55,35 @@ class DataPolicyApi(
         GetProcessingPlatformBarePolicyResponse.newBuilder()
             .setDataPolicy(processingPlatformsService.createBarePolicy(request.platform, request.table))
             .build()
+
+    override suspend fun listCatalogs(request: ListCatalogsRequest): ListCatalogsResponse =
+        ListCatalogsResponse.newBuilder()
+            .addAllCatalogs(catalogService.listCatalogs())
+            .build()
+
+    override suspend fun listDatabases(request: ListDatabasesRequest): ListDatabasesResponse {
+        val databases = catalogService.listDatabases(request.catalog)
+        return ListDatabasesResponse.newBuilder()
+            .addAllDatabases(databases)
+            .build()
+    }
+    override suspend fun listSchemas(request: ListSchemasRequest): ListSchemasResponse {
+        val schemas = catalogService.listSchemas(request.database)
+        return ListSchemasResponse.newBuilder()
+            .addAllSchemas(schemas)
+            .build()
+    }
+    override suspend fun listTables(request: ListTablesRequest): ListTablesResponse {
+        val tables = catalogService.listTables(request.schema)
+        return ListTablesResponse.newBuilder()
+            .addAllTables(tables)
+            .build()
+    }
+
+    override suspend fun getCatalogBarePolicy(request: GetCatalogBarePolicyRequest): GetCatalogBarePolicyResponse {
+        val dataPolicy: DataPolicy = catalogService.getBarePolicy(request.table)
+        return GetCatalogBarePolicyResponse.newBuilder()
+            .setDataPolicy(dataPolicy)
+            .build()
+    }
 }

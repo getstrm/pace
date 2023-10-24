@@ -2,7 +2,7 @@ package com.getstrm.pace.common
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import headTailFold
-import org.jooq.*
+import org.jooq.* // ktlint-disable no-wildcard-imports
 import org.jooq.conf.ParseNameCase
 import org.jooq.conf.ParseUnknownFunctions
 import org.jooq.conf.RenderQuotedNames
@@ -41,16 +41,16 @@ abstract class AbstractDynamicViewGenerator(
                             attribute,
                             ruleSet.fieldTransformsList.firstOrNull {
                                 it.attribute.fullName() == attribute.fullName()
-                            }
+                            },
                         )
-                    }
+                    },
                 )
                     .from(renderName(dataPolicy.source.ref))
                     .where(
-                        ruleSet.rowFiltersList.map { rowFilter ->
-                            toCondition(rowFilter)
-                        }
-                    )
+                        ruleSet.filtersList.map { filter ->
+                            toCondition(filter)
+                        },
+                    ),
             )
         }
 
@@ -59,38 +59,38 @@ abstract class AbstractDynamicViewGenerator(
         return jooq.queries(allQueries).sql
     }
 
-    fun toCondition(rowFilter: DataPolicy.RuleSet.RowFilter): Condition {
-        if (rowFilter.conditionsList.size == 1) {
+    fun toCondition(filter: DataPolicy.RuleSet.Filter): Condition {
+        if (filter.conditionsList.size == 1) {
             // If there is only one filter it should be the only option
-            return parser.parseCondition(rowFilter.conditionsList.first().condition)
+            return parser.parseCondition(filter.conditionsList.first().condition)
         }
 
-        val whereCondition = rowFilter.conditionsList.headTailFold(
+        val whereCondition = filter.conditionsList.headTailFold(
             headOperation = { condition ->
                 parser.parseCondition(condition.condition)
                 DSL.`when`(
                     condition.principalsList.toPrincipalCondition(),
-                    field(condition.condition, Boolean::class.java)
+                    field(condition.condition, Boolean::class.java),
                 )
             },
             bodyOperation = { conditionStep, condition ->
                 parser.parseCondition(condition.condition)
                 conditionStep.`when`(
                     condition.principalsList.toPrincipalCondition(),
-                    field(condition.condition, Boolean::class.java)
+                    field(condition.condition, Boolean::class.java),
                 )
             },
             tailOperation = { conditionStep, condition ->
                 parser.parseCondition(condition.condition)
                 conditionStep.otherwise(field(condition.condition, Boolean::class.java))
-            }
+            },
         )
         return DSL.condition(whereCondition)
     }
 
     fun toField(
         attribute: DataPolicy.Attribute,
-        fieldTransform: DataPolicy.RuleSet.FieldTransform?
+        fieldTransform: DataPolicy.RuleSet.FieldTransform?,
     ): Field<*> {
         if (fieldTransform == null) {
             // If there is no transform, we return just the field path (joined by a dot for now)
@@ -114,7 +114,7 @@ abstract class AbstractDynamicViewGenerator(
             tailOperation = { conditionStep, transform ->
                 val (c, q) = toCase(transform, attribute)
                 conditionStep.otherwise(q).`as`(attribute.fullName())
-            }
+            },
         )
 
         return caseWhenStatement
@@ -122,7 +122,7 @@ abstract class AbstractDynamicViewGenerator(
 
     fun toCase(
         transform: DataPolicy.RuleSet.FieldTransform.Transform?,
-        attribute: DataPolicy.Attribute
+        attribute: DataPolicy.Attribute,
     ): Pair<Condition?, Field<Any>> {
         val memberCheck = transform?.principalsList?.toPrincipalCondition()
 
@@ -134,13 +134,13 @@ abstract class AbstractDynamicViewGenerator(
                         "regexp_extract({0}, {1})",
                         String::class.java,
                         unquotedName(attribute.fullName()),
-                        DSL.`val`(transform.regex.regex)
+                        DSL.`val`(transform.regex.regex),
                     )
                 } else {
                     DSL.regexpReplaceAll(
                         field(attribute.fullName(), String::class.java),
                         transform.regex.regex,
-                        transform.regex.replacement
+                        transform.regex.replacement,
                     )
                 }
             }
@@ -154,7 +154,7 @@ abstract class AbstractDynamicViewGenerator(
                     "hash({0}, {1})",
                     Any::class.java,
                     DSL.`val`(transform.hash.seed),
-                    unquotedName(attribute.fullName())
+                    unquotedName(attribute.fullName()),
                 )
             }
 
@@ -172,10 +172,11 @@ abstract class AbstractDynamicViewGenerator(
 
             DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.NULLIFY -> DSL.inline<Any>(null)
 
-            DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.TRANSFORM_NOT_SET, DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.IDENTITY, null -> field(
-                attribute.fullName()
-            )
-
+            DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.TRANSFORM_NOT_SET, DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.IDENTITY, null -> {
+                field(
+                    attribute.fullName(),
+                )
+            }
         }
         return memberCheck to (statement as Field<Any>)
     }

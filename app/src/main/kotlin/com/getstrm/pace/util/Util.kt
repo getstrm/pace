@@ -15,19 +15,21 @@ import io.strmprivacy.grpc.common.authz.ZedTokenContext
 import io.strmprivacy.grpc.common.server.InvalidArgumentException
 import io.strmprivacy.grpc.common.server.StrmStatusException
 import org.apache.commons.codec.digest.MurmurHash3
-import org.jooq.Configuration
-import org.jooq.DSLContext
-import org.jooq.DataType
-import org.jooq.JSONB
+import org.jooq.*
 import org.jooq.exception.DataAccessException
 import org.jooq.impl.DSL
 import org.jooq.impl.SQLDataType
+import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.*
 import kotlin.coroutines.coroutineContext
+import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform as ApiTransform
+import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.RuleSet.FieldTransform as ApiFieldTransform
+
+val log by lazy { LoggerFactory.getLogger("Util") }
 
 suspend fun <R> coUnwrapStatusException(block: suspend () -> R): R {
     try {
@@ -103,6 +105,11 @@ fun GeneratedMessageV3.toJson(): String = JsonFormat.printer()
     .omittingInsignificantWhitespace()
     .print(this)
 
+fun GeneratedMessageV3.toJsonWithDefaults(): String = JsonFormat.printer()
+    .omittingInsignificantWhitespace()
+    .includingDefaultValueFields()
+    .print(this)
+
 fun <E> Collection<E>.toJsonb(): JSONB = JSONB.jsonb(mapper.writeValueAsString(this.toSet()))
 
 fun String?.toUUID(idFieldName: String): UUID = this?.let {
@@ -130,12 +137,18 @@ fun String.yaml2json(): String {
 }
 
 fun GeneratedMessageV3.toYaml(): String =
-    ObjectMapper(YAMLFactory()).writeValueAsString(ObjectMapper().readTree(toJson()))
+    ObjectMapper(YAMLFactory()).writeValueAsString(ObjectMapper().readTree(toJsonWithDefaults()))
 
 fun String.parseDataPolicy(): DataPolicy = let {
     val builder = DataPolicy.newBuilder()
     JsonFormat.parser().ignoringUnknownFields().merge(this, builder)
     builder.build()
+}
+
+fun String.parseTransforms(): List<ApiTransform> = let {
+    val builder = ApiFieldTransform.newBuilder()
+    JsonFormat.parser().merge(this.yaml2json(), builder)
+    builder.build().transformsList
 }
 
 fun Long.toTimestamp(): Timestamp {
@@ -184,10 +197,19 @@ fun <T, Accumulator, Result> List<T>.headTailFold(
     return tailOperation(accumulator, this.last())
 }
 
-fun DataPolicy.Attribute.sqlDataType(): DataType<*> {
-    return when(type.lowercase(Locale.ROOT)) {
-        "string", "text" -> SQLDataType.VARCHAR
-        "int", "integer" -> SQLDataType.INTEGER
-        else -> throw NotImplementedError("Unsupported type: $type")
+fun DataPolicy.Attribute.sqlDataType(): DataType<*> =
+    try {
+        if(type.lowercase()=="struct") {
+            SQLDataType.RECORD
+        } else {
+            sqlParser.parseField("a::$type").dataType.sqlDataType!!
+        }
+    } catch (e: Exception) {
+        log.warn("Can't parse {}, default to VARCHAR", type)
+        SQLDataType.VARCHAR
     }
-}
+
+fun DataPolicy.Attribute.normalizeType(): DataPolicy.Attribute =
+    toBuilder().setType( sqlDataType().typeName).build()
+
+val sqlParser = DSL.using(SQLDialect.DEFAULT).parser()

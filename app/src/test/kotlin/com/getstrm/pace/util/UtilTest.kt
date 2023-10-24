@@ -102,7 +102,7 @@ rule_sets:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
-  row_filters:
+  filters:
     - attribute:
         path_components:
           - age
