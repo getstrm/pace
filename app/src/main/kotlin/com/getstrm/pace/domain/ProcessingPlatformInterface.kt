@@ -1,6 +1,7 @@
 package com.getstrm.pace.domain
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import com.getstrm.pace.exceptions.ProcessingPlatformTableNotFound
 
 interface ProcessingPlatformInterface {
 

@@ -4,7 +4,7 @@ import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE
 import com.getstrm.pace.config.SnowflakeConfig
 import com.getstrm.pace.domain.Group
-import com.getstrm.pace.domain.ProcessingPlatformExecuteException
+import com.getstrm.pace.exceptions.ProcessingPlatformExecuteException
 import com.getstrm.pace.domain.ProcessingPlatformInterface
 import com.getstrm.pace.domain.Table
 import org.slf4j.LoggerFactory

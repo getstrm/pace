@@ -4,8 +4,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class DataPolicyServiceApplication
+class PaceApplication
 
 fun main(args: Array<String>) {
-	runApplication<DataPolicyServiceApplication>(*args)
+	runApplication<PaceApplication>(*args)
 }

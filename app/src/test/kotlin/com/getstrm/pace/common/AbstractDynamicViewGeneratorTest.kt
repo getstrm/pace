@@ -21,7 +21,7 @@ class AbstractDynamicViewGeneratorTest {
             .build()
 
         // When
-        val exception = assertThrows<SqlParseException> { underTest.toCase(transform, attribute) }
+        val exception = assertThrows<IllegalArgumentException> { underTest.toCase(transform, attribute) }
 
         // Then
         exception.message shouldBe "SQL Statement [some invalid sql statement] is invalid, please verify it's syntax. Details: [1:6] some [*]invalid sql statement"

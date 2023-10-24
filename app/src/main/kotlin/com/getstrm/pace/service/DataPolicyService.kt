@@ -1,12 +1,12 @@
 package com.getstrm.pace.service
 
 import com.getstrm.pace.dao.DataPolicyDao
-import com.getstrm.pace.domain.InvalidDataPolicyEmptyFieldTransforms
-import com.getstrm.pace.domain.InvalidDataPolicyMissingAttribute
-import com.getstrm.pace.domain.InvalidDataPolicyNonEmptyLastFieldTransform
-import com.getstrm.pace.domain.InvalidDataPolicyOverlappingAttributes
-import com.getstrm.pace.domain.InvalidDataPolicyOverlappingPrincipals
-import com.getstrm.pace.domain.InvalidDataPolicyUnknownGroup
+import com.getstrm.pace.exceptions.InvalidDataPolicyEmptyFieldTransforms
+import com.getstrm.pace.exceptions.InvalidDataPolicyMissingAttribute
+import com.getstrm.pace.exceptions.InvalidDataPolicyNonEmptyLastFieldTransform
+import com.getstrm.pace.exceptions.InvalidDataPolicyOverlappingAttributes
+import com.getstrm.pace.exceptions.InvalidDataPolicyOverlappingPrincipals
+import com.getstrm.pace.exceptions.InvalidDataPolicyUnknownGroup
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import coWithTransactionResult
 import org.jooq.DSLContext

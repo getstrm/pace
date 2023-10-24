@@ -162,7 +162,8 @@ abstract class AbstractDynamicViewGenerator(
                 try {
                     parser.parseField(transform.sqlStatement.statement)
                 } catch (e: ParserException) {
-                    throw SqlParseException(transform.sqlStatement.statement, e)
+//                    throw SqlParseException(transform.sqlStatement.statement, e)
+                    throw IllegalArgumentException(transform.sqlStatement.statement, e)
                 }
                 // Todo: for now we use the parser just to detect errors, since the resulting sql may be incompatible with the target platform -> I've asked a question on SO: https://stackoverflow.com/q/77300702
                 // (For example, the BigQuery string datatype gets parsed as varchar)

@@ -7,6 +7,8 @@ import com.getstrm.pace.bigquery.BigQueryClient
 import com.getstrm.pace.config.ProcessingPlatformConfiguration
 import com.getstrm.pace.databricks.DatabricksClient
 import com.getstrm.pace.domain.*
+import com.getstrm.pace.exceptions.ProcessingPlatformConfigurationError
+import com.getstrm.pace.exceptions.ProcessingPlatformNotFoundException
 import com.getstrm.pace.snowflake.SnowflakeClient
 import org.springframework.stereotype.Component
 

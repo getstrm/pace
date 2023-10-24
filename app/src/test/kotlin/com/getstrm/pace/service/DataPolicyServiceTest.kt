@@ -2,12 +2,12 @@ package com.getstrm.pace.service
 
 import com.getstrm.pace.dao.DataPolicyDao
 import com.getstrm.pace.domain.Group
-import com.getstrm.pace.domain.InvalidDataPolicyMissingAttribute
-import com.getstrm.pace.domain.InvalidDataPolicyNonEmptyLastFieldTransform
-import com.getstrm.pace.domain.InvalidDataPolicyOverlappingAttributes
-import com.getstrm.pace.domain.InvalidDataPolicyOverlappingPrincipals
-import com.getstrm.pace.domain.InvalidDataPolicyUnknownGroup
-import com.getstrm.pace.domain.ProcessingPlatformNotFoundException
+import com.getstrm.pace.exceptions.InvalidDataPolicyMissingAttribute
+import com.getstrm.pace.exceptions.InvalidDataPolicyNonEmptyLastFieldTransform
+import com.getstrm.pace.exceptions.InvalidDataPolicyOverlappingAttributes
+import com.getstrm.pace.exceptions.InvalidDataPolicyOverlappingPrincipals
+import com.getstrm.pace.exceptions.InvalidDataPolicyUnknownGroup
+import com.getstrm.pace.exceptions.ProcessingPlatformNotFoundException
 import com.getstrm.pace.snowflake.SnowflakeClient
 import io.kotest.assertions.throwables.shouldThrow
 import io.mockk.coEvery

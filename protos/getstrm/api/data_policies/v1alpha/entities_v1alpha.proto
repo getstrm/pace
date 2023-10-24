@@ -3,6 +3,8 @@ syntax = "proto3";
 package getstrm.api.data_policies.v1alpha;
 
 import "google/protobuf/timestamp.proto";
+import 'validate/validate.proto';
+import "google/rpc/error_details.proto";
 
 message DataPolicy {
     string id = 1;
@@ -153,4 +155,8 @@ message DataCatalog {
         string name = 2;
         Schema schema = 3;
     }
+}
+
+message Banaan {
+    google.rpc.ErrorInfo error_info = 1;
 }

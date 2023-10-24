@@ -12,6 +12,8 @@ class DataPolicyApi(
 ) : DataPolicyServiceGrpcKt.DataPolicyServiceCoroutineImplBase() {
 
     override suspend fun listDataPolicies(request: ListDataPoliciesRequest): ListDataPoliciesResponse {
+        throw IllegalArgumentException("This is a test")
+
         return ListDataPoliciesResponse.newBuilder()
             .addAllDataPolicies(dataPolicyService.listDataPolicies())
             .build()

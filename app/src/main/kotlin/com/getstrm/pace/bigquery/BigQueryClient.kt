@@ -1,6 +1,6 @@
 package com.getstrm.pace.bigquery
 
-import com.getstrm.pace.domain.ProcessingPlatformExecuteException
+import com.getstrm.pace.exceptions.ProcessingPlatformExecuteException
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.BIGQUERY
 import com.getstrm.pace.config.BigQueryConfig
