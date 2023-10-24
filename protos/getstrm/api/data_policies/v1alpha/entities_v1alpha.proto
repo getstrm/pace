@@ -18,17 +18,17 @@ message DataPolicy {
         string organization_id = 4;
         google.protobuf.Timestamp create_time = 5;
         google.protobuf.Timestamp update_time = 6;
+        repeated string tags = 7;
     }
 
     message RuleSet {
         Target target = 1;
         repeated FieldTransform field_transforms = 2;
-        repeated RowFilter row_filters = 3;
+        repeated Filter filters = 3;
 
-        message RowFilter {
-            Attribute attribute = 1;
+        message Filter {
             // Last condition in the list must have 0 principals, as this acts as the default / else condition.
-            repeated Condition conditions = 3;
+            repeated Condition conditions = 1;
             message Condition {
                 repeated string principals = 1;
                 string condition = 2;
@@ -100,6 +100,7 @@ message DataPolicy {
         // attributes are leading.
         // Todo: rename to fields? Attribute is an overloaded term in this context.
         repeated Attribute attributes = 4;
+        repeated string tags = 5;
 
         // where did the Attribute list come from?
         enum Type {
@@ -117,6 +118,8 @@ message DataPolicy {
         // This is the "native" type, originating from the source platform.
         string type = 2;
         bool required = 3;
+        repeated string tags = 4;
+
         // TODO add repeated?
     }
 }
@@ -126,6 +129,7 @@ message DataCatalog {
     string id = 1;
     Type type = 2;
     repeated DataBase databases = 3;
+    repeated string tags = 4;
     enum Type {
         TYPE_UNSPECIFIED = 0;
         COLLIBRA = 1;
@@ -139,6 +143,7 @@ message DataCatalog {
         string display_name = 3;
         DataCatalog catalog = 4;
         repeated Schema schemas = 5;
+        repeated string tags = 6;
     }
 
     message Schema {
@@ -146,11 +151,13 @@ message DataCatalog {
         string name = 2;
         DataBase database = 3;
         repeated Table tables = 4;
+        repeated string tags = 5;
     }
 
     message Table {
         string id = 1;
         string name = 2;
         Schema schema = 3;
+        repeated string tags = 4;
     }
 }
