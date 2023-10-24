@@ -142,7 +142,7 @@ val createPostgresContainer =
     tasks.register("jooqPostgresCreate", DockerCreateContainer::class) {
         dependsOn(removePostgresContainer)
         group = "postgres"
-        targetImageId("postgres:12")
+        targetImageId("postgres:15")
         containerName.set("jooq-postgres")
         hostConfig.portBindings.set(listOf("$postgresPort:5432"))
         hostConfig.autoRemove.set(true)
