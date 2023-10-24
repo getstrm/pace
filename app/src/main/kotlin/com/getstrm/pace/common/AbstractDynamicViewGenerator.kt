@@ -1,6 +1,7 @@
 package com.getstrm.pace.common
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import com.getstrm.pace.domain.SqlParseException
 import headTailFold
 import org.jooq.* // ktlint-disable no-wildcard-imports
 import org.jooq.conf.ParseNameCase

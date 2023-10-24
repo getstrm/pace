@@ -5,7 +5,5 @@ data_policy=$(json-case $f)
 request=$(echo '{}' | jq -r --argjson p "$data_policy" '{data_policy: $p}')
 
 echo $request | evans -r cli \
-    --header "authorization=Bearer $(strm auth print-access-token)" \
-    --host api.dev.getstrm.io --tls --port 443 \
     --package getstrm.api.data_policies.v1alpha --service DataPolicyService \
     call UpsertDataPolicy
