@@ -84,6 +84,8 @@ class ExceptionHandlerInterceptor(private val exposeExceptions: Boolean) : Serve
             traceId: String,
             callName: String?
         ): Metadata {
+
+
             val details: Any = when (statusException) {
                 is BadRequestException -> Any.pack(statusException.badRequest)
                 is ResourceException -> Any.pack(statusException.resourceInfo)
@@ -108,11 +110,10 @@ class ExceptionHandlerInterceptor(private val exposeExceptions: Boolean) : Serve
 
             val richStatus = com.google.rpc.Status.newBuilder()
                 .setCode(statusException.status.code.value())
-                .setMessage("Please fail now to see how this works")
+                .setMessage(statusException.status.description)
                 .addDetails(details)
-                .build()
 
-            return StatusProto.toStatusRuntimeException(richStatus).trailers ?: Metadata()
+            return StatusProto.toStatusRuntimeException(richStatus.build()).trailers ?: Metadata()
         }
 
         private fun getOrGenerateTraceId(status: Status) =
