@@ -1,5 +1,7 @@
 .PHONY: clean-common-protos
 
+SHELL := /bin/bash
+
 common_protos := ${CURDIR}/.common-protos
 
 grpc_version := 1.50.0
