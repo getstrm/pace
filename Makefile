@@ -1,5 +1,9 @@
 .PHONY: clean-common-protos
 
+SHELL := /bin/bash
+
+common_protos := ${CURDIR}/.common-protos
+
 grpc_version := 1.50.0
 protobuf_version := 3.21.9
 git_branch := $(shell git rev-parse --abbrev-ref HEAD)

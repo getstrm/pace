@@ -79,7 +79,7 @@ rule_sets:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
-  row_filters:
+  filters:
     - attribute:
         path_components: [ age ]
       conditions:
@@ -106,113 +106,6 @@ rule_sets:
         coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-detection", "admin")
         runBlocking {
             underTest.validate(dataPolicy)
-        }
-    }
-
-    @Test
-    fun `validate missing age attribute`() {
-        val dataPolicy = """
-platform:
-  platform_type: SNOWFLAKE
-  id: snowflake
-source: 
-  type: SQL_DDL
-  ref: mycatalog.my_schema.gddemo
-  attributes:
-    - path_components: [transactionId]
-      type: bigint
-    - path_components: [userId]
-      type: string
-    - path_components: [email]
-      type: string
-    - path_components: [age_missing] # renamed to trigger validation failure
-      type: bigint
-    - path_components: [size]
-      type: string
-    - path_components: [hairColor]
-      type: string
-    - path_components: [transactionAmount]
-      type: bigint
-    - path_components: [items]
-      type: string
-    - path_components: [itemCount]
-      type: bigint
-    - path_components: [date]
-      type: timestamp
-    - path_components: [purpose]
-      type: bigint
-
-rule_sets: 
-- target:
-    type: DYNAMIC_VIEW
-    fullname: 'my_catalog.my_schema.gddemo_public'
-  field_transforms:
-    - attribute:
-        path_components: [ email ]
-      transforms:
-        - principals:
-            - analytics
-            - marketing
-          regex:
-            regex: '^.*(@.*)${'$'}'
-            replacement: '****${'$'}1'
-        - principals:
-            - fraud-detection
-            - admin
-          identity: true
-        - principals: []
-          fixed:
-            value: "'****'"
-    - attribute:
-        path_components: [ userId ]
-      transforms:
-        - principals:
-            - fraud-detection
-          identity: true
-        - principals: []
-          hash:
-            seed: "1234"
-    - attribute:
-        path_components: [ items ]
-      transforms:
-        - principals: []
-          fixed:
-            value: "'****'"
-    - attribute:
-        path_components: [ hairColor ]
-      transforms:
-        - principals: []
-          sql_statement:
-            statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
-  row_filters:
-    - attribute:
-        path_components: [ age ]
-      conditions:
-        - principals:
-            - fraud-detection
-          condition: "true"
-        - principals: []
-          condition: "age > 18"
-    - attribute:
-        path_components: [ userId ]
-      conditions:
-        - principals:
-            - marketing
-          condition: "userId in ('1', '2', '3', '4')"
-        - principals: []
-          condition: "true"
-    - attribute:
-        path_components: [ transactionAmount ]
-      conditions:
-        - principals: []
-          condition: "transactionAmount < 10"
-          """.yaml2json().parseDataPolicy()
-        coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
-        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-detection", "admin")
-        runBlocking {
-            shouldThrow<InvalidDataPolicyMissingAttribute> {
-                underTest.validate(dataPolicy)
-            }
         }
     }
 
@@ -262,7 +155,7 @@ rule_sets:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
-  row_filters:
+  filters:
     - attribute:
         path_components: [ age ]
       conditions:
@@ -340,7 +233,7 @@ rule_sets:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
-  row_filters:
+  filters:
     - attribute:
         path_components: [ age ]
       conditions:
@@ -422,7 +315,7 @@ rule_sets:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
-  row_filters:
+  filters:
     - attribute:
         path_components: [ age ]
       conditions:
@@ -503,7 +396,7 @@ rule_sets:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
-  row_filters:
+  filters:
     - attribute:
         path_components: [ age ]
       conditions:
@@ -581,7 +474,7 @@ rule_sets:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
-  row_filters:
+  filters:
     - attribute:
         path_components: [ age ]
       conditions:
@@ -612,11 +505,10 @@ rule_sets:
             }
         }
     }
-
 }
 
 // convenience for tests
-private fun groups(vararg group: String) = group.map { Group(it, it, it) }
+fun groups(vararg group: String) = group.map { Group(it, it, it) }
 
 /*
  * base yaml of policy with happy flow attributes

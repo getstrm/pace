@@ -2,6 +2,7 @@ package com.getstrm.pace.common
 
 import com.getstrm.pace.util.TestDynamicViewGenerator
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import com.getstrm.pace.domain.SqlParseException
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

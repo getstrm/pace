@@ -1,10 +1,10 @@
-create schema pace;
+create schema if not exists pace;
 set search_path to pg_catalog,public,pace;
 
 create
     extension if not exists "uuid-ossp" schema pace;
 
-create table pace.data_policies
+create table if not exists pace.data_policies
 (
     id              varchar                   not null,
     title           varchar                   not null,

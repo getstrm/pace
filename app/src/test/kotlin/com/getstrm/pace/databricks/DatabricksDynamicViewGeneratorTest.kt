@@ -250,19 +250,18 @@ class DatabricksDynamicViewGeneratorTest {
     @Test
     fun `row filter to condition`() {
         // Given
-        val filter = DataPolicy.RuleSet.RowFilter.newBuilder()
-            .setAttribute(DataPolicy.Attribute.newBuilder().addPathComponents("age").build())
+        val filter = DataPolicy.RuleSet.Filter.newBuilder()
             .addAllConditions(
                 listOf(
-                    DataPolicy.RuleSet.RowFilter.Condition.newBuilder()
+                    DataPolicy.RuleSet.Filter.Condition.newBuilder()
                         .addAllPrincipals(listOf("fraud-detection"))
                         .setCondition("true")
                         .build(),
-                    DataPolicy.RuleSet.RowFilter.Condition.newBuilder()
+                    DataPolicy.RuleSet.Filter.Condition.newBuilder()
                         .addAllPrincipals(listOf("analytics", "marketing"))
                         .setCondition("age > 18")
                         .build(),
-                    DataPolicy.RuleSet.RowFilter.Condition.newBuilder()
+                    DataPolicy.RuleSet.Filter.Condition.newBuilder()
                         .setCondition("false")
                         .build()
                 )
@@ -327,8 +326,8 @@ where (
 
     @Test
     fun `transform - no row filters`() {
-        val policyWithoutRowFilters = dataPolicy.toBuilder().apply { ruleSetsBuilderList.first().clearRowFilters() }.build()
-        underTest = DatabricksDynamicViewGenerator(policyWithoutRowFilters) { withRenderFormatted(true) }
+        val policyWithoutFilters = dataPolicy.toBuilder().apply { ruleSetsBuilderList.first().clearFilters() }.build()
+        underTest = DatabricksDynamicViewGenerator(policyWithoutFilters) { withRenderFormatted(true) }
         underTest.toDynamicViewSQL()
             .shouldBe(
                 """create or replace view my_catalog.my_schema.gddemo_public
@@ -452,7 +451,7 @@ from mycatalog.my_schema.gddemo;"""
             - principals: []
               sql_statement:
                 statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
-      row_filters:
+      filters:
         - attribute:
             path_components:
               - age
