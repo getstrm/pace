@@ -101,19 +101,18 @@ class BigQueryDynamicViewGeneratorTest {
     @Test
     fun `row filters to condition`() {
         // Given
-        val filter = DataPolicy.RuleSet.RowFilter.newBuilder()
-            .setAttribute(DataPolicy.Attribute.newBuilder().addPathComponents("age").build())
+        val filter = DataPolicy.RuleSet.Filter.newBuilder()
             .addAllConditions(
                 listOf(
-                    DataPolicy.RuleSet.RowFilter.Condition.newBuilder()
+                    DataPolicy.RuleSet.Filter.Condition.newBuilder()
                         .addAllPrincipals(listOf("fraud-detection"))
                         .setCondition("true")
                         .build(),
-                    DataPolicy.RuleSet.RowFilter.Condition.newBuilder()
+                    DataPolicy.RuleSet.Filter.Condition.newBuilder()
                         .addAllPrincipals(listOf("analytics", "marketing"))
                         .setCondition("age > 18")
                         .build(),
-                    DataPolicy.RuleSet.RowFilter.Condition.newBuilder()
+                    DataPolicy.RuleSet.Filter.Condition.newBuilder()
                         .setCondition("false")
                         .build()
                 )
@@ -272,7 +271,7 @@ rule_sets:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
-  row_filters:
+  filters:
     - attribute:
         path_components:
           - age

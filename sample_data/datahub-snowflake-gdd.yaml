@@ -1,0 +1,93 @@
+rule_sets:
+  - target:
+      fullname: STRM.POC.GDDDEMO_V3
+    filters:
+      - conditions:
+          - principals: [ FRAUD_AND_RISK ]
+            condition: "true"
+          - principals: []
+            condition: "age > 8"
+      - conditions:
+          - principals : []
+            condition: "transactionamount < 10"
+    field_transforms:
+      - attribute:
+          path_components: [ userid ]
+        transforms:
+          - principals: [ "FRAUD_AND_RISK"]
+            identity: true
+          - principals: []
+            hash:
+              seed: "1234"
+      - attribute:
+          path_components: [ email ]
+        transforms:
+          - principals: [ MARKETING ]
+            regex:
+              regex: "^.*(@.*)$"
+              replacement: "****\\\\1"
+          - principals: [ FRAUD_AND_RISK]
+            identity: true
+          - principals: []
+            fixed:
+              value: "****"
+      - attribute:
+          path_components: [ haircolor ]
+        transforms:
+          - principals: []
+            sql_statement:
+              statement: "CASE WHEN haircolor = 'blonde' THEN 'fair' ELSE 'dark' END"
+info:
+  description: snowflake
+  tags:
+    - purpose:marketing
+  title: Snowflake
+source:
+  ref: POC.GDDEMO
+  attributes:
+    - path_components:
+        - transactionid
+      type: numeric
+    - path_components:
+        - userid
+      tags:
+        - PII
+        - sensitive
+      type: varchar
+    - path_components:
+        - email
+      tags:
+        - PII
+        - sensitive
+      type: varchar
+    - path_components:
+        - age
+      tags:
+        - sensitive
+      type: numeric
+    - path_components:
+        - size
+      type: varchar
+    - path_components:
+        - haircolor
+      type: varchar
+    - path_components:
+        - transactionamount
+      tags:
+        - sensitive
+      type: numeric
+    - path_components:
+        - items
+      type: varchar
+    - path_components:
+        - itemcount
+      type: numeric
+    - path_components:
+        - date
+      type: time
+    - path_components:
+        - purpose
+      type: numeric
+platform:
+  id: snowflake-demo
+  platform_type: SNOWFLAKE

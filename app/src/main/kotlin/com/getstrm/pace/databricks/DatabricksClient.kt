@@ -1,6 +1,6 @@
 package com.getstrm.pace.databricks
 
-import com.getstrm.pace.exceptions.ProcessingPlatformExecuteException
+import com.getstrm.pace.domain.ProcessingPlatformExecuteException
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.DATABRICKS
 import com.databricks.sdk.AccountClient

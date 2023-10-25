@@ -1,10 +1,10 @@
 package com.getstrm.pace.bigquery
 
-import com.getstrm.pace.exceptions.ProcessingPlatformExecuteException
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.BIGQUERY
 import com.getstrm.pace.config.BigQueryConfig
 import com.getstrm.pace.domain.Group
+import com.getstrm.pace.domain.ProcessingPlatformExecuteException
 import com.getstrm.pace.domain.ProcessingPlatformInterface
 import com.getstrm.pace.domain.Table
 import com.google.auth.oauth2.GoogleCredentials

@@ -9,10 +9,8 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @EnableConfigurationProperties(ProcessingPlatformConfiguration::class, CatalogsConfiguration::class)
 class AppConfig {
-
     @GrpcGlobalServerInterceptor
     fun exceptionInterceptor(): ExceptionHandlerInterceptor {
-        // Todo: re-implement or use @GrpcAdvice with @GrpcExceptionHandler instead after removing the kotlin-grpc-common dependency
         return ExceptionHandlerInterceptor(false)
     }
 }

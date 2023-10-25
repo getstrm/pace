@@ -1,14 +1,8 @@
 package com.getstrm.pace.service
 
-import com.getstrm.pace.dao.DataPolicyDao
-import com.getstrm.pace.exceptions.InvalidDataPolicyEmptyFieldTransforms
-import com.getstrm.pace.exceptions.InvalidDataPolicyMissingAttribute
-import com.getstrm.pace.exceptions.InvalidDataPolicyNonEmptyLastFieldTransform
-import com.getstrm.pace.exceptions.InvalidDataPolicyOverlappingAttributes
-import com.getstrm.pace.exceptions.InvalidDataPolicyOverlappingPrincipals
-import com.getstrm.pace.exceptions.InvalidDataPolicyUnknownGroup
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
-import coWithTransactionResult
+import com.getstrm.pace.dao.DataPolicyDao
+import com.getstrm.pace.domain.*
 import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -25,14 +19,20 @@ class DataPolicyService(
 
     suspend fun upsertDataPolicy(dataPolicy: DataPolicy): DataPolicy {
         validate(dataPolicy)
-        return jooq.coWithTransactionResult {
-            val newDataPolicy = dataPolicyDao.upsertDataPolicy(dataPolicy, context, it)
-            enforceStatement(newDataPolicy)
-            newDataPolicy
-        }
+        // TODO should it remove old ruleset targets?
+        // TODO the two statements below should be wrapped in a transaction
+        val newDataPolicy = dataPolicyDao.upsertDataPolicy(dataPolicy, context, jooq)
+        enforceStatement(newDataPolicy)
+        return newDataPolicy
     }
 
     suspend fun validate(dataPolicy: DataPolicy) {
+        if (dataPolicy.source.ref.isNullOrEmpty()) {
+            throw InvalidDataPolicyAbsentSourceRef()
+        }
+        if (dataPolicy.platform.id.isNullOrEmpty()) {
+            throw InvalidDataPolicyAbsentPlatformId()
+        }
         val platform = processingPlatforms.getProcessingPlatform(dataPolicy)
         val validGroups = platform.listGroups().map { it.name }.toSet()
         val validAttributes = dataPolicy.source.attributesList.map(DataPolicy.Attribute::pathString).toSet()
@@ -67,6 +67,11 @@ class DataPolicyService(
                         throw InvalidDataPolicyNonEmptyLastFieldTransform(transform)
                     }
                 }
+                fieldTransform.transformsList.filter { it.principalsCount == 0 }.let {
+                    if (it.size > 1) {
+                        throw InvalidDataPolicyOverlappingPrincipals(fieldTransform)
+                    }
+                }
                 // check non-overlapping principals within one fieldTransform
                 fieldTransform.transformsList.fold(
                     emptySet<String>(),
@@ -81,9 +86,8 @@ class DataPolicyService(
             }
             // check for every row filter that the principals overlap with groups in the processing platform
             // and that the attributes exist in the DataPolicy
-            ruleSet.rowFiltersList.forEach { rowFilter ->
-                checkAttribute(rowFilter.attribute)
-                rowFilter.conditionsList.forEach { condition ->
+            ruleSet.filtersList.forEach { filter ->
+                filter.conditionsList.forEach { condition ->
                     checkPrincipals(condition.principalsList)
                 }
             }
