@@ -2,14 +2,14 @@ package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import com.getstrm.pace.dao.DataPolicyDao
-import com.getstrm.pace.domain.*
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.exceptions.ResourceException
 import com.google.rpc.BadRequest
+import com.google.rpc.ResourceInfo
 import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import pathString
-import toJson
 
 @Component
 class DataPolicyService(
@@ -216,7 +216,14 @@ class DataPolicyService(
         }
     }
 
-    fun getLatestDataPolicy(id: String) = dataPolicyDao.getLatestDataPolicy(id)
+    fun getLatestDataPolicy(id: String) = dataPolicyDao.getLatestDataPolicy(id) ?: throw ResourceException(
+        ResourceException.Code.NOT_FOUND,
+        ResourceInfo.newBuilder()
+            .setResourceType("DataPolicy")
+            .setResourceName(id)
+            .setDescription("DataPolicy $id not found")
+            .build()
+    )
 
     private suspend fun enforceStatement(dataPolicy: DataPolicy) {
         // TODO: replace with switch based on platform identifier instead of type. Possibly multiple platforms of the same type.

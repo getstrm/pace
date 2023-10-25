@@ -107,8 +107,9 @@ class ExceptionHandlerInterceptor(private val exposeExceptions: Boolean) : Serve
             }
 
             val richStatus = com.google.rpc.Status.newBuilder()
+                // TODO map this to the HTTP response code it
                 .setCode(statusException.status.code.value())
-                .setMessage(statusException.status.description)
+                .setMessage(statusException.status.description ?: statusException.message ?: "")
                 .addDetails(details)
 
             return StatusProto.toStatusRuntimeException(richStatus.build()).trailers ?: Metadata()

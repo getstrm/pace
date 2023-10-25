@@ -175,7 +175,8 @@ abstract class AbstractDynamicViewGenerator(
                                         .build()
                                 )
                             )
-                            .build()
+                            .build(),
+                        e
                     )
                 }
                 // Todo: for now we use the parser just to detect errors, since the resulting sql may be incompatible with the target platform -> I've asked a question on SO: https://stackoverflow.com/q/77300702
