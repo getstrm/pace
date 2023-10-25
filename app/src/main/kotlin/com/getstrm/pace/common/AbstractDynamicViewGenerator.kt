@@ -194,7 +194,8 @@ abstract class AbstractDynamicViewGenerator(
                         .build()
                 )
             )
-            .build()
+            .build(),
+        e
     )
 
     private fun DataPolicy.Attribute.fullName(): String = this.pathComponentsList.joinToString(".")
