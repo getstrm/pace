@@ -2,7 +2,10 @@ package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import com.getstrm.pace.dao.DataPolicyDao
-import com.getstrm.pace.domain.*
+import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.exceptions.ResourceException
+import com.google.rpc.BadRequest
+import com.google.rpc.ResourceInfo
 import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -28,10 +31,34 @@ class DataPolicyService(
 
     suspend fun validate(dataPolicy: DataPolicy) {
         if (dataPolicy.source.ref.isNullOrEmpty()) {
-            throw InvalidDataPolicyAbsentSourceRef()
+            throw BadRequestException(
+                BadRequestException.Code.INVALID_ARGUMENT,
+                BadRequest.newBuilder()
+                    .addAllFieldViolations(
+                        listOf(
+                            BadRequest.FieldViolation.newBuilder()
+                                .setField("dataPolicy.source.ref")
+                                .setDescription("DataPolicy source ref is empty")
+                                .build()
+                        )
+                    )
+                    .build()
+            )
         }
         if (dataPolicy.platform.id.isNullOrEmpty()) {
-            throw InvalidDataPolicyAbsentPlatformId()
+            throw BadRequestException(
+                BadRequestException.Code.INVALID_ARGUMENT,
+                BadRequest.newBuilder()
+                    .addAllFieldViolations(
+                        listOf(
+                            BadRequest.FieldViolation.newBuilder()
+                                .setField("dataPolicy.platform.id")
+                                .setDescription("DataPolicy platform id is empty")
+                                .build()
+                        )
+                    )
+                    .build()
+            )
         }
         val platform = processingPlatforms.getProcessingPlatform(dataPolicy)
         val validGroups = platform.listGroups().map { it.name }.toSet()
@@ -41,7 +68,19 @@ class DataPolicyService(
         fun checkPrincipals(principals: List<String>) {
             (principals.toSet() - validGroups).let {
                 if (it.isNotEmpty()) {
-                    throw InvalidDataPolicyUnknownGroup(it)
+                    throw BadRequestException(
+                        BadRequestException.Code.INVALID_ARGUMENT,
+                        BadRequest.newBuilder()
+                            .addAllFieldViolations(
+                                it.map { principal ->
+                                    BadRequest.FieldViolation.newBuilder()
+                                        .setField("principal")
+                                        .setDescription("Principal $principal does not exist in platform ${dataPolicy.platform.id}")
+                                        .build()
+                                }
+                            )
+                            .build()
+                    )
                 }
             }
         }
@@ -49,7 +88,19 @@ class DataPolicyService(
         // check that every attribute in a field transform or row filter exists in the DataPolicy
         fun checkAttribute(attribute: DataPolicy.Attribute) {
             if (!validAttributes.contains(attribute.pathString())) {
-                throw InvalidDataPolicyMissingAttribute(attribute)
+                throw BadRequestException(
+                    BadRequestException.Code.INVALID_ARGUMENT,
+                    BadRequest.newBuilder()
+                        .addAllFieldViolations(
+                            listOf(
+                                BadRequest.FieldViolation.newBuilder()
+                                    .setField("attribute")
+                                    .setDescription("Attribute ${attribute.pathString()} does not exist in source ${dataPolicy.source.ref}")
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
             }
         }
 
@@ -57,19 +108,55 @@ class DataPolicyService(
             ruleSet.fieldTransformsList.forEach { fieldTransform ->
                 checkAttribute(fieldTransform.attribute)
                 if (fieldTransform.transformsList.isEmpty()) {
-                    throw InvalidDataPolicyEmptyFieldTransforms(fieldTransform)
+                    throw BadRequestException(
+                        BadRequestException.Code.INVALID_ARGUMENT,
+                        BadRequest.newBuilder()
+                            .addAllFieldViolations(
+                                listOf(
+                                    BadRequest.FieldViolation.newBuilder()
+                                        .setField("fieldTransform")
+                                        .setDescription("FieldTransform ${fieldTransform.attribute.pathString()} has no transforms")
+                                        .build()
+                                )
+                            )
+                            .build()
+                    )
                 }
                 fieldTransform.transformsList.forEach { transform ->
                     checkPrincipals(transform.principalsList)
                 }
                 fieldTransform.transformsList.last().let { transform ->
                     if (transform.principalsList.isNotEmpty()) {
-                        throw InvalidDataPolicyNonEmptyLastFieldTransform(transform)
+                        throw BadRequestException(
+                            BadRequestException.Code.INVALID_ARGUMENT,
+                            BadRequest.newBuilder()
+                                .addAllFieldViolations(
+                                    listOf(
+                                        BadRequest.FieldViolation.newBuilder()
+                                            .setField("fieldTransform")
+                                            .setDescription("FieldTransform ${fieldTransform.attribute.pathString()} does not have an empty principals list as last field")
+                                            .build()
+                                    )
+                                )
+                                .build()
+                        )
                     }
                 }
                 fieldTransform.transformsList.filter { it.principalsCount == 0 }.let {
                     if (it.size > 1) {
-                        throw InvalidDataPolicyOverlappingPrincipals(fieldTransform)
+                        throw BadRequestException(
+                            BadRequestException.Code.INVALID_ARGUMENT,
+                            BadRequest.newBuilder()
+                                .addAllFieldViolations(
+                                    listOf(
+                                        BadRequest.FieldViolation.newBuilder()
+                                            .setField("fieldTransform")
+                                            .setDescription("FieldTransform ${fieldTransform.attribute.pathString()} has more than one empty principals list")
+                                            .build()
+                                    )
+                                )
+                                .build()
+                        )
                     }
                 }
                 // check non-overlapping principals within one fieldTransform
@@ -78,7 +165,19 @@ class DataPolicyService(
                 ) { alreadySeen, transform ->
                     transform.principalsList.toSet().let {
                         if (alreadySeen.intersect(it).isNotEmpty()) {
-                            throw InvalidDataPolicyOverlappingPrincipals(fieldTransform)
+                            throw BadRequestException(
+                                BadRequestException.Code.INVALID_ARGUMENT,
+                                BadRequest.newBuilder()
+                                    .addAllFieldViolations(
+                                        listOf(
+                                            BadRequest.FieldViolation.newBuilder()
+                                                .setField("fieldTransform")
+                                                .setDescription("FieldTransform ${fieldTransform.attribute.pathString()} has overlapping principals")
+                                                .build()
+                                        )
+                                    )
+                                    .build()
+                            )
                         }
                         alreadySeen + it
                     }
@@ -97,7 +196,19 @@ class DataPolicyService(
             ) { alreadySeen, attribute ->
                 attribute.pathString().let {
                     if (alreadySeen.contains(it)) {
-                        throw InvalidDataPolicyOverlappingAttributes(ruleSet)
+                        throw BadRequestException(
+                            BadRequestException.Code.INVALID_ARGUMENT,
+                            BadRequest.newBuilder()
+                                .addAllFieldViolations(
+                                    listOf(
+                                        BadRequest.FieldViolation.newBuilder()
+                                            .setField("ruleSet")
+                                            .setDescription("RuleSet has overlapping attributes, ${attribute.pathString()} is already present")
+                                            .build()
+                                    )
+                                )
+                                .build()
+                        )
                     }
                     alreadySeen + it
                 }
@@ -105,7 +216,14 @@ class DataPolicyService(
         }
     }
 
-    fun getLatestDataPolicy(id: String) = dataPolicyDao.getLatestDataPolicy(id)
+    fun getLatestDataPolicy(id: String) = dataPolicyDao.getLatestDataPolicy(id) ?: throw ResourceException(
+        ResourceException.Code.NOT_FOUND,
+        ResourceInfo.newBuilder()
+            .setResourceType("DataPolicy")
+            .setResourceName(id)
+            .setDescription("DataPolicy $id not found")
+            .build()
+    )
 
     private suspend fun enforceStatement(dataPolicy: DataPolicy) {
         // TODO: replace with switch based on platform identifier instead of type. Possibly multiple platforms of the same type.

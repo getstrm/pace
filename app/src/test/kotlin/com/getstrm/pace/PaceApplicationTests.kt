@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
 @Disabled
-class DataPolicyServiceApplicationTests {
+class PaceApplicationTests {
 
 	@Test
 	fun contextLoads() {
