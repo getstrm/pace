@@ -2,8 +2,7 @@ version: v1
 name: buf.build/getstrm/pace
 deps:
   - buf.build/googleapis/googleapis
-  # FIXME once an official repo is available for bufbuild/protoc-gen-validate, we should change to that
-  - buf.build/envoyproxy/protoc-gen-validate
+  - buf.build/bufbuild/protovalidate
 breaking:
   use:
     - FILE
