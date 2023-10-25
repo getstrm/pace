@@ -39,17 +39,17 @@ class ProcessingPlatformsService(
         }
 
     suspend fun listProcessingPlatformTables(request: ListProcessingPlatformTablesRequest): List<Table> =
-        (platforms[request.platform.id] ?: throw ProcessingPlatformNotFoundException(request.platform.id)).listTables()
+        (platforms[request.platformId] ?: throw ProcessingPlatformNotFoundException(request.platformId)).listTables()
 
     suspend fun listProcessingPlatformGroups(request: ListProcessingPlatformGroupsRequest): List<Group> =
-        (platforms[request.platform.id] ?: throw ProcessingPlatformNotFoundException(request.platform.id)).listGroups()
+        (platforms[request.platformId] ?: throw ProcessingPlatformNotFoundException(request.platformId)).listGroups()
 
-    suspend fun createBarePolicy(platform: DataPolicy.ProcessingPlatform?, tableName: String): DataPolicy {
+    suspend fun createBarePolicy(platformId: String, tableName: String): DataPolicy {
         val processingPlatformInterface =
-            platforms[platform!!.id] ?: throw ProcessingPlatformNotFoundException(platform.id)
+            platforms[platformId] ?: throw ProcessingPlatformNotFoundException(platformId)
         val table = processingPlatformInterface.createTable(tableName)
         return table.toDataPolicy(
-            DataPolicy.ProcessingPlatform.newBuilder().setId(platform.id)
+            DataPolicy.ProcessingPlatform.newBuilder().setId(platformId)
                 .setPlatformType(processingPlatformInterface.type).build()
         )
     }
