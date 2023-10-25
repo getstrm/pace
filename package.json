@@ -43,6 +43,22 @@
                 }
               ],
               "countMatches": true
+            },
+            {
+              "files": [
+                "protos/buf.gen.yaml"
+              ],
+              "from": "- version\\s?=\\s?.*",
+              "to": "- version=${nextRelease.version}",
+              "results": [
+                {
+                  "file": "protos/buf.gen.yaml",
+                  "hasChanged": true,
+                  "numMatches": 1,
+                  "numReplacements": 1
+                }
+              ],
+              "countMatches": true
             }
           ]
         }
@@ -53,6 +69,7 @@
           "message": "chore(release): ${nextRelease.version}\n\n${nextRelease.notes}",
           "assets": [
             "gradle.properties",
+            "protos/buf.gen.yaml",
             "CHANGELOG.md"
           ]
         }

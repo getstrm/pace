@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package getstrm.api.data_policies.v1alpha;
-
+option go_package = "github.com/getstrm/pace-api/v1/api/data_policies/v1alpha;data_policies";
 import "getstrm/api/data_policies/v1alpha/entities_v1alpha.proto";
 import "google/api/annotations.proto";
 
