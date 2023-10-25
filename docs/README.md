@@ -1,3 +1,7 @@
+---
+description: Policy And Contract Engine (PACE) API
+---
+
 # API Reference
 
 {% swagger src=".gitbook/assets/openapi.yaml" path="/data-policies" method="get" expanded="true" %}
