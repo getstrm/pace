@@ -16,14 +16,14 @@ service DataPolicyService {
     };
     rpc UpsertDataPolicy (UpsertDataPolicyRequest) returns (UpsertDataPolicyResponse) {
         option (google.api.http) = {
-            post: "/data-policy"
+            post: "/data-policies"
             body: "*"
         };
     };
     // returns latest policy for an id
     rpc GetDataPolicy (GetDataPolicyRequest) returns (GetDataPolicyResponse) {
         option (google.api.http) = {
-            get: "/data-policy/{data_policy_id}"
+            get: "/data-policies/{data_policy_id}"
         };
     };
     // return configured processing platforms in DPS
@@ -186,5 +186,3 @@ message ListDataPoliciesRequest {
 message ListDataPoliciesResponse {
     repeated DataPolicy data_policies = 1;
 }
-
-
