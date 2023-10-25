@@ -44,11 +44,8 @@ dependencies {
     jooqGenerator("org.postgresql:postgresql")
     implementation("com.databricks:databricks-sdk-java:0.10.0")
 
-    // fixme Only for login to snowflake
-    implementation("org.seleniumhq.selenium:selenium-java:4.14.1") // todo remove
-    implementation("io.github.bonigarcia:webdrivermanager:5.5.3") // todo remove
     implementation("com.nimbusds:nimbus-jose-jwt:9.37")
-
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.76")
 
     // Todo remove before squashing
     implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.24.0"))
@@ -72,7 +69,7 @@ dependencies {
 
 openApiGenerate {
     generatorName.set("kotlin")
-    inputSpec.set("$rootDir/data-catalogs/open-data-discovery/openapi.yaml")
+    inputSpec.set("$projectDir/src/main/resources/data-catalogs/open-data-discovery/openapi.yaml")
     outputDir.set(openDataDiscoveryOpenApiDir.toString())
     apiPackage.set("org.opendatadiscovery.generated.api")
     invokerPackage.set("org.opendatadiscovery.generated.invoker")
