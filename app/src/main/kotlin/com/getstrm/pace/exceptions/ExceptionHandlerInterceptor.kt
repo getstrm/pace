@@ -84,8 +84,6 @@ class ExceptionHandlerInterceptor(private val exposeExceptions: Boolean) : Serve
             traceId: String,
             callName: String?
         ): Metadata {
-
-
             val details: Any = when (statusException) {
                 is BadRequestException -> Any.pack(statusException.badRequest)
                 is ResourceException -> Any.pack(statusException.resourceInfo)

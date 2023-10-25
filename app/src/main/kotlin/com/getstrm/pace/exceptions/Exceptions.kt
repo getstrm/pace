@@ -8,9 +8,6 @@ import com.google.rpc.QuotaFailure
 import com.google.rpc.ResourceInfo
 import io.grpc.Status
 
-// TODO make sure that the domains are correct, after restructuring the packages
-//      I think it's wise to use the packages as the domain
-
 /**
  * Base class for all exceptions that should be caught by the ExceptionHandlerInterceptor.
  * This construct follows Google API design patterns.
