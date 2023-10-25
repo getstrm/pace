@@ -3,6 +3,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.getstrm.pace.exceptions.PaceStatusException
 import com.google.cloud.bigquery.Table
 import com.google.cloud.bigquery.TableId
 import com.google.protobuf.GeneratedMessageV3
@@ -11,9 +12,6 @@ import com.google.protobuf.MessageOrBuilder
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.JsonFormat
 import com.google.protobuf.util.Timestamps
-import io.strmprivacy.grpc.common.authz.ZedTokenContext
-import io.strmprivacy.grpc.common.server.InvalidArgumentException
-import io.strmprivacy.grpc.common.server.StrmStatusException
 import org.apache.commons.codec.digest.MurmurHash3
 import org.jooq.*
 import org.jooq.exception.DataAccessException
@@ -25,7 +23,6 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.*
-import kotlin.coroutines.coroutineContext
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform as ApiTransform
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.RuleSet.FieldTransform as ApiFieldTransform
 
@@ -35,17 +32,17 @@ suspend fun <R> coUnwrapStatusException(block: suspend () -> R): R {
     try {
         return block()
     } catch (dae: DataAccessException) {
-        val strmStatusException = getFirstStrmStatusException(dae)
+        val strmStatusException = getFirstPaceStatusException(dae)
         if (strmStatusException != null) throw strmStatusException else throw dae
     }
 }
 
-private fun getFirstStrmStatusException(throwable: Throwable): StrmStatusException? {
-    if (throwable is StrmStatusException) {
+private fun getFirstPaceStatusException(throwable: Throwable): PaceStatusException? {
+    if (throwable is PaceStatusException) {
         return throwable
     }
     if (throwable.cause != null) {
-        return getFirstStrmStatusException(throwable.cause!!)
+        return getFirstPaceStatusException(throwable.cause!!)
     }
     return null
 }
@@ -114,14 +111,6 @@ fun GeneratedMessageV3.toJsonWithDefaults(): String = JsonFormat.printer()
     .print(this)
 
 fun <E> Collection<E>.toJsonb(): JSONB = JSONB.jsonb(mapper.writeValueAsString(this.toSet()))
-
-fun String?.toUUID(idFieldName: String): UUID = this?.let {
-    try {
-        UUID.fromString(this)
-    } catch (e: IllegalArgumentException) {
-        throw InvalidArgumentException("The provided ID for $idFieldName '$this' is not a valid UUID.")
-    }
-} ?: throw InvalidArgumentException("The provided ID for $idFieldName '$this' is null, please provide a valid value.")
 
 fun generateChecksum(message: Message): String {
     val hash = MurmurHash3.hash128x64(message.toByteArray())

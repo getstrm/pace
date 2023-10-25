@@ -2,7 +2,8 @@ package com.getstrm.pace.common
 
 import com.getstrm.pace.util.TestDynamicViewGenerator
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
-import com.getstrm.pace.domain.SqlParseException
+import com.getstrm.pace.exceptions.BadRequestException
+import com.google.rpc.BadRequest
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -22,9 +23,13 @@ class AbstractDynamicViewGeneratorTest {
             .build()
 
         // When
-        val exception = assertThrows<IllegalArgumentException> { underTest.toCase(transform, attribute) }
+        val exception = assertThrows<BadRequestException> { underTest.toCase(transform, attribute) }
 
         // Then
-        exception.message shouldBe "SQL Statement [some invalid sql statement] is invalid, please verify it's syntax. Details: [1:6] some [*]invalid sql statement"
+        exception.badRequest.fieldViolationsCount shouldBe 1
+        exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
+            .setField("dataPolicy.ruleSetsList.fieldTransformsList.sqlStatement")
+            .setDescription("Error parsing SQL statement: Unexpected content after end of field input: [1:6] some [*]invalid sql statement")
+            .build()
     }
 }

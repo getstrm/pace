@@ -1,7 +1,8 @@
 package com.getstrm.pace.domain
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
-import com.getstrm.pace.domain.ProcessingPlatformTableNotFound
+import com.getstrm.pace.exceptions.ResourceException
+import com.google.rpc.ResourceInfo
 
 interface ProcessingPlatformInterface {
 
@@ -13,7 +14,15 @@ interface ProcessingPlatformInterface {
     suspend fun applyPolicy(dataPolicy: DataPolicy)
 
     suspend fun createTable(tableName: String): Table =
-        listTables().find { it.fullName == tableName } ?: throw ProcessingPlatformTableNotFound(id, type, tableName)
+        listTables().find { it.fullName == tableName } ?: throw ResourceException(
+            ResourceException.Code.NOT_FOUND,
+            ResourceInfo.newBuilder()
+                .setResourceType("Table")
+                .setResourceName(tableName)
+                .setDescription("Table $tableName not found in platform $id of type $type")
+                .setOwner("Processing Platform: ${type.name}")
+                .build()
+        )
 }
 
 data class Group(val id: String, val name: String, val description: String? = null)

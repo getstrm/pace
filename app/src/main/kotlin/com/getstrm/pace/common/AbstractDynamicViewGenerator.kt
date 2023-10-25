@@ -1,7 +1,8 @@
 package com.getstrm.pace.common
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
-import com.getstrm.pace.domain.SqlParseException
+import com.getstrm.pace.exceptions.BadRequestException
+import com.google.rpc.BadRequest
 import headTailFold
 import org.jooq.* // ktlint-disable no-wildcard-imports
 import org.jooq.conf.ParseNameCase
@@ -163,8 +164,19 @@ abstract class AbstractDynamicViewGenerator(
                 try {
                     parser.parseField(transform.sqlStatement.statement)
                 } catch (e: ParserException) {
-//                    throw SqlParseException(transform.sqlStatement.statement, e)
-                    throw IllegalArgumentException(transform.sqlStatement.statement, e)
+                    throw BadRequestException(
+                        BadRequestException.Code.INVALID_ARGUMENT,
+                        BadRequest.newBuilder()
+                            .addAllFieldViolations(
+                                listOf(
+                                    BadRequest.FieldViolation.newBuilder()
+                                        .setField("dataPolicy.ruleSetsList.fieldTransformsList.sqlStatement")
+                                        .setDescription("Error parsing SQL statement: ${e.message}")
+                                        .build()
+                                )
+                            )
+                            .build()
+                    )
                 }
                 // Todo: for now we use the parser just to detect errors, since the resulting sql may be incompatible with the target platform -> I've asked a question on SO: https://stackoverflow.com/q/77300702
                 // (For example, the BigQuery string datatype gets parsed as varchar)

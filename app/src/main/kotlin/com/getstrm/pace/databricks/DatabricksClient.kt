@@ -1,6 +1,5 @@
 package com.getstrm.pace.databricks
 
-import com.getstrm.pace.domain.ProcessingPlatformExecuteException
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.DATABRICKS
 import com.databricks.sdk.AccountClient
@@ -13,6 +12,8 @@ import com.databricks.sdk.service.sql.ExecuteStatementResponse
 import com.databricks.sdk.service.sql.StatementState
 import com.getstrm.pace.config.DatabricksConfig
 import com.getstrm.pace.domain.*
+import com.getstrm.pace.exceptions.InternalException
+import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
 
 class DatabricksClient(
@@ -92,7 +93,16 @@ class DatabricksClient(
                     log.warn("SQL statement\n{}", statement)
                     val errorMessage = "Databricks response %s: %s".format(response.status.error, response.status.error.message)
                     log.warn("Caused error {}", errorMessage)
-                    throw ProcessingPlatformExecuteException(id, "Failed to apply policy: $errorMessage")
+
+                    throw InternalException(
+                        InternalException.Code.INTERNAL,
+                        DebugInfo.newBuilder()
+                            .setDetail(
+                                "Error while executing Databricks query (error code: ${response.status.error.errorCode.name}), please check the logs of your PACE deployment. This is a bug, please report to https://github.com/getstrm/pace/issues/new"
+                            )
+                            .addAllStackEntries(listOf(errorMessage))
+                            .build()
+                    )
                 }
         }
     }
