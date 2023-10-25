@@ -4,10 +4,10 @@
 
 ![pace-logo](./assets/pace-logo.svg)
 
-PACE is the _Policy and Contract Engine_, whose goal is to ensure that data is only used by those allowed, the way it
+> PACE is the _Policy and Contract Engine_, whose goal is to ensure that data is only used by those allowed, the way it
 was intended to be used.
 
-## Motivation
+## Motivation and problem
 
 Ever wondered if you're allowed to use data within your company? Use RBAC to prevent access to certain data by certain
 people? How does a legal department enforce data is used exactly how the agreements state that it should be used?
@@ -31,6 +31,21 @@ are and what they're allowed to see** (3), regardless of **the data catalog** (4
 5. **The Data Processing Platform**  
    Data processing platforms often have various responsibilities, but it at least includes a storage layer (e.g. data lake / data warehouse) and an interfacing layer to the storage layer. This is where producers store data and where consumers use data.
 
+## Solution
 
+So, where and how does PACE solve these issues? PACE focuses on creating representations of data (e.g. by generating views), based on so-called **Data Policies**.
+
+A [**Data Policy**](protos/getstrm/api/data_policies/v1alpha/entities_v1alpha.proto) is a structured (machine-readable) document, that aims at capturing how source data should be presented to various principals (i.e. a data accessor), and which transformations should be applied to the data, to create a representation of the source data on the hosting data processing platform.
+
+Data Policies are constructed by retrieving the data schema (the structure of the data) from either a data catalog or a data processing platform. Next, various rule sets can be created, that determine how source data is transformed and/or filtered to create a representation of data on the processing platform.
+Defining rule sets is a cooperation between various teams: data consumers, data producers, and most important, the legal team.
+
+> Want to learn more about how to facilitate this cooperation between various teams? Navigate to https://pace.getstrm.com to see how we can help you
+
+### Architecture
+[//]: # (TODO add architecture image here)
+
+## Installation
+[//]: # (TODO add installation and setup details here or refer to the docs)
 
 
