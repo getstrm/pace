@@ -65,7 +65,7 @@ class ProcessingPlatformsService(
     suspend fun createBarePolicy(platform: DataPolicy.ProcessingPlatform?, tableName: String): DataPolicy {
         val processingPlatformInterface =
             platforms[platform!!.id] ?: throw processingPlatformNotFound(platform.id)
-        val table = processingPlatformInterface.createTable(tableName)
+        val table = processingPlatformInterface.getTable(tableName)
         return table.toDataPolicy(
             DataPolicy.ProcessingPlatform.newBuilder().setId(platform.id)
                 .setPlatformType(processingPlatformInterface.type).build()

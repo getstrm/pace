@@ -13,7 +13,7 @@ interface ProcessingPlatformInterface {
     suspend fun listTables(): List<Table>
     suspend fun applyPolicy(dataPolicy: DataPolicy)
 
-    suspend fun createTable(tableName: String): Table =
+    suspend fun getTable(tableName: String): Table =
         listTables().find { it.fullName == tableName } ?: throw ResourceException(
             ResourceException.Code.NOT_FOUND,
             ResourceInfo.newBuilder()

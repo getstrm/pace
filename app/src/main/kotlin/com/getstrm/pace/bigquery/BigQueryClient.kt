@@ -79,7 +79,7 @@ class BigQueryClient(
             if (e.message == "Duplicate authorized views") {
                 log.debug("{}", e.message)
             } else {
-                throw (e)
+                throw e
             }
         }
     }

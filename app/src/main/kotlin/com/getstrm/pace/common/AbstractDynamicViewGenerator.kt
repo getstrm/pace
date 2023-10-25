@@ -164,20 +164,7 @@ abstract class AbstractDynamicViewGenerator(
                 try {
                     parser.parseField(transform.sqlStatement.statement)
                 } catch (e: ParserException) {
-                    throw BadRequestException(
-                        BadRequestException.Code.INVALID_ARGUMENT,
-                        BadRequest.newBuilder()
-                            .addAllFieldViolations(
-                                listOf(
-                                    BadRequest.FieldViolation.newBuilder()
-                                        .setField("dataPolicy.ruleSetsList.fieldTransformsList.sqlStatement")
-                                        .setDescription("Error parsing SQL statement: ${e.message}")
-                                        .build()
-                                )
-                            )
-                            .build(),
-                        e
-                    )
+                    throw invalidSqlStatementException(e)
                 }
                 // Todo: for now we use the parser just to detect errors, since the resulting sql may be incompatible with the target platform -> I've asked a question on SO: https://stackoverflow.com/q/77300702
                 // (For example, the BigQuery string datatype gets parsed as varchar)
@@ -195,6 +182,20 @@ abstract class AbstractDynamicViewGenerator(
         }
         return memberCheck to (statement as Field<Any>)
     }
+
+    private fun invalidSqlStatementException(e: ParserException) = BadRequestException(
+        BadRequestException.Code.INVALID_ARGUMENT,
+        BadRequest.newBuilder()
+            .addAllFieldViolations(
+                listOf(
+                    BadRequest.FieldViolation.newBuilder()
+                        .setField("dataPolicy.ruleSetsList.fieldTransformsList.sqlStatement")
+                        .setDescription("Error parsing SQL statement: ${e.message}")
+                        .build()
+                )
+            )
+            .build()
+    )
 
     private fun DataPolicy.Attribute.fullName(): String = this.pathComponentsList.joinToString(".")
 
