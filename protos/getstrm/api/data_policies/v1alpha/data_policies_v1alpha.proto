@@ -4,6 +4,7 @@ package getstrm.api.data_policies.v1alpha;
 option go_package = "github.com/getstrm/pace-api/v1/api/data_policies/v1alpha;data_policies";
 import "getstrm/api/data_policies/v1alpha/entities_v1alpha.proto";
 import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
 
 option java_package = "com.getstrm.api.data_policies.v1alpha";
 option java_multiple_files = true;
@@ -16,14 +17,14 @@ service DataPolicyService {
     };
     rpc UpsertDataPolicy (UpsertDataPolicyRequest) returns (UpsertDataPolicyResponse) {
         option (google.api.http) = {
-            post: "/data-policy"
+            post: "/data-policies"
             body: "*"
         };
     };
     // returns latest policy for an id
     rpc GetDataPolicy (GetDataPolicyRequest) returns (GetDataPolicyResponse) {
         option (google.api.http) = {
-            get: "/data-policy/{id}"
+            get: "/data-policies/{data_policy_id}"
         };
     };
     // return configured processing platforms in DPS
@@ -35,31 +36,56 @@ service DataPolicyService {
     // return table names as known by the platform
     rpc ListProcessingPlatformTables (ListProcessingPlatformTablesRequest) returns (ListProcessingPlatformTablesResponse) {
         option (google.api.http) = {
-            get: "/processing-platforms/{platform}/tables"
+            get: "/processing-platforms/{platform_id}/tables"
         };
     };
     // return groups as known by the platform
     rpc ListProcessingPlatformGroups (ListProcessingPlatformGroupsRequest) returns (ListProcessingPlatformGroupsResponse) {
         option (google.api.http) = {
-            get: "/processing-platforms/{platform}/groups"
+            get: "/processing-platforms/{platform_id}/groups"
         };
     };
     // return a data-policy without rules sets as built from the table description on the platform
     rpc GetProcessingPlatformBarePolicy (GetProcessingPlatformBarePolicyRequest) returns (GetProcessingPlatformBarePolicyResponse) {
         option (google.api.http) = {
-            get: "/processing-platforms/{platform}/tables/{table}/bare-policy"
+            get: "/processing-platforms/{platform_id}/tables/{table_id}/bare-policy"
         };
     };
-    rpc ListCatalogs (ListCatalogsRequest) returns (ListCatalogsResponse);
-    rpc ListDatabases (ListDatabasesRequest) returns (ListDatabasesResponse);
-    rpc ListSchemas (ListSchemasRequest) returns (ListSchemasResponse);
-    rpc ListTables (ListTablesRequest) returns (ListTablesResponse);
+
+    rpc ListCatalogs (ListCatalogsRequest) returns (ListCatalogsResponse) {
+        option (google.api.http) = {
+            get: "/catalogs"
+        };
+    };
+    rpc ListDatabases (ListDatabasesRequest) returns (ListDatabasesResponse) {
+        option (google.api.http) = {
+            get: "/catalogs/{catalog_id}/databases"
+        };
+    }
+    rpc ListSchemas (ListSchemasRequest) returns (ListSchemasResponse) {
+        option (google.api.http) = {
+            get: "/catalogs/{catalog_id}/databases/{database_id}/schemas"
+        };
+    }
+    rpc ListTables (ListTablesRequest) returns (ListTablesResponse) {
+        option (google.api.http) = {
+            get: "/catalogs/{catalog_id}/databases/{database_id}/schemas/{schema_id}/tables"
+        };
+    };
+
     // return a data-policy without rules sets as built from the table description on the platform
-    rpc GetCatalogBarePolicy (GetCatalogBarePolicyRequest) returns (GetCatalogBarePolicyResponse);
+    rpc GetCatalogBarePolicy (GetCatalogBarePolicyRequest) returns (GetCatalogBarePolicyResponse) {
+        option (google.api.http) = {
+            get: "/catalogs/{catalog_id}/databases/{database_id}/schemas/{schema_id}/tables/{table_id}/bare-policy"
+        };
+    };
 }
 
 message GetCatalogBarePolicyRequest {
-    DataCatalog.Table table = 1;
+    string catalog_id = 1;
+    string database_id = 2;
+    string schema_id = 3;
+    string table_id = 4;
 }
 
 message GetCatalogBarePolicyResponse {
@@ -74,7 +100,7 @@ message ListCatalogsResponse {
 }
 
 message ListDatabasesRequest {
-    DataCatalog catalog = 1;
+    string catalog_id = 1;
 }
 
 message ListDatabasesResponse {
@@ -82,7 +108,8 @@ message ListDatabasesResponse {
 }
 
 message ListSchemasRequest {
-    DataCatalog.DataBase database = 1;
+    string catalog_id = 1;
+    string database_id = 2;
 }
 
 // (-- api-linter: core::0158::response-plural-first-field=disabled
@@ -92,7 +119,9 @@ message ListSchemasResponse {
 }
 
 message ListTablesRequest {
-    DataCatalog.Schema schema = 1;
+    string catalog_id = 1;
+    string database_id = 2;
+    string schema_id = 3;
 }
 
 message ListTablesResponse {
@@ -107,7 +136,7 @@ message ListProcessingPlatformsResponse {
 }
 
 message ListProcessingPlatformTablesRequest {
-    DataPolicy.ProcessingPlatform platform = 1;
+    string platform_id = 1;
 }
 
 message ListProcessingPlatformTablesResponse {
@@ -115,7 +144,7 @@ message ListProcessingPlatformTablesResponse {
 }
 
 message ListProcessingPlatformGroupsRequest {
-    DataPolicy.ProcessingPlatform platform = 1;
+    string platform_id = 1;
 }
 
 message ListProcessingPlatformGroupsResponse {
@@ -123,8 +152,8 @@ message ListProcessingPlatformGroupsResponse {
 }
 
 message GetProcessingPlatformBarePolicyRequest {
-    DataPolicy.ProcessingPlatform platform = 1;
-    string table = 2;
+    string platform_id = 1;
+    string table = 2 [(buf.validate.field) = {string: {min_len: 1}, ignore_empty: false}];
 }
 
 message GetProcessingPlatformBarePolicyResponse {
@@ -133,7 +162,7 @@ message GetProcessingPlatformBarePolicyResponse {
 
 
 message GetDataPolicyRequest {
-    string id = 1;
+    string data_policy_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message GetDataPolicyResponse {
@@ -158,5 +187,3 @@ message ListDataPoliciesRequest {
 message ListDataPoliciesResponse {
     repeated DataPolicy data_policies = 1;
 }
-
-
