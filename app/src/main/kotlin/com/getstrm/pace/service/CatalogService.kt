@@ -1,10 +1,13 @@
 package com.getstrm.pace.service
+
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import com.getstrm.pace.catalogs.CollibraCatalog
 import com.getstrm.pace.catalogs.DatahubCatalog
 import com.getstrm.pace.catalogs.OpenDataDiscoveryCatalog
 import com.getstrm.pace.config.CatalogsConfiguration
 import com.getstrm.pace.domain.*
+import com.getstrm.pace.exceptions.ResourceException
+import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataCatalog as ApiCatalog
@@ -46,7 +49,15 @@ class CatalogService(
     suspend fun listSchemas(catalogId: String, databaseId: String): List<ApiSchema> {
         val catalog = getCatalog(catalogId)
         val database = catalog.listDatabases().firstOrNull { it.id == databaseId }
-            ?: throw CatalogDatabaseNotFoundException(databaseId)
+            ?: throw ResourceException(
+                ResourceException.Code.NOT_FOUND,
+                ResourceInfo.newBuilder()
+                    .setResourceType("Database")
+                    .setResourceName(databaseId)
+                    .setDescription("Database $databaseId not found in catalog $catalogId")
+                    .setOwner("Catalog: $catalogId")
+                    .build()
+            )
         val schemas = database.getSchemas()
         return schemas.map { it.apiSchema }
     }
@@ -55,7 +66,8 @@ class CatalogService(
         catalogId: String,
         databaseId: String,
         schemaId: String,
-    ): List<ApiTable> = getTablesInfo(catalogId, databaseId, schemaId).map { it.apiTable }
+    ): List<ApiTable> =
+        getTablesInfo(catalogId, databaseId, schemaId).map { it.apiTable }
 
     suspend fun getBarePolicy(
         catalogId: String,
@@ -65,7 +77,15 @@ class CatalogService(
     ): DataPolicy {
         val tables = getTablesInfo(catalogId, databaseId, schemaId)
         val table = tables.firstOrNull { it.id == tableId }
-            ?: throw CatalogTableNotFoundException(tableId)
+            ?: throw ResourceException(
+                ResourceException.Code.NOT_FOUND,
+                ResourceInfo.newBuilder()
+                    .setResourceType("Table")
+                    .setResourceName(tableId)
+                    .setDescription("Table $tableId not found in schema $schemaId")
+                    .setOwner("Schema: $schemaId")
+                    .build()
+            )
         return table.getDataPolicy()!!
     }
 
@@ -81,13 +101,35 @@ class CatalogService(
     ): List<DataCatalog.Table> {
         val catalog = getCatalog(catalogId)
         val database = catalog.listDatabases().firstOrNull { it.id == databaseId }
-            ?: throw CatalogDatabaseNotFoundException(databaseId)
-        val schema =
-            database.getSchemas().firstOrNull { it.id == schemaId }
-                ?: throw CatalogSchemaNotFoundException(schemaId)
+            ?: throw ResourceException(
+                ResourceException.Code.NOT_FOUND,
+                ResourceInfo.newBuilder()
+                    .setResourceType("Catalog Database")
+                    .setResourceName(databaseId)
+                    .setDescription("Database $databaseId not found in catalog $catalogId")
+                    .setOwner("Catalog: $catalogId")
+                    .build()
+            )
+        val schema = database.getSchemas().firstOrNull { it.id == schemaId } ?: throw ResourceException(
+            ResourceException.Code.NOT_FOUND,
+            ResourceInfo.newBuilder()
+                .setResourceType("Catalog Database Schema")
+                .setResourceName(schemaId)
+                .setDescription("Schema $schemaId not found in database $databaseId of catalog $catalogId")
+                .setOwner("Database: $databaseId")
+                .build()
+        )
+
         return schema.getTables()
     }
 
     private fun getCatalog(id: String): DataCatalog =
-        catalogs[id] ?: throw CatalogNotFoundException(id)
+        catalogs[id] ?: throw ResourceException(
+            ResourceException.Code.NOT_FOUND,
+            ResourceInfo.newBuilder()
+                .setResourceType("Catalog")
+                .setResourceName(id)
+                .setDescription("Catalog $id not found, please ensure it is present in the configuration of the catalogs.")
+                .build()
+        )
 }

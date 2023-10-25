@@ -1,20 +1,15 @@
 package com.getstrm.pace.bigquery
 
-import com.getstrm.pace.domain.ProcessingPlatformExecuteException
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.BIGQUERY
 import com.getstrm.pace.config.BigQueryConfig
 import com.getstrm.pace.domain.Group
 import com.getstrm.pace.domain.ProcessingPlatformInterface
 import com.getstrm.pace.domain.Table
+import com.getstrm.pace.exceptions.InternalException
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.bigquery.Acl
-import com.google.cloud.bigquery.BigQuery
-import com.google.cloud.bigquery.BigQueryException
-import com.google.cloud.bigquery.BigQueryOptions
-import com.google.cloud.bigquery.JobException
-import com.google.cloud.bigquery.QueryJobConfiguration
-import com.google.cloud.bigquery.TableId
+import com.google.cloud.bigquery.*
+import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
 import toFullName
 import com.google.cloud.bigquery.Table as BQTable
@@ -67,7 +62,16 @@ class BigQueryClient(
         } catch (e: JobException) {
             log.warn("SQL query\n{}", query)
             log.warn("Caused error {}", e.message)
-            throw ProcessingPlatformExecuteException(id, e.message ?: e.stackTraceToString())
+            throw InternalException(
+                InternalException.Code.INTERNAL,
+                DebugInfo.newBuilder()
+                    .setDetail(
+                        "Error while executing BigQuery query (error message: ${e.message}), please check the logs of your PACE deployment. This is a bug, please report to https://github.com/getstrm/pace/issues/new"
+                    )
+                    .addAllStackEntries(e.stackTrace.map { it.toString() })
+                    .build(),
+                e
+            )
         }
         try {
             authorizeViews(dataPolicy)
@@ -75,7 +79,7 @@ class BigQueryClient(
             if (e.message == "Duplicate authorized views") {
                 log.debug("{}", e.message)
             } else {
-                throw(e)
+                throw e
             }
         }
     }
@@ -122,5 +126,6 @@ class BigQueryTable(
     private val table: BQTable,
 ) : Table() {
 
-    override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy = table.toDataPolicy(platform)
+    override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy =
+        table.toDataPolicy(platform)
 }

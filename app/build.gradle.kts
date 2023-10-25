@@ -51,8 +51,6 @@ dependencies {
 
 
     // Todo remove before squashing
-    implementation("io.strmprivacy.grpc.common:kotlin-grpc-common:3.22.0")
-
     implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.24.0"))
     implementation("com.google.cloud:google-cloud-bigquery")
 

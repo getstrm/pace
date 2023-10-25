@@ -2,14 +2,14 @@ package com.getstrm.pace.service
 
 import com.getstrm.pace.dao.DataPolicyDao
 import com.getstrm.pace.domain.Group
-import com.getstrm.pace.domain.InvalidDataPolicyMissingAttribute
-import com.getstrm.pace.domain.InvalidDataPolicyNonEmptyLastFieldTransform
-import com.getstrm.pace.domain.InvalidDataPolicyOverlappingAttributes
-import com.getstrm.pace.domain.InvalidDataPolicyOverlappingPrincipals
-import com.getstrm.pace.domain.InvalidDataPolicyUnknownGroup
-import com.getstrm.pace.domain.ProcessingPlatformNotFoundException
+import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.snowflake.SnowflakeClient
+import com.google.rpc.BadRequest
+import com.google.rpc.ResourceInfo
+import io.grpc.Status
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -178,12 +178,28 @@ rule_sets:
         - principals: []
           condition: "transactionAmount < 10"
           """.yaml2json().parseDataPolicy()
-        coEvery { platforms.getProcessingPlatform(dataPolicy) } throws ProcessingPlatformNotFoundException(dataPolicy.platform.id)
+        coEvery { platforms.getProcessingPlatform(dataPolicy) } throws ResourceException(
+            ResourceException.Code.NOT_FOUND,
+            ResourceInfo.newBuilder()
+                .setResourceType("Processing Platform")
+                .setResourceName(dataPolicy.platform.id)
+                .setDescription("Platform with id ${dataPolicy.platform.id} not found, please ensure it is present in the configuration of the processing platforms.")
+                .setOwner("SNOWFLAKE")
+                .build()
+        )
         coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-detection", "admin")
         runBlocking {
-            shouldThrow<ProcessingPlatformNotFoundException> {
+            val exception = shouldThrow<ResourceException> {
                 underTest.validate(dataPolicy)
             }
+
+            exception.code.status shouldBe Status.NOT_FOUND
+            exception.resourceInfo shouldBe ResourceInfo.newBuilder()
+                .setResourceType("Processing Platform")
+                .setResourceName("snowflake")
+                .setDescription("Platform with id snowflake not found, please ensure it is present in the configuration of the processing platforms.")
+                .setOwner("SNOWFLAKE")
+                .build()
         }
     }
 
@@ -259,9 +275,16 @@ rule_sets:
         coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
         coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-detection", "admin")
         runBlocking {
-            shouldThrow<InvalidDataPolicyNonEmptyLastFieldTransform> {
+            val exception = shouldThrow<BadRequestException> {
                 underTest.validate(dataPolicy)
             }
+
+            exception.code.status shouldBe Status.INVALID_ARGUMENT
+            exception.badRequest.fieldViolationsCount shouldBe 1
+            exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
+                .setField("fieldTransform")
+                .setDescription("FieldTransform email does not have an empty principals list as last field")
+                .build()
         }
     }
 
@@ -341,9 +364,15 @@ rule_sets:
         coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
         coEvery { platform.listGroups() } returns groups("marketing", "fraud-detection", "admin")
         runBlocking {
-            shouldThrow<InvalidDataPolicyUnknownGroup> {
+            val exception = shouldThrow<BadRequestException> {
                 underTest.validate(dataPolicy)
             }
+            exception.code.status shouldBe Status.INVALID_ARGUMENT
+            exception.badRequest.fieldViolationsCount shouldBe 1
+            exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
+                .setField("principal")
+                .setDescription("Principal analytics does not exist in platform snowflake")
+                .build()
         }
     }
 
@@ -422,9 +451,15 @@ rule_sets:
         coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
         coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-detection", "admin")
         runBlocking {
-            shouldThrow<InvalidDataPolicyOverlappingPrincipals> {
+            val exception = shouldThrow<BadRequestException> {
                 underTest.validate(dataPolicy)
             }
+            exception.code.status shouldBe Status.INVALID_ARGUMENT
+            exception.badRequest.fieldViolationsCount shouldBe 1
+            exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
+                .setField("fieldTransform")
+                .setDescription("FieldTransform email has overlapping principals")
+                .build()
         }
     }
 
@@ -500,9 +535,15 @@ rule_sets:
         coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
         coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-detection", "admin")
         runBlocking {
-            shouldThrow<InvalidDataPolicyOverlappingAttributes> {
+            val exception = shouldThrow<BadRequestException> {
                 underTest.validate(dataPolicy)
             }
+            exception.code.status shouldBe Status.INVALID_ARGUMENT
+            exception.badRequest.fieldViolationsCount shouldBe 1
+            exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
+                .setField("ruleSet")
+                .setDescription("RuleSet has overlapping attributes, email is already present")
+                .build()
         }
     }
 }

@@ -68,12 +68,12 @@ class DataPolicyApi(
 
     override suspend fun listProcessingPlatformTables(request: ListProcessingPlatformTablesRequest): ListProcessingPlatformTablesResponse =
         ListProcessingPlatformTablesResponse.newBuilder().addAllTables(
-            processingPlatformsService.listProcessingPlatformTables(request).map { it.fullName },
+            processingPlatformsService.listProcessingPlatformTables(request.platformId).map { it.fullName },
         ).build()
 
     override suspend fun listProcessingPlatformGroups(request: ListProcessingPlatformGroupsRequest): ListProcessingPlatformGroupsResponse =
         ListProcessingPlatformGroupsResponse.newBuilder().addAllGroups(
-            processingPlatformsService.listProcessingPlatformGroups(request).map { it.name },
+            processingPlatformsService.listProcessingPlatformGroups(request.platformId).map { it.name },
         ).build()
 
     override suspend fun getProcessingPlatformBarePolicy(request: GetProcessingPlatformBarePolicyRequest): GetProcessingPlatformBarePolicyResponse =
