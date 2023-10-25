@@ -1,11 +1,13 @@
 syntax = "proto3";
 
 package getstrm.api.data_policies.v1alpha;
-option go_package = "github.com/getstrm/pace-api/v1/api/data_policies/v1alpha;data_policies";
+
 import "getstrm/api/data_policies/v1alpha/entities_v1alpha.proto";
 import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
 
+// TODO API namespace cross language should be consistent, Golang = pace-api, Java = api
+option go_package = "github.com/getstrm/pace-api/v1/api/data_policies/v1alpha;data_policies";
 option java_package = "com.getstrm.api.data_policies.v1alpha";
 option java_multiple_files = true;
 
