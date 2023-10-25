@@ -111,7 +111,7 @@ kotlin {
 }
 
 tasks.named<BootJar>("bootJar") {
-    mainClass =  "com.getstrm.pace.DataPolicyServiceApplicationKt"
+    mainClass =  "com.getstrm.pace.PaceApplicationKt"
     manifest {
         attributes["Implementation-Title"] = "Policy and Contract Engine"
         attributes["Implementation-Version"] = version
