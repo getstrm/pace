@@ -1,5 +1,5 @@
 import yaml
-with open('../protos/gen/openapi.yaml', 'r') as file:
+with open('../../protos/gen/openapi.yaml', 'r') as file:
     spec = yaml.safe_load(file)
 APIReference = '\n\n'.join(["# API Reference"] +
     [ 
@@ -8,5 +8,5 @@ APIReference = '\n\n'.join(["# API Reference"] +
         for method in spec['paths'][path].keys()
     ]
 )
-with open('README.md', 'w') as file:
+with open('../../docs/README.md', 'w') as file:
     file.write(APIReference)
