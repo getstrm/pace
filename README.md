@@ -40,7 +40,7 @@ A [**Data Policy**](protos/getstrm/api/data_policies/v1alpha/entities_v1alpha.pr
 Data Policies are constructed by retrieving the data schema (the structure of the data) from either a data catalog or a data processing platform. Next, various rule sets can be created, that determine how source data is transformed and/or filtered to create a representation of data on the processing platform.
 Defining rule sets is a cooperation between various teams: data consumers, data producers, and most important, the legal team.
 
-> Want to learn more about how to facilitate this cooperation between various teams? Navigate to https://pace.getstrm.com to see how we can help you
+> Want to learn more about how to facilitate this cooperation between various teams? Navigate to https://pace.getstrm.com to see how we can help you!
 
 ### Architecture
 [//]: # (TODO add architecture image here)
