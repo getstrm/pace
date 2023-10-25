@@ -4,9 +4,10 @@ import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE
 import com.getstrm.pace.config.SnowflakeConfig
 import com.getstrm.pace.domain.Group
-import com.getstrm.pace.domain.ProcessingPlatformExecuteException
 import com.getstrm.pace.domain.ProcessingPlatformInterface
 import com.getstrm.pace.domain.Table
+import com.getstrm.pace.exceptions.InternalException
+import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -44,7 +45,15 @@ class SnowflakeClient(
         } catch (e: HttpStatusCodeException) {
             log.warn("Statement: {}", request.statement)
             log.warn("Caused error {} {}", e.message, e.responseBodyAsString)
-            throw ProcessingPlatformExecuteException(id, e.responseBodyAsString)
+
+            throw InternalException(
+                InternalException.Code.INTERNAL,
+                DebugInfo.newBuilder()
+                    .setDetail("Error: ${e.message} - Snowflake error: ${e.responseBodyAsString}")
+                    .addAllStackEntries(e.stackTrace.map { it.toString() })
+                    .build(),
+                e
+            )
         }
     }
 

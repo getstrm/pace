@@ -5,6 +5,7 @@ option go_package =
     "github.com/getstrm/pace-api/v1/api/entities/v1alpha;entities";
 
 import "google/protobuf/timestamp.proto";
+import 'validate/validate.proto';
 
 message DataPolicy {
     string id = 1;

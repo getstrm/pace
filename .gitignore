@@ -10,6 +10,6 @@ out/
 /app/build/
 output/
 
-.common-protos
-
 app/src/main/resources/application-local.yaml
+
+protos/*.binpb
