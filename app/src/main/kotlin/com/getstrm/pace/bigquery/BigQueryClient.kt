@@ -69,7 +69,8 @@ class BigQueryClient(
                         "Error while executing BigQuery query (error message: ${e.message}), please check the logs of your PACE deployment. This is a bug, please report to https://github.com/getstrm/pace/issues/new"
                     )
                     .addAllStackEntries(e.stackTrace.map { it.toString() })
-                    .build()
+                    .build(),
+                e
             )
         }
         try {
@@ -78,7 +79,7 @@ class BigQueryClient(
             if (e.message == "Duplicate authorized views") {
                 log.debug("{}", e.message)
             } else {
-                throw (e)
+                throw e
             }
         }
     }

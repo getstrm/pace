@@ -43,38 +43,47 @@ class CatalogService(
             .build()
     }
 
-    suspend fun listDatabases(apiCatalog: ApiCatalog): List<ApiDatabase> =
-        getCatalog(apiCatalog.id).listDatabases().map { it.apiDatabase }
+    suspend fun listDatabases(catalogId: String): List<ApiDatabase> =
+        getCatalog(catalogId).listDatabases().map { it.apiDatabase }
 
-    suspend fun listSchemas(apiDatabase: ApiDatabase): List<ApiSchema> {
-        val catalog = getCatalog(apiDatabase.catalog.id)
-        val database = catalog.listDatabases().find { it.id == apiDatabase.id }
+    suspend fun listSchemas(catalogId: String, databaseId: String): List<ApiSchema> {
+        val catalog = getCatalog(catalogId)
+        val database = catalog.listDatabases().firstOrNull { it.id == databaseId }
             ?: throw ResourceException(
                 ResourceException.Code.NOT_FOUND,
                 ResourceInfo.newBuilder()
                     .setResourceType("Database")
-                    .setResourceName(apiDatabase.id)
-                    .setDescription("Database ${apiDatabase.id} not found in catalog ${apiDatabase.catalog.id}")
-                    .setOwner("Catalog: ${apiDatabase.catalog.id}")
+                    .setResourceName(databaseId)
+                    .setDescription("Database $databaseId not found in catalog $catalogId")
+                    .setOwner("Catalog: $catalogId")
                     .build()
             )
         val schemas = database.getSchemas()
         return schemas.map { it.apiSchema }
     }
 
-    suspend fun listTables(apiSchema: ApiSchema): List<ApiTable> =
-        getTablesInfo(apiSchema).map { it.apiTable }
+    suspend fun listTables(
+        catalogId: String,
+        databaseId: String,
+        schemaId: String,
+    ): List<ApiTable> =
+        getTablesInfo(catalogId, databaseId, schemaId).map { it.apiTable }
 
-    suspend fun getBarePolicy(apiTable: ApiTable): DataPolicy {
-        val tables = getTablesInfo(apiTable.schema)
-        val table = tables.find { it.id == apiTable.id }
+    suspend fun getBarePolicy(
+        catalogId: String,
+        databaseId: String,
+        schemaId: String,
+        tableId: String,
+    ): DataPolicy {
+        val tables = getTablesInfo(catalogId, databaseId, schemaId)
+        val table = tables.firstOrNull { it.id == tableId }
             ?: throw ResourceException(
                 ResourceException.Code.NOT_FOUND,
                 ResourceInfo.newBuilder()
                     .setResourceType("Table")
-                    .setResourceName(apiTable.id)
-                    .setDescription("Table ${apiTable.id} not found in schema ${apiTable.schema.id}")
-                    .setOwner("Schema: ${apiTable.schema.id}")
+                    .setResourceName(tableId)
+                    .setDescription("Table $tableId not found in schema $schemaId")
+                    .setOwner("Schema: $schemaId")
                     .build()
             )
         return table.getDataPolicy()!!
@@ -85,25 +94,29 @@ class CatalogService(
      *
      * @return dto object with all relevant info
      */
-    private suspend fun getTablesInfo(apiSchema: ApiSchema): List<DataCatalog.Table> {
-        val catalog = getCatalog(apiSchema.database.catalog.id)
-        val database = catalog.listDatabases().find { it.id == apiSchema.database.id }
+    private suspend fun getTablesInfo(
+        catalogId: String,
+        databaseId: String,
+        schemaId: String,
+    ): List<DataCatalog.Table> {
+        val catalog = getCatalog(catalogId)
+        val database = catalog.listDatabases().firstOrNull { it.id == databaseId }
             ?: throw ResourceException(
                 ResourceException.Code.NOT_FOUND,
                 ResourceInfo.newBuilder()
                     .setResourceType("Catalog Database")
-                    .setResourceName(apiSchema.database.id)
-                    .setDescription("Database ${apiSchema.database.id} not found in catalog ${apiSchema.database.catalog.id}")
-                    .setOwner("Catalog: ${apiSchema.database.catalog.id}")
+                    .setResourceName(databaseId)
+                    .setDescription("Database $databaseId not found in catalog $catalogId")
+                    .setOwner("Catalog: $catalogId")
                     .build()
             )
-        val schema = database.getSchemas().find { it.id == apiSchema.id } ?: throw ResourceException(
+        val schema = database.getSchemas().firstOrNull { it.id == schemaId } ?: throw ResourceException(
             ResourceException.Code.NOT_FOUND,
             ResourceInfo.newBuilder()
                 .setResourceType("Catalog Database Schema")
-                .setResourceName(apiSchema.id)
-                .setDescription("Schema ${apiSchema.id} not found in database ${apiSchema.database.id} of catalog ${apiSchema.database.catalog.id}")
-                .setOwner("Database: ${apiSchema.database.id}")
+                .setResourceName(schemaId)
+                .setDescription("Schema $schemaId not found in database $databaseId of catalog $catalogId")
+                .setOwner("Database: $databaseId")
                 .build()
         )
 

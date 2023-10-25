@@ -4,21 +4,21 @@ package getstrm.api.data_policies.v1alpha;
 option go_package =
 "github.com/getstrm/pace-api/v1/api/entities/v1alpha;entities";
 
+import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
-import 'validate/validate.proto';
 
 message DataPolicy {
-    string id = 1;
+    string id = 1 [(buf.validate.field).string.uuid = true];
     Info info = 2;
     Source source = 3;
     ProcessingPlatform platform = 4;
     repeated RuleSet rule_sets = 5;
 
     message Info {
-        string title = 1;
-        string description = 2;
-        string version = 3;
-        string organization_id = 4;
+        string title = 1 [(buf.validate.field).string.min_len = 3];
+        optional string description = 2 [(buf.validate.field).ignore_empty = true];
+        string version = 3 [(buf.validate.field).string.pattern = "^\\d+\\.\\d+\\.\\d+$"];
+        string context = 4 [(buf.validate.field) = {string: {uuid: true}, ignore_empty: true}];
         google.protobuf.Timestamp create_time = 5;
         google.protobuf.Timestamp update_time = 6;
         repeated string tags = 7;
@@ -33,7 +33,7 @@ message DataPolicy {
             // Last condition in the list must have 0 principals, as this acts as the default / else condition.
             repeated Condition conditions = 1;
             message Condition {
-                repeated string principals = 1;
+                repeated string principals = 1 [(buf.validate.field).repeated = { items: { string: {min_len: 1} }, min_items: 0 }];
                 string condition = 2;
             }
         }
@@ -43,7 +43,7 @@ message DataPolicy {
             // Last condition in the list must have 0 principals, as this acts as the default / else condition.
             repeated Transform transforms = 2;
             message Transform {
-                repeated string principals = 1;
+                repeated string principals = 1 [(buf.validate.field).repeated = { items: { string: {min_len: 1} } }];
                 oneof transform {
                     RegexReplace regex = 2;
                     bool identity = 3;
@@ -56,14 +56,15 @@ message DataPolicy {
                     string statement = 1;
                 }
                 message Hash {
-                    int64 seed = 1;
+                    optional int64 seed = 1;
                 }
                 message FixedValue {
                     string value = 1;
                 }
+                // Todo: we probably should create a separate RegexExtract, since a RegexReplace with empty replacement is functionally different.
                 message RegexReplace {
                     string regex = 1;
-                    string replacement = 2;
+                    optional string replacement = 2;
                 }
                 message Nullify {
                 }
@@ -73,7 +74,7 @@ message DataPolicy {
 
     message ProcessingPlatform {
         PlatformType platform_type = 1;
-        string id = 2;
+        string id = 2 [(buf.validate.field).string.min_len = 1];
         enum PlatformType {
             PLATFORM_TYPE_UNSPECIFIED = 0;
             DATABRICKS = 1;
@@ -84,7 +85,7 @@ message DataPolicy {
 
     message Target {
         TargetType type = 1;
-        string fullname = 2;
+        string fullname = 2 [(buf.validate.field).string.min_len = 1];
         enum TargetType {
             TARGET_TYPE_UNSPECIFIED = 0;
             DYNAMIC_VIEW = 1;
@@ -93,11 +94,12 @@ message DataPolicy {
 
     message Source {
         // The ref is an identifier for the source, unique at the source platform level.
-        string ref = 1;
+        string ref = 1 [(buf.validate.field).string.min_len = 3];
         Type type = 2;
         // Note: we are currently not using the string-based spec after all. Using the Attributes instead improves
         // testability and should make it easier for the frontend to render the policy. Otherwise the frontend
         // would have to parse the string-based spec.
+        // Todo: remove the string-based spec for now?
         string spec = 3;
 
         // attributes are leading.
@@ -117,19 +119,17 @@ message DataPolicy {
 
     message Attribute {
         // Instead of using "nodes", nesting can be expressed by specifying multiple path components. This is similar to BigQuery.
-        repeated string path_components = 1;
+        repeated string path_components = 1 [(buf.validate.field).repeated = { items: { string: {min_len: 1} } }];
         // This is the "native" type, originating from the source platform.
         string type = 2;
         bool required = 3;
         repeated string tags = 4;
-
-        // TODO add repeated?
     }
 }
 
 
 message DataCatalog {
-    string id = 1;
+    string id = 1 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
     Type type = 2;
     repeated DataBase databases = 3;
     repeated string tags = 4;
@@ -140,26 +140,28 @@ message DataCatalog {
         DATAHUB = 3;
     }
 
+    // Todo: apart from the discussion on hierarchy vs. flat, Database is written without uppercase B.
     message DataBase {
-        string id = 1;
+        string id = 1 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
         string type = 2;
-        string display_name = 3;
+        string display_name = 3 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
+        // Todo: complete parent/child objects instead of ids can sometimes result in some cyclic issues.
         DataCatalog catalog = 4;
         repeated Schema schemas = 5;
         repeated string tags = 6;
     }
 
     message Schema {
-        string id = 1;
-        string name = 2;
+        string id = 1 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
+        string name = 2 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
         DataBase database = 3;
         repeated Table tables = 4;
         repeated string tags = 5;
     }
 
     message Table {
-        string id = 1;
-        string name = 2;
+        string id = 1 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
+        string name = 2 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
         Schema schema = 3;
         repeated string tags = 4;
     }

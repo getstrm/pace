@@ -1,8 +1,6 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
-import build.buf.gen.getstrm.api.data_policies.v1alpha.ListProcessingPlatformGroupsRequest
-import build.buf.gen.getstrm.api.data_policies.v1alpha.ListProcessingPlatformTablesRequest
 import com.getstrm.pace.bigquery.BigQueryClient
 import com.getstrm.pace.config.ProcessingPlatformConfiguration
 import com.getstrm.pace.databricks.DatabricksClient
@@ -56,18 +54,18 @@ class ProcessingPlatformsService(
         }
     }
 
-    suspend fun listProcessingPlatformTables(request: ListProcessingPlatformTablesRequest): List<Table> =
-        (platforms[request.platform.id] ?: throw processingPlatformNotFound(request.platform.id)).listTables()
+    suspend fun listProcessingPlatformTables(platformId: String): List<Table> =
+        (platforms[platformId] ?: throw processingPlatformNotFound(platformId)).listTables()
 
-    suspend fun listProcessingPlatformGroups(request: ListProcessingPlatformGroupsRequest): List<Group> =
-        (platforms[request.platform.id] ?: throw processingPlatformNotFound(request.platform.id)).listGroups()
+    suspend fun listProcessingPlatformGroups(platformId: String): List<Group> =
+        (platforms[platformId] ?: throw processingPlatformNotFound(platformId)).listGroups()
 
-    suspend fun createBarePolicy(platform: DataPolicy.ProcessingPlatform?, tableName: String): DataPolicy {
+    suspend fun createBarePolicy(platformId: String, tableName: String): DataPolicy {
         val processingPlatformInterface =
-            platforms[platform!!.id] ?: throw processingPlatformNotFound(platform.id)
-        val table = processingPlatformInterface.createTable(tableName)
+            platforms[platformId] ?: throw processingPlatformNotFound(platformId)
+        val table = processingPlatformInterface.getTable(tableName)
         return table.toDataPolicy(
-            DataPolicy.ProcessingPlatform.newBuilder().setId(platform.id)
+            DataPolicy.ProcessingPlatform.newBuilder().setId(platformId)
                 .setPlatformType(processingPlatformInterface.type).build()
         )
     }

@@ -40,7 +40,15 @@ jobs:
           mkdir -p ../app/build/docker
           buf build -o ../app/build/docker/descriptor.binpb
       - run: ./gradlew prepareForDocker -PciBuild
-
+      - name: "Generate OpenAPI spec"
+        run: |
+          cd protos
+          buf generate
+      - name: "Generate API Reference Docs"
+        run: |
+          cd scripts/docs
+          pip install pyyaml
+          python generate.py
       # Docker cross platform builds
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

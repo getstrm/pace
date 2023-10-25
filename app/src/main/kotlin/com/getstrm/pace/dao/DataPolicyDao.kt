@@ -36,7 +36,7 @@ class DataPolicyDao(
                 dataPolicy.info.toBuilder()
                     .setUpdateTime(updateTimestamp.toTimestamp())
                     .setCreateTime(oldPolicy?.info?.createTime ?: updateTimestamp.toTimestamp())
-                    .setOrganizationId(context)
+                    .setContext(context)
                     .build()
             ).build()
 

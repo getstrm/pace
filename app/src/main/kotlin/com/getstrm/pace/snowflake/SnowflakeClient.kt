@@ -51,7 +51,8 @@ class SnowflakeClient(
                 DebugInfo.newBuilder()
                     .setDetail("Error: ${e.message} - Snowflake error: ${e.responseBodyAsString}")
                     .addAllStackEntries(e.stackTrace.map { it.toString() })
-                    .build()
+                    .build(),
+                e
             )
         }
     }
