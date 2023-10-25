@@ -40,24 +40,32 @@ class CatalogService(
             .build()
     }
 
-    suspend fun listDatabases(apiCatalog: ApiCatalog): List<ApiDatabase> =
-        getCatalog(apiCatalog.id).listDatabases().map { it.apiDatabase }
+    suspend fun listDatabases(catalogId: String): List<ApiDatabase> =
+        getCatalog(catalogId).listDatabases().map { it.apiDatabase }
 
-    suspend fun listSchemas(apiDatabase: ApiDatabase): List<ApiSchema> {
-        val catalog = getCatalog(apiDatabase.catalog.id)
-        val database = catalog.listDatabases().find { it.id == apiDatabase.id }
-            ?: throw CatalogDatabaseNotFoundException(apiDatabase.id)
+    suspend fun listSchemas(catalogId: String, databaseId: String): List<ApiSchema> {
+        val catalog = getCatalog(catalogId)
+        val database = catalog.listDatabases().firstOrNull { it.id == databaseId }
+            ?: throw CatalogDatabaseNotFoundException(databaseId)
         val schemas = database.getSchemas()
         return schemas.map { it.apiSchema }
     }
 
-    suspend fun listTables(apiSchema: ApiSchema): List<ApiTable> =
-        getTablesInfo(apiSchema).map { it.apiTable }
+    suspend fun listTables(
+        catalogId: String,
+        databaseId: String,
+        schemaId: String,
+    ): List<ApiTable> = getTablesInfo(catalogId, databaseId, schemaId).map { it.apiTable }
 
-    suspend fun getBarePolicy(apiTable: ApiTable): DataPolicy {
-        val tables = getTablesInfo(apiTable.schema)
-        val table = tables.find { it.id == apiTable.id }
-            ?: throw CatalogTableNotFoundException(apiTable.id)
+    suspend fun getBarePolicy(
+        catalogId: String,
+        databaseId: String,
+        schemaId: String,
+        tableId: String,
+    ): DataPolicy {
+        val tables = getTablesInfo(catalogId, databaseId, schemaId)
+        val table = tables.firstOrNull { it.id == tableId }
+            ?: throw CatalogTableNotFoundException(tableId)
         return table.getDataPolicy()!!
     }
 
@@ -66,12 +74,17 @@ class CatalogService(
      *
      * @return dto object with all relevant info
      */
-    private suspend fun getTablesInfo(apiSchema: ApiSchema): List<DataCatalog.Table> {
-        val catalog = getCatalog(apiSchema.database.catalog.id)
-        val database = catalog.listDatabases().find { it.id == apiSchema.database.id }
-            ?: throw CatalogDatabaseNotFoundException(apiSchema.database.id)
+    private suspend fun getTablesInfo(
+        catalogId: String,
+        databaseId: String,
+        schemaId: String,
+    ): List<DataCatalog.Table> {
+        val catalog = getCatalog(catalogId)
+        val database = catalog.listDatabases().firstOrNull { it.id == databaseId }
+            ?: throw CatalogDatabaseNotFoundException(databaseId)
         val schema =
-            database.getSchemas().find { it.id == apiSchema.id } ?: throw CatalogSchemaNotFoundException(apiSchema.id)
+            database.getSchemas().firstOrNull { it.id == schemaId }
+                ?: throw CatalogSchemaNotFoundException(schemaId)
         return schema.getTables()
     }
 
