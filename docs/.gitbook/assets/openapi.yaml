@@ -1,706 +1,732 @@
-# Generated with protoc-gen-openapi
-# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
-
-openapi: 3.0.3
-info:
-    title: PACE API
-    version: 0.0.42
-paths:
-    /catalogs:
-        get:
-            tags:
-                - DataPolicyService
-            operationId: DataPolicyService_ListCatalogs
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ListCatalogsResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /catalogs/{catalogId}/databases:
-        get:
-            tags:
-                - DataPolicyService
-            operationId: DataPolicyService_ListDatabases
-            parameters:
-                - name: catalogId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ListDatabasesResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /catalogs/{catalogId}/databases/{databaseId}/schemas:
-        get:
-            tags:
-                - DataPolicyService
-            operationId: DataPolicyService_ListSchemas
-            parameters:
-                - name: catalogId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: databaseId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ListSchemasResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /catalogs/{catalogId}/databases/{databaseId}/schemas/{schemaId}/tables:
-        get:
-            tags:
-                - DataPolicyService
-            operationId: DataPolicyService_ListTables
-            parameters:
-                - name: catalogId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: databaseId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: schemaId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ListTablesResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /catalogs/{catalogId}/databases/{databaseId}/schemas/{schemaId}/tables/{tableId}/bare-policy:
-        get:
-            tags:
-                - DataPolicyService
-            description: return a data-policy without rules sets as built from the table description on the platform
-            operationId: DataPolicyService_GetCatalogBarePolicy
-            parameters:
-                - name: catalogId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: databaseId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: schemaId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: tableId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/GetCatalogBarePolicyResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /data-policies:
-        get:
-            tags:
-                - DataPolicyService
-            operationId: DataPolicyService_ListDataPolicies
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ListDataPoliciesResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-        post:
-            tags:
-                - DataPolicyService
-            operationId: DataPolicyService_UpsertDataPolicy
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/UpsertDataPolicyRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/UpsertDataPolicyResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /data-policies/{dataPolicyId}:
-        get:
-            tags:
-                - DataPolicyService
-            description: returns latest policy for an id
-            operationId: DataPolicyService_GetDataPolicy
-            parameters:
-                - name: dataPolicyId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/GetDataPolicyResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /processing-platforms:
-        get:
-            tags:
-                - DataPolicyService
-            description: return configured processing platforms in DPS
-            operationId: DataPolicyService_ListProcessingPlatforms
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ListProcessingPlatformsResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /processing-platforms/{platformId}/groups:
-        get:
-            tags:
-                - DataPolicyService
-            description: return groups as known by the platform
-            operationId: DataPolicyService_ListProcessingPlatformGroups
-            parameters:
-                - name: platformId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ListProcessingPlatformGroupsResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /processing-platforms/{platformId}/tables:
-        get:
-            tags:
-                - DataPolicyService
-            description: return table names as known by the platform
-            operationId: DataPolicyService_ListProcessingPlatformTables
-            parameters:
-                - name: platformId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ListProcessingPlatformTablesResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
-    /processing-platforms/{platformId}/tables/{table_id}/bare-policy:
-        get:
-            tags:
-                - DataPolicyService
-            description: return a data-policy without rules sets as built from the table description on the platform
-            operationId: DataPolicyService_GetProcessingPlatformBarePolicy
-            parameters:
-                - name: platformId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: table_id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: table
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/GetProcessingPlatformBarePolicyResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
 components:
-    schemas:
-        DataCatalog:
-            type: object
-            properties:
-                id:
-                    type: string
-                type:
-                    enum:
-                        - TYPE_UNSPECIFIED
-                        - COLLIBRA
-                        - ODD
-                        - DATAHUB
-                    type: string
-                    format: enum
-                databases:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/DataCatalog_DataBase'
-                tags:
-                    type: array
-                    items:
-                        type: string
-        DataCatalog_DataBase:
-            type: object
-            properties:
-                id:
-                    type: string
-                type:
-                    type: string
-                displayName:
-                    type: string
-                catalog:
-                    allOf:
-                        - $ref: '#/components/schemas/DataCatalog'
-                    description: 'Todo: complete parent/child objects instead of ids can sometimes result in some cyclic issues.'
-                schemas:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/DataCatalog_Schema'
-                tags:
-                    type: array
-                    items:
-                        type: string
-            description: 'Todo: apart from the discussion on hierarchy vs. flat, Database is written without uppercase B.'
-        DataCatalog_Schema:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                database:
-                    $ref: '#/components/schemas/DataCatalog_DataBase'
-                tables:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/DataCatalog_Table'
-                tags:
-                    type: array
-                    items:
-                        type: string
-        DataCatalog_Table:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                schema:
-                    $ref: '#/components/schemas/DataCatalog_Schema'
-                tags:
-                    type: array
-                    items:
-                        type: string
-        DataPolicy:
-            type: object
-            properties:
-                id:
-                    type: string
-                info:
-                    $ref: '#/components/schemas/DataPolicy_Info'
-                source:
-                    $ref: '#/components/schemas/DataPolicy_Source'
-                platform:
-                    $ref: '#/components/schemas/DataPolicy_ProcessingPlatform'
-                ruleSets:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/DataPolicy_RuleSet'
-        DataPolicy_Attribute:
-            type: object
-            properties:
-                pathComponents:
-                    type: array
-                    items:
-                        type: string
-                    description: Instead of using "nodes", nesting can be expressed by specifying multiple path components. This is similar to BigQuery.
-                type:
-                    type: string
-                    description: This is the "native" type, originating from the source platform.
-                required:
-                    type: boolean
-                tags:
-                    type: array
-                    items:
-                        type: string
-        DataPolicy_Info:
-            type: object
-            properties:
-                title:
-                    type: string
-                description:
-                    type: string
-                version:
-                    type: string
-                context:
-                    type: string
-                createTime:
-                    type: string
-                    format: date-time
-                updateTime:
-                    type: string
-                    format: date-time
-                tags:
-                    type: array
-                    items:
-                        type: string
-        DataPolicy_ProcessingPlatform:
-            type: object
-            properties:
-                platformType:
-                    enum:
-                        - PLATFORM_TYPE_UNSPECIFIED
-                        - DATABRICKS
-                        - SNOWFLAKE
-                        - BIGQUERY
-                    type: string
-                    format: enum
-                id:
-                    type: string
-        DataPolicy_RuleSet:
-            type: object
-            properties:
-                target:
-                    $ref: '#/components/schemas/DataPolicy_Target'
-                fieldTransforms:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/RuleSet_FieldTransform'
-                filters:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/RuleSet_Filter'
-        DataPolicy_Source:
-            type: object
-            properties:
-                ref:
-                    type: string
-                    description: The ref is an identifier for the source, unique at the source platform level.
-                type:
-                    enum:
-                        - TYPE_UNSPECIFIED
-                        - SQL_DDL
-                        - DATABRICKS
-                        - SNOWFLAKE
-                        - BIGQUERY
-                    type: string
-                    format: enum
-                spec:
-                    type: string
-                    description: |-
-                        Note: we are currently not using the string-based spec after all. Using the Attributes instead improves
-                         testability and should make it easier for the frontend to render the policy. Otherwise the frontend
-                         would have to parse the string-based spec.
-                         Todo: remove the string-based spec for now?
-                attributes:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/DataPolicy_Attribute'
-                    description: |-
-                        attributes are leading.
-                         Todo: rename to fields? Attribute is an overloaded term in this context.
-                tags:
-                    type: array
-                    items:
-                        type: string
-        DataPolicy_Target:
-            type: object
-            properties:
-                type:
-                    enum:
-                        - TARGET_TYPE_UNSPECIFIED
-                        - DYNAMIC_VIEW
-                    type: string
-                    format: enum
-                fullname:
-                    type: string
-        FieldTransform_Transform:
-            type: object
-            properties:
-                principals:
-                    type: array
-                    items:
-                        type: string
-                regex:
-                    $ref: '#/components/schemas/Transform_RegexReplace'
-                identity:
-                    type: boolean
-                fixed:
-                    $ref: '#/components/schemas/Transform_FixedValue'
-                hash:
-                    $ref: '#/components/schemas/Transform_Hash'
-                sqlStatement:
-                    $ref: '#/components/schemas/Transform_SqlStatement'
-                nullify:
-                    $ref: '#/components/schemas/Transform_Nullify'
-        Filter_Condition:
-            type: object
-            properties:
-                principals:
-                    type: array
-                    items:
-                        type: string
-                condition:
-                    type: string
-        GetCatalogBarePolicyResponse:
-            type: object
-            properties:
-                dataPolicy:
-                    $ref: '#/components/schemas/DataPolicy'
-        GetDataPolicyResponse:
-            type: object
-            properties:
-                dataPolicy:
-                    $ref: '#/components/schemas/DataPolicy'
-        GetProcessingPlatformBarePolicyResponse:
-            type: object
-            properties:
-                dataPolicy:
-                    $ref: '#/components/schemas/DataPolicy'
-        GoogleProtobufAny:
-            type: object
-            properties:
-                '@type':
-                    type: string
-                    description: The type of the serialized message.
-            additionalProperties: true
-            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-        ListCatalogsResponse:
-            type: object
-            properties:
-                catalogs:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/DataCatalog'
-        ListDataPoliciesResponse:
-            type: object
-            properties:
-                dataPolicies:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/DataPolicy'
-        ListDatabasesResponse:
-            type: object
-            properties:
-                databases:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/DataCatalog_DataBase'
-        ListProcessingPlatformGroupsResponse:
-            type: object
-            properties:
-                groups:
-                    type: array
-                    items:
-                        type: string
-        ListProcessingPlatformTablesResponse:
-            type: object
-            properties:
-                tables:
-                    type: array
-                    items:
-                        type: string
-        ListProcessingPlatformsResponse:
-            type: object
-            properties:
-                processingPlatforms:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/DataPolicy_ProcessingPlatform'
-        ListSchemasResponse:
-            type: object
-            properties:
-                schemas:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/DataCatalog_Schema'
-            description: |-
-                (-- api-linter: core::0158::response-plural-first-field=disabled
-                     aip.dev/not-precedent: Schemata? Get real. --)
-        ListTablesResponse:
-            type: object
-            properties:
-                tables:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/DataCatalog_Table'
-        RuleSet_FieldTransform:
-            type: object
-            properties:
-                attribute:
-                    $ref: '#/components/schemas/DataPolicy_Attribute'
-                transforms:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/FieldTransform_Transform'
-                    description: Last condition in the list must have 0 principals, as this acts as the default / else condition.
-        RuleSet_Filter:
-            type: object
-            properties:
-                conditions:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/Filter_Condition'
-                    description: Last condition in the list must have 0 principals, as this acts as the default / else condition.
-        Status:
-            type: object
-            properties:
-                code:
-                    type: integer
-                    description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
-                    format: int32
-                message:
-                    type: string
-                    description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
-                details:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/GoogleProtobufAny'
-                    description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
-            description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
-        Transform_FixedValue:
-            type: object
-            properties:
-                value:
-                    type: string
-        Transform_Hash:
-            type: object
-            properties:
-                seed:
-                    type: string
-        Transform_Nullify:
-            type: object
-            properties: {}
-        Transform_RegexReplace:
-            type: object
-            properties:
-                regex:
-                    type: string
-                replacement:
-                    type: string
-            description: 'Todo: we probably should create a separate RegexExtract, since a RegexReplace with empty replacement is functionally different.'
-        Transform_SqlStatement:
-            type: object
-            properties:
-                statement:
-                    type: string
-        UpsertDataPolicyRequest:
-            type: object
-            properties:
-                dataPolicy:
-                    $ref: '#/components/schemas/DataPolicy'
-            description: |-
-                *
-                inserts or updates a DataPolicy into the DPS
-                AND applies it to the processing platform.
-        UpsertDataPolicyResponse:
-            type: object
-            properties:
-                dataPolicy:
-                    $ref: '#/components/schemas/DataPolicy'
+  schemas:
+    DataCatalog:
+      properties:
+        databases:
+          items:
+            $ref: '#/components/schemas/DataCatalog_DataBase'
+          type: array
+        id:
+          type: string
+        tags:
+          items:
+            type: string
+          type: array
+        type:
+          enum:
+          - TYPE_UNSPECIFIED
+          - COLLIBRA
+          - ODD
+          - DATAHUB
+          format: enum
+          type: string
+      type: object
+    DataCatalog_DataBase:
+      description: 'Todo: apart from the discussion on hierarchy vs. flat, Database
+        is written without uppercase B.'
+      properties:
+        catalog:
+          allOf:
+          - $ref: '#/components/schemas/DataCatalog'
+          description: 'Todo: complete parent/child objects instead of ids can sometimes
+            result in some cyclic issues.'
+        displayName:
+          type: string
+        id:
+          type: string
+        schemas:
+          items:
+            $ref: '#/components/schemas/DataCatalog_Schema'
+          type: array
+        tags:
+          items:
+            type: string
+          type: array
+        type:
+          type: string
+      type: object
+    DataCatalog_Schema:
+      properties:
+        database:
+          $ref: '#/components/schemas/DataCatalog_DataBase'
+        id:
+          type: string
+        name:
+          type: string
+        tables:
+          items:
+            $ref: '#/components/schemas/DataCatalog_Table'
+          type: array
+        tags:
+          items:
+            type: string
+          type: array
+      type: object
+    DataCatalog_Table:
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        schema:
+          $ref: '#/components/schemas/DataCatalog_Schema'
+        tags:
+          items:
+            type: string
+          type: array
+      type: object
+    DataPolicy:
+      properties:
+        id:
+          type: string
+        info:
+          $ref: '#/components/schemas/DataPolicy_Info'
+        platform:
+          $ref: '#/components/schemas/DataPolicy_ProcessingPlatform'
+        ruleSets:
+          items:
+            $ref: '#/components/schemas/DataPolicy_RuleSet'
+          type: array
+        source:
+          $ref: '#/components/schemas/DataPolicy_Source'
+      type: object
+    DataPolicy_Attribute:
+      properties:
+        pathComponents:
+          description: Instead of using "nodes", nesting can be expressed by specifying
+            multiple path components. This is similar to BigQuery.
+          items:
+            type: string
+          type: array
+        required:
+          type: boolean
+        tags:
+          items:
+            type: string
+          type: array
+        type:
+          description: This is the "native" type, originating from the source platform.
+          type: string
+      type: object
+    DataPolicy_Info:
+      properties:
+        context:
+          type: string
+        createTime:
+          format: date-time
+          type: string
+        description:
+          type: string
+        tags:
+          items:
+            type: string
+          type: array
+        title:
+          type: string
+        updateTime:
+          format: date-time
+          type: string
+        version:
+          type: string
+      type: object
+    DataPolicy_ProcessingPlatform:
+      properties:
+        id:
+          type: string
+        platformType:
+          enum:
+          - PLATFORM_TYPE_UNSPECIFIED
+          - DATABRICKS
+          - SNOWFLAKE
+          - BIGQUERY
+          format: enum
+          type: string
+      type: object
+    DataPolicy_RuleSet:
+      properties:
+        fieldTransforms:
+          items:
+            $ref: '#/components/schemas/RuleSet_FieldTransform'
+          type: array
+        filters:
+          items:
+            $ref: '#/components/schemas/RuleSet_Filter'
+          type: array
+        target:
+          $ref: '#/components/schemas/DataPolicy_Target'
+      type: object
+    DataPolicy_Source:
+      properties:
+        attributes:
+          description: "attributes are leading.\n Todo: rename to fields? Attribute\
+            \ is an overloaded term in this context."
+          items:
+            $ref: '#/components/schemas/DataPolicy_Attribute'
+          type: array
+        ref:
+          description: The ref is an identifier for the source, unique at the source
+            platform level.
+          type: string
+        spec:
+          description: "Note: we are currently not using the string-based spec after\
+            \ all. Using the Attributes instead improves\n testability and should\
+            \ make it easier for the frontend to render the policy. Otherwise the\
+            \ frontend\n would have to parse the string-based spec.\n Todo: remove\
+            \ the string-based spec for now?"
+          type: string
+        tags:
+          items:
+            type: string
+          type: array
+        type:
+          enum:
+          - TYPE_UNSPECIFIED
+          - SQL_DDL
+          - DATABRICKS
+          - SNOWFLAKE
+          - BIGQUERY
+          format: enum
+          type: string
+      type: object
+    DataPolicy_Target:
+      properties:
+        fullname:
+          type: string
+        type:
+          enum:
+          - TARGET_TYPE_UNSPECIFIED
+          - DYNAMIC_VIEW
+          format: enum
+          type: string
+      type: object
+    FieldTransform_Transform:
+      properties:
+        fixed:
+          $ref: '#/components/schemas/Transform_FixedValue'
+        hash:
+          $ref: '#/components/schemas/Transform_Hash'
+        identity:
+          type: boolean
+        nullify:
+          $ref: '#/components/schemas/Transform_Nullify'
+        principals:
+          items:
+            type: string
+          type: array
+        regex:
+          $ref: '#/components/schemas/Transform_RegexReplace'
+        sqlStatement:
+          $ref: '#/components/schemas/Transform_SqlStatement'
+      type: object
+    Filter_Condition:
+      properties:
+        condition:
+          type: string
+        principals:
+          items:
+            type: string
+          type: array
+      type: object
+    GetCatalogBarePolicyResponse:
+      properties:
+        dataPolicy:
+          $ref: '#/components/schemas/DataPolicy'
+      type: object
+    GetDataPolicyResponse:
+      properties:
+        dataPolicy:
+          $ref: '#/components/schemas/DataPolicy'
+      type: object
+    GetProcessingPlatformBarePolicyResponse:
+      properties:
+        dataPolicy:
+          $ref: '#/components/schemas/DataPolicy'
+      type: object
+    GoogleProtobufAny:
+      additionalProperties: true
+      description: Contains an arbitrary serialized message along with a @type that
+        describes the type of the serialized message.
+      properties:
+        '@type':
+          description: The type of the serialized message.
+          type: string
+      type: object
+    ListCatalogsResponse:
+      properties:
+        catalogs:
+          items:
+            $ref: '#/components/schemas/DataCatalog'
+          type: array
+      type: object
+    ListDataPoliciesResponse:
+      properties:
+        dataPolicies:
+          items:
+            $ref: '#/components/schemas/DataPolicy'
+          type: array
+      type: object
+    ListDatabasesResponse:
+      properties:
+        databases:
+          items:
+            $ref: '#/components/schemas/DataCatalog_DataBase'
+          type: array
+      type: object
+    ListProcessingPlatformGroupsResponse:
+      properties:
+        groups:
+          items:
+            type: string
+          type: array
+      type: object
+    ListProcessingPlatformTablesResponse:
+      properties:
+        tables:
+          items:
+            type: string
+          type: array
+      type: object
+    ListProcessingPlatformsResponse:
+      properties:
+        processingPlatforms:
+          items:
+            $ref: '#/components/schemas/DataPolicy_ProcessingPlatform'
+          type: array
+      type: object
+    ListSchemasResponse:
+      description: "(-- api-linter: core::0158::response-plural-first-field=disabled\n\
+        \     aip.dev/not-precedent: Schemata? Get real. --)"
+      properties:
+        schemas:
+          items:
+            $ref: '#/components/schemas/DataCatalog_Schema'
+          type: array
+      type: object
+    ListTablesResponse:
+      properties:
+        tables:
+          items:
+            $ref: '#/components/schemas/DataCatalog_Table'
+          type: array
+      type: object
+    RuleSet_FieldTransform:
+      properties:
+        attribute:
+          $ref: '#/components/schemas/DataPolicy_Attribute'
+        transforms:
+          description: Last condition in the list must have 0 principals, as this
+            acts as the default / else condition.
+          items:
+            $ref: '#/components/schemas/FieldTransform_Transform'
+          type: array
+      type: object
+    RuleSet_Filter:
+      properties:
+        conditions:
+          description: Last condition in the list must have 0 principals, as this
+            acts as the default / else condition.
+          items:
+            $ref: '#/components/schemas/Filter_Condition'
+          type: array
+      type: object
+    Status:
+      description: 'The `Status` type defines a logical error model that is suitable
+        for different programming environments, including REST APIs and RPC APIs.
+        It is used by [gRPC](https://github.com/grpc). Each `Status` message contains
+        three pieces of data: error code, error message, and error details. You can
+        find out more about this error model and how to work with it in the [API Design
+        Guide](https://cloud.google.com/apis/design/errors).'
+      properties:
+        code:
+          description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+          format: int32
+          type: integer
+        details:
+          description: A list of messages that carry the error details.  There is
+            a common set of message types for APIs to use.
+          items:
+            $ref: '#/components/schemas/GoogleProtobufAny'
+          type: array
+        message:
+          description: A developer-facing error message, which should be in English.
+            Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details]
+            field, or localized by the client.
+          type: string
+      type: object
+    Transform_FixedValue:
+      properties:
+        value:
+          type: string
+      type: object
+    Transform_Hash:
+      properties:
+        seed:
+          type: string
+      type: object
+    Transform_Nullify:
+      properties: {}
+      type: object
+    Transform_RegexReplace:
+      description: 'Todo: we probably should create a separate RegexExtract, since
+        a RegexReplace with empty replacement is functionally different.'
+      properties:
+        regex:
+          type: string
+        replacement:
+          type: string
+      type: object
+    Transform_SqlStatement:
+      properties:
+        statement:
+          type: string
+      type: object
+    UpsertDataPolicyRequest:
+      description: '*
+
+        inserts or updates a DataPolicy into the DPS
+
+        AND applies it to the processing platform.'
+      properties:
+        dataPolicy:
+          $ref: '#/components/schemas/DataPolicy'
+      type: object
+    UpsertDataPolicyResponse:
+      properties:
+        dataPolicy:
+          $ref: '#/components/schemas/DataPolicy'
+      type: object
+info:
+  title: PACE API
+  version: 0.0.42
+openapi: 3.0.3
+paths:
+  /catalogs:
+    get:
+      operationId: DataPolicyService_ListCatalogs
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCatalogsResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: ListCatalogs
+      tags:
+      - DataPolicyService
+  /catalogs/{catalogId}/databases:
+    get:
+      operationId: DataPolicyService_ListDatabases
+      parameters:
+      - in: path
+        name: catalogId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDatabasesResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: ListDatabases
+      tags:
+      - DataPolicyService
+  /catalogs/{catalogId}/databases/{databaseId}/schemas:
+    get:
+      operationId: DataPolicyService_ListSchemas
+      parameters:
+      - in: path
+        name: catalogId
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: databaseId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSchemasResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: ListSchemas
+      tags:
+      - DataPolicyService
+  /catalogs/{catalogId}/databases/{databaseId}/schemas/{schemaId}/tables:
+    get:
+      operationId: DataPolicyService_ListTables
+      parameters:
+      - in: path
+        name: catalogId
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: databaseId
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: schemaId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTablesResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: ListTables
+      tags:
+      - DataPolicyService
+  /catalogs/{catalogId}/databases/{databaseId}/schemas/{schemaId}/tables/{tableId}/bare-policy:
+    get:
+      description: return a data-policy without rules sets as built from the table
+        description on the platform
+      operationId: DataPolicyService_GetCatalogBarePolicy
+      parameters:
+      - in: path
+        name: catalogId
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: databaseId
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: schemaId
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: tableId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCatalogBarePolicyResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: GetCatalogBarePolicy
+      tags:
+      - DataPolicyService
+  /data-policies:
+    get:
+      operationId: DataPolicyService_ListDataPolicies
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDataPoliciesResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: ListDataPolicies
+      tags:
+      - DataPolicyService
+    post:
+      operationId: DataPolicyService_UpsertDataPolicy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertDataPolicyRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpsertDataPolicyResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: UpsertDataPolicy
+      tags:
+      - DataPolicyService
+  /data-policies/{dataPolicyId}:
+    get:
+      description: returns latest policy for an id
+      operationId: DataPolicyService_GetDataPolicy
+      parameters:
+      - in: path
+        name: dataPolicyId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDataPolicyResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: GetDataPolicy
+      tags:
+      - DataPolicyService
+  /processing-platforms:
+    get:
+      description: return configured processing platforms in DPS
+      operationId: DataPolicyService_ListProcessingPlatforms
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListProcessingPlatformsResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: ListProcessingPlatforms
+      tags:
+      - DataPolicyService
+  /processing-platforms/{platformId}/groups:
+    get:
+      description: return groups as known by the platform
+      operationId: DataPolicyService_ListProcessingPlatformGroups
+      parameters:
+      - in: path
+        name: platformId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListProcessingPlatformGroupsResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: ListProcessingPlatformGroups
+      tags:
+      - DataPolicyService
+  /processing-platforms/{platformId}/tables:
+    get:
+      description: return table names as known by the platform
+      operationId: DataPolicyService_ListProcessingPlatformTables
+      parameters:
+      - in: path
+        name: platformId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListProcessingPlatformTablesResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: ListProcessingPlatformTables
+      tags:
+      - DataPolicyService
+  /processing-platforms/{platformId}/tables/{table_id}/bare-policy:
+    get:
+      description: return a data-policy without rules sets as built from the table
+        description on the platform
+      operationId: DataPolicyService_GetProcessingPlatformBarePolicy
+      parameters:
+      - in: path
+        name: platformId
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: table_id
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: table
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProcessingPlatformBarePolicyResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: GetProcessingPlatformBarePolicy
+      tags:
+      - DataPolicyService
 tags:
-    - name: DataPolicyService
+- name: DataPolicyService
