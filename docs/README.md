@@ -1,5 +1,11 @@
 # API Reference
 
+{% swagger method="get" path="/trial" baseUrl="" summary="With a description" %}
+{% swagger-description %}
+
+{% endswagger-description %}
+{% endswagger %}
+
 {% swagger src=".gitbook/assets/openapi.yaml" path="/catalogs" method="get" %}
 [openapi.yaml](.gitbook/assets/openapi.yaml)
 {% endswagger %}
