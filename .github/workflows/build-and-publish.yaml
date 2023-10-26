@@ -44,6 +44,7 @@ jobs:
         run: |
           cd protos
           buf generate
+          cp gen/openapi.yaml ../docs/.gitbook.yaml
       - name: "Generate API Reference Docs"
         run: |
           cd scripts/docs
