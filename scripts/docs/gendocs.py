@@ -10,5 +10,5 @@ with open('../../protos/gen/openapi.yaml', 'r') as file:
 with open('../../docs/.gitbook/assets/openapi.yaml', 'w') as file:
     yaml.dump(spec, file, default_flow_style=False)
 
-with open('../../docs/api-reference.md', 'w') as file:
+with open('../../docs/reference/api-reference.md', 'w') as file:
     file.write('\n\n'.join(ref))
