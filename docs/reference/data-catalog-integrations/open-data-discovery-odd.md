@@ -2,5 +2,5 @@
 description: TODO 🫶🏽
 ---
 
-# Databricks
+# Open Data Discovery (ODD)
 

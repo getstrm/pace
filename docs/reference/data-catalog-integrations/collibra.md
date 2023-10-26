@@ -2,5 +2,5 @@
 description: TODO 🫶🏽
 ---
 
-# Rule set
+# Collibra
 
