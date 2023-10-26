@@ -4,14 +4,21 @@ import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.BIGQUERY
 import com.getstrm.pace.config.BigQueryConfig
 import com.getstrm.pace.domain.Group
-import com.getstrm.pace.domain.ProcessingPlatformInterface
+import com.getstrm.pace.domain.ProcessingPlatform
 import com.getstrm.pace.domain.Table
 import com.getstrm.pace.exceptions.InternalException
+import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.bigquery.*
+import com.google.cloud.bigquery.Acl
+import com.google.cloud.bigquery.BigQuery
+import com.google.cloud.bigquery.BigQueryException
+import com.google.cloud.bigquery.BigQueryOptions
+import com.google.cloud.bigquery.JobException
+import com.google.cloud.bigquery.QueryJobConfiguration
+import com.google.cloud.bigquery.TableId
 import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
-import toFullName
+import com.getstrm.pace.util.toFullName
 import com.google.cloud.bigquery.Table as BQTable
 
 class BigQueryClient(
@@ -19,7 +26,7 @@ class BigQueryClient(
     serviceAccountKeyJson: String,
     projectId: String,
     private val userGroupsTable: String,
-) : ProcessingPlatformInterface {
+) : ProcessingPlatform {
     constructor(config: BigQueryConfig) : this(
         config.id,
         config.serviceAccountKeyJson,
@@ -66,7 +73,7 @@ class BigQueryClient(
                 InternalException.Code.INTERNAL,
                 DebugInfo.newBuilder()
                     .setDetail(
-                        "Error while executing BigQuery query (error message: ${e.message}), please check the logs of your PACE deployment. This is a bug, please report to https://github.com/getstrm/pace/issues/new"
+                        "Error while executing BigQuery query (error message: ${e.message}), please check the logs of your PACE deployment. $BUG_REPORT"
                     )
                     .addAllStackEntries(e.stackTrace.map { it.toString() })
                     .build(),
@@ -77,14 +84,23 @@ class BigQueryClient(
             authorizeViews(dataPolicy)
         } catch (e: BigQueryException) {
             if (e.message == "Duplicate authorized views") {
-                log.debug("{}", e.message)
+                log.warn("Target view(s) for data policy {} already authorized.", dataPolicy.id)
             } else {
-                throw e
+                throw InternalException(
+                    InternalException.Code.INTERNAL,
+                    DebugInfo.newBuilder()
+                        .setDetail(
+                            "Error while authorizing views (error message: ${e.message}), please check the logs of your PACE deployment. $BUG_REPORT"
+                        )
+                        .addAllStackEntries(e.stackTrace.map { it.toString() })
+                        .build(),
+                    e
+                )
             }
         }
     }
 
-    // TODO bombs when running twice!
+    // Fixme: better handle case where view was already authorized (currently caught above)
     private fun authorizeViews(dataPolicy: DataPolicy) {
         val sourceDataSet = bigQuery.getDataset(dataPolicy.source.ref.toTableId().dataset)
         val sourceAcl = sourceDataSet.acl
@@ -94,8 +110,7 @@ class BigQueryClient(
         sourceDataSet.toBuilder().setAcl(sourceAcl + viewsAcl).build().update()
     }
 
-    override val type
-        get() = BIGQUERY
+    override val type = BIGQUERY
 
     override suspend fun listGroups(): List<Group> {
         val query = """

@@ -9,7 +9,7 @@ import com.google.rpc.ResourceInfo
 import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import pathString
+import com.getstrm.pace.util.pathString
 
 @Component
 class DataPolicyService(
@@ -29,6 +29,7 @@ class DataPolicyService(
         return newDataPolicy
     }
 
+    // Todo: improve readability - the exceptions and nested functions make it hard to follow
     suspend fun validate(dataPolicy: DataPolicy) {
         if (dataPolicy.source.ref.isNullOrEmpty()) {
             throw BadRequestException(
@@ -226,8 +227,6 @@ class DataPolicyService(
     )
 
     private suspend fun enforceStatement(dataPolicy: DataPolicy) {
-        // TODO: replace with switch based on platform identifier instead of type. Possibly multiple platforms of the same type.
-        val platform = processingPlatforms.getProcessingPlatform(dataPolicy)
-        platform.applyPolicy(dataPolicy)
+        processingPlatforms.getProcessingPlatform(dataPolicy).applyPolicy(dataPolicy)
     }
 }

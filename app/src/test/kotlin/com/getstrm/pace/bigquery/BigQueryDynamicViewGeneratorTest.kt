@@ -6,9 +6,9 @@ import io.kotest.matchers.shouldBe
 import org.jooq.impl.DSL
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import parseDataPolicy
-import com.getstrm.pace.util.toSql
-import yaml2json
+import com.getstrm.pace.util.parseDataPolicy
+import com.getstrm.pace.toSql
+import com.getstrm.pace.util.yaml2json
 
 class BigQueryDynamicViewGeneratorTest {
 

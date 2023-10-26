@@ -6,9 +6,9 @@ import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.google.protobuf.util.JsonFormat
 import org.jooq.DSLContext
 import org.springframework.stereotype.Component
-import toJsonb
-import toOffsetDateTime
-import toTimestamp
+import com.getstrm.pace.util.toJsonb
+import com.getstrm.pace.util.toOffsetDateTime
+import com.getstrm.pace.util.toTimestamp
 import java.time.OffsetDateTime
 import java.util.*
 

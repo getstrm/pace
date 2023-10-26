@@ -28,9 +28,3 @@ data class RowType (
     val type: String,
     val nullable: Boolean
 )
-
-data class ColumnNameAndType (
-    val name: String,
-    val type: String,
-    val nullable: Boolean
-)

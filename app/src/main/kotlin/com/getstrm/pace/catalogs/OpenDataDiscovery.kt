@@ -3,11 +3,16 @@ package com.getstrm.pace.catalogs
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.domain.DataCatalog
-import normalizeType
+import com.getstrm.pace.util.normalizeType
 import org.opendatadiscovery.generated.api.DataSetApi
 import org.opendatadiscovery.generated.api.DataSourceApi
 import org.opendatadiscovery.generated.api.SearchApi
-import org.opendatadiscovery.generated.model.* // ktlint-disable no-wildcard-imports
+import org.opendatadiscovery.generated.model.DataEntity
+import org.opendatadiscovery.generated.model.DataSetField
+import org.opendatadiscovery.generated.model.DataSource
+import org.opendatadiscovery.generated.model.SearchFilterState
+import org.opendatadiscovery.generated.model.SearchFormData
+import org.opendatadiscovery.generated.model.SearchFormDataFilters
 import java.util.*
 
 /**
@@ -74,7 +79,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         /** Effectively a noop, but that's because ODD's data model isn't hierachical
          */
         override suspend fun getSchemas(): List<Schema> {
-            return listOf(Schema(catalog, this, id, dbType!!))
+            return listOf(Schema(catalog, this, id, dbType.orEmpty()))
         }
     }
 
@@ -94,7 +99,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         DataCatalog.Table(schema, id, name) {
 
         private fun getAllParents(parentId: Long, fieldsById: Map<Long, DataSetField>): List<Long> {
-            val parent = fieldsById[parentId]!!
+            val parent = checkNotNull(fieldsById[parentId]) { "The parent field should exist" }
 
             return if (parent.parentFieldId != null) {
                 listOf(parent.id) + getAllParents(parent.parentFieldId, fieldsById)
@@ -114,7 +119,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
                 fields.map { field ->
                     val fieldPath = if (field.parentFieldId != null) {
                         val parentIds = getAllParents(field.parentFieldId, fieldsById)
-                        parentIds.map { fieldsById[it]!!.name }
+                        parentIds.map { fieldsById[it]?.name.orEmpty() }
                     } else {
                         listOf(field.name)
                     }

@@ -1,6 +1,6 @@
 package com.getstrm.pace.common
 
-import com.getstrm.pace.util.TestDynamicViewGenerator
+import com.getstrm.pace.TestDynamicViewGenerator
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.BadRequestException
 import com.google.rpc.BadRequest

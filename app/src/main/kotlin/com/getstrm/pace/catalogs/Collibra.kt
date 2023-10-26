@@ -7,7 +7,7 @@ import com.collibra.generated.ListTablesInSchemaQuery
 import com.collibra.generated.TableWithColumnsQuery
 import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.domain.DataCatalog
-import normalizeType
+import com.getstrm.pace.util.normalizeType
 import java.util.*
 
 class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {

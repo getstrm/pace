@@ -6,7 +6,7 @@ import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.domain.DataCatalog
 import io.datahubproject.generated.GetDatasetDetailsQuery
 import io.datahubproject.generated.ListDatasetsQuery
-import normalizeType
+import com.getstrm.pace.util.normalizeType
 
 class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
     val client = apolloClient()

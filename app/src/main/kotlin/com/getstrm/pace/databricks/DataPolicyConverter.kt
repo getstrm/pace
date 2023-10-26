@@ -2,7 +2,7 @@ package com.getstrm.pace.databricks
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import com.databricks.sdk.service.catalog.TableInfo
-import toTimestamp
+import com.getstrm.pace.util.toTimestamp
 
 fun TableInfo.toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy =
     DataPolicy.newBuilder()
