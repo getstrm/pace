@@ -10,7 +10,7 @@ git_branch := $(shell git rev-parse --abbrev-ref HEAD)
 
 buf-publish-current-branch:
 	[[ "$$OSTYPE" == "darwin"* ]] && SED=gsed || SED=sed && \
-	commit_hash=$$(cd protos && buf push --branch "${git_branch}") && \
+	commit_hash=$$(cd protos > /dev/null && buf push --branch "${git_branch}") && \
 	commit_hash_short=$$(echo "$$commit_hash" | cut -c1-12) && \
 	$$SED -i "s|generatedBufDependencyVersion=.*|generatedBufDependencyVersion=00000000000000.$$commit_hash_short|g" gradle.properties
 
