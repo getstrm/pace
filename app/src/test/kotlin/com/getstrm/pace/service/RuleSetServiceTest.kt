@@ -122,7 +122,6 @@ class RuleSetServiceTest {
 
         runBlocking {
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)!!
-//            println(policyWithRulesets.com.getstrm.pace.util.toYaml().strip())
             policyWithRulesets shouldBe """
 source:
   ref: test1

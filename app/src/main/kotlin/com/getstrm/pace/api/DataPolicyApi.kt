@@ -31,7 +31,6 @@ import com.getstrm.pace.service.DataPolicyService
 import com.getstrm.pace.service.ProcessingPlatformsService
 import net.devh.boot.grpc.server.service.GrpcService
 
-// Todo: probably split in two separate services, depending on upcoming proto definition changes
 @GrpcService
 class DataPolicyApi(
     private val dataPolicyService: DataPolicyService,

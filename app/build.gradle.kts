@@ -52,7 +52,6 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:9.37")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.76")
 
-    // Todo remove before squashing - why?
     implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.24.0"))
     implementation("com.google.cloud:google-cloud-bigquery")
 
