@@ -263,7 +263,7 @@ components:
                         Note: we are currently not using the string-based spec after all. Using the Attributes instead improves
                          testability and should make it easier for the frontend to render the policy. Otherwise the frontend
                          would have to parse the string-based spec.
-                attributes:
+                fields:
                     type: array
                     items:
                         $ref: '#/components/schemas/DataPolicy_Attribute'
@@ -289,12 +289,12 @@ components:
                     type: array
                     items:
                         type: string
-                regex:
+                regexp:
                     $ref: '#/components/schemas/Transform_RegexReplace'
                 identity:
                     type: boolean
                 fixed:
-                    $ref: '#/components/schemas/Transform_FixedValue'
+                    $ref: '#/components/schemas/Transform_Fixed'
                 hash:
                     $ref: '#/components/schemas/Transform_Hash'
                 sqlStatement:
@@ -390,7 +390,7 @@ components:
                         $ref: '#/components/schemas/GoogleProtobufAny'
                     description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
             description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
-        Transform_FixedValue:
+        Transform_Fixed:
             type: object
             properties:
                 value:
@@ -406,7 +406,7 @@ components:
         Transform_RegexReplace:
             type: object
             properties:
-                regex:
+                regexp:
                     type: string
                 replacement:
                     type: string

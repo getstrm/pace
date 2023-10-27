@@ -1,7 +1,7 @@
 package com.getstrm.pace.snowflake
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE
 import com.getstrm.pace.config.SnowflakeConfig
 import com.getstrm.pace.domain.Group
 import com.getstrm.pace.domain.ProcessingPlatform

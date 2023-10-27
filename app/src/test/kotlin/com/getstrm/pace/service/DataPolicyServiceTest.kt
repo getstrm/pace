@@ -18,11 +18,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.util.yaml2json
+import org.intellij.lang.annotations.Language
 
 class DataPolicyServiceTest {
-
     private lateinit var underTest: DataPolicyService
-    private val defaultContext = "default"
     private val dao = mockk<DataPolicyDao>()
     private val platforms = mockk<ProcessingPlatformsService>()
     private val jooq = mockk<DSLContext>()
@@ -30,11 +29,12 @@ class DataPolicyServiceTest {
 
     @BeforeEach
     fun setUp() {
-        underTest = DataPolicyService(defaultContext, dao, platforms, jooq)
+        underTest = DataPolicyService(dao, platforms, jooq)
     }
 
     @Test
     fun `validate complex happy flow`() {
+        @Language("yaml")
         val dataPolicy = """
 $policyBase
 rule_sets: 
@@ -42,62 +42,62 @@ rule_sets:
     type: DYNAMIC_VIEW
     fullname: 'my_catalog.my_schema.gddemo_public'
   field_transforms:
-    - attribute:
-        path_components: [ email ]
+    - field:
+        name_parts: [ email ]
       transforms:
         - principals:
-            - analytics
-            - marketing
-          regex:
-            regex: '^.*(@.*)${'$'}'
+            - group: analytics
+            - group: marketing
+          regexp:
+            regexp: '^.*(@.*)${'$'}'
             replacement: '****${'$'}1'
         - principals:
-            - fraud-detection
-            - admin
-          identity: true
+            - group: fraud-detection
+            - group: admin
+          identity: {}
         - principals: []
           fixed:
             value: "'****'"
-    - attribute:
-        path_components: [ userId ]
+    - field:
+        name_parts: [ userId ]
       transforms:
         - principals:
-            - fraud-detection
-          identity: true
+            - group: fraud-detection
+          identity: {}
         - principals: []
           hash:
             seed: "1234"
-    - attribute:
-        path_components: [ items ]
+    - field:
+        name_parts: [ items ]
       transforms:
         - principals: []
           fixed:
             value: "'****'"
-    - attribute:
-        path_components: [ hairColor ]
+    - field:
+        name_parts: [ hairColor ]
       transforms:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
   filters:
-    - attribute:
-        path_components: [ age ]
+    - field:
+        name_parts: [ age ]
       conditions:
         - principals:
-            - fraud-detection
+            - group: fraud-detection
           condition: "true"
         - principals: []
           condition: "age > 18"
-    - attribute:
-        path_components: [ userId ]
+    - field:
+        name_parts: [ userId ]
       conditions:
         - principals:
-            - marketing
+            - group: marketing
           condition: "userId in ('1', '2', '3', '4')"
         - principals: []
           condition: "true"
-    - attribute:
-        path_components: [ transactionAmount ]
+    - field:
+        name_parts: [ transactionAmount ]
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
@@ -111,6 +111,7 @@ rule_sets:
 
     @Test
     fun `validate processing platform`() {
+        @Language("yaml")
         val dataPolicy = """
 $policyBase
 rule_sets: 
@@ -118,62 +119,62 @@ rule_sets:
     type: DYNAMIC_VIEW
     fullname: 'my_catalog.my_schema.gddemo_public'
   field_transforms:
-    - attribute:
-        path_components: [ email ]
+    - field:
+        name_parts: [ email ]
       transforms:
         - principals:
-            - analytics
-            - marketing
-          regex:
-            regex: '^.*(@.*)${'$'}'
+            - group: analytics
+            - group: marketing
+          regexp:
+            regexp: '^.*(@.*)${'$'}'
             replacement: '****${'$'}1'
         - principals:
-            - fraud-detection
-            - admin
-          identity: true
-        - principals: [analytics]
+            - group: fraud-detection
+            - group: admin
+          identity: {}
+        - principals: [ {group: analytics} ]
           fixed:
             value: "'****'"
-    - attribute:
-        path_components: [ userId ]
+    - field:
+        name_parts: [ userId ]
       transforms:
         - principals:
-            - fraud-detection
-          identity: true
+            - group: fraud-detection
+          identity: {}
         - principals: []
           hash:
             seed: "1234"
-    - attribute:
-        path_components: [ items ]
+    - field:
+        name_parts: [ items ]
       transforms:
         - principals: []
           fixed:
             value: "'****'"
-    - attribute:
-        path_components: [ hairColor ]
+    - field:
+        name_parts: [ hairColor ]
       transforms:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
   filters:
-    - attribute:
-        path_components: [ age ]
+    - field:
+        name_parts: [ age ]
       conditions:
         - principals:
-            - fraud-detection
+            - group: fraud-detection
           condition: "true"
         - principals: []
           condition: "age > 18"
-    - attribute:
-        path_components: [ userId ]
+    - field:
+        name_parts: [ userId ]
       conditions:
         - principals:
-            - marketing
+            - group: marketing
           condition: "userId in ('1', '2', '3', '4')"
         - principals: []
           condition: "true"
-    - attribute:
-        path_components: [ transactionAmount ]
+    - field:
+        name_parts: [ transactionAmount ]
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
@@ -205,6 +206,7 @@ rule_sets:
 
     @Test
     fun `validate non-empty last`() {
+        @Language("yaml")
         val dataPolicy = """
 $policyBase
 rule_sets: 
@@ -212,62 +214,63 @@ rule_sets:
     type: DYNAMIC_VIEW
     fullname: 'my_catalog.my_schema.gddemo_public'
   field_transforms:
-    - attribute:
-        path_components: [ email ]
+    - field:
+        name_parts: [ email ]
       transforms:
         - principals:
-            - analytics
-            - marketing
-          regex:
-            regex: '^.*(@.*)${'$'}'
+          - group: analytics
+          - group: marketing
+          regexp:
+            regexp: '^.*(@.*)${'$'}'
             replacement: '****${'$'}1'
         - principals:
-            - fraud-detection
-            - admin
-          identity: true
-        - principals: [analytics] # this triggers the validation error
+          - group: fraud-detection
+          - group: admin
+          identity: {}
+        - principals:
+          - group: analytics # this triggers the validation error
           fixed:
             value: "'****'"
-    - attribute:
-        path_components: [ userId ]
+    - field:
+        name_parts: [ userId ]
       transforms:
         - principals:
-            - fraud-detection
-          identity: true
+          - group: fraud-detection
+          identity: {}
         - principals: []
           hash:
             seed: "1234"
-    - attribute:
-        path_components: [ items ]
+    - field:
+        name_parts: [ items ]
       transforms:
         - principals: []
           fixed:
             value: "'****'"
-    - attribute:
-        path_components: [ hairColor ]
+    - field:
+        name_parts: [ hairColor ]
       transforms:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
   filters:
-    - attribute:
-        path_components: [ age ]
+    - field:
+        name_parts: [ age ]
       conditions:
         - principals:
-            - fraud-detection
+          - group: fraud-detection
           condition: "true"
         - principals: []
           condition: "age > 18"
-    - attribute:
-        path_components: [ userId ]
+    - field:
+        name_parts: [ userId ]
       conditions:
         - principals:
-            - marketing
+          - group: marketing
           condition: "userId in ('1', '2', '3', '4')"
         - principals: []
           condition: "true"
-    - attribute:
-        path_components: [ transactionAmount ]
+    - field:
+        name_parts: [ transactionAmount ]
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
@@ -290,6 +293,7 @@ rule_sets:
 
     @Test
     fun `validate missing group`() {
+        @Language("yaml")
         val dataPolicy = """
 $policyBase
 rule_sets: 
@@ -297,66 +301,66 @@ rule_sets:
     type: DYNAMIC_VIEW
     fullname: 'my_catalog.my_schema.gddemo_public'
   field_transforms:
-    - attribute:
-        path_components:
+    - field:
+        name_parts:
           - email
       transforms:
         - principals:
-            - analytics
-            - marketing
-          regex:
-            regex: '^.*(@.*)${'$'}'
+            - group: analytics
+            - group: marketing
+          regexp:
+            regexp: '^.*(@.*)${'$'}'
             replacement: '****${'$'}1'
         - principals:
-            - fraud-detection
-            - admin
-          identity: true
+            - group: fraud-detection
+            - group: admin
+          identity: {}
         - principals: []
           fixed:
             value: "'****'"
-    - attribute:
-        path_components:
+    - field:
+        name_parts:
           - userId
       transforms:
         - principals:
-            - fraud-detection
-          identity: true
+            - group: fraud-detection
+          identity: {}
         - principals: []
           hash:
             seed: "1234"
-    - attribute:
-        path_components:
+    - field:
+        name_parts:
           - items
       transforms:
         - principals: []
           fixed:
             value: "'****'"
-    - attribute:
-        path_components:
+    - field:
+        name_parts:
           - hairColor
       transforms:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
   filters:
-    - attribute:
-        path_components: [ age ]
+    - field:
+        name_parts: [ age ]
       conditions:
         - principals:
-            - fraud-detection
+            - group: fraud-detection
           condition: "true"
         - principals: []
           condition: "age > 18"
-    - attribute:
-        path_components: [ userId ]
+    - field:
+        name_parts: [ userId ]
       conditions:
         - principals:
-            - marketing
+            - group: marketing
           condition: "userId in ('1', '2', '3', '4')"
         - principals: []
           condition: "true"
-    - attribute:
-        path_components: [ transactionAmount ]
+    - field:
+        name_parts: [ transactionAmount ]
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
@@ -378,6 +382,7 @@ rule_sets:
 
     @Test
     fun `validate overlapping principals`() {
+        @Language("yaml")
         val dataPolicy = """
 $policyBase
 rule_sets: 
@@ -385,65 +390,65 @@ rule_sets:
     type: DYNAMIC_VIEW
     fullname: 'my_catalog.my_schema.gddemo_public'
   field_transforms:
-    - attribute:
-        path_components: [ email ]
+    - field:
+        name_parts: [ email ]
       transforms:
         - principals:
-            - analytics
-            - marketing
-          regex:
-            regex: '^.*(@.*)${'$'}'
+            - group: analytics
+            - group: marketing
+          regexp:
+            regexp: '^.*(@.*)${'$'}'
             replacement: '****${'$'}1'
         - principals:
-            - analytics
+            - group: analytics
           nullify: {}
         - principals:
-            - fraud-detection
-            - admin
-          identity: true
+            - group: fraud-detection
+            - group: admin
+          identity: {}
         - principals: []
           fixed:
             value: "'****'"
-    - attribute:
-        path_components: [ userId ]
+    - field:
+        name_parts: [ userId ]
       transforms:
         - principals:
-            - fraud-detection
-          identity: true
+            - group: fraud-detection
+          identity: {}
         - principals: []
           hash:
             seed: "1234"
-    - attribute:
-        path_components: [ items ]
+    - field:
+        name_parts: [ items ]
       transforms:
         - principals: []
           fixed:
             value: "'****'"
-    - attribute:
-        path_components: [ hairColor ]
+    - field:
+        name_parts: [ hairColor ]
       transforms:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
   filters:
-    - attribute:
-        path_components: [ age ]
+    - field:
+        name_parts: [ age ]
       conditions:
         - principals:
-            - fraud-detection
+            - group: fraud-detection
           condition: "true"
         - principals: []
           condition: "age > 18"
-    - attribute:
-        path_components: [ userId ]
+    - field:
+        name_parts: [ userId ]
       conditions:
         - principals:
-            - marketing
+            - group: marketing
           condition: "userId in ('1', '2', '3', '4')"
         - principals: []
           condition: "true"
-    - attribute:
-        path_components: [ transactionAmount ]
+    - field:
+        name_parts: [ transactionAmount ]
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
@@ -464,7 +469,8 @@ rule_sets:
     }
 
     @Test
-    fun `validate overlapping attributes`() {
+    fun `validate overlapping fields`() {
+        @Language("yaml")
         val dataPolicy = """
 $policyBase
 rule_sets: 
@@ -472,62 +478,62 @@ rule_sets:
     type: DYNAMIC_VIEW
     fullname: 'my_catalog.my_schema.gddemo_public'
   field_transforms:
-    - attribute:
-        path_components: [ email ]
+    - field:
+        name_parts: [ email ]
       transforms:
         - principals:
-            - analytics
-            - marketing
-          regex:
-            regex: '^.*(@.*)${'$'}'
+            - group: analytics
+            - group: marketing
+          regexp:
+            regexp: '^.*(@.*)${'$'}'
             replacement: '****${'$'}1'
         - principals:
-            - fraud-detection
-            - admin
-          identity: true
+            - group: fraud-detection
+            - group: admin
+          identity: {}
         - principals: []
           fixed:
             value: "'****'"
-    - attribute:
-        path_components: [ email ]
+    - field:
+        name_parts: [ email ]
       transforms:
         - principals:
-            - fraud-detection
-          identity: true
+            - group: fraud-detection
+          identity: {}
         - principals: []
           hash:
             seed: "1234"
-    - attribute:
-        path_components: [ items ]
+    - field:
+        name_parts: [ items ]
       transforms:
         - principals: []
           fixed:
             value: "'****'"
-    - attribute:
-        path_components: [ hairColor ]
+    - field:
+        name_parts: [ hairColor ]
       transforms:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
   filters:
-    - attribute:
-        path_components: [ age ]
+    - field:
+        name_parts: [ age ]
       conditions:
         - principals:
-            - fraud-detection
+            - group: fraud-detection
           condition: "true"
         - principals: []
           condition: "age > 18"
-    - attribute:
-        path_components: [ userId ]
+    - field:
+        name_parts: [ userId ]
       conditions:
         - principals:
-            - marketing
+            - group: marketing
           condition: "userId in ('1', '2', '3', '4')"
         - principals: []
           condition: "true"
-    - attribute:
-        path_components: [ transactionAmount ]
+    - field:
+        name_parts: [ transactionAmount ]
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
@@ -561,28 +567,28 @@ platform:
 source: 
   type: SQL_DDL
   ref: mycatalog.my_schema.gddemo
-  attributes:
-    - path_components: [transactionId]
+  fields:
+    - name_parts: [transactionId]
       type: bigint
-    - path_components: [userId]
+    - name_parts: [userId]
       type: string
-    - path_components: [email]
+    - name_parts: [email]
       type: string
-    - path_components: [age]
+    - name_parts: [age]
       type: bigint h
-    - path_components: [size]
+    - name_parts: [size]
       type: string
-    - path_components: [hairColor]
+    - name_parts: [hairColor]
       type: string
-    - path_components: [transactionAmount]
+    - name_parts: [transactionAmount]
       type: bigint
-    - path_components: [items]
+    - name_parts: [items]
       type: string
-    - path_components: [itemCount]
+    - name_parts: [itemCount]
       type: bigint
-    - path_components: [date]
+    - name_parts: [date]
       type: timestamp
-    - path_components: [purpose]
+    - name_parts: [purpose]
       type: bigint
     
 """

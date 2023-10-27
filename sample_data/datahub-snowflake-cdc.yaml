@@ -3,67 +3,67 @@ data_policy:
     description: snowflake
     title: Snowflake
   source:
-    attributes:
-      - path_components:
+    fields:
+      - name_parts:
           - highbp
         type: numeric
-      - path_components:
+      - name_parts:
           - highchol
         type: numeric
-      - path_components:
+      - name_parts:
           - cholcheck
         type: numeric
-      - path_components:
+      - name_parts:
           - bmi
         type: numeric
-      - path_components:
+      - name_parts:
           - smoker
         type: numeric
-      - path_components:
+      - name_parts:
           - stroke
         type: numeric
-      - path_components:
+      - name_parts:
           - heartdiseaseorattack
         type: numeric
-      - path_components:
+      - name_parts:
           - physactivity
         type: numeric
-      - path_components:
+      - name_parts:
           - fruits
         type: numeric
-      - path_components:
+      - name_parts:
           - veggies
         type: numeric
-      - path_components:
+      - name_parts:
           - hvyalcoholconsump
         type: numeric
-      - path_components:
+      - name_parts:
           - anyhealthcare
         type: numeric
-      - path_components:
+      - name_parts:
           - nodocbccost
         type: numeric
-      - path_components:
+      - name_parts:
           - genhlth
         type: numeric
-      - path_components:
+      - name_parts:
           - menthlth
         type: numeric
-      - path_components:
+      - name_parts:
           - physhlth
         type: numeric
-      - path_components:
+      - name_parts:
           - diffwalk
         type: numeric
-      - path_components:
+      - name_parts:
           - sex
         type: numeric
-      - path_components:
+      - name_parts:
           - age
         type: numeric
-      - path_components:
+      - name_parts:
           - education
         type: numeric
-      - path_components:
+      - name_parts:
           - income
         type: numeric

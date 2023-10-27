@@ -24,11 +24,10 @@ class RuleSetServiceTest {
     private val jooq = mockk<DSLContext>()
     private val platform = mockk<SnowflakeClient>()
     private val rulesetsDao = mockk<RuleSetsDao>()
-    private val defaultContext = "default"
 
     @BeforeEach
     fun setUp() {
-        dps = DataPolicyService(defaultContext, dao, platforms, jooq)
+        dps = DataPolicyService(dao, platforms, jooq)
         underTest = RuleSetService(dps, rulesetsDao)
     }
 
@@ -36,7 +35,7 @@ class RuleSetServiceTest {
     fun addRuleSet() {
         setupGlobalBusinessRules()
 
-        @Language("Yaml")
+        @Language("yaml")
         val dataPolicy = """
             platform: 
               platform_type: SNOWFLAKE
@@ -44,56 +43,58 @@ class RuleSetServiceTest {
             source:
               ref: test1
               type: SNOWFLAKE
-              attributes:
-                - path_components: [name]
+              fields:
+                - name_parts: [name]
                   type: varchar
                   tags: [ pii, banaan ]
-                - path_components: [email]
+                - name_parts: [email]
                   type: varchar
                   tags: [ email ]
-                - path_components: [description]
+                - name_parts: [description]
                   type: varchar
           """.yaml2json().parseDataPolicy()
 
         runBlocking {
-            val policyWithRulesets = underTest.addRuleSet(dataPolicy)!!
-            policyWithRulesets shouldBe """
+            val policyWithRulesets = underTest.addRuleSet(dataPolicy)
+            @Language("yaml")
+            val result = """
                 source:
                   ref: test1
                   type: SNOWFLAKE
-                  attributes:
-                  - pathComponents:  [ name ]
+                  fields:
+                  - nameParts:  [ name ]
                     type: varchar
                     tags:  [ pii, banaan ]
-                  - pathComponents:  [ email ]
+                  - nameParts:  [ email ]
                     type: varchar
                     tags:  [ email ]
-                  - path_components: [description]
+                  - name_parts: [description]
                     type: varchar
                 platform:
                   platformType: SNOWFLAKE
                   id: snowflake
                 ruleSets:
                 - fieldTransforms:
-                  - attribute:
-                      pathComponents:  [ name ]
+                  - field:
+                      nameParts:  [ name ]
                       type: varchar
                       tags:  [ pii, banaan ]
                     transforms:
-                    - principals: [ fraud-detection ]
-                      identity: true
+                    - principals: [ {group: fraud-detection} ]
+                      identity: {}
                     - hash: {seed: "1234"}
-                  - attribute:
-                      pathComponents:  [ email ]
+                  - field:
+                      nameParts:  [ email ]
                       type: "varchar"
                       tags:  [ "email" ]
                     transforms:
-                    - principals:  [ marketing ]
-                      regex: {regex: "^.*(@.*)$", replacement: "\\\\1"}
-                    - principals: [ fraud-detection ]
-                      identity: true
+                    - principals:  [ group: marketing ]
+                      regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
+                    - principals: [ {group: fraud-detection} ]
+                      identity: {}
                     - fixed: {value: "****"}
-            """.yaml2json().parseDataPolicy()
+            """
+            policyWithRulesets shouldBe result.yaml2json().parseDataPolicy()
         }
     }
 
@@ -101,7 +102,7 @@ class RuleSetServiceTest {
     fun `test overlapping rules`() {
         setupGlobalBusinessRules()
 
-        @Language("Yaml")
+        @Language("yaml")
         val dataPolicy = """
             platform: 
               platform_type: SNOWFLAKE
@@ -109,59 +110,59 @@ class RuleSetServiceTest {
             source:
               ref: test1
               type: SNOWFLAKE
-              attributes:
-                - path_components: [name]
+              fields:
+                - name_parts: [name]
                   type: varchar
                   tags: [ pii, banaan, overlap ]
-                - path_components: [email]
+                - name_parts: [email]
                   type: varchar
                   tags: [ email, overlap ]
-                - path_components: [description]
+                - name_parts: [description]
                   type: varchar
           """.yaml2json().parseDataPolicy()
 
         runBlocking {
-            val policyWithRulesets = underTest.addRuleSet(dataPolicy)!!
+            val policyWithRulesets = underTest.addRuleSet(dataPolicy)
             policyWithRulesets shouldBe """
 source:
   ref: test1
   type: SNOWFLAKE
-  attributes:
-  - pathComponents:  [ name ]
+  fields:
+  - nameParts:  [ name ]
     type: varchar
     tags: [ pii,  banaan, overlap ]
-  - pathComponents:  [ email ]
+  - nameParts:  [ email ]
     type: varchar
     tags: [  email, overlap ]
-  - pathComponents: [ description ]
+  - nameParts: [ description ]
     type: varchar
 platform:
   platformType: SNOWFLAKE
   id: snowflake
 ruleSets:
 - fieldTransforms:
-  - attribute:
-      pathComponents: [ name ]
+  - field:
+      nameParts: [ name ]
       type: "varchar"
       tags: [  pii, banaan, overlap ]
     transforms:
-    - principals:  [ fraud-detection ]
-      identity: true
-    - principals: [marketing]
+    - principals:  [ {group: fraud-detection} ]
+      identity: {}
+    - principals: [ {group: marketing} ]
       fixed: {value: bla}
-    - principals: [ "analytics" ]
+    - principals: [ group: "analytics" ]
       hash: {seed: "3"}
     - hash: {seed: "1234"}
-  - attribute:
-      pathComponents: [ email ]
+  - field:
+      nameParts: [ email ]
       type: varchar
       tags: [  email,  overlap ]
     transforms:
-    - principals: [ marketing ]
-      regex: {regex: "^.*(@.*)$", replacement: "\\\\1"}
-    - principals: [ fraud-detection ]
-      identity: true
-    - principals: [ analytics ]
+    - principals: [ {group: marketing} ]
+      regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
+    - principals: [ {group: fraud-detection} ]
+      identity: {}
+    - principals: [ {group: analytics} ]
       hash: {seed: "3" }
     - fixed: {value: "****" }
          """.yaml2json().parseDataPolicy()
@@ -172,7 +173,7 @@ ruleSets:
     fun `test overlapping reversed tags`() {
         setupGlobalBusinessRules()
 
-        @Language("Yaml")
+        @Language("yaml")
         val dataPolicy = """
             platform: 
               platform_type: SNOWFLAKE
@@ -180,63 +181,65 @@ ruleSets:
             source:
               ref: test1
               type: SNOWFLAKE
-              attributes:
-                - path_components: [name]
+              fields:
+                - name_parts: [name]
                   type: varchar
                   tags: [ overlap, pii, banaan ]
-                - path_components: [email]
+                - name_parts: [email]
                   type: varchar
                   tags: [ overlap, email ]
-                - path_components: [description]
+                - name_parts: [description]
                   type: varchar
           """.yaml2json().parseDataPolicy()
 
         runBlocking {
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)
-            policyWithRulesets shouldBe """
+            @Language("yaml")
+            val result = """
 source:
   ref: test1
   type: SNOWFLAKE
-  attributes:
-  - pathComponents:  [ name ]
+  fields:
+  - nameParts:  [ name ]
     type: varchar
     tags: [  overlap, pii,  banaan ]
-  - pathComponents:  [ email ]
+  - nameParts:  [ email ]
     type: varchar
     tags: [  overlap, email ]
-  - pathComponents: [ description ]
+  - nameParts: [ description ]
     type: varchar
 platform:
   platformType: SNOWFLAKE
   id: snowflake
 ruleSets:
 - fieldTransforms:
-  - attribute:
-      pathComponents: [ name ]
+  - field:
+      nameParts: [ name ]
       type: varchar
       # checks ignoring unknown tags
       tags: [  overlap, pii, banaan  ]
     transforms:
-    - principals: [marketing]
+    - principals: [ {group: marketing} ]
       fixed: {value: bla}
-    - principals: [ analytics ]
+    - principals: [ {group: analytics} ]
       hash: {seed: "3"}
-    - principals: [ fraud-detection ]
+    - principals: [ {group: fraud-detection} ]
       nullify: {}
     - fixed: {value: jopie}
-  - attribute:
-      pathComponents: [ email ]
+  - field:
+      nameParts: [ email ]
       type: "varchar"
       tags: [  overlap, email  ]
     transforms:
-    - principals: [ marketing ]
+    - principals: [ {group: marketing} ]
       fixed: {value: bla}
-    - principals: [ analytics ]
+    - principals: [ {group: analytics} ]
       hash: {seed: "3" }
-    - principals: [ fraud-detection ]
+    - principals: [ {group: fraud-detection} ]
       nullify: {}
     - fixed: {value: "jopie" }
-            """.yaml2json().parseDataPolicy()
+            """
+            policyWithRulesets shouldBe result.yaml2json().parseDataPolicy()
         }
     }
 
@@ -251,11 +254,11 @@ ruleSets:
             "email" to """
                transforms:
                   # marketeers get only the domain
-                  - principals: [ marketing ]
-                    regex: {regex: "^.*(@.*)$", replacement: "\\\\1"}
+                  - principals: [ {group: marketing} ]
+                    regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
                   # security gets everything
-                  - principals: [ fraud-detection ]
-                    identity: true
+                  - principals: [ {group: fraud-detection} ]
+                    identity: {}
                   # everyone else gets 4 stars
                   - fixed: {value: "****"}
                 """,
@@ -263,8 +266,8 @@ ruleSets:
                 # transforms to be applied to fields classified as PII
                 transforms:
                 # fraud-detection sees the original value
-                - principals: [ fraud-detection ]
-                  identity: true
+                - principals: [ {group: fraud-detection} ]
+                  identity: {}
                 # everyone else gets a hashed value
                 - hash: {seed: "1234"}
             """,
@@ -272,13 +275,13 @@ ruleSets:
                # a business policy that is deliberately overlapping with both others
                transforms:
                   # marketeers get only the domain
-                  - principals: [ marketing ]
+                  - principals: [ {group: marketing} ]
                     fixed: {value: bla}
                   # analytics gets a hash
-                  - principals: [ analytics]
+                  - principals: [ {group: analytics}]
                     hash: {seed: "3" }
                   # security gets null
-                  - principals: [ fraud-detection ]
+                  - principals: [ {group: fraud-detection} ]
                     nullify: {}
                   # everyone else gets jopie
                   - fixed: {value: jopie}

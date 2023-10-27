@@ -1,6 +1,6 @@
 package com.getstrm.pace.snowflake
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.databricks.sdk.service.catalog.ColumnInfo
 import com.databricks.sdk.service.catalog.TableInfo
 import com.getstrm.pace.databricks.toDataPolicy
@@ -53,8 +53,8 @@ class DataPolicyConverterTest {
                 .build()
         policy shouldBe
             DataPolicy.newBuilder()
-                .setInfo(
-                    DataPolicy.Info.newBuilder()
+                .setMetadata(
+                    DataPolicy.Metadata.newBuilder()
                         .setTitle("test_table")
                         .setDescription("test comment")
                         .setCreateTime(createdTimestamp)
@@ -64,21 +64,20 @@ class DataPolicyConverterTest {
                 .setSource(
                     DataPolicy.Source.newBuilder()
                         .setRef("test_catalog.test_schema.test_table")
-                        .setType(DataPolicy.Source.Type.DATABRICKS)
-                        .addAllAttributes(
+                        .addAllFields(
                             listOf(
-                                DataPolicy.Attribute.newBuilder()
-                                    .addAllPathComponents(listOf("test_string_column"))
+                                DataPolicy.Field.newBuilder()
+                                    .addAllNameParts(listOf("test_string_column"))
                                     .setType("string")
                                     .setRequired(false)
                                     .build(),
-                                DataPolicy.Attribute.newBuilder()
-                                    .addAllPathComponents(listOf("test_bigint_column"))
+                                DataPolicy.Field.newBuilder()
+                                    .addAllNameParts(listOf("test_bigint_column"))
                                     .setType("bigint")
                                     .setRequired(true)
                                     .build(),
-                                DataPolicy.Attribute.newBuilder()
-                                    .addAllPathComponents(listOf("column_without_nullable"))
+                                DataPolicy.Field.newBuilder()
+                                    .addAllNameParts(listOf("column_without_nullable"))
                                     .setType("bigint")
                                     .setRequired(true)
                                     .build(),

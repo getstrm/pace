@@ -1,13 +1,13 @@
 package com.getstrm.pace.databricks
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.databricks.sdk.service.catalog.TableInfo
 import com.getstrm.pace.util.toTimestamp
 
 fun TableInfo.toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy =
     DataPolicy.newBuilder()
-        .setInfo(
-            DataPolicy.Info.newBuilder()
+        .setMetadata(
+            DataPolicy.Metadata.newBuilder()
                 .setTitle(name)
                 .setDescription(comment.orEmpty())
                 .setCreateTime(createdAt.toTimestamp())
@@ -17,11 +17,10 @@ fun TableInfo.toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy 
         .setSource(
             DataPolicy.Source.newBuilder()
                 .setRef(fullName)
-                .setType(DataPolicy.Source.Type.DATABRICKS)
-                .addAllAttributes(
+                .addAllFields(
                     columns.map { column ->
-                        DataPolicy.Attribute.newBuilder()
-                            .addAllPathComponents(listOf(column.name))
+                        DataPolicy.Field.newBuilder()
+                            .addAllNameParts(listOf(column.name))
                             .setType(column.typeText)
                             .setRequired(!(column.nullable ?: false))
                             .build()

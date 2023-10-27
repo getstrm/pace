@@ -157,7 +157,7 @@ components:
       type: object
     DataPolicy_Source:
       properties:
-        attributes:
+        fields:
           description: "attributes are leading.\n Todo: rename to fields? Attribute\
             \ is an overloaded term in this context."
           items:
@@ -202,7 +202,7 @@ components:
     FieldTransform_Transform:
       properties:
         fixed:
-          $ref: '#/components/schemas/Transform_FixedValue'
+          $ref: '#/components/schemas/Transform_Fixed'
         hash:
           $ref: '#/components/schemas/Transform_Hash'
         identity:
@@ -213,7 +213,7 @@ components:
           items:
             type: string
           type: array
-        regex:
+        regexp:
           $ref: '#/components/schemas/Transform_RegexReplace'
         sqlStatement:
           $ref: '#/components/schemas/Transform_SqlStatement'
@@ -353,7 +353,7 @@ components:
             field, or localized by the client.
           type: string
       type: object
-    Transform_FixedValue:
+    Transform_Fixed:
       properties:
         value:
           type: string
@@ -370,7 +370,7 @@ components:
       description: 'Todo: we probably should create a separate RegexExtract, since
         a RegexReplace with empty replacement is functionally different.'
       properties:
-        regex:
+        regexp:
           type: string
         replacement:
           type: string

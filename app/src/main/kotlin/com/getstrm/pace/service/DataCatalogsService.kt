@@ -1,6 +1,6 @@
 package com.getstrm.pace.service
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.catalogs.CollibraCatalog
 import com.getstrm.pace.catalogs.DatahubCatalog
 import com.getstrm.pace.catalogs.OpenDataDiscoveryCatalog
@@ -10,13 +10,13 @@ import com.getstrm.pace.exceptions.ResourceException
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataCatalog as ApiCatalog
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataCatalog.DataBase as ApiDatabase
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataCatalog.Schema as ApiSchema
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataCatalog.Table as ApiTable
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Database as ApiDatabase
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Schema as ApiSchema
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Table as ApiTable
 
 @Component
-class CatalogService(
+class DataCatalogsService(
     catalogsConfig: CatalogsConfiguration,
 ) {
     private val log by lazy { LoggerFactory.getLogger(javaClass) }

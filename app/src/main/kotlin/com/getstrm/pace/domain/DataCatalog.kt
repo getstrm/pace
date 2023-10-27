@@ -1,10 +1,11 @@
 package com.getstrm.pace.domain
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.config.CatalogConfiguration
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataCatalog as ApiCatalog
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataCatalog.Schema as ApiSchema
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataCatalog.Table as ApiTable
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Database as ApiDatabase
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Schema as ApiSchema
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Table as ApiTable
 
 /**
  * Abstraction of the physical data concepts in a data catalog.
@@ -57,8 +58,8 @@ abstract class DataCatalog(
         open suspend fun getTags(): List<String> = emptyList()
         override fun toString() = dbType?.let { "Database($id, $dbType, $displayName)" } ?: "Database($id)"
 
-        val apiDatabase: ApiCatalog.DataBase
-            get() = ApiCatalog.DataBase.newBuilder()
+        val apiDatabase: ApiDatabase
+            get() = ApiDatabase.newBuilder()
                 .setCatalog(catalog.apiCatalog)
                 .setDisplayName(displayName.orEmpty())
                 .setId(id)

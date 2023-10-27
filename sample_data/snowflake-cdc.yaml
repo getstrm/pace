@@ -6,95 +6,95 @@ rule_sets:
   - target:
       fullname: "POC.CDC_DIABETES_VIEW"
     field_transforms:
-      - attribute:
-          path_components: [ HIGHCHOL ]
+      - field:
+          name_parts: [ HIGHCHOL ]
         transforms:
           - principals: []
             fixed:
               value:  bla bla
 source:
-  attributes:
-    - path_components:
+  fields:
+    - name_parts:
         - HIGHBP
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - HIGHCHOL
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - CHOLCHECK
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - BMI
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - SMOKER
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - STROKE
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - HEARTDISEASEORATTACK
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - PHYSACTIVITY
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - FRUITS
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - VEGGIES
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - HVYALCOHOLCONSUMP
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - ANYHEALTHCARE
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - NODOCBCCOST
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - GENHLTH
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - MENTHLTH
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - PHYSHLTH
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - DIFFWALK
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - SEX
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - AGE
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - EDUCATION
       required: true
       type: numeric
-    - path_components:
+    - name_parts:
         - INCOME
       required: true
       type: numeric

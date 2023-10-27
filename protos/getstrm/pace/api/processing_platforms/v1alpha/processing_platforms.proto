@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package getstrm.pace.api.processing_platforms.v1alpha;
+import "getstrm/pace/api/entities/v1alpha/entities.proto";
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/getstrm/pace/protos/processing_platforms;processing_platforms";
+option java_package = "com.getstrm.pace.api.processing_platforms.v1alpha";
+option java_multiple_files = true;
+
+service ProcessingPlatformsService {
+    // Lists all configured processing platforms.
+    rpc ListProcessingPlatforms (ListProcessingPlatformsRequest) returns (ListProcessingPlatformsResponse) {
+        option (google.api.http) = {
+            get: "/processing-platforms"
+        };
+    };
+    // Lists all available table names for the given platform.
+    rpc ListTables (ListTablesRequest) returns (ListTablesResponse) {
+        option (google.api.http) = {
+            get: "/processing-platforms/{platform_id}/tables"
+        };
+    };
+    // Lists all available user groups for the given platform.
+    rpc ListGroups (ListGroupsRequest) returns (ListGroupsResponse) {
+        option (google.api.http) = {
+            get: "/processing-platforms/{platform_id}/groups"
+        };
+    };
+    // Returns a data policy without any rule sets, based on the given table's data structure in the platform.
+    // Extend this bare policy with field transforms and/or rule sets to create a complete data policy.
+    // Use the UpsertDataPolicy endpoint to save and enforce the policy.
+    rpc GetBarePolicy (GetBarePolicyRequest) returns (GetBarePolicyResponse) {
+        option (google.api.http) = {
+            get: "/processing-platforms/{platform_id}/tables/{table_id}/bare-policy"
+        };
+    };
+}
+
+message ListProcessingPlatformsRequest {
+}
+
+message ListProcessingPlatformsResponse {
+    repeated entities.v1alpha.DataPolicy.ProcessingPlatform processing_platforms = 1;
+}
+
+message ListTablesRequest {
+    string platform_id = 1;
+}
+
+message ListTablesResponse {
+    repeated string tables = 1;
+}
+
+message ListGroupsRequest {
+    string platform_id = 1;
+}
+
+message ListGroupsResponse {
+    repeated string groups = 1;
+}
+
+message GetBarePolicyRequest {
+    string platform_id = 1;
+    string table = 2 [(buf.validate.field) = {string: {min_len: 1}}];
+}
+
+message GetBarePolicyResponse {
+    entities.v1alpha.DataPolicy data_policy = 1;
+}

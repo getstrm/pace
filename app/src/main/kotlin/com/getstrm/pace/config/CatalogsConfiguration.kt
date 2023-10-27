@@ -1,6 +1,6 @@
 package com.getstrm.pace.config
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataCatalog
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "app")

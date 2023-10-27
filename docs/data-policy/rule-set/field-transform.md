@@ -11,7 +11,7 @@ Transforms consist of a list of principals:
 * RegexExtract
 * RegexReplace
 * identity
-* FixedValue
+* Fixed
 * Hash
 * SqlStatement
 * Nullify

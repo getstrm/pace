@@ -1,6 +1,6 @@
 package com.getstrm.pace.domain
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.ResourceException
 import com.google.rpc.ResourceInfo
 

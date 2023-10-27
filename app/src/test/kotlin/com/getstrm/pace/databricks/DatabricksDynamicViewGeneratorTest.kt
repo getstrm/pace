@@ -1,6 +1,8 @@
 package com.getstrm.pace.databricks
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.toPrincipal
+import com.getstrm.pace.toPrincipals
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.jooq.impl.DSL
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.Test
 import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.toSql
 import com.getstrm.pace.util.yaml2json
+import org.intellij.lang.annotations.Language
 
 class DatabricksDynamicViewGeneratorTest {
 
@@ -22,10 +25,10 @@ class DatabricksDynamicViewGeneratorTest {
     @Test
     fun `fixed string value transform with multiple principals`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").setType("string").build()
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("analytics", "marketing"))
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
+            .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
             .build()
 
         // When
@@ -39,10 +42,10 @@ class DatabricksDynamicViewGeneratorTest {
     @Test
     fun `fixed string value transform with a single principal`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").setType("string").build()
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("****"))
-            .addPrincipals("analytics")
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
+            .addPrincipals("analytics".toPrincipal())
             .build()
 
         // When
@@ -56,10 +59,10 @@ class DatabricksDynamicViewGeneratorTest {
     @Test
     fun `fixed integer value transform`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("userId").setType("int").build()
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("userId").setType("int").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("123"))
-            .addPrincipals("analytics")
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("123"))
+            .addPrincipals("analytics".toPrincipal())
             .build()
 
         // When
@@ -73,9 +76,9 @@ class DatabricksDynamicViewGeneratorTest {
     @Test
     fun `fixed string value transform without principals`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").setType("string").build()
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("****"))
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .build()
 
         // When
@@ -89,21 +92,21 @@ class DatabricksDynamicViewGeneratorTest {
     @Test
     fun `field transform with three transforms`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").setType("string").build()
-        val fixedValue = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("marketing", "analytics"))
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
+            .addAllPrincipals(listOf("marketing", "analytics").toPrincipals())
             .build()
-        val otherFixedValue = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("REDACTED EMAIL"))
-            .addAllPrincipals(listOf("fraud-detection"))
+        val otherFixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("REDACTED EMAIL"))
+            .addAllPrincipals(listOf("fraud-detection").toPrincipals())
             .build()
         val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("stoelpoot"))
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("stoelpoot"))
             .build()
         val fieldTransform = DataPolicy.RuleSet.FieldTransform.newBuilder()
-            .setAttribute(attribute)
-            .addAllTransforms(listOf(fixedValue, otherFixedValue, fallbackTransform))
+            .setField(attribute)
+            .addAllTransforms(listOf(fixed, otherFixed, fallbackTransform))
             .build()
 
         // When
@@ -117,17 +120,17 @@ class DatabricksDynamicViewGeneratorTest {
     @Test
     fun `field transform with two transforms`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").setType("string").build()
-        val fixedValue = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("****"))
-            .addPrincipals("analytics")
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
+            .addPrincipals("analytics".toPrincipal())
             .build()
         val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("stoelpoot"))
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("stoelpoot"))
             .build()
         val fieldTransform = DataPolicy.RuleSet.FieldTransform.newBuilder()
-            .setAttribute(attribute)
-            .addAllTransforms(listOf(fixedValue, fallbackTransform))
+            .setField(attribute)
+            .addAllTransforms(listOf(fixed, fallbackTransform))
             .build()
 
         // When
@@ -140,12 +143,12 @@ class DatabricksDynamicViewGeneratorTest {
     @Test
     fun `field transform with single transform`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").build()
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").build()
         val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setRegex(DataPolicy.RuleSet.FieldTransform.Transform.RegexReplace.newBuilder().setRegex("^.*(@.*)$").setReplacement("****$1"))
+            .setRegexp(DataPolicy.RuleSet.FieldTransform.Transform.Regexp.newBuilder().setRegexp("^.*(@.*)$").setReplacement("****$1"))
             .build()
         val fieldTransform = DataPolicy.RuleSet.FieldTransform.newBuilder()
-            .setAttribute(attribute)
+            .setField(attribute)
             .addTransforms(fallbackTransform)
             .build()
 
@@ -159,7 +162,7 @@ class DatabricksDynamicViewGeneratorTest {
     @Test
     fun `field with no transform`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").build()
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").build()
 
         // When
         val field = underTest.toField(attribute, null)
@@ -171,9 +174,9 @@ class DatabricksDynamicViewGeneratorTest {
     @Test
     fun `regex replace transform without principals`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").build()
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setRegex(DataPolicy.RuleSet.FieldTransform.Transform.RegexReplace.newBuilder().setRegex("^.*(@.*)$").setReplacement("****$1"))
+            .setRegexp(DataPolicy.RuleSet.FieldTransform.Transform.Regexp.newBuilder().setRegexp("^.*(@.*)$").setReplacement("****$1"))
             .build()
 
         // When
@@ -187,10 +190,10 @@ class DatabricksDynamicViewGeneratorTest {
     @Test
     fun `regex extract transform with a principal`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").build()
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setRegex(DataPolicy.RuleSet.FieldTransform.Transform.RegexReplace.newBuilder().setRegex("^.*(@.*)$"))
-            .addPrincipals("data-science")
+            .setRegexp(DataPolicy.RuleSet.FieldTransform.Transform.Regexp.newBuilder().setRegexp("^.*(@.*)$"))
+            .addPrincipals("data-science".toPrincipal())
             .build()
 
         // When
@@ -204,10 +207,10 @@ class DatabricksDynamicViewGeneratorTest {
     @Test
     fun `nullify transform with a principal`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").build()
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setRegex(DataPolicy.RuleSet.FieldTransform.Transform.RegexReplace.newBuilder().setRegex("^.*(@.*)$"))
-            .addPrincipals("data-science")
+            .setRegexp(DataPolicy.RuleSet.FieldTransform.Transform.Regexp.newBuilder().setRegexp("^.*(@.*)$"))
+            .addPrincipals("data-science".toPrincipal())
             .build()
 
         // When
@@ -221,7 +224,7 @@ class DatabricksDynamicViewGeneratorTest {
     @Test
     fun `hash transform without a principal`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("userId").build()
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("userId").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setHash(DataPolicy.RuleSet.FieldTransform.Transform.Hash.newBuilder().setSeed(1234))
             .build()
@@ -237,7 +240,7 @@ class DatabricksDynamicViewGeneratorTest {
     @Test
     fun `attribute without transform`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").build()
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").build()
 
         // When
         val (condition, field) = underTest.toCase(null, attribute)
@@ -254,11 +257,11 @@ class DatabricksDynamicViewGeneratorTest {
             .addAllConditions(
                 listOf(
                     DataPolicy.RuleSet.Filter.Condition.newBuilder()
-                        .addAllPrincipals(listOf("fraud-detection"))
+                        .addAllPrincipals(listOf("fraud-detection").toPrincipals())
                         .setCondition("true")
                         .build(),
                     DataPolicy.RuleSet.Filter.Condition.newBuilder()
-                        .addAllPrincipals(listOf("analytics", "marketing"))
+                        .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
                         .setCondition("age > 18")
                         .build(),
                     DataPolicy.RuleSet.Filter.Condition.newBuilder()
@@ -321,7 +324,6 @@ where (
   and transactionAmount < 10
 );"""
             )
-        dataPolicy.source.type.shouldBe(DataPolicy.Source.Type.SQL_DDL)
     }
 
     @Test
@@ -359,12 +361,11 @@ select
   purpose
 from mycatalog.my_schema.gddemo;"""
             )
-        dataPolicy.source.type.shouldBe(DataPolicy.Source.Type.SQL_DDL)
     }
 
     companion object {
-        private val dataPolicy
-            get() = """
+        @Language("yaml")
+        private val dataPolicy = """
     source: 
       type: SQL_DDL
       spec: |-
@@ -382,28 +383,28 @@ from mycatalog.my_schema.gddemo;"""
           purpose bigint
         );
       ref: mycatalog.my_schema.gddemo
-      attributes:
-        - path_components: [transactionId]
+      fields:
+        - name_parts: [transactionId]
           type: bigint
-        - path_components: [userId]
+        - name_parts: [userId]
           type: string
-        - path_components: [email]
+        - name_parts: [email]
           type: string
-        - path_components: [age]
+        - name_parts: [age]
           type: bigint
-        - path_components: [size]
+        - name_parts: [size]
           type: string
-        - path_components: [hairColor]
+        - name_parts: [hairColor]
           type: string
-        - path_components: [transactionAmount]
+        - name_parts: [transactionAmount]
           type: bigint
-        - path_components: [items]
+        - name_parts: [items]
           type: string
-        - path_components: [itemCount]
+        - name_parts: [itemCount]
           type: bigint
-        - path_components: [date]
+        - name_parts: [date]
           type: timestamp
-        - path_components: [purpose]
+        - name_parts: [purpose]
           type: bigint
     
     rule_sets: 
@@ -411,67 +412,67 @@ from mycatalog.my_schema.gddemo;"""
         type: DYNAMIC_VIEW
         fullname: 'my_catalog.my_schema.gddemo_public'
       field_transforms:
-        - attribute:
-            path_components:
+        - field:
+            name_parts:
               - email
           transforms:
             - principals:
-                - analytics
-                - marketing
-              regex:
-                regex: '^.*(@.*)${'$'}'
+                - group: analytics
+                - group: marketing
+              regexp:
+                regexp: '^.*(@.*)${'$'}'
                 replacement: '****${'$'}1'
             - principals:
-                - fraud-detection
-                - admin
-              identity: true
+                - group: fraud-detection
+                - group: admin
+              identity: {}
             - principals: []
               fixed:
                 value: "****"
-        - attribute:
-            path_components:
+        - field:
+            name_parts:
               - userId
           transforms:
             - principals:
-                - fraud-detection
-              identity: true
+                - group: fraud-detection
+              identity: {}
             - principals: []
               hash:
                 seed: "1234"
-        - attribute:
-            path_components:
+        - field:
+            name_parts:
               - items
           transforms:
             - principals: []
               nullify: {}
-        - attribute:
-            path_components:
+        - field:
+            name_parts:
               - hairColor
           transforms:
             - principals: []
               sql_statement:
                 statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
       filters:
-        - attribute:
-            path_components:
+        - field:
+            name_parts:
               - age
           conditions:
             - principals:
-                - fraud-detection
+                - group: fraud-detection
               condition: "true"
             - principals: []
               condition: "age > 18"
-        - attribute:
-            path_components:
+        - field:
+            name_parts:
               - userId
           conditions:
             - principals:
-                - marketing
+                - group: marketing
               condition: "userId in ('1', '2', '3', '4')"
             - principals: []
               condition: "true"
-        - attribute:
-            path_components:
+        - field:
+            name_parts:
               - transactionAmount
           conditions:
             - principals: []

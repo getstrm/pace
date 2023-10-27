@@ -1,0 +1,185 @@
+syntax = "proto3";
+
+package getstrm.pace.api.entities.v1alpha;
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/getstrm/pace/protos/entities;entities";
+option java_package = "com.getstrm.pace.api.entities.v1alpha";
+option java_multiple_files = true;
+
+message DataPolicy {
+    string id = 1;
+    Metadata metadata = 2;
+    Source source = 3;
+    ProcessingPlatform platform = 4;
+    repeated RuleSet rule_sets = 5 [(buf.validate.field).repeated.min_items = 1];
+
+    message Metadata {
+        string title = 1 [(buf.validate.field).string.min_len = 3];
+        optional string description = 2 [(buf.validate.field).ignore_empty = true];
+        string version = 3 [(buf.validate.field) = {string: {pattern: "^\\d+\\.\\d+\\.\\d+$"}, ignore_empty: true}];
+        google.protobuf.Timestamp create_time = 5;
+        google.protobuf.Timestamp update_time = 6;
+        repeated string tags = 7;
+    }
+
+    message RuleSet {
+        Target target = 1;
+        // Zero or more field transforms. Any field for which no field transform is specified will be included as-is.
+        repeated FieldTransform field_transforms = 2;
+        // Zero or more filters. Records that match the conditions are included in the result.
+        // When no filters are defined, all records are always included.
+        repeated Filter filters = 3;
+
+        message Filter {
+            // The last condition in the list must have 0 principals, as this acts as the default / else condition.
+            repeated Condition conditions = 1;
+            message Condition {
+                // The principals (e.g. groups) that apply to this condition.
+                repeated Principal principals = 1 [(buf.validate.field).repeated.min_items = 0];
+                // A (platform-specific) SQL expression. If it evaluates to true, the principals are allowed to access the data.
+                string condition = 2;
+            }
+        }
+
+        message FieldTransform {
+            Field field = 1;
+            // The last condition in the list must have 0 principals, as this acts as the default / else condition.
+            // Transforms should have mutually exclusive sets of principals.
+            repeated Transform transforms = 2;
+
+            message Transform {
+                // The principals (e.g. groups) for which this transform will be applied.
+                repeated Principal principals = 1;
+                oneof transform {
+                    // Extract and optionally replace a value in a field using a regular expression. Use the syntax matching the processing platform.
+                    Regexp regexp = 3;
+                    // Use the identity transform to copy a field value as-is.
+                    Identity identity = 4;
+                    // Provide a fixed value for the field.
+                    Fixed fixed = 5;
+                    // Hash the field value, optionally with a seed. The exact algorithm is platform-specific.
+                    Hash hash = 6;
+                    // Execute a SQL statement to transform the field value. The exact syntax is platform-specific.
+                    SqlStatement sql_statement = 7;
+                    // Make the field value null.
+                    Nullify nullify = 8;
+                }
+                message SqlStatement {
+                    string statement = 1;
+                }
+                message Hash {
+                    optional int64 seed = 1;
+                }
+                message Fixed {
+                    string value = 1;
+                }
+                message Identity {
+                }
+                message Regexp {
+                    string regexp = 1;
+                    // If the replacement is left empty, the regexp match result (full match or first capturing group) is used.
+                    string replacement = 2;
+                }
+                message Nullify {
+                }
+            }
+        }
+    }
+
+    message ProcessingPlatform {
+        PlatformType platform_type = 1;
+        // An arbitrary but unique identifier for the platform. This matches the id from the PACE app configuration.
+        string id = 2 [(buf.validate.field).string.min_len = 1];
+        enum PlatformType {
+            PLATFORM_TYPE_UNSPECIFIED = 0;
+            DATABRICKS = 1;
+            SNOWFLAKE = 2;
+            BIGQUERY = 3;
+        }
+    }
+
+    message Target {
+        TargetType type = 1;
+        // The full and unique name to be used in the target platform. E.g. the view name.
+        string fullname = 2 [(buf.validate.field).string.min_len = 1];
+        enum TargetType {
+            TARGET_TYPE_UNSPECIFIED = 0;
+            // A SQL view that can return different results for different querying users.
+            SQL_VIEW = 1;
+        }
+    }
+
+    message Source {
+        // The ref is an identifier for the source, unique at the source platform level.
+        string ref = 1 [(buf.validate.field).string.min_len = 3];
+        // A representation of the source data schema. Nested fields are supported.
+        repeated Field fields = 4;
+        repeated string tags = 5;
+    }
+
+    message Field {
+        // Instead of using "nodes", nesting can be expressed by specifying multiple name parts. A flat table (e.g. csv file) will only have a single name part for all fields.
+        repeated string name_parts = 1 [(buf.validate.field).repeated = {items: {string: {min_len: 1}}}];
+        // The data type of the field.
+        string type = 2;
+        // Whether the field is required. If not, the field may be null.
+        bool required = 3;
+        repeated string tags = 4;
+    }
+
+    message Principal {
+        oneof principal {
+            string group = 1 [(buf.validate.field).string.min_len = 1];
+        }
+    }
+}
+
+message DataCatalog {
+    // An arbitrary but unique identifier for the catalog. This matches the id from the PACE app configuration.
+    string id = 1 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
+    Type type = 2;
+    // A top-most level of the catalog. This is typically a database.
+    repeated Database databases = 3;
+    repeated string tags = 4;
+    enum Type {
+        TYPE_UNSPECIFIED = 0;
+        COLLIBRA = 1;
+        ODD = 2;
+        DATAHUB = 3;
+    }
+
+    message Database {
+        // The id used by the catalog.
+        string id = 1 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
+        string type = 2;
+        string display_name = 3 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
+        // The parent catalog to which this database belongs.
+        DataCatalog catalog = 4;
+        // The schemas in this database.
+        repeated Schema schemas = 5;
+        repeated string tags = 6;
+    }
+
+    message Schema {
+        // The id used by the catalog.
+        string id = 1 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
+        string name = 2 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
+        // The parent database to which this schema belongs.
+        Database database = 3;
+        // The tables in this schema.
+        repeated Table tables = 4;
+        repeated string tags = 5;
+    }
+
+    message Table {
+        // The id used by the catalog.
+        string id = 1 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
+        string name = 2 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
+        // The parent schema to which this table belongs.
+        Schema schema = 3;
+        repeated string tags = 4;
+    }
+}

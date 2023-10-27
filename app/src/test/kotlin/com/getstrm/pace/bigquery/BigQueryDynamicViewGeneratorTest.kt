@@ -1,6 +1,9 @@
 package com.getstrm.pace.bigquery
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
+import com.getstrm.pace.toPrincipal
+import com.getstrm.pace.toPrincipals
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.jooq.impl.DSL
@@ -9,6 +12,7 @@ import org.junit.jupiter.api.Test
 import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.toSql
 import com.getstrm.pace.util.yaml2json
+import org.intellij.lang.annotations.Language
 
 class BigQueryDynamicViewGeneratorTest {
 
@@ -23,10 +27,10 @@ class BigQueryDynamicViewGeneratorTest {
     @Test
     fun `fixed value transform with multiple principals`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").setType("string").build()
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("ANALYTICS", "MARKETING"))
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
+            .addAllPrincipals(listOf("ANALYTICS", "MARKETING").map { Principal.newBuilder().setGroup(it).build() })
             .build()
 
         // when
@@ -40,10 +44,10 @@ class BigQueryDynamicViewGeneratorTest {
     @Test
     fun `fixed value transform with with a single principal`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").setType("string").build()
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("****"))
-            .addPrincipals("MARKETING")
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
+            .addPrincipals("MARKETING".toPrincipal())
             .build()
 
         // when
@@ -57,9 +61,9 @@ class BigQueryDynamicViewGeneratorTest {
     @Test
     fun `fixed value transform with without principals`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").setType("string").build()
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("****"))
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .build()
 
         // when
@@ -73,28 +77,28 @@ class BigQueryDynamicViewGeneratorTest {
     @Test
     fun `field transform with a few transforms`() {
         // Given
-        val attribute = DataPolicy.Attribute.newBuilder().addPathComponents("email").setType("string").build()
-        val fixedValue = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("ANALYTICS", "MARKETING"))
+        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
+            .addAllPrincipals(listOf("ANALYTICS", "MARKETING").toPrincipals())
             .build()
-        val otherFixedValue = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("REDACTED EMAIL"))
-            .addAllPrincipals(listOf("FRAUD_DETECTION"))
+        val otherFixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("REDACTED EMAIL"))
+            .addAllPrincipals(listOf("FRAUD_DETECTION").toPrincipals())
             .build()
         val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.FixedValue.newBuilder().setValue("stoelpoot"))
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("stoelpoot"))
             .build()
         val fieldTransform = DataPolicy.RuleSet.FieldTransform.newBuilder()
-            .setAttribute(attribute)
-            .addAllTransforms(listOf(fixedValue, otherFixedValue, fallbackTransform))
+            .setField(field)
+            .addAllTransforms(listOf(fixed, otherFixed, fallbackTransform))
             .build()
 
         // When
-        val field = underTest.toField(attribute, fieldTransform)
+        val jooqField = underTest.toField(field, fieldTransform)
 
         // Then
-        field.toSql() shouldBe "case when (('ANALYTICS' IN ( SELECT userGroup FROM user_groups )) or ('MARKETING' IN ( SELECT userGroup FROM user_groups ))) then '****' when ('FRAUD_DETECTION' " +
+        jooqField.toSql() shouldBe "case when (('ANALYTICS' IN ( SELECT userGroup FROM user_groups )) or ('MARKETING' IN ( SELECT userGroup FROM user_groups ))) then '****' when ('FRAUD_DETECTION' " +
             "IN ( SELECT userGroup FROM user_groups )) then 'REDACTED EMAIL' else 'stoelpoot' end \"email\""
     }
 
@@ -105,11 +109,11 @@ class BigQueryDynamicViewGeneratorTest {
             .addAllConditions(
                 listOf(
                     DataPolicy.RuleSet.Filter.Condition.newBuilder()
-                        .addAllPrincipals(listOf("fraud-detection"))
+                        .addAllPrincipals(listOf("fraud-detection").toPrincipals())
                         .setCondition("true")
                         .build(),
                     DataPolicy.RuleSet.Filter.Condition.newBuilder()
-                        .addAllPrincipals(listOf("analytics", "marketing"))
+                        .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
                         .setCondition("age > 18")
                         .build(),
                     DataPolicy.RuleSet.Filter.Condition.newBuilder()
@@ -178,50 +182,35 @@ where (
   and transactionAmount < 10
 );"""
             )
-        dataPolicy.source.type.shouldBe(DataPolicy.Source.Type.SQL_DDL)
     }
 
     companion object {
+        @Language("yaml")
         val dataPolicy = """
 source:
-  type: SQL_DDL
-  spec: |-
-    CREATE TABLE my_project.my_dataset.gddemo (
-      transactionId bigint,
-      userId string,
-      email string,
-      age bigint,
-      size string,
-      hairColor string,
-      transactionAmount bigint,
-      items string,
-      itemCount bigint,
-      date timestamp,
-      purpose bigint
-    );
   ref: "my_project.my_dataset.gddemo"
-  attributes:
-    - path_components: [transactionId]
+  fields:
+    - name_parts: [transactionId]
       type: bigint
-    - path_components: [userId]
+    - name_parts: [userId]
       type: string
-    - path_components: [email]
+    - name_parts: [email]
       type: string
-    - path_components: [age]
+    - name_parts: [age]
       type: NUMBER(38,0)
-    - path_components: [size]
+    - name_parts: [size]
       type: string
-    - path_components: [hairColor]
+    - name_parts: [hairColor]
       type: string
-    - path_components: [transactionAmount]
+    - name_parts: [transactionAmount]
       type: bigint
-    - path_components: [items]
+    - name_parts: [items]
       type: string
-    - path_components: [itemCount]
+    - name_parts: [itemCount]
       type: bigint
-    - path_components: [date]
+    - name_parts: [date]
       type: timestamp
-    - path_components: [purpose]
+    - name_parts: [purpose]
       type: bigint
 
 rule_sets:
@@ -229,69 +218,69 @@ rule_sets:
     type: DYNAMIC_VIEW
     fullname: 'my_target_project.my_target_dataset.my_target_view'
   field_transforms:
-    - attribute:
-        path_components:
+    - field:
+        name_parts:
           - email
         type: "string"
       transforms:
         - principals:
-            - ANALYTICS
-            - MARKETING
-          regex:
-            regex: '^.*(@.*)${'$'}'
+            - group: ANALYTICS
+            - group: MARKETING
+          regexp:
+            regexp: '^.*(@.*)${'$'}'
             replacement: '****\\1'
         - principals:
-            - FRAUD_DETECTION
-            - ADMIN
-          identity: true
+            - group: FRAUD_DETECTION
+            - group: ADMIN
+          identity: {}
         - principals: []
           fixed:
             value: "****"
-    - attribute:
-        path_components:
+    - field:
+        name_parts:
           - userId
       transforms:
         - principals:
-            - FRAUD_DETECTION
+            - group: FRAUD_DETECTION
           sql_statement:
             statement: "CAST(userId AS string)"
         - principals: []
           sql_statement:
             statement: "TO_HEX(SHA256(CAST(userId AS string)))"
-    - attribute:
-        path_components:
+    - field:
+        name_parts:
           - items
       transforms:
         - principals: []
           nullify: {}
-    - attribute:
-        path_components:
+    - field:
+        name_parts:
           - hairColor
       transforms:
         - principals: []
           sql_statement:
             statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
   filters:
-    - attribute:
-        path_components:
+    - field:
+        name_parts:
           - age
       conditions:
         - principals:
-            - FRAUD_DETECTION
+            - group: FRAUD_DETECTION
           condition: "true"
         - principals: []
           condition: "age > 18"
-    - attribute:
-        path_components:
+    - field:
+        name_parts:
           - userId
       conditions:
         - principals:
-            - MARKETING
+            - group: MARKETING
           condition: "userId in ('1', '2', '3', '4')"
         - principals: []
           condition: "true"
-    - attribute:
-        path_components:
+    - field:
+        name_parts:
           - transactionAmount
       conditions:
         - principals: []

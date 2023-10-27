@@ -1,5 +1,5 @@
 import yaml
-with open('../../protos/gen/openapi.yaml', 'r') as file:
+with open('../../protos/openapi.yaml', 'r') as file:
     spec = yaml.safe_load(file)
     ref = ["# API Reference"]
     for path in spec['paths']:

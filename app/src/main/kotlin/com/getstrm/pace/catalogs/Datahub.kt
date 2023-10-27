@@ -1,6 +1,6 @@
 package com.getstrm.pace.catalogs
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.apollographql.apollo3.ApolloClient
 import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.domain.DataCatalog
@@ -60,10 +60,10 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                 it.fieldPath to it.tags?.tags?.map { it.tag.properties?.name.orEmpty() }.orEmpty()
             }?.toMap() ?: emptyMap()
 
-            policyBuilder.sourceBuilder.addAllAttributes(
+            policyBuilder.sourceBuilder.addAllFields(
                 dataset.schemaMetadata?.fields?.map {
-                    DataPolicy.Attribute.newBuilder()
-                        .addAllPathComponents(it.fieldPath.extractPathComponents())
+                    DataPolicy.Field.newBuilder()
+                        .addAllNameParts(it.fieldPath.extractPathComponents())
                         .addAllTags(addtributeTags[it.fieldPath] ?: emptyList())
                         .setType(it.type.rawValue)
                         .setRequired(!it.nullable)
@@ -71,9 +71,9 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                 } ?: emptyList(),
             )
 
-            policyBuilder.infoBuilder.title = dataset.platform.properties?.displayName ?: dataset.urn
-            policyBuilder.infoBuilder.description = dataset.platform.name
-            policyBuilder.infoBuilder.addAllTags(
+            policyBuilder.metadataBuilder.title = dataset.platform.properties?.displayName ?: dataset.urn
+            policyBuilder.metadataBuilder.description = dataset.platform.name
+            policyBuilder.metadataBuilder.addAllTags(
                 dataset.tags?.tags?.map { it.tag.properties?.name.orEmpty() }.orEmpty(),
             )
 

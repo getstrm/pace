@@ -1,6 +1,6 @@
 package com.getstrm.pace.service
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.bigquery.BigQueryClient
 import com.getstrm.pace.config.ProcessingPlatformConfiguration
 import com.getstrm.pace.databricks.DatabricksClient
