@@ -69,3 +69,42 @@ nullify: {}
 ```
 
 ### Example Field Transform
+
+Below you will find an example of a set of `Field Transform`. Note that for each set of `Transform` the last one always is without defined principals.
+
+```yaml
+field_transforms:
+  - field:
+      name_parts: [ userid ]
+      type: "string"
+      required: true
+    transforms:
+      - principals: [ "FRAUD_AND_RISK"]
+        identity: {}
+      - principals: []
+        hash:
+          seed: "1234"
+  - field:
+      name_parts: [ email ]
+      type: "string"
+      required: true
+    transforms:
+      - principals: [ MARKETING ]
+        regexp:
+          regexp: "^.*(@.*)$"
+          replacement: "****\\\\1"
+      - principals: [ FRAUD_AND_RISK ]
+        identity: {}
+      - principals: []
+        fixed:
+          value: "****"
+  - field:
+      name_parts: [ haircolor ]
+      type: "string"
+      required: true
+    transforms:
+      - principals: []
+        sql_statement:
+          statement: "CASE WHEN haircolor = 'blonde' THEN 'fair' ELSE 'dark' END"
+
+```
