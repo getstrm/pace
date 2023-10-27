@@ -41,25 +41,10 @@ are and what they're allowed to see** (3), regardless of **the data catalog** (4
 So, where and how does PACE solve these issues? PACE focuses on creating representations of data (e.g. by generating
 views), based on so-called **Data Policies**.
 
-<<<<<<< Updated upstream
-A [**Data Policy**](protos/getstrm/pace/api/entities/v1alpha/entities.proto) is a structured (machine-readable) document, that aims at capturing how source data should be presented to various principals (i.e. a data accessor), and which transformations should be applied to the data, to create a representation of the source data on the hosting data processing platform.
-
-Data Policies are constructed by retrieving the data schema (the structure of the data) from either a data catalog or a data processing platform. Next, various rule sets can be created, that determine how source data is transformed and/or filtered to create a representation of data on the processing platform.
-Defining rule sets is a cooperation between various teams: data consumers, data producers, and most important, the legal team.
-
-> Want to learn more about how to facilitate this cooperation between various teams? Navigate to https://pace.getstrm.com to see how we can help you!
-
-### Architecture
-[//]: # (TODO add architecture image here)
-
-## Installation
-[//]: # (TODO add installation and setup details here or refer to the docs)
-=======
-A [**Data Policy**](protos/getstrm/api/data_policies/v1alpha/entities_v1alpha.proto) is a structured (machine-readable)
+A [**Data Policy**](protos/getstrm/pace/api/entities/v1alpha/entities.proto) is a structured (machine-readable)
 document, that aims at capturing how source data should be presented to various principals (i.e. a data accessor), and
 which transformations should be applied to the data, to create a representation of the source data on the hosting data
 processing platform.
->>>>>>> Stashed changes
 
 Data Policies are constructed by retrieving the data schema (the structure of the data) from either a data catalog or a
 data processing platform. Next, various rule sets can be created, that determine how source data is transformed and/or
