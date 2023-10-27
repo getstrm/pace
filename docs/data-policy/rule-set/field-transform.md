@@ -21,11 +21,9 @@ We define 6 types of transforms.
     Replace a value from a field using regular expressions. Beware that you need to match the syntax for regular expressions of your processing platform as defined in the `Target`. E.g., using Snowflake as the processing platform, mask (`****`) the local-part of an email address and keep the domain.
 
 ```yaml
-...
-  regexp:
-    regexp: "^.*(@.*)$"
-    replacement: "****\\\\1"
-...
+regexp:
+  regexp: "^.*(@.*)$"
+  replacement: "****\\\\1"
 ```
 
 2.  **Identity**
@@ -33,31 +31,24 @@ We define 6 types of transforms.
     Return the original value.&#x20;
 
 ```yaml
-...
-  identity: {}
-...
+identity: {}
 ```
 
 3.  **Fixed Value**
 
     Replace a field with a fixed value
 
-```yaml
-...
-  fixed:
-    value: "****"
-...
-```
+<pre class="language-yaml"><code class="lang-yaml"><strong>fixed:
+</strong>  value: "****"
+</code></pre>
 
 4.  **Hash**
 
     Hash a field using an optional seed. The  hashing algorithm depends on the processing platform of your choice.
 
 ```yaml
-...
-  hash:
-    seed: "1234"
-...
+hash:
+  seed: "1234"
 ```
 
 5.  **SQL Statement**
@@ -65,20 +56,16 @@ We define 6 types of transforms.
     Execute a SQL statement to transform the field value. The exact syntax is platform-specific.
 
 ```yaml
-...
-  sql_statement:
-    statement: "CASE WHEN haircolor = 'blonde' THEN 'fair' ELSE 'dark' END"
-...
+sql_statement:
+  statement: "CASE WHEN haircolor = 'blonde' THEN 'fair' ELSE 'dark' END"
 ```
 
 6.  **Nullify**
 
     Make the field value null.
 
-```
-...
-  nullify: {}
-...
+```yaml
+nullify: {}
 ```
 
 ### Example Field Transform
