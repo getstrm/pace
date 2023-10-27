@@ -81,6 +81,8 @@ field_transforms:
     transforms:
       - principals: [ "FRAUD_AND_RISK"]
         identity: {}
+      - principals: [ "MARKETING" ]
+        nullify: {}
       - principals: []
         hash:
           seed: "1234"
