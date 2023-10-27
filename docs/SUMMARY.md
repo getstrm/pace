@@ -10,6 +10,7 @@
 ## Data policy
 
 * [Schema](data-policy/schema.md)
+* [Principals](data-policy/principals.md)
 * [Rule Set](data-policy/rule-set/README.md)
   * [Field Transform](data-policy/rule-set/field-transform.md)
   * [Filter](data-policy/rule-set/filter.md)
