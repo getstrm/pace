@@ -18,9 +18,6 @@ allprojects {
             mavenLocal()
             mavenCentral()
 
-            // TODO remove this once we go open source
-            maven("artifactregistry://europe-west4-maven.pkg.dev/stream-machine-development/snapshot")
-            maven("artifactregistry://europe-west4-maven.pkg.dev/stream-machine-development/release")
             maven("https://buf.build/gen/maven")
         }
     }
@@ -29,8 +26,6 @@ allprojects {
         mavenLocal()
         mavenCentral()
 
-        maven("artifactregistry://europe-west4-maven.pkg.dev/stream-machine-development/snapshot")
-        maven("artifactregistry://europe-west4-maven.pkg.dev/stream-machine-development/release")
         maven("https://buf.build/gen/maven")
     }
 

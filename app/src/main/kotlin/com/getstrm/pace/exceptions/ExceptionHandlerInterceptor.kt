@@ -1,7 +1,12 @@
 package com.getstrm.pace.exceptions
 
 import com.google.protobuf.Any
-import io.grpc.*
+import io.grpc.ForwardingServerCall
+import io.grpc.Metadata
+import io.grpc.ServerCall
+import io.grpc.ServerCallHandler
+import io.grpc.ServerInterceptor
+import io.grpc.Status
 import io.grpc.protobuf.StatusProto
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
@@ -116,8 +121,8 @@ class ExceptionHandlerInterceptor(private val exposeExceptions: Boolean) : Serve
         }
 
         private fun getOrGenerateTraceId(status: Status) =
-            if (status.description != null) {
-                val match = errorIdRegex.find(status.description!!)
+            status.description?.let { description ->
+                val match = errorIdRegex.find(description)
 
                 if (match != null) {
                     val (id) = match.destructured
@@ -128,13 +133,11 @@ class ExceptionHandlerInterceptor(private val exposeExceptions: Boolean) : Serve
                         "Tried to extract an PACE-<UUIDv4> from a response with status code INTERNAL, but failed " +
                                 "because no match was found. Falling back to id '{}'. Status code description: {}",
                         id,
-                        status.description,
+                        description,
                     )
                     id to true
                 }
-            } else {
-                randomUniqueId() to false
-            }
+            } ?: (randomUniqueId() to false)
 
         private fun randomUniqueId() = "$errorIdPrefix${UUID.randomUUID()}"
     }

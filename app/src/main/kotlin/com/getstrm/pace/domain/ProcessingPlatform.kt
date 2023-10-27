@@ -4,7 +4,7 @@ import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.ResourceException
 import com.google.rpc.ResourceInfo
 
-interface ProcessingPlatformInterface {
+interface ProcessingPlatform {
 
     // platform id
     val id: String

@@ -4,10 +4,12 @@ import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE
 import com.getstrm.pace.config.SnowflakeConfig
 import com.getstrm.pace.domain.Group
-import com.getstrm.pace.domain.ProcessingPlatformInterface
+import com.getstrm.pace.domain.ProcessingPlatform
 import com.getstrm.pace.domain.Table
 import com.getstrm.pace.exceptions.InternalException
+import com.getstrm.pace.exceptions.ResourceException
 import com.google.rpc.DebugInfo
+import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -20,7 +22,7 @@ import org.springframework.web.client.postForEntity
 class SnowflakeClient(
     override val id: String,
     private val config: SnowflakeConfig
-) : ProcessingPlatformInterface {
+) : ProcessingPlatform {
     constructor(config: SnowflakeConfig) : this(config.id, config)
 
     private val snowflakeJwtIssuer = SnowflakeJwtIssuer.fromOrganizationAndAccountName(
@@ -33,8 +35,7 @@ class SnowflakeClient(
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
     private val restTemplate = RestTemplate()
 
-    override val type
-        get() = SNOWFLAKE
+    override val type = SNOWFLAKE
 
     private fun executeRequest(request: SnowflakeRequest): ResponseEntity<SnowflakeResponse> {
         try {
@@ -146,7 +147,15 @@ class SnowflakeTable(
     private val client: SnowflakeClient,
 ) : Table() {
     override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
-        TODO()
-        // return client.describeTable(schema, table)?.toDataPolicy(platform, this) ?:  throw NotFoundException(table)
+        return client.describeTable(schema, table)?.toDataPolicy(platform, this)
+            ?: throw ResourceException(
+                ResourceException.Code.NOT_FOUND,
+                ResourceInfo.newBuilder()
+                    .setResourceType("Table")
+                    .setResourceName(fullName)
+                    .setDescription("Table $fullName not found in Snowflake. Verify that it exists and that the client user has access to it.")
+                    .setOwner("Schema: $schema")
+                    .build()
+            )
     }
 }

@@ -16,8 +16,8 @@ import kotlinx.coroutines.runBlocking
 import org.jooq.DSLContext
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import parseDataPolicy
-import yaml2json
+import com.getstrm.pace.util.parseDataPolicy
+import com.getstrm.pace.util.yaml2json
 
 class DataPolicyServiceTest {
 

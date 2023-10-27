@@ -5,7 +5,7 @@ import com.getstrm.pace.bigquery.BigQueryClient
 import com.getstrm.pace.config.ProcessingPlatformConfiguration
 import com.getstrm.pace.databricks.DatabricksClient
 import com.getstrm.pace.domain.Group
-import com.getstrm.pace.domain.ProcessingPlatformInterface
+import com.getstrm.pace.domain.ProcessingPlatform
 import com.getstrm.pace.domain.Table
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.ResourceException
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component
 class ProcessingPlatformsService(
     config: ProcessingPlatformConfiguration,
 ) {
-    final val platforms: Map<String, ProcessingPlatformInterface>
+    final val platforms: Map<String, ProcessingPlatform>
 
     init {
         val databricks = config.databricks.map { DatabricksClient(it) }
@@ -30,7 +30,7 @@ class ProcessingPlatformsService(
     suspend fun listGroups(platformId: String): List<Group> =
         platforms[platformId]?.listGroups() ?: throw processingPlatformNotFound(platformId)
 
-    fun getProcessingPlatform(dataPolicy: DataPolicy): ProcessingPlatformInterface {
+    fun getProcessingPlatform(dataPolicy: DataPolicy): ProcessingPlatform {
         val processingPlatform = platforms[dataPolicy.platform.id] ?: throw processingPlatformNotFound(
             dataPolicy.platform.id,
             dataPolicy.platform.platformType.name

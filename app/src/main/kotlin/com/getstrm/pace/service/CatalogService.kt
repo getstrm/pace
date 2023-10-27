@@ -17,11 +17,11 @@ import build.buf.gen.getstrm.api.data_policies.v1alpha.DataCatalog.Table as ApiT
 
 @Component
 class CatalogService(
-    private val appConfig: CatalogsConfiguration,
+    catalogsConfig: CatalogsConfiguration,
 ) {
-    val log by lazy { LoggerFactory.getLogger(javaClass) }
+    private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-    val catalogs: Map<String, DataCatalog> = appConfig.catalogs.mapNotNull { config ->
+    val catalogs: Map<String, DataCatalog> = catalogsConfig.catalogs.mapNotNull { config ->
         try {
             when (config.type) {
                 ApiCatalog.Type.TYPE_UNSPECIFIED -> null
@@ -86,6 +86,7 @@ class CatalogService(
                     .setOwner("Schema: $schemaId")
                     .build()
             )
+        // Todo: refactor, get rid of !!
         return table.getDataPolicy()!!
     }
 

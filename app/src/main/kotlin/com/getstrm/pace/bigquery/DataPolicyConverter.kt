@@ -4,11 +4,11 @@ import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import com.google.cloud.bigquery.Field.Mode
 import com.google.cloud.bigquery.Table
 import com.google.cloud.bigquery.TableDefinition
-import toFullName
-import toTimestamp
+import com.getstrm.pace.util.toFullName
+import com.getstrm.pace.util.toTimestamp
 
 fun Table.toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
-    // This makes sure to fetch all metadata, incl. schema
+    // The reload ensures all metadata is fetched, including the schema
     val table = reload()
     return DataPolicy.newBuilder()
         .setInfo(

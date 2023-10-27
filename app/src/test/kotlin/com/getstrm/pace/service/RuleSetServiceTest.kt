@@ -12,9 +12,9 @@ import org.intellij.lang.annotations.Language
 import org.jooq.DSLContext
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import parseDataPolicy
-import parseTransforms
-import yaml2json
+import com.getstrm.pace.util.parseDataPolicy
+import com.getstrm.pace.util.parseTransforms
+import com.getstrm.pace.util.yaml2json
 
 class RuleSetServiceTest {
     private lateinit var underTest: RuleSetService
@@ -122,7 +122,6 @@ class RuleSetServiceTest {
 
         runBlocking {
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)!!
-//            println(policyWithRulesets.toYaml().strip())
             policyWithRulesets shouldBe """
 source:
   ref: test1

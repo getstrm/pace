@@ -2,17 +2,24 @@ package com.getstrm.pace.common
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.util.headTailFold
+import com.getstrm.pace.util.sqlDataType
 import com.google.rpc.BadRequest
-import headTailFold
-import org.jooq.* // ktlint-disable no-wildcard-imports
+import org.jooq.Condition
+import org.jooq.Field
+import org.jooq.Queries
+import org.jooq.Record
+import org.jooq.SQLDialect
+import org.jooq.SelectSelectStep
 import org.jooq.conf.ParseNameCase
 import org.jooq.conf.ParseUnknownFunctions
 import org.jooq.conf.RenderQuotedNames
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.*
+import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.name
+import org.jooq.impl.DSL.unquotedName
 import org.jooq.impl.ParserException
-import sqlDataType
 
 typealias Principal = String
 

@@ -13,13 +13,14 @@ import com.databricks.sdk.service.sql.StatementState
 import com.getstrm.pace.config.DatabricksConfig
 import com.getstrm.pace.domain.*
 import com.getstrm.pace.exceptions.InternalException
+import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
 
 class DatabricksClient(
     override val id: String,
     val config: DatabricksConfig,
-) : ProcessingPlatformInterface {
+) : ProcessingPlatform {
 
     constructor(config: DatabricksConfig) : this(config.id, config)
 
@@ -40,8 +41,7 @@ class DatabricksClient(
             AccountClient(config)
         }
 
-    override val type
-        get() = DATABRICKS
+    override val type = DATABRICKS
 
     override suspend fun listGroups(): List<Group> =
         accountClient.groups().list(ListAccountGroupsRequest()).map { group ->
@@ -53,7 +53,7 @@ class DatabricksClient(
     /**
      * Lists all tables (or views) in all schemas in all catalogs that the service principal has access to.
      */
-    fun listAllTables(): List<TableInfo> {
+    private fun listAllTables(): List<TableInfo> {
         val catalogNames = workspaceClient.catalogs().list().map { it.name }
         val schemas = catalogNames.flatMap { catalog -> workspaceClient.schemas().list(catalog) }
         val tableInfoList = schemas.flatMap { schema -> workspaceClient.tables().list(schema.catalogName, schema.name) }
@@ -98,7 +98,7 @@ class DatabricksClient(
                         InternalException.Code.INTERNAL,
                         DebugInfo.newBuilder()
                             .setDetail(
-                                "Error while executing Databricks query (error code: ${response.status.error.errorCode.name}), please check the logs of your PACE deployment. This is a bug, please report to https://github.com/getstrm/pace/issues/new"
+                                "Error while executing Databricks query (error code: ${response.status.error.errorCode.name}), please check the logs of your PACE deployment. $BUG_REPORT"
                             )
                             .addAllStackEntries(listOf(errorMessage))
                             .build()

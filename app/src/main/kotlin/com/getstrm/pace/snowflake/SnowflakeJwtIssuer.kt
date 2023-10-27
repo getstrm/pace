@@ -39,7 +39,7 @@ class SnowflakeJwtIssuer private constructor(
     private val userName: String
     private val accountIdentifier: String
     private val privateKey: RSAPrivateCrtKey
-    private var publicKey: PublicKey? = null
+    private var publicKey: PublicKey
 
     private val keyFactoryInstance = KeyFactory.getInstance("RSA")
 
@@ -106,10 +106,10 @@ class SnowflakeJwtIssuer private constructor(
         }
     }
 
-    private fun calculatePublicKeyFingerprint(publicKey: PublicKey?): String {
+    private fun calculatePublicKeyFingerprint(publicKey: PublicKey): String {
         return try {
             val md = MessageDigest.getInstance("SHA-256")
-            val sha256Hash = md.digest(publicKey!!.encoded)
+            val sha256Hash = md.digest(publicKey.encoded)
             "SHA256:" + Base64.encodeBase64String(sha256Hash)
         } catch (e: NoSuchAlgorithmException) {
             throw IllegalStateException("Error when calculating fingerprint", e)

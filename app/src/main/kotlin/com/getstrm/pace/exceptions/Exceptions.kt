@@ -8,7 +8,11 @@ import io.grpc.Status
  * This construct follows Google API design patterns.
  * See here for more mappings: https://cloud.google.com/apis/design/errors#error_payloads
  */
-sealed class PaceStatusException(val status: Status) : Exception(status.cause)
+sealed class PaceStatusException(val status: Status) : Exception(status.cause) {
+    companion object {
+        const val BUG_REPORT = "This is a bug, please report it to https://github.com/getstrm/pace/issues/new"
+    }
+}
 
 class ResourceException(
     val code: Code,
@@ -37,7 +41,7 @@ class BadRequestException(
             cause?.message ?: errorMessage
             ?: "Violations: ${
                 badRequest.fieldViolationsList.joinToString(", ") { it.description }
-                    .ifEmpty { "violations missing, this is a bug, please report to https://github.com/getstrm/pace/issues/new" }
+                    .ifEmpty { "violations missing. $BUG_REPORT" }
             }"
         )
         .withCause(cause)
@@ -59,7 +63,7 @@ class PreconditionFailedException(
             cause?.message ?: errorMessage
             ?: "Violations: ${
                 preconditionFailure.violationsList.joinToString(", ") { it.description }
-                    .ifEmpty { "violations missing, this is a bug, please report to https://github.com/getstrm/pace/issues/new" }
+                    .ifEmpty { "violations missing. $BUG_REPORT" }
             }"
         )
         .withCause(cause)
@@ -97,7 +101,7 @@ class QuotaFailureException(
             cause?.message ?: errorMessage
             ?: "Violations: ${
                 quotaFailure.violationsList.joinToString(", ") { it.description }
-                    .ifEmpty { "violations missing, this is a bug, please report to https://github.com/getstrm/pace/issues/new" }
+                    .ifEmpty { "violations missing. $BUG_REPORT" }
             }"
         )
         .withCause(cause)
@@ -114,7 +118,7 @@ class InternalException(
 ) : PaceStatusException(
     code.status
         .withDescription(
-            cause?.message ?: debugInfo.detail ?: "Error description missing, this is a bug, please report to https://github.com/getstrm/pace/issues/new"
+            cause?.message ?: debugInfo.detail ?: "Error description missing. $BUG_REPORT"
         )
         .withCause(cause)
 ) {

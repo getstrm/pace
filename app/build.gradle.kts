@@ -32,32 +32,32 @@ plugins {
 }
 
 dependencies {
+    // Dependencies managed by Spring
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("org.flywaydb:flyway-core")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.postgresql:postgresql")
-    // Todo: maybe we can use grpc-spring-boot-starter instead to also create gRPC clients
-    implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("io.micrometer:micrometer-registry-prometheus")
     jooqGenerator("org.postgresql:postgresql")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
+    // Self-managed dependencies
+    implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
     implementation("com.databricks:databricks-sdk-java:0.10.0")
 
     implementation("com.nimbusds:nimbus-jose-jwt:9.37")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.76")
 
-    // Todo remove before squashing
     implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.24.0"))
     implementation("com.google.cloud:google-cloud-bigquery")
 
     implementation("build.buf.gen:getstrm_pace_grpc_java:1.58.0.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.3.1.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_pace_protocolbuffers_java:24.4.0.1.$generatedBufDependencyVersion")
-
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
     implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
 

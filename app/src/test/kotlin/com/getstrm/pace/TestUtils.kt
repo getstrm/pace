@@ -1,4 +1,4 @@
-package com.getstrm.pace.util
+package com.getstrm.pace
 
 import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
 import com.getstrm.pace.common.AbstractDynamicViewGenerator
