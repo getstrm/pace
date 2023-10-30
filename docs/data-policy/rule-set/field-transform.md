@@ -147,6 +147,10 @@ field_transforms:
 
 ```
 
+### Example Results
+
+Below you will find raw data and sample outputs for different sets of principals.
+
 {% tabs %}
 {% tab title="RAW Data" %}
 | userId | email            | haircolor |
