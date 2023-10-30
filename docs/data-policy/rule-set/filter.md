@@ -1,7 +1,86 @@
 ---
-description: TODO 🫶🏽
+description: Condition based row filtering
 ---
 
 # Filter
 
-consists of a list of principals and a condition written in SQL
+### Introduction
+
+When you have dataset that includes, for example, both adults and children, you might want certain [`Principals`](../principals.md) to only perform data analysis on the adult data. We defined row based filtering. Each `Filter` contains a list of `Condition` and each condition consists of a list of `Principal` and the actual condition.
+
+Similar to [`Field Transform`](field-transform.md), the list of `Principal` defines to which groups of users the `Filter` must be applied. The condition is a _SQL expression_ that should match the specified [`Processing Platform`](../../reference/processing-platform-integrations/)'s syntax. If the condition evaluates to true, the set of `Principal` is allowed to view the data, else the rows are omitted in the resulting view.
+
+Every `Filter` should at least contain one `Condition` without any `Principal`, defined as last item in the list. This `Condition` acts as the default or fallback filter.
+
+### Example Filter
+
+```yaml
+filters:
+  - conditions:
+    - principals: [ "F&R" ]
+      condition: "true"
+    - principals: []
+      condition: "age > 18"
+  - conditions:
+    - principals: [ "MKTNG" ]
+      condition: "true"
+    - principals: [ "F&R", "ANALYSIS" ]
+      condition: "transactionAmount >= 1000"
+    - principals: []
+      condition: "transactionAmount < 1000"
+```
+
+### Example Results
+
+{% tabs %}
+{% tab title="RAW Data" %}
+| transactionId | transactionAmount | age |
+| ------------- | ----------------- | --- |
+| 1             | 100               | 16  |
+| 2             | 1000              | 20  |
+| 3             | 5000              | 24  |
+| 4             | 50                | 24  |
+| 5             | 2000              | 17  |
+
+
+{% endtab %}
+
+{% tab title="[ F&R ]" %}
+| transactionId | transactionAmount | age |
+| ------------- | ----------------- | --- |
+| 2             | 1000              | 20  |
+| 3             | 5000              | 24  |
+| 5             | 2000              | 17  |
+{% endtab %}
+
+{% tab title="[ MKTING ]" %}
+| transactionId | transactionAmount | age |
+| ------------- | ----------------- | --- |
+| 2             | 1000              | 20  |
+| 3             | 5000              | 24  |
+| 4             | 50                | 24  |
+{% endtab %}
+
+{% tab title="[ ANALYSIS ]" %}
+| transactionId | transactionAmount | age |
+| ------------- | ----------------- | --- |
+| 2             | 1000              | 20  |
+| 3             | 5000              | 24  |
+{% endtab %}
+
+{% tab title="[ COMP ]" %}
+| transactionId | transactionAmount | age |
+| ------------- | ----------------- | --- |
+| 4             | 50                | 24  |
+{% endtab %}
+
+{% tab title="[ MKTNG, F&R ]" %}
+| transactionId | transactionAmount | age |
+| ------------- | ----------------- | --- |
+| 1             | 100               | 16  |
+| 2             | 1000              | 20  |
+| 3             | 5000              | 24  |
+| 4             | 50                | 24  |
+| 5             | 2000              | 17  |
+{% endtab %}
+{% endtabs %}
