@@ -103,11 +103,20 @@ fun TableId.toFullName() = "$project.$dataset.$table"
 
 fun DataPolicy.Field.pathString() = this.namePartsList.joinToString(separator = ".")
 
+/**
+ * Apply different operations on the head, tail and body of a collection. The head and tail contain a single element,
+ * and the body contains the rest of the elements in the collection. Requires at least 2 elements in the collection.
+ *
+ * @param headOperation Operation to apply on the first element
+ * @param bodyOperation Operation to apply on all elements except the first and last
+ * @param tailOperation Operation to apply on the last element
+ */
 fun <T, Accumulator, Result> List<T>.headTailFold(
     headOperation: (T) -> Accumulator,
     bodyOperation: (Accumulator, T) -> Accumulator,
     tailOperation: (Accumulator, T) -> Result,
 ): Result {
+    require(this.size >= 2) { "List must have at least 2 elements" }
     var accumulator = headOperation(this.first())
     for (element in this.drop(1).dropLast(1)) {
         accumulator = bodyOperation(accumulator, element)
@@ -128,6 +137,6 @@ fun DataPolicy.Field.sqlDataType(): DataType<*> =
     }
 
 fun DataPolicy.Field.normalizeType(): DataPolicy.Field =
-    toBuilder().setType( sqlDataType().typeName).build()
+    toBuilder().setType(sqlDataType().typeName).build()
 
 val sqlParser = DSL.using(SQLDialect.DEFAULT).parser()

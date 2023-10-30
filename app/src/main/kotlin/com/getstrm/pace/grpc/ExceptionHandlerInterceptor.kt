@@ -1,13 +1,7 @@
-package com.getstrm.pace.exceptions
+package com.getstrm.pace.grpc
 
-import com.google.protobuf.Any
-import io.grpc.ForwardingServerCall
-import io.grpc.Metadata
-import io.grpc.ServerCall
-import io.grpc.ServerCallHandler
-import io.grpc.ServerInterceptor
-import io.grpc.Status
-import io.grpc.protobuf.StatusProto
+import com.getstrm.pace.exceptions.PaceStatusException
+import io.grpc.*
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import java.util.*
@@ -52,7 +46,13 @@ class ExceptionHandlerInterceptor(private val exposeExceptions: Boolean) : Serve
 
             val newStatus =
                 if (cause is PaceStatusException) {
-                    val extraTrailers = errorDetailsTrailers(cause, traceId, callName)
+                    val extraTrailers = cause.trailers(
+                        mapOf(
+                            "callName" to callName,
+                            "traceId" to traceId,
+                            "instanceId" to instanceId
+                        )
+                    )
                     trailers.merge(extraTrailers)
 
                     cause.status.withDescription(cause.message)
@@ -83,42 +83,20 @@ class ExceptionHandlerInterceptor(private val exposeExceptions: Boolean) : Serve
 
             delegate.close(newStatus, trailers)
         }
+    }
 
-        private fun errorDetailsTrailers(
-            statusException: PaceStatusException,
-            traceId: String,
-            callName: String?
-        ): Metadata {
-            val details: Any = when (statusException) {
-                is BadRequestException -> Any.pack(statusException.badRequest)
-                is ResourceException -> Any.pack(statusException.resourceInfo)
-                is ClientErrorException -> {
-                    val errorInfo = statusException.errorInfo.toBuilder().apply {
-                        putAllMetadata(
-                            mapOf(
-                                "traceId" to traceId,
-                                "instanceId" to instanceId,
-                                "callName" to callName,
-                            )
-                        )
-                    }.build()
+    companion object {
+        private val log by lazy { LoggerFactory.getLogger(ExceptionHandlerInterceptor::class.java) }
 
-                    Any.pack(errorInfo)
-                }
+        private const val errorIdPrefix = "PACE-"
 
-                is InternalException -> Any.pack(statusException.debugInfo)
-                is PreconditionFailedException -> Any.pack(statusException.preconditionFailure)
-                is QuotaFailureException -> Any.pack(statusException.quotaFailure)
-            }
+        // Regex pattern for UUIDv4
+        private val errorIdRegex =
+            ".*($errorIdPrefix[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}).*"
+                .toRegex(RegexOption.IGNORE_CASE)
 
-            val richStatus = com.google.rpc.Status.newBuilder()
-                // TODO map this to the HTTP response code it
-                .setCode(statusException.status.code.value())
-                .setMessage(statusException.status.description ?: statusException.message ?: "")
-                .addDetails(details)
-
-            return StatusProto.toStatusRuntimeException(richStatus.build()).trailers ?: Metadata()
-        }
+        private val unexpectedExceptionStatuses =
+            setOf(Status.Code.UNKNOWN, Status.Code.INTERNAL, Status.Code.UNAVAILABLE)
 
         private fun getOrGenerateTraceId(status: Status) =
             status.description?.let { description ->
@@ -140,19 +118,5 @@ class ExceptionHandlerInterceptor(private val exposeExceptions: Boolean) : Serve
             } ?: (randomUniqueId() to false)
 
         private fun randomUniqueId() = "$errorIdPrefix${UUID.randomUUID()}"
-    }
-
-    companion object {
-        private val log by lazy { LoggerFactory.getLogger(ExceptionHandlerInterceptor::class.java) }
-
-        private const val errorIdPrefix = "PACE-"
-
-        // Regex pattern for UUIDv4
-        private val errorIdRegex =
-            ".*($errorIdPrefix[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}).*"
-                .toRegex(RegexOption.IGNORE_CASE)
-
-        private val unexpectedExceptionStatuses =
-            setOf(Status.Code.UNKNOWN, Status.Code.INTERNAL, Status.Code.UNAVAILABLE)
     }
 }

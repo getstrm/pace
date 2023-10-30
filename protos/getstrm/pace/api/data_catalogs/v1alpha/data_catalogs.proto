@@ -45,10 +45,10 @@ service DataCatalogsService {
 }
 
 message GetBarePolicyRequest {
-    string catalog_id = 1;
-    string database_id = 2;
-    string schema_id = 3;
-    string table_id = 4;
+    string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
+    string database_id = 2 [(buf.validate.field).string = {min_len: 1}];
+    string schema_id = 3 [(buf.validate.field).string = {min_len: 1}];
+    string table_id = 4 [(buf.validate.field).string = {min_len: 1}];
 }
 
 message GetBarePolicyResponse {
@@ -63,7 +63,7 @@ message ListCatalogsResponse {
 }
 
 message ListDatabasesRequest {
-    string catalog_id = 1;
+    string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
 }
 
 message ListDatabasesResponse {
@@ -71,8 +71,8 @@ message ListDatabasesResponse {
 }
 
 message ListSchemasRequest {
-    string catalog_id = 1;
-    string database_id = 2;
+    string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
+    string database_id = 2 [(buf.validate.field).string = {min_len: 1}];
 }
 
 // (-- api-linter: core::0158::response-plural-first-field=disabled
@@ -82,9 +82,9 @@ message ListSchemasResponse {
 }
 
 message ListTablesRequest {
-    string catalog_id = 1;
-    string database_id = 2;
-    string schema_id = 3;
+    string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
+    string database_id = 2 [(buf.validate.field).string = {min_len: 1}];
+    string schema_id = 3 [(buf.validate.field).string = {min_len: 1}];
 }
 
 message ListTablesResponse {
