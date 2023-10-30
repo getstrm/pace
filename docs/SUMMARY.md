@@ -12,7 +12,6 @@
 * [Schema](data-policy/schema.md)
 * [Principals](data-policy/principals.md)
 * [Rule Set](data-policy/rule-set/README.md)
-  * [Page](data-policy/rule-set/page.md)
   * [Target](data-policy/rule-set/target.md)
   * [Field Transform](data-policy/rule-set/field-transform.md)
   * [Filter](data-policy/rule-set/filter.md)
