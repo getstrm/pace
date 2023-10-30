@@ -27,7 +27,7 @@ class DatabricksDynamicViewGenerator(
                         else -> throw InternalException(
                             InternalException.Code.INTERNAL,
                             DebugInfo.newBuilder()
-                                .setDetail("Principal of type ${principal.principalCase} is not supported. $UNIMPLEMENTED")
+                                .setDetail("Principal of type ${principal.principalCase} is not supported for platform Databricks. $UNIMPLEMENTED")
                                 .build()
                         )
                     }

@@ -1,7 +1,10 @@
 package com.getstrm.pace.exceptions
 
+import com.google.protobuf.Any
 import com.google.rpc.*
+import io.grpc.Metadata
 import io.grpc.Status
+import io.grpc.protobuf.StatusProto
 
 /**
  * Base class for all exceptions that should be caught by the ExceptionHandlerInterceptor.
@@ -11,7 +14,33 @@ import io.grpc.Status
 sealed class PaceStatusException(val status: Status) : Exception(status.cause) {
     companion object {
         const val BUG_REPORT = "This is a bug, please report it to https://github.com/getstrm/pace/issues/new"
-        const val UNIMPLEMENTED = "This is an unimplemented feature, please check whether a feature request is present or create a feature request: https://github.com/getstrm/pace/issues"
+        const val UNIMPLEMENTED =
+            "This is an unimplemented feature, please check whether a feature request is present or create a feature request: https://github.com/getstrm/pace/issues"
+    }
+
+    /**
+     * Returns the trailers that should be sent to the client, which sets the [Metadata.Key] with identifier
+     * grpc-status-details-bin, to support clients that are able to show rich error messages.
+     *
+     * @param errorInfoMetadata additional metadata for error details of type [ErrorInfo], effectively only for [ClientErrorException]s. This is ignored for all other exceptions.
+     */
+    fun trailers(errorInfoMetadata: Map<String, String> = emptyMap()): Metadata {
+        val details: Any = when (this) {
+            is BadRequestException -> Any.pack(badRequest)
+            is ResourceException -> Any.pack(resourceInfo)
+            is ClientErrorException -> Any.pack(errorInfo.toBuilder().apply { putAllMetadata(errorInfoMetadata) }
+                .build())
+            is InternalException -> Any.pack(debugInfo)
+            is PreconditionFailedException -> Any.pack(preconditionFailure)
+            is QuotaFailureException -> Any.pack(quotaFailure)
+        }
+
+        val richStatus = com.google.rpc.Status.newBuilder()
+            .setCode(status.code.value())
+            .setMessage(status.description ?: message ?: "")
+            .addDetails(details)
+
+        return StatusProto.toStatusRuntimeException(richStatus.build()).trailers ?: Metadata()
     }
 }
 

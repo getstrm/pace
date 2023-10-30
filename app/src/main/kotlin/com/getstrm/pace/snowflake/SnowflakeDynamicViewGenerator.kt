@@ -3,13 +3,12 @@ package com.getstrm.pace.snowflake
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.common.AbstractDynamicViewGenerator
 import com.getstrm.pace.exceptions.InternalException
-import com.getstrm.pace.exceptions.PaceStatusException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.UNIMPLEMENTED
+import com.google.rpc.DebugInfo
 import org.jooq.Condition
 import org.jooq.Queries
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
-import com.google.rpc.DebugInfo
 
 
 class SnowflakeDynamicViewGenerator(
@@ -28,7 +27,7 @@ class SnowflakeDynamicViewGenerator(
                         else -> throw InternalException(
                             InternalException.Code.INTERNAL,
                             DebugInfo.newBuilder()
-                                .setDetail("Principal of type ${principal.principalCase} is not supported. $UNIMPLEMENTED")
+                                .setDetail("Principal of type ${principal.principalCase} is not supported for platform Snowflake. $UNIMPLEMENTED")
                                 .build()
                         )
                     }
@@ -46,7 +45,10 @@ class SnowflakeDynamicViewGenerator(
             val viewName = ruleSet.target.fullname
 
             principals.map {
-                DSL.query(jooq.grant(DSL.privilege("SELECT")).on(DSL.table(DSL.unquotedName(viewName))).to(DSL.role(it.group)).sql)
+                DSL.query(
+                    jooq.grant(DSL.privilege("SELECT")).on(DSL.table(DSL.unquotedName(viewName)))
+                        .to(DSL.role(it.group)).sql
+                )
             }
         }
 

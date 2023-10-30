@@ -28,11 +28,15 @@ class BigQueryDynamicViewGenerator(
             DSL.or(
                 map { principal ->
                     when {
-                        principal.hasGroup() -> DSL.condition("{0} IN ( SELECT userGroup FROM user_groups )", principal.group)
+                        principal.hasGroup() -> DSL.condition(
+                            "{0} IN ( SELECT userGroup FROM user_groups )",
+                            principal.group
+                        )
+
                         else -> throw InternalException(
                             InternalException.Code.INTERNAL,
                             DebugInfo.newBuilder()
-                                .setDetail("Principal of type ${principal.principalCase} is not supported. ${PaceStatusException.UNIMPLEMENTED}")
+                                .setDetail("Principal of type ${principal.principalCase} is not supported for platform BigQuery. ${PaceStatusException.UNIMPLEMENTED}")
                                 .build()
                         )
                     }

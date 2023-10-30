@@ -58,6 +58,7 @@ dependencies {
     implementation("build.buf.gen:getstrm_pace_grpc_java:1.58.0.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.3.1.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_pace_protocolbuffers_java:24.4.0.1.$generatedBufDependencyVersion")
+    implementation("build.buf:protovalidate:0.1.6")
 
     implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
 
@@ -137,7 +138,7 @@ val createPostgresContainer =
     tasks.register("jooqPostgresCreate", DockerCreateContainer::class) {
         dependsOn(removePostgresContainer)
         group = "postgres"
-        targetImageId("postgres")
+        targetImageId("postgres:15")
         containerName.set("jooq-postgres")
         hostConfig.portBindings.set(listOf("$postgresPort:5432"))
         hostConfig.autoRemove.set(true)

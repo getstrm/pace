@@ -12,4 +12,4 @@ output/
 
 app/src/main/resources/application-local.yaml
 
-protos/*.binpb
+*.binpb

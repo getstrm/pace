@@ -46,7 +46,7 @@ message ListProcessingPlatformsResponse {
 }
 
 message ListTablesRequest {
-    string platform_id = 1;
+    string platform_id = 1 [(buf.validate.field).string = {min_len: 1}];
 }
 
 message ListTablesResponse {
@@ -54,7 +54,7 @@ message ListTablesResponse {
 }
 
 message ListGroupsRequest {
-    string platform_id = 1;
+    string platform_id = 1 [(buf.validate.field).string = {min_len: 1}];
 }
 
 message ListGroupsResponse {
@@ -62,8 +62,8 @@ message ListGroupsResponse {
 }
 
 message GetBarePolicyRequest {
-    string platform_id = 1;
-    string table = 2 [(buf.validate.field) = {string: {min_len: 1}}];
+    string platform_id = 1 [(buf.validate.field).string = {min_len: 1}];
+    string table = 2 [(buf.validate.field).string = {min_len: 1}];
 }
 
 message GetBarePolicyResponse {
