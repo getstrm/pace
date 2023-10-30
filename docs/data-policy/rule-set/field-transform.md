@@ -102,6 +102,10 @@ nullify: {}
 
 Below you will find an example of a set of `Field Transform`. Note that for each set of `Transform` the last one always is without defined principals.
 
+{% hint style="info" %}
+Note that the order of the `Field Transform` in the policy matters. That is, if you are a member of multiple `Principal` groups, for each `Field Transform`, the transform with the first intersection with your `Principal` groups will be applied.
+{% endhint %}
+
 In this example, we want to transform the userID for three groups: Marketing, Fraud and Risk, everyone else. For Marketing, we nullify the the ID. For Fraud and Risk, we need to retain IDs and do not touch them. For everyone else, we hash the email so they can still be used as keys, but remain unidentified.
 
 ```yaml
@@ -111,9 +115,9 @@ field_transforms:
       type: "string"
       required: true
     transforms:
-      - principals: [ "FRAUD_AND_RISK"]
+      - principals: [ "F&R" ]
         identity: {}
-      - principals: [ "MARKETING" ]
+      - principals: [ "MKTNG" ]
         nullify: {}
       - principals: []
         hash:
@@ -123,11 +127,11 @@ field_transforms:
       type: "string"
       required: true
     transforms:
-      - principals: [ MARKETING ]
+      - principals: [ "MKTNG", "COMP" ]
         regexp:
           regexp: "^.*(@.*)$"
           replacement: "****\\\\1"
-      - principals: [ FRAUD_AND_RISK ]
+      - principals: [ "F&R" ]
         identity: {}
       - principals: []
         fixed:
@@ -142,3 +146,49 @@ field_transforms:
           statement: "CASE WHEN haircolor = 'blonde' THEN 'fair' ELSE 'dark' END"
 
 ```
+
+{% tabs %}
+{% tab title="RAW Data" %}
+| userId | email            | haircolor |
+| ------ | ---------------- | --------- |
+| 123    | alice@store.com  | blonde    |
+| 456    | bob@company.com  | red       |
+| 789    | carol@domain.com | black     |
+{% endtab %}
+
+{% tab title="[ F&R ]" %}
+| userId | email            | haircolor |
+| ------ | ---------------- | --------- |
+| 123    | alice@store.com  | fair      |
+| 456    | bob@company.com  | dark      |
+| 789    | carol@domain.com | dark      |
+{% endtab %}
+
+{% tab title="[ MKTNG ]" %}
+| userId | email                | haircolor |
+| ------ | -------------------- | --------- |
+| `null` | \*\*\*\*@store.com   | fair      |
+| `null` | \*\*\*\*@company.com | dark      |
+| `null` | \*\*\*\*@domain.com  | dark      |
+{% endtab %}
+
+{% tab title="[ COMP, F&R ]" %}
+| userId | email                | haircolor |
+| ------ | -------------------- | --------- |
+| 123    | \*\*\*\*@store.com   | fair      |
+| 456    | \*\*\*\*@company.com | dark      |
+| 789    | \*\*\*\*@domain.com  | dark      |
+
+
+{% endtab %}
+
+{% tab title="[ ANALYSIS ]" %}
+| userId              | email    | haircolor |
+| ------------------- | -------- | --------- |
+| 23459023894857195   | \*\*\*\* | fair      |
+| -903845745009147219 | \*\*\*\* | dark      |
+| -872050645009147732 | \*\*\*\* | dark      |
+
+
+{% endtab %}
+{% endtabs %}
