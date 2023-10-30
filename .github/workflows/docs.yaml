@@ -1,0 +1,23 @@
+name: Docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - protos/**
+
+jobs:
+  publish_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Generate OpenAPI spec"
+        run: |
+          cd protos
+          buf generate
+          cp gen/openapi.yaml ../docs/.gitbook.yaml
+      - name: "Generate API Reference Docs"
+        run: |
+          cd scripts/docs
+          pip install pyyaml
+          python generate.py
