@@ -41,7 +41,6 @@ class ValidationForwardingServerCallListener<ReqT, RespT>(
 
 
     override fun onMessage(message: ReqT) {
-
         try {
             val protoMessage = message as Message
 
@@ -55,7 +54,7 @@ class ValidationForwardingServerCallListener<ReqT, RespT>(
 
                     val violations = result.violations.map {
                         FieldViolation.newBuilder()
-                            .setField(it.fieldPath)
+                            .setField(if (it.forKey) "${it.fieldPath} (map key)" else it.fieldPath)
                             .setDescription("${it.message} (constraint id = ${it.constraintId})")
                             .build()
                     }
