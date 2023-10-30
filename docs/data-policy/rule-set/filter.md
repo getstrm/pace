@@ -6,11 +6,15 @@ description: Condition based row filtering
 
 ### Introduction
 
-When you have dataset that includes, for example, both adults and children, you might want certain [`Principals`](../principals.md) to only perform data analysis on the adult data. We defined row based filtering. Each `Filter` contains a list of `Condition` and each condition consists of a list of `Principal` and the actual condition.
+When you have dataset that includes, for example, both large and small transactions, you might only want the _Fraud and Risk_ [`Principal`](../principals.md) to be able to see these large transactions. We defined row based filtering. Each `Filter` contains a list of `Condition` and each condition consists of a list of `Principal` and the actual condition.
 
 Similar to [`Field Transform`](field-transform.md), the list of `Principal` defines to which groups of users the `Filter` must be applied. The condition is a _SQL expression_ that should match the specified [`Processing Platform`](../../reference/processing-platform-integrations/)'s syntax. If the condition evaluates to true, the set of `Principal` is allowed to view the data, else the rows are omitted in the resulting view.
 
 Every `Filter` should at least contain one `Condition` without any `Principal`, defined as last item in the list. This `Condition` acts as the default or fallback filter.
+
+{% hint style="info" %}
+Note that the order of the Condition in the policy matters. That is, if you are a member of multiple `Principal` groups, for each `Condition`, the filter with the first intersection with your `Principal` groups will be applied.
+{% endhint %}
 
 ### Example Filter
 
