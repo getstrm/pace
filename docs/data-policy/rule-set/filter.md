@@ -4,7 +4,7 @@ description: Condition based row filtering
 
 # Filter
 
-### Introduction
+## Introduction
 
 When you have dataset that includes, for example, both large and small transactions, you might only want the _Fraud and Risk_ [`Principal`](../principals.md) to be able to see these large transactions. We defined row based filtering. Each `Filter` contains a list of `Condition` and each condition consists of a list of `Principal` and the actual condition.
 
@@ -16,7 +16,7 @@ Every `Filter` should at least contain one `Condition` without any `Principal`, 
 Note that the order of the Condition in the policy matters. That is, if you are a member of multiple `Principal` groups, for each `Condition`, the filter with the first intersection with your `Principal` groups will be applied.
 {% endhint %}
 
-### Example Filter
+## Example Filter
 
 ```yaml
 filters:
@@ -34,7 +34,7 @@ filters:
       condition: "transactionAmount < 1000"
 ```
 
-### Example Results
+## Example Results
 
 {% tabs %}
 {% tab title="RAW Data" %}

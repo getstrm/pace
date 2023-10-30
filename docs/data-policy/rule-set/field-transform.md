@@ -4,7 +4,7 @@ description: Transform values on a field level
 
 # Field Transform
 
-### Introduction
+## Introduction
 
 To be able to transform the input data on a field-level, we define `FieldTransforms`. Specific values can be transformed, masked or completely nullified. If no transform is defined for a field, the field will be included in the result set as-is.
 
@@ -14,7 +14,7 @@ The `FieldTransform` consists of a `Field` and a list of `Transforms`. The `Fiel
 
 In order to be able to change the on-view results for different users with different roles, each entry in the list of transforms specifies how to transform the specific field for a set of [`Principals`](../principals.md). Principals can be any set of users as defined in the processing platform for the target view. Every `FieldTransform` for one `Field` should at least contain one `Transform` without any `Principal`, defined as last item in the list. This `Transform` acts as the default or fallback transform for the specified field.
 
-### Transforms
+## Transforms
 
 We define 6 types of transforms.
 
@@ -98,7 +98,7 @@ nullify: {}
 | ----------------------- | ------ |
 | `local-part@domain.com` | `null` |
 
-### Example Field Transform
+## Example Field Transform
 
 Below you will find an example of a set of `Field Transform`. Note that for each set of `Transform` the last one always is without defined principals.
 
@@ -147,7 +147,7 @@ field_transforms:
 
 ```
 
-### Example Results
+## Example Results
 
 Below you will find raw data and sample outputs for different sets of principals.
 
