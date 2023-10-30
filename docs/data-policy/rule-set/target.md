@@ -7,5 +7,4 @@ The `Full Name` is the full and unique name to be used in the target platform. F
 rule_sets:
   - target:
       fullname: "SCHEMA.VIEW_NAME"
-...
 ```

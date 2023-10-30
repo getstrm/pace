@@ -94,4 +94,4 @@ If your `Data Platform` (or [`Processing Platform`](../reference/processing-plat
 
 ## Data Catalog
 
-The source's data structure can also be retrieved from a [`Data Catalog`](../reference/data-catalog-integrations/). Here too we provide both a [REST API](../reference/api-reference.md#processing-platforms-platformid-tables-table\_id-bare-policy) and a CLI to receive the _bare policy_. Find out what the minimum required permissions are per `Data Catalog` in our [data catalog integration pages](../reference/data-catalog-integrations/).&#x20;
+The source's data structure can also be retrieved from a [`Data Catalog`](../reference/data-catalog-integrations/). Here too we provide both a [REST API](../reference/api-reference.md#catalogs-catalogid-databases-databaseid-schemas-schemaid-tables-tableid-bare-policy) and a CLI to receive the _bare policy_. Find out what the minimum required permissions are per `Data Catalog` in our [data catalog integration pages](../reference/data-catalog-integrations/).&#x20;
