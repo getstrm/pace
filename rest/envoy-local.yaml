@@ -1,12 +1,12 @@
 admin:
   address:
-    socket_address: {address: 0.0.0.0, port_value: 9000}
+    socket_address: { address: 0.0.0.0, port_value: 9000 }
 
 static_resources:
   listeners:
     - name: listener1
       address:
-        socket_address: {address: 0.0.0.0, port_value: 9090}
+        socket_address: { address: 0.0.0.0, port_value: 9090 }
       filter_chains:
         - filters:
             - name: envoy.filters.network.http_connection_manager
@@ -18,24 +18,21 @@ static_resources:
                   name: local_route
                   virtual_hosts:
                     - name: local_service
-                      domains: ["*"]
+                      domains: [ "*" ]
                       routes:
                         - match:
                             prefix: "/"
-                          route: {cluster: grpc, timeout: 60s}
+                          route: { cluster: grpc, timeout: 60s }
                 http_filters:
                   - name: envoy.filters.http.grpc_json_transcoder
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_json_transcoder.v3.GrpcJsonTranscoder
-                      proto_descriptor: "/app/descriptor.binpb"
-                      # TODO Leaving this hardcoded for now, as we only have a few service at the moment
-                      # In order to dynamically determine the list of services, we can use the following command
-                      # buf build -o -#format=json | jq -r '.file | map(select(.name | startswith("getstrm"))) | map(select(.service > 0) | (.package + "." + .service[].name))[] | ("- " + .)'
-                      # With the `copyDocker` command in the gradle build file, this could be expanded as a variable in this file
+                      proto_descriptor: "/tmp/envoy/descriptor.binpb"
+                      # Note: Make sure to update this list when adding new services!
                       services:
-                      - "getstrm.pace.api.data_catalogs.v1alpha.DataCatalogsService"
-                      - "getstrm.pace.api.data_policies.v1alpha.DataPoliciesService"
-                      - "getstrm.pace.api.processing_platforms.v1alpha.ProcessingPlatformsService"
+                        - "getstrm.pace.api.data_catalogs.v1alpha.DataCatalogsService"
+                        - "getstrm.pace.api.data_policies.v1alpha.DataPoliciesService"
+                        - "getstrm.pace.api.processing_platforms.v1alpha.ProcessingPlatformsService"
                       auto_mapping: false
                       convert_grpc_status: true
                       request_validation_options:
@@ -58,7 +55,7 @@ static_resources:
         envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
           "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
           explicit_http_config:
-            http2_protocol_options: {}
+            http2_protocol_options: { }
       load_assignment:
         cluster_name: grpc
         endpoints:
@@ -66,5 +63,5 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: 0.0.0.0
+                      address: host.docker.internal
                       port_value: 50051
