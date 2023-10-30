@@ -1,6 +1,6 @@
 package com.getstrm.pace.catalogs
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.domain.DataCatalog
 import com.getstrm.pace.util.normalizeType
@@ -115,7 +115,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
 
             val policyBuilder = DataPolicy.newBuilder()
 
-            policyBuilder.sourceBuilder.addAllAttributes(
+            policyBuilder.sourceBuilder.addAllFields(
                 fields.map { field ->
                     val fieldPath = if (field.parentFieldId != null) {
                         val parentIds = getAllParents(field.parentFieldId, fieldsById)
@@ -124,8 +124,8 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
                         listOf(field.name)
                     }
 
-                    DataPolicy.Attribute.newBuilder()
-                        .addAllPathComponents(fieldPath)
+                    DataPolicy.Field.newBuilder()
+                        .addAllNameParts(fieldPath)
                         .setType(field.type.logicalType)
                         .setRequired(!field.type.isNullable)
                         .addAllTags(field.tags?.map { it.name }.orEmpty())
@@ -133,8 +133,8 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
                 },
             )
 
-            policyBuilder.infoBuilder.title = schema.database.displayName
-            policyBuilder.infoBuilder.description = schema.database.dbType
+            policyBuilder.metadataBuilder.title = schema.database.displayName
+            policyBuilder.metadataBuilder.description = schema.database.dbType
 
             return policyBuilder.build()
         }

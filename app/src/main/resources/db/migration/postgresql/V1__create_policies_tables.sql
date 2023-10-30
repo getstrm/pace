@@ -7,13 +7,13 @@ create
 create table if not exists pace.data_policies
 (
     id              varchar                   not null,
+    platform_id     varchar                   not null,
     title           varchar                   not null,
     description     varchar,
     version         varchar                   not null,
-    organization_id varchar                   not null,
     created_at      timestamptz default now() not null,
     updated_at      timestamptz default now() not null,
     policy          jsonb                     not null,
     active          boolean     default false not null,
-    constraint test_pk primary key (id, updated_at)
+    constraint data_policies_pk primary key (id, platform_id, version)
 );

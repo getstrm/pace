@@ -1,5 +1,5 @@
 package com.getstrm.pace.catalogs
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.apollographql.apollo3.ApolloClient
 import com.collibra.generated.ListPhysicalDataAssetsQuery
 import com.collibra.generated.ListSchemaIdsQuery
@@ -52,16 +52,16 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                 val systemName = table.schema.firstOrNull()?.schemaDetails?.database?.firstOrNull()?.databaseDetails?.domain?.name
 
                 val builder = DataPolicy.newBuilder()
-                builder.infoBuilder.title = table.displayName
-                builder.infoBuilder.description = systemName
-                builder.sourceBuilder.addAllAttributes(table.columns.map { it.toAttribute() })
+                builder.metadataBuilder.title = table.displayName
+                builder.metadataBuilder.description = systemName
+                builder.sourceBuilder.addAllFields(table.columns.map { it.toField() })
                 builder.build()
             }
         }
 
-        private fun TableWithColumnsQuery.Column.toAttribute(): DataPolicy.Attribute =
-            with(DataPolicy.Attribute.newBuilder()) {
-                addPathComponents(columnDetails.displayName)
+        private fun TableWithColumnsQuery.Column.toField(): DataPolicy.Field =
+            with(DataPolicy.Field.newBuilder()) {
+                addNameParts(columnDetails.displayName)
                 val sourceType = columnDetails.dataType.firstOrNull()?.value ?: "unknown"
                 // source type mapping
                 type = sourceType

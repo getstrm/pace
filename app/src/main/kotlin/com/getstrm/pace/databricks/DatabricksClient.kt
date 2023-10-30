@@ -1,7 +1,7 @@
 package com.getstrm.pace.databricks
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.DATABRICKS
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.DATABRICKS
 import com.databricks.sdk.AccountClient
 import com.databricks.sdk.WorkspaceClient
 import com.databricks.sdk.core.DatabricksConfig as DatabricksClientConfig

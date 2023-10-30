@@ -1,30 +1,29 @@
 package com.getstrm.pace.service
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
 import com.getstrm.pace.dao.DataPolicyDao
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.ResourceException
+import com.getstrm.pace.util.pathString
 import com.google.rpc.BadRequest
 import com.google.rpc.ResourceInfo
 import org.jooq.DSLContext
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import com.getstrm.pace.util.pathString
 
 @Component
 class DataPolicyService(
-    @Value("\${app.context}") private val context: String,
     private val dataPolicyDao: DataPolicyDao,
     private val processingPlatforms: ProcessingPlatformsService,
     private val jooq: DSLContext,
 ) {
-    suspend fun listDataPolicies(): List<DataPolicy> = dataPolicyDao.listDataPolicies(context)
+    suspend fun listDataPolicies(): List<DataPolicy> = dataPolicyDao.listDataPolicies()
 
     suspend fun upsertDataPolicy(dataPolicy: DataPolicy): DataPolicy {
         validate(dataPolicy)
         // TODO should it remove old ruleset targets?
         // TODO the two statements below should be wrapped in a transaction
-        val newDataPolicy = dataPolicyDao.upsertDataPolicy(dataPolicy, context, jooq)
+        val newDataPolicy = dataPolicyDao.upsertDataPolicy(dataPolicy, jooq)
         enforceStatement(newDataPolicy)
         return newDataPolicy
     }
@@ -63,11 +62,11 @@ class DataPolicyService(
         }
         val platform = processingPlatforms.getProcessingPlatform(dataPolicy)
         val validGroups = platform.listGroups().map { it.name }.toSet()
-        val validAttributes = dataPolicy.source.attributesList.map(DataPolicy.Attribute::pathString).toSet()
+        val validAttributes = dataPolicy.source.fieldsList.map(DataPolicy.Field::pathString).toSet()
 
         // check that every principal exists in validGroups
-        fun checkPrincipals(principals: List<String>) {
-            (principals.toSet() - validGroups).let {
+        fun checkPrincipals(principals: List<Principal>) {
+            (principals.map { it.group }.toSet() - validGroups).let {
                 if (it.isNotEmpty()) {
                     throw BadRequestException(
                         BadRequestException.Code.INVALID_ARGUMENT,
@@ -87,7 +86,7 @@ class DataPolicyService(
         }
 
         // check that every attribute in a field transform or row filter exists in the DataPolicy
-        fun checkAttribute(attribute: DataPolicy.Attribute) {
+        fun checkAttribute(attribute: DataPolicy.Field) {
             if (!validAttributes.contains(attribute.pathString())) {
                 throw BadRequestException(
                     BadRequestException.Code.INVALID_ARGUMENT,
@@ -107,7 +106,7 @@ class DataPolicyService(
 
         dataPolicy.ruleSetsList.forEach { ruleSet ->
             ruleSet.fieldTransformsList.forEach { fieldTransform ->
-                checkAttribute(fieldTransform.attribute)
+                checkAttribute(fieldTransform.field)
                 if (fieldTransform.transformsList.isEmpty()) {
                     throw BadRequestException(
                         BadRequestException.Code.INVALID_ARGUMENT,
@@ -116,7 +115,7 @@ class DataPolicyService(
                                 listOf(
                                     BadRequest.FieldViolation.newBuilder()
                                         .setField("fieldTransform")
-                                        .setDescription("FieldTransform ${fieldTransform.attribute.pathString()} has no transforms")
+                                        .setDescription("FieldTransform ${fieldTransform.field.pathString()} has no transforms")
                                         .build()
                                 )
                             )
@@ -135,7 +134,7 @@ class DataPolicyService(
                                     listOf(
                                         BadRequest.FieldViolation.newBuilder()
                                             .setField("fieldTransform")
-                                            .setDescription("FieldTransform ${fieldTransform.attribute.pathString()} does not have an empty principals list as last field")
+                                            .setDescription("FieldTransform ${fieldTransform.field.pathString()} does not have an empty principals list as last field")
                                             .build()
                                     )
                                 )
@@ -152,7 +151,7 @@ class DataPolicyService(
                                     listOf(
                                         BadRequest.FieldViolation.newBuilder()
                                             .setField("fieldTransform")
-                                            .setDescription("FieldTransform ${fieldTransform.attribute.pathString()} has more than one empty principals list")
+                                            .setDescription("FieldTransform ${fieldTransform.field.pathString()} has more than one empty principals list")
                                             .build()
                                     )
                                 )
@@ -164,7 +163,7 @@ class DataPolicyService(
                 fieldTransform.transformsList.fold(
                     emptySet<String>(),
                 ) { alreadySeen, transform ->
-                    transform.principalsList.toSet().let {
+                    transform.principalsList.map { it.group }.toSet().let {
                         if (alreadySeen.intersect(it).isNotEmpty()) {
                             throw BadRequestException(
                                 BadRequestException.Code.INVALID_ARGUMENT,
@@ -173,7 +172,7 @@ class DataPolicyService(
                                         listOf(
                                             BadRequest.FieldViolation.newBuilder()
                                                 .setField("fieldTransform")
-                                                .setDescription("FieldTransform ${fieldTransform.attribute.pathString()} has overlapping principals")
+                                                .setDescription("FieldTransform ${fieldTransform.field.pathString()} has overlapping principals")
                                                 .build()
                                         )
                                     )
@@ -192,7 +191,7 @@ class DataPolicyService(
                 }
             }
             // check non-overlapping attributes within one ruleset
-            ruleSet.fieldTransformsList.map { it.attribute }.fold(
+            ruleSet.fieldTransformsList.map { it.field }.fold(
                 emptySet<String>(),
             ) { alreadySeen, attribute ->
                 attribute.pathString().let {
@@ -217,7 +216,7 @@ class DataPolicyService(
         }
     }
 
-    fun getLatestDataPolicy(id: String) = dataPolicyDao.getLatestDataPolicy(id) ?: throw ResourceException(
+    fun getLatestDataPolicy(id: String): DataPolicy = dataPolicyDao.getLatestDataPolicy(id) ?: throw ResourceException(
         ResourceException.Code.NOT_FOUND,
         ResourceInfo.newBuilder()
             .setResourceType("DataPolicy")

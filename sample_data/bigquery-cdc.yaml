@@ -9,76 +9,76 @@ rule_sets:
   - target:
       fullname: "stream-machine-development.dynamic_views.cdc-diabetes-view"
     field_transforms:
-      - attribute:
-          path_components: [ HighChol ]
+      - field:
+          name_parts: [ HighChol ]
           type: integer
         transforms:
           - principals: []
             fixed:
               value:  blabla
 source:
-  attributes:
-    - path_components:
+  fields:
+    - name_parts:
         - HighBP
       type: integer
-    - path_components:
+    - name_parts:
         - HighChol
       type: integer
-    - path_components:
+    - name_parts:
         - CholCheck
       type: integer
-    - path_components:
+    - name_parts:
         - BMI
       type: integer
-    - path_components:
+    - name_parts:
         - Smoker
       type: integer
-    - path_components:
+    - name_parts:
         - Stroke
       type: integer
-    - path_components:
+    - name_parts:
         - HeartDiseaseorAttack
       type: integer
-    - path_components:
+    - name_parts:
         - PhysActivity
       type: integer
-    - path_components:
+    - name_parts:
         - Fruits
       type: integer
-    - path_components:
+    - name_parts:
         - Veggies
       type: integer
-    - path_components:
+    - name_parts:
         - HvyAlcoholConsump
       type: integer
-    - path_components:
+    - name_parts:
         - AnyHealthcare
       type: integer
-    - path_components:
+    - name_parts:
         - NoDocbcCost
       type: integer
-    - path_components:
+    - name_parts:
         - GenHlth
       type: integer
-    - path_components:
+    - name_parts:
         - MentHlth
       type: integer
-    - path_components:
+    - name_parts:
         - PhysHlth
       type: integer
-    - path_components:
+    - name_parts:
         - DiffWalk
       type: integer
-    - path_components:
+    - name_parts:
         - Sex
       type: integer
-    - path_components:
+    - name_parts:
         - Age
       type: integer
-    - path_components:
+    - name_parts:
         - Education
       type: integer
-    - path_components:
+    - name_parts:
         - Income
       type: integer
   ref: stream-machine-development.dynamic_views.cdc_diabetes

@@ -3,7 +3,7 @@ rule_sets:
       fullname: STRM.POC.GDDDEMO_V3
     filters:
       - conditions:
-          - principals: [ FRAUD_AND_RISK ]
+          - principals: [ {group: FRAUD_AND_RISK} ]
             condition: "true"
           - principals: []
             condition: "age > 8"
@@ -11,28 +11,28 @@ rule_sets:
           - principals : []
             condition: "transactionamount < 10"
     field_transforms:
-      - attribute:
-          path_components: [ userid ]
+      - field:
+          name_parts: [ userid ]
         transforms:
           - principals: [ "FRAUD_AND_RISK"]
-            identity: true
+            identity: {}
           - principals: []
             hash:
               seed: "1234"
-      - attribute:
-          path_components: [ email ]
+      - field:
+          name_parts: [ email ]
         transforms:
-          - principals: [ MARKETING ]
-            regex:
-              regex: "^.*(@.*)$"
+          - principals: [ {group: MARKETING} ]
+            regexp:
+              regexp: "^.*(@.*)$"
               replacement: "****\\\\1"
           - principals: [ FRAUD_AND_RISK]
-            identity: true
+            identity: {}
           - principals: []
             fixed:
               value: "****"
-      - attribute:
-          path_components: [ haircolor ]
+      - field:
+          name_parts: [ haircolor ]
         transforms:
           - principals: []
             sql_statement:
@@ -44,48 +44,48 @@ info:
   title: Snowflake
 source:
   ref: POC.GDDEMO
-  attributes:
-    - path_components:
+  fields:
+    - name_parts:
         - transactionid
       type: numeric
-    - path_components:
+    - name_parts:
         - userid
       tags:
         - PII
         - sensitive
       type: varchar
-    - path_components:
+    - name_parts:
         - email
       tags:
         - PII
         - sensitive
       type: varchar
-    - path_components:
+    - name_parts:
         - age
       tags:
         - sensitive
       type: numeric
-    - path_components:
+    - name_parts:
         - size
       type: varchar
-    - path_components:
+    - name_parts:
         - haircolor
       type: varchar
-    - path_components:
+    - name_parts:
         - transactionamount
       tags:
         - sensitive
       type: numeric
-    - path_components:
+    - name_parts:
         - items
       type: varchar
-    - path_components:
+    - name_parts:
         - itemcount
       type: numeric
-    - path_components:
+    - name_parts:
         - date
       type: time
-    - path_components:
+    - name_parts:
         - purpose
       type: numeric
 platform:

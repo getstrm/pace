@@ -1,7 +1,7 @@
 package com.getstrm.pace.bigquery
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.BIGQUERY
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.BIGQUERY
 import com.getstrm.pace.config.BigQueryConfig
 import com.getstrm.pace.domain.Group
 import com.getstrm.pace.domain.ProcessingPlatform

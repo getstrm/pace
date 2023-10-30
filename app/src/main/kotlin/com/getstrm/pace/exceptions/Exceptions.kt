@@ -11,6 +11,7 @@ import io.grpc.Status
 sealed class PaceStatusException(val status: Status) : Exception(status.cause) {
     companion object {
         const val BUG_REPORT = "This is a bug, please report it to https://github.com/getstrm/pace/issues/new"
+        const val UNIMPLEMENTED = "This is an unimplemented feature, please check whether a feature request is present or create a feature request: https://github.com/getstrm/pace/issues"
     }
 }
 

@@ -10,75 +10,75 @@ rule_sets:
   - target:
       fullname: "strm.poc.cdc_diabetes_view"
     field_transforms:
-      - attribute:
-          path_components: [ HighChol ]
+      - field:
+          name_parts: [ HighChol ]
         transforms:
           - principals: []
             fixed:
               value:  bla bla bla
 source:
-  attributes:
-    - path_components:
+  fields:
+    - name_parts:
         - HighBP
       type: bigint
-    - path_components:
+    - name_parts:
         - HighChol
       type: bigint
-    - path_components:
+    - name_parts:
         - CholCheck
       type: bigint
-    - path_components:
+    - name_parts:
         - BMI
       type: bigint
-    - path_components:
+    - name_parts:
         - Smoker
       type: bigint
-    - path_components:
+    - name_parts:
         - Stroke
       type: bigint
-    - path_components:
+    - name_parts:
         - HeartDiseaseorAttack
       type: bigint
-    - path_components:
+    - name_parts:
         - PhysActivity
       type: bigint
-    - path_components:
+    - name_parts:
         - Fruits
       type: bigint
-    - path_components:
+    - name_parts:
         - Veggies
       type: bigint
-    - path_components:
+    - name_parts:
         - HvyAlcoholConsump
       type: bigint
-    - path_components:
+    - name_parts:
         - AnyHealthcare
       type: bigint
-    - path_components:
+    - name_parts:
         - NoDocbcCost
       type: bigint
-    - path_components:
+    - name_parts:
         - GenHlth
       type: bigint
-    - path_components:
+    - name_parts:
         - MentHlth
       type: bigint
-    - path_components:
+    - name_parts:
         - PhysHlth
       type: bigint
-    - path_components:
+    - name_parts:
         - DiffWalk
       type: bigint
-    - path_components:
+    - name_parts:
         - Sex
       type: bigint
-    - path_components:
+    - name_parts:
         - Age
       type: bigint
-    - path_components:
+    - name_parts:
         - Education
       type: bigint
-    - path_components:
+    - name_parts:
         - Income
       type: bigint
   ref: strm.poc.cdc_diabetes

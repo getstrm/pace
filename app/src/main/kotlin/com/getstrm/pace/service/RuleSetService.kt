@@ -1,12 +1,12 @@
 package com.getstrm.pace.service
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.RuleSet
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet
 import com.getstrm.pace.dao.RuleSetsDao
 import org.springframework.stereotype.Component
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.RuleSet.FieldTransform as ApiFieldTransform
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform as ApiTransform
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.RuleSet.Filter as ApiFilter
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform as ApiFieldTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform as ApiTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter as ApiFilter
 
 @Component
 class RuleSetService(
@@ -26,10 +26,10 @@ class RuleSetService(
      * @return policy with embedded ruleset.
      */
     suspend fun addRuleSet(dataPolicy: DataPolicy): DataPolicy {
-        val fieldTransforms = dataPolicy.source.attributesList.filter { it.tagsList.isNotEmpty() }.map { attribute ->
+        val fieldTransforms = dataPolicy.source.fieldsList.filter { it.tagsList.isNotEmpty() }.map { field ->
             with(ApiFieldTransform.newBuilder()) {
-                this.attribute = attribute
-                this.addAllTransforms(attribute.tagsList.flatMap { getFieldTransforms(it) }.filterFieldTransforms())
+                this.field = field
+                this.addAllTransforms(field.tagsList.flatMap { getFieldTransforms(it) }.filterFieldTransforms())
             }.build()
         }
         val policyWithRuleSet = dataPolicy.toBuilder()
@@ -62,10 +62,10 @@ fun List<ApiTransform>.filterFieldTransforms(): List<ApiTransform> {
     ),
             /* the original ApiTransform */
             transform: ApiTransform, ->
-        val principals = transform.principalsList.toSet() - alreadySeenPrincipals
+        val principals = transform.principalsList.map { it.group }.toSet() - alreadySeenPrincipals
         val dataPolicyWithoutOverlappingPrincipals = transform.toBuilder()
             .clearPrincipals()
-            .addAllPrincipals(principals)
+            .addAllPrincipals(principals.map { DataPolicy.Principal.newBuilder().setGroup(it).build() })
             .build()
         alreadySeenPrincipals + principals to
             acc + dataPolicyWithoutOverlappingPrincipals

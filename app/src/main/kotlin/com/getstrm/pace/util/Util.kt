@@ -1,6 +1,6 @@
 package com.getstrm.pace.util
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
@@ -20,8 +20,8 @@ import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.RuleSet.FieldTransform as ApiFieldTransform
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform as ApiTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform as ApiFieldTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform as ApiTransform
 
 private val log by lazy { LoggerFactory.getLogger("Util") }
 
@@ -101,7 +101,7 @@ fun Table.toFullName() = tableId.toFullName()
 
 fun TableId.toFullName() = "$project.$dataset.$table"
 
-fun DataPolicy.Attribute.pathString() = this.pathComponentsList.joinToString()
+fun DataPolicy.Field.pathString() = this.namePartsList.joinToString(separator = ".")
 
 fun <T, Accumulator, Result> List<T>.headTailFold(
     headOperation: (T) -> Accumulator,
@@ -115,7 +115,7 @@ fun <T, Accumulator, Result> List<T>.headTailFold(
     return tailOperation(accumulator, this.last())
 }
 
-fun DataPolicy.Attribute.sqlDataType(): DataType<*> =
+fun DataPolicy.Field.sqlDataType(): DataType<*> =
     try {
         if (type.lowercase() == "struct") {
             SQLDataType.RECORD
@@ -127,7 +127,7 @@ fun DataPolicy.Attribute.sqlDataType(): DataType<*> =
         SQLDataType.VARCHAR
     }
 
-fun DataPolicy.Attribute.normalizeType(): DataPolicy.Attribute =
+fun DataPolicy.Field.normalizeType(): DataPolicy.Field =
     toBuilder().setType( sqlDataType().typeName).build()
 
 val sqlParser = DSL.using(SQLDialect.DEFAULT).parser()

@@ -1,19 +1,9 @@
 # buf.gen.yaml
 version: v1
 plugins:
-  - plugin: buf.build/protocolbuffers/go:v1.28.1
-    out: ../../pace-protos
-    opt:
-      - module=github.com/getstrm/pace-api/v1
-  - plugin: buf.build/grpc/go:v1.2.0
-    out: ../../pace-protos
-    opt:
-      - module=github.com/getstrm/pace-api/v1
-      - require_unimplemented_servers=false
   - plugin: buf.build/community/google-gnostic-openapi:v0.7.0
-    out: gen
+    out: .
     opt:
-      - paths=source_relative
       - version=0.0.42
       - title=PACE API
       - enum_type=string

@@ -1,8 +1,10 @@
 package com.getstrm.pace.bigquery
 
-import build.buf.gen.getstrm.api.data_policies.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.common.AbstractDynamicViewGenerator
-import com.getstrm.pace.common.Principal
+import com.getstrm.pace.exceptions.InternalException
+import com.getstrm.pace.exceptions.PaceStatusException
+import com.google.rpc.DebugInfo
 import org.jooq.*
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
@@ -19,14 +21,22 @@ class BigQueryDynamicViewGenerator(
      */
     private val bigQueryDsl = DSL.using(SQLDialect.MYSQL)
 
-    override fun List<Principal>.toPrincipalCondition(): Condition? {
+    override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
         return if (isEmpty()) {
             null
         } else {
             DSL.or(
                 map { principal ->
-                    DSL.condition("{0} IN ( SELECT userGroup FROM user_groups )", principal)
-            })
+                    when {
+                        principal.hasGroup() -> DSL.condition("{0} IN ( SELECT userGroup FROM user_groups )", principal.group)
+                        else -> throw InternalException(
+                            InternalException.Code.INTERNAL,
+                            DebugInfo.newBuilder()
+                                .setDetail("Principal of type ${principal.principalCase} is not supported. ${PaceStatusException.UNIMPLEMENTED}")
+                                .build()
+                        )
+                    }
+                })
         }
     }
 
