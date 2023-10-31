@@ -1,3 +1,10 @@
+# [0.1.0-alpha.5](https://github.com/getstrm/pace/compare/v0.1.0-alpha.4...v0.1.0-alpha.5) (2023-10-31)
+
+
+### Bug Fixes
+
+* buf dependency version take first tag of a commit ([690392f](https://github.com/getstrm/pace/commit/690392f15eb2662db1f41cada2fb347250efc15d))
+
 # [0.1.0-alpha.4](https://github.com/getstrm/pace/compare/v0.1.0-alpha.3...v0.1.0-alpha.4) (2023-10-31)
 
 
