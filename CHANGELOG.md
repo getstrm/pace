@@ -1,3 +1,10 @@
+# [0.1.0-alpha.6](https://github.com/getstrm/pace/compare/v0.1.0-alpha.5...v0.1.0-alpha.6) (2023-10-31)
+
+
+### Features
+
+* use buf alpha command to get the dependency version ([175092e](https://github.com/getstrm/pace/commit/175092e8d5eed7fdcefa0605c3aca14d85df83db))
+
 # [0.1.0-alpha.5](https://github.com/getstrm/pace/compare/v0.1.0-alpha.4...v0.1.0-alpha.5) (2023-10-31)
 
 
