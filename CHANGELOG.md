@@ -1,3 +1,10 @@
+# [0.1.0-alpha.3](https://github.com/getstrm/pace/compare/v0.1.0-alpha.2...v0.1.0-alpha.3) (2023-10-31)
+
+
+### Bug Fixes
+
+* buf tags should be always created; buf sdk dep version incorrect ([15746df](https://github.com/getstrm/pace/commit/15746dfef3f4e5f0f7f183f4916e57c9a40bb8bf))
+
 # [0.1.0-alpha.2](https://github.com/getstrm/pace/compare/v0.1.0-alpha.1...v0.1.0-alpha.2) (2023-10-31)
 
 
