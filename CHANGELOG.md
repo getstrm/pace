@@ -1,3 +1,10 @@
+# [0.1.0-alpha.2](https://github.com/getstrm/pace/compare/v0.1.0-alpha.1...v0.1.0-alpha.2) (2023-10-31)
+
+
+### Features
+
+* leftover ci ([0dca853](https://github.com/getstrm/pace/commit/0dca853db1e109d497c6df75ac577453635b7906))
+
 # [0.1.0-alpha.1](https://github.com/getstrm/pace/compare/v0.0.1...v0.1.0-alpha.1) (2023-10-31)
 
 
