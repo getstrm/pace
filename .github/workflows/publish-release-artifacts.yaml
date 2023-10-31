@@ -41,7 +41,7 @@ jobs:
           buf_commit_hash=$([[ ${buf_commit_hash_or_empty} = "" ]] && buf beta registry commit list --page-size 1 --reverse --format json buf.build/getstrm/pace:main | jq -r '.results[0].commit' || echo "$buf_commit_hash_or_empty")
           buf beta registry tag create "buf.build/getstrm/pace:${buf_commit_hash}" ${{ env.TAG }}
           
-          buf_dependency_version=$(buf beta registry commit list --page-size 1 --reverse --format json buf.build/getstrm/pace:main | jq -r '.results[0].tags | sort_by(.name) | .[0] | ((.create_time | split(".")[0] | gsub("[^\\d]";"")) + "." + .commit[0:12])')
+          buf_dependency_version=$(buf alpha package maven-version --module=buf.build/getstrm/pace:${{ env.TAG }} --plugin=buf.build/protocolbuffers/java:v24.4 | sed "s/24.4.0.1.//")
           echo "BUF_DEPENDENCY_VERSION=${buf_dependency_version}" >> "$GITHUB_ENV"
 
       # JVM artifact
