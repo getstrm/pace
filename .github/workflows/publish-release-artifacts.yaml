@@ -7,20 +7,7 @@ on:
       - published
 
 jobs:
-  buf-publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: bufbuild/buf-setup-action@v1
-      - name: Get tag
-        run: |
-          echo "TAG=${GITHUB_REF#refs/*/}"
-      - name: Push to BSR
-        env:
-          BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
-        run: buf push --tag ${{ env.TAG }}
-
-  container-build:
+  publish-release-artifacts:
     runs-on: ubuntu-latest
     # based on: https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers#running-jobs-directly-on-the-runner-machine
     services:
@@ -46,6 +33,7 @@ jobs:
         env:
           BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
         run: |
+          cd protos
           buf_commit_hash=$(buf push --tag ${{ env.TAG }})
           buf_commit_hash_short=$(echo $buf_commit_hash | cut -c1-12)
           echo "BUF_COMMIT_HASH=${buf_commit_hash_short}" >> "$GITHUB_ENV"

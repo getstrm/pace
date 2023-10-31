@@ -13,3 +13,7 @@ management:
   endpoint:
     prometheus:
       enabled: true
+
+logging:
+  level:
+    org.jooq.Constants: off
