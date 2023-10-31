@@ -1,15 +1,26 @@
-name: Build
+name: Publish Release Artifacts
 
 on:
   release:
     types:
-      - created
-
-permissions:
-  packages: write
+      # This triggers on both prerelease and release
+      - published
 
 jobs:
-  build-and-publish:
+  buf-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-setup-action@v1
+      - name: Get tag
+        run: |
+          echo "TAG=${GITHUB_REF#refs/*/}"
+      - name: Push to BSR
+        env:
+          BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
+        run: buf push --tag ${{ env.TAG }}
+
+  container-build:
     runs-on: ubuntu-latest
     # based on: https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers#running-jobs-directly-on-the-runner-machine
     services:
@@ -27,30 +38,33 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v4
+      - name: Get tag
+        run: |
+          echo "TAG=${GITHUB_REF#refs/*/}" >> "$GITHUB_ENV"
+      - uses: bufbuild/buf-setup-action@v1
+      - name: Push to BSR
+        env:
+          BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
+        run: |
+          buf_commit_hash=$(buf push --tag ${{ env.TAG }})
+          buf_commit_hash_short=$(echo $buf_commit_hash | cut -c1-12)
+          echo "BUF_COMMIT_HASH=${buf_commit_hash_short}" >> "$GITHUB_ENV"
+
+      # JVM artifact
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 17
       - uses: gradle/gradle-build-action@v2
-      - uses: bufbuild/buf-setup-action@v1
       - name: "Generate Proto Filedescriptor"
         # Normally generated in the Gradle prepareForDocker step, but the ciBuild flag disables that
         run: |
           cd protos
           mkdir -p ../app/build/docker
           buf build -o ../app/build/docker/descriptor.binpb
-      - run: ./gradlew prepareForDocker -PciBuild
-      - name: "Generate OpenAPI spec"
-        run: |
-          cd protos
-          buf generate
-          cp gen/openapi.yaml ../docs/.gitbook.yaml
-      - name: "Generate API Reference Docs"
-        run: |
-          cd scripts/docs
-          pip install pyyaml
-          python generate.py
-      # Docker cross platform builds
+      - run: ./gradlew prepareForDocker -PciBuild -PgeneratedBufDependencyVersion=00000000000000.${{ env.BUF_COMMIT_HASH }}
+
+      # Container artifact
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -61,11 +75,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get tag
-        run: |
-          echo "TAG=${GITHUB_REF#refs/*/}" >> "$GITHUB_ENV"
-
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5

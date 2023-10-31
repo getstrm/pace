@@ -4,11 +4,10 @@ on:
   push:
     branches-ignore:
       - "main"
+      - "alpha"
+      - "beta"
     paths-ignore:
       - "docs/**"
-
-permissions:
-  contents: write
 
 jobs:
   pr-build:
