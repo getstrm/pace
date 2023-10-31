@@ -22,6 +22,7 @@ static_resources:
                       routes:
                         - match:
                             prefix: "/"
+                            grpc: {} # Return 404 instead of 415 if no match is found
                           route: { cluster: grpc, timeout: 60s }
                 http_filters:
                   - name: envoy.filters.http.grpc_json_transcoder
