@@ -35,5 +35,4 @@ data class DatabricksConfig(
     val clientId: String,
     val clientSecret: String,
     val warehouseId: String,
-    val catalog: String,
 )

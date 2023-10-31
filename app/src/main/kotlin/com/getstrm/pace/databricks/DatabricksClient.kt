@@ -57,7 +57,7 @@ class DatabricksClient(
         val catalogNames = workspaceClient.catalogs().list().map { it.name }
         val schemas = catalogNames.flatMap { catalog -> workspaceClient.schemas().list(catalog) }
         val tableInfoList = schemas.flatMap { schema -> workspaceClient.tables().list(schema.catalogName, schema.name) }
-        return tableInfoList.filter { it.catalogName == config.catalog && it.owner != "System user" }
+        return tableInfoList.filter { it.owner != "System user" }
     }
 
     /**
