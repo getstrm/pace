@@ -1,8 +1,11 @@
 # Policy and Contract Engine
+[![release status](https://img.shields.io/badge/release_status-alpha-orange)](https://github.com/getstrm/pace/tree/alpha) [![latest release](https://img.shields.io/github/v/release/getstrm/pace?include_prereleases&label=release&logo=github)](https://github.com/getstrm/pace/releases/latest)
 
 [//]: # (TODO add shields from shields.io for build status, app version, Maven artifact [if we're going to publish to Sonatype], and Docker Image version)
 
-![pace-logo](./assets/pace-logo.svg)
+![orange-filled](./assets/svg/pace-logo-orange-filled.svg)  
+![black](./assets/svg/pace-logo-black.svg)  
+![outline](./assets/svg/pace-logo-orange-outline.svg)
 
 > PACE is the _Policy and Contract Engine_, whose goal is to ensure that data is only used by those allowed, the way it
 > was intended to be used.
@@ -41,10 +44,10 @@ are and what they're allowed to see** (3), regardless of **the data catalog** (4
 So, where and how does PACE solve these issues? PACE focuses on creating representations of data (e.g. by generating
 views), based on so-called **Data Policies**.
 
-A [**Data Policy**](protos/getstrm/pace/api/entities/v1alpha/entities.proto) is a structured (machine-readable)
-document, that aims at capturing how source data should be presented to various principals (i.e. a data accessor), and
-which transformations should be applied to the data, to create a representation of the source data on the hosting data
-processing platform.
+A [**Data Policy**](https://github.com/getstrm/pace/blob/alpha/protos/getstrm/pace/api/entities/v1alpha/entities.proto)
+is a structured (machine-readable) document, that aims at capturing how source data should be presented to various
+principals (i.e. a data accessor), and which transformations should be applied to the data, to create a representation
+of the source data on the hosting data processing platform.
 
 Data Policies are constructed by retrieving the data schema (the structure of the data) from either a data catalog or a
 data processing platform. Next, various rule sets can be created, that determine how source data is transformed and/or
@@ -56,3 +59,4 @@ team.
 > to https://pace.getstrm.com to see how we can help you!
 
 Go to the [docs](https://pace.getstrm.com/docs) to learn how to get started!
+
