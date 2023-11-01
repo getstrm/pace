@@ -50,13 +50,13 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/gradle-build-action@v2
+      - run: ./gradlew prepareForDocker -PciBuild -PgeneratedBufDependencyVersion=${{ env.BUF_DEPENDENCY_VERSION }}
       - name: "Generate Proto Filedescriptor"
         # Normally generated in the Gradle prepareForDocker step, but the ciBuild flag disables that
         run: |
           cd protos
           mkdir -p ../app/build/docker
           buf build -o ../app/build/docker/descriptor.binpb
-      - run: ./gradlew prepareForDocker -PciBuild -PgeneratedBufDependencyVersion=${{ env.BUF_DEPENDENCY_VERSION }}
 
       # Container artifact
       - name: Set up QEMU
