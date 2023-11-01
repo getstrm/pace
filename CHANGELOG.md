@@ -1,3 +1,10 @@
+# [0.1.0-alpha.7](https://github.com/getstrm/pace/compare/v0.1.0-alpha.6...v0.1.0-alpha.7) (2023-11-01)
+
+
+### Bug Fixes
+
+* only create a proto descriptor through Gradle when not running in CI ([2e5ed6c](https://github.com/getstrm/pace/commit/2e5ed6c367807870d7a164cd74d337feb68fc5cb))
+
 # [0.1.0-alpha.6](https://github.com/getstrm/pace/compare/v0.1.0-alpha.5...v0.1.0-alpha.6) (2023-10-31)
 
 
