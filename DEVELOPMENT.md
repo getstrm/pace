@@ -7,6 +7,5 @@
    and run a local docker image.
 
 ## gRPC / REST API
-
 [//]: # (TODO explain how we use gRPC / Protobuf and how we facilitate a REST API on top of that)
 [//]: # (TODO explain that we use Google API standards)
