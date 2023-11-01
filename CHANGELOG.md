@@ -1,3 +1,10 @@
+# [0.1.0-alpha.10](https://github.com/getstrm/pace/compare/v0.1.0-alpha.9...v0.1.0-alpha.10) (2023-11-01)
+
+
+### Bug Fixes
+
+* various image related issues ([cb6c9bc](https://github.com/getstrm/pace/commit/cb6c9bceb537db41ecb9f4571d808b830e3d9ab0))
+
 # [0.1.0-alpha.9](https://github.com/getstrm/pace/compare/v0.1.0-alpha.8...v0.1.0-alpha.9) (2023-11-01)
 
 
