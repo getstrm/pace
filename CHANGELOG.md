@@ -1,3 +1,10 @@
+# [0.1.0-alpha.9](https://github.com/getstrm/pace/compare/v0.1.0-alpha.8...v0.1.0-alpha.9) (2023-11-01)
+
+
+### Bug Fixes
+
+* use correct github token ([24d2231](https://github.com/getstrm/pace/commit/24d2231781002e4b8a768d1686476de46ccb14f1))
+
 # [0.1.0-alpha.8](https://github.com/getstrm/pace/compare/v0.1.0-alpha.7...v0.1.0-alpha.8) (2023-11-01)
 
 
