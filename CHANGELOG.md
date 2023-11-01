@@ -1,3 +1,11 @@
+# [1.0.0-alpha.3](https://github.com/getstrm/pace/compare/v1.0.0-alpha.2...v1.0.0-alpha.3) (2023-11-01)
+
+
+### Bug Fixes
+
+* remove unwanted spring.config.import ([9f33dfb](https://github.com/getstrm/pace/commit/9f33dfb0a8e79c77b17ee7e6d6ec0c459699e761))
+* remove unwanted spring.config.import ([48e6e2a](https://github.com/getstrm/pace/commit/48e6e2aba672b0c298ed2786be6c0a2193b661e2))
+
 # [1.0.0-alpha.2](https://github.com/getstrm/pace/compare/v1.0.0-alpha.1...v1.0.0-alpha.2) (2023-11-01)
 
 
