@@ -1,0 +1,26 @@
+name: Docs
+
+on:
+  push:
+    branches:
+      - main
+      - alpha
+      - beta
+
+jobs:
+  publish_docs:
+    runs-on: ubuntu-latest
+    if: "contains(github.event.head_commit.message, 'chore(release)')"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-setup-action@v1
+      - name: "Generate OpenAPI spec"
+        run: |
+          cd protos
+          buf generate
+          cp openapi.yaml ../docs/.gitbook.yaml
+      - name: "Generate API Reference Docs"
+        run: |
+          cd scripts/docs
+          pip install pyyaml
+          python generate.py

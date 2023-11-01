@@ -1,0 +1,45 @@
+
+query TableWithColumns($id: UUID!) {
+    tables: assets(
+        where: {id: {eq: $id}}
+    ) {
+        displayName
+
+        schema: incomingRelations(where: {source: {type: {publicId: {eq: "Schema"}}}}) {
+            schemaDetails: source {
+                displayName
+
+                database: incomingRelations(
+                    where: {source: {type: {publicId: {eq: "Database"}}}}
+                ) {
+                    databaseDetails: source {
+                        displayName
+                        domain {
+                            name
+                        }
+                    }
+                }
+            }
+        }
+        columns: incomingRelations(
+            # TODO we need handle paging!
+            limit: 400,
+            where: {type: {publicId: {eq: "ColumnIsPartOfTable"}}}
+        ) {
+            columnDetails: source {
+                displayName
+                dataType: stringAttributes(
+                    where: {type: {name: {eq: "Technical Data Type"}}}
+                ) {
+                    value: stringValue
+                }
+                tags {
+                    name
+                }
+
+
+
+            }
+        }
+    }
+}

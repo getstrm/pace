@@ -1,0 +1,68 @@
+admin:
+  address:
+    socket_address: { address: 0.0.0.0, port_value: 9000 }
+
+static_resources:
+  listeners:
+    - name: listener1
+      address:
+        socket_address: { address: 0.0.0.0, port_value: 9090 }
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: grpc_json
+                codec_type: AUTO
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: local_service
+                      domains: [ "*" ]
+                      routes:
+                        - match:
+                            prefix: "/"
+                            grpc: {} # Return 404 instead of 415 if no match is found
+                          route: { cluster: grpc, timeout: 60s }
+                http_filters:
+                  - name: envoy.filters.http.grpc_json_transcoder
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_json_transcoder.v3.GrpcJsonTranscoder
+                      proto_descriptor: "/tmp/envoy/descriptor.binpb"
+                      # Note: Make sure to update this list when adding new services!
+                      services:
+                        - "getstrm.pace.api.data_catalogs.v1alpha.DataCatalogsService"
+                        - "getstrm.pace.api.data_policies.v1alpha.DataPoliciesService"
+                        - "getstrm.pace.api.processing_platforms.v1alpha.ProcessingPlatformsService"
+                      auto_mapping: false
+                      convert_grpc_status: true
+                      request_validation_options:
+                        reject_unknown_method: true
+                      print_options:
+                        add_whitespace: false
+                        always_print_primitive_fields: true
+                        always_print_enums_as_ints: false
+                        preserve_proto_field_names: false
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+  clusters:
+    - name: grpc
+      type: LOGICAL_DNS
+      lb_policy: ROUND_ROBIN
+      dns_lookup_family: V4_ONLY
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options: { }
+      load_assignment:
+        cluster_name: grpc
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: host.docker.internal
+                      port_value: 50051

@@ -1,0 +1,20 @@
+version: v1
+name: buf.build/getstrm/pace
+deps:
+  - buf.build/googleapis/googleapis
+  - buf.build/bufbuild/protovalidate
+breaking:
+  use:
+    - FILE
+    - WIRE
+  ignore_unstable_packages: true
+lint:
+  use:
+    - DEFAULT
+  except:
+    # Prefer the Google approach, where you only have to prefix the UNSPECIFIED enum value with the enum name.
+    - ENUM_VALUE_PREFIX
+  ignore:
+    # Don't lint Google proto files
+    - google
+    - grpc

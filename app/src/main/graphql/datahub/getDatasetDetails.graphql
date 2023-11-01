@@ -1,0 +1,97 @@
+query getDatasetDetails($datasetUrn:String!) {
+  dataset(urn: $datasetUrn) {
+    urn
+    type
+    lastIngested
+    platform {
+      urn
+      name
+      type
+      properties{
+        displayName
+        type
+        logoUrl
+
+      }
+    }
+    container {
+      urn
+    }
+    parentContainers {
+      containers {
+        urn
+      }
+    }
+    properties {
+      name
+      origin
+      customProperties {
+        key
+        value
+        associatedUrn
+      }
+    }
+    editableProperties {
+      description
+    }
+    editableSchemaMetadata {
+      editableSchemaFieldInfo {
+        fieldPath
+        tags {
+          tags {
+            tag {
+              urn
+              properties {
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+    schemaMetadata {
+      version
+      fields {
+        fieldPath
+        type
+        nullable
+        tags {
+          tags {
+            tag {
+              urn
+              properties {
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+    status {
+      removed
+    }
+    embed {
+      renderUrl
+    }
+    tags {
+      tags {
+        tag {
+          urn
+          properties {
+            name
+          }
+        }
+      }
+    }
+    glossaryTerms {
+      terms {
+        term {
+          urn
+        }
+      }
+    }
+    dataPlatformInstance {
+      urn
+    }
+  }
+}

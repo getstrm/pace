@@ -1,0 +1,9 @@
+# buf.gen.yaml
+version: v1
+plugins:
+  - plugin: buf.build/community/google-gnostic-openapi:v0.7.0
+    out: .
+    opt:
+      - version=0.1.0-alpha.10
+      - title=PACE API
+      - enum_type=string

@@ -1,0 +1,92 @@
+name: Publish Release Artifacts
+
+on:
+  release:
+    types:
+      # This triggers on both prerelease and release
+      - published
+
+jobs:
+  publish-release-artifacts:
+    runs-on: ubuntu-latest
+    # based on: https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers#running-jobs-directly-on-the-runner-machine
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get tag
+        run: |
+          echo "TAG=${GITHUB_REF#refs/*/}" >> "$GITHUB_ENV"
+      - uses: bufbuild/buf-setup-action@v1
+      - name: Push to BSR
+        env:
+          BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
+        # Due to this issue (https://github.com/bufbuild/buf/issues/1621) in buf, no tag is created if the proto files are not changed
+        # To keep the BSR tags in sync with our git repo, we manually add every tag
+        # Furthermore, the buf_dependency_version needs to be constructed from the latest commit that is tagged, as that's how the BSR SDK dependency versions are constructed
+        run: |
+          cd protos
+          buf_commit_hash_or_empty=$(buf push)
+          buf_commit_hash=$([[ ${buf_commit_hash_or_empty} = "" ]] && buf beta registry commit list --page-size 1 --reverse --format json buf.build/getstrm/pace:main | jq -r '.results[0].commit' || echo "$buf_commit_hash_or_empty")
+          buf beta registry tag create "buf.build/getstrm/pace:${buf_commit_hash}" ${{ env.TAG }}
+          
+          buf_dependency_version=$(buf alpha package maven-version --module=buf.build/getstrm/pace:${{ env.TAG }} --plugin=buf.build/protocolbuffers/java:v24.4 | sed "s/24.4.0.1.//")
+          echo "BUF_DEPENDENCY_VERSION=${buf_dependency_version}" >> "$GITHUB_ENV"
+
+      # JVM artifact
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/gradle-build-action@v2
+      - name: "Generate Proto Filedescriptor"
+        # Normally generated in the Gradle prepareForDocker step, but the ciBuild flag disables that
+        run: |
+          cd protos
+          mkdir -p ../app/build/docker
+          buf build -o ../app/build/docker/descriptor.binpb
+      - run: ./gradlew prepareForDocker -PciBuild -PgeneratedBufDependencyVersion=${{ env.BUF_DEPENDENCY_VERSION }}
+
+      # Container artifact
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        env:
+          BUILDX_NO_DEFAULT_ATTESTATIONS: 1
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.BOT_USERNAME }}
+          password: ${{ secrets.GH_TOKEN }}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: "ghcr.io/getstrm/pace"
+          tags: |
+            type=semver,pattern={{major}}.{{minor}}.{{patch}},value=${{ env.TAG }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ env.TAG }}
+            type=semver,pattern={{major}},value=${{ env.TAG }}
+            type=sha   
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: app/build/docker
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

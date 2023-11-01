@@ -1,0 +1,83 @@
+# Table, Column, Schema, Database
+query ListPhysicalDataAssets($assetType: String!) {
+    assets(
+        where: {domain: {type: {publicId: {eq: "PhysicalDataDictionary"}}}, type: {publicId: {eq: $assetType}}}
+    ) {
+        id
+        displayName
+        fullName
+        domain {
+            name
+            parent {
+                name
+            }
+        }
+        assetType: type {
+            publicId
+        }
+        stringAttributes {
+            stringValue
+            type {
+                publicId
+            }
+        }
+    }
+}
+
+query ListDatabases {
+    assets(
+        where: {domain: {type: {publicId: {eq: "PhysicalDataDictionary"}}}, type: {publicId: {eq: "Database"}}}
+    ) {
+        displayName
+        fullName
+        id
+        domain {
+            name
+        }
+
+
+    }
+}
+
+query ListTablesInSchema($schemaId: UUID!) {
+    assets(
+        limit: 1
+        where: {id: {eq: $schemaId}, domain: {type: {publicId: {eq: "PhysicalDataDictionary"}}}, type: {publicId: {eq: "Schema"}}}
+    ) {
+        displayName
+        fullName
+        stringAttributes {
+            stringValue
+            type {
+                publicId
+            }
+        }
+        tables: outgoingRelations(where: {target: {type: {publicId: {eq: "Table"}}}}) {
+            target {
+                id
+                fullName
+                displayName
+            }
+        }
+    }
+}
+
+query ListSchemaIds($databaseId: UUID!) {
+    assets(
+        where: {domain: {type: {publicId: {eq: "PhysicalDataDictionary"}}}, id: {eq: $databaseId}, type: {publicId: {eq: "Database"}}}
+    ) {
+        id
+        displayName
+        fullName
+        schemas: outgoingRelations(
+            where: {target: {type: {publicId: {eq: "Schema"}}}}
+        ) {
+            target {
+                id
+                fullName
+                displayName
+            }
+        }
+    }
+}
+

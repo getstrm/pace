@@ -1,0 +1,10 @@
+query listDatasets($start: Int!, $count: Int!) {
+    search(input: {type: DATASET, query: "", start: $start, count: $count }) {
+        total
+        searchResults {
+            entity {
+                urn
+            }
+        }
+    }
+}

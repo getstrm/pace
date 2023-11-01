@@ -1,0 +1,16 @@
+.idea
+target
+
+node_modules
+
+out/
+
+/.gradle/
+/build/
+/app/build/
+output/
+
+app/src/main/resources/application-local.yaml
+
+*.binpb
+protos/openapi.yaml

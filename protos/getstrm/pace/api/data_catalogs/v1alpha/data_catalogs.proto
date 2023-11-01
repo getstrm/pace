@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package getstrm.pace.api.data_catalogs.v1alpha;
+import "getstrm/pace/api/entities/v1alpha/entities.proto";
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/getstrm/pace/protos/data_catalogs;data_catalogs";
+option java_package = "com.getstrm.pace.api.data_catalogs.v1alpha";
+option java_multiple_files = true;
+
+service DataCatalogsService {
+    // Lists all configured catalogs.
+    rpc ListCatalogs (ListCatalogsRequest) returns (ListCatalogsResponse) {
+        option (google.api.http) = {
+            get: "/catalogs"
+        };
+    };
+    // Lists all databases for the given catalog.
+    rpc ListDatabases (ListDatabasesRequest) returns (ListDatabasesResponse) {
+        option (google.api.http) = {
+            get: "/catalogs/{catalog_id}/databases"
+        };
+    }
+    // Lists all schemas for the given database.
+    rpc ListSchemas (ListSchemasRequest) returns (ListSchemasResponse) {
+        option (google.api.http) = {
+            get: "/catalogs/{catalog_id}/databases/{database_id}/schemas"
+        };
+    }
+    // Lists all tables for the given schema.
+    rpc ListTables (ListTablesRequest) returns (ListTablesResponse) {
+        option (google.api.http) = {
+            get: "/catalogs/{catalog_id}/databases/{database_id}/schemas/{schema_id}/tables"
+        };
+    };
+    // Returns a data policy without any rule sets, based on the given table's data structure in the catalog.
+    // Extend this bare policy with field transforms and/or rule sets to create a complete data policy.
+    // Use the UpsertDataPolicy endpoint to save and enforce the policy.
+    rpc GetBarePolicy (GetBarePolicyRequest) returns (GetBarePolicyResponse) {
+        option (google.api.http) = {
+            get: "/catalogs/{catalog_id}/databases/{database_id}/schemas/{schema_id}/tables/{table_id}/bare-policy"
+        };
+    };
+}
+
+message GetBarePolicyRequest {
+    string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
+    string database_id = 2 [(buf.validate.field).string = {min_len: 1}];
+    string schema_id = 3 [(buf.validate.field).string = {min_len: 1}];
+    string table_id = 4 [(buf.validate.field).string = {min_len: 1}];
+}
+
+message GetBarePolicyResponse {
+    entities.v1alpha.DataPolicy data_policy = 1;
+}
+
+message ListCatalogsRequest {
+}
+
+message ListCatalogsResponse {
+    repeated entities.v1alpha.DataCatalog catalogs = 1;
+}
+
+message ListDatabasesRequest {
+    string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
+}
+
+message ListDatabasesResponse {
+    repeated entities.v1alpha.DataCatalog.Database databases = 1;
+}
+
+message ListSchemasRequest {
+    string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
+    string database_id = 2 [(buf.validate.field).string = {min_len: 1}];
+}
+
+// (-- api-linter: core::0158::response-plural-first-field=disabled
+//     aip.dev/not-precedent: Schemata? Get real. --)
+message ListSchemasResponse {
+    repeated entities.v1alpha.DataCatalog.Schema schemas = 1;
+}
+
+message ListTablesRequest {
+    string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
+    string database_id = 2 [(buf.validate.field).string = {min_len: 1}];
+    string schema_id = 3 [(buf.validate.field).string = {min_len: 1}];
+}
+
+message ListTablesResponse {
+    repeated entities.v1alpha.DataCatalog.Table tables = 1;
+}

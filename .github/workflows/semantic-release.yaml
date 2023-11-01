@@ -1,0 +1,35 @@
+name: Semantic Release
+
+on:
+  push:
+    branches:
+      - "main"
+      - "alpha"
+      - "beta"
+
+jobs:
+  semantic-release:
+    name: Release
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'chore(release)')"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          # Ensure that the GH Actions default token isn't configured for git access, which intervenes with the semantic-release process.
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm i --non-interactive --pure-lockfile
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GIT_AUTHOR_NAME: ${{ secrets.BOT_USERNAME }}
+          GIT_COMMITTER_NAME: ${{ secrets.BOT_USERNAME }}
+          GIT_AUTHOR_EMAIL: ${{ secrets.BOT_EMAIL }}
+          GIT_COMMITTER_EMAIL: ${{ secrets.BOT_EMAIL }}
+        run: npm run semantic-release -- --repository-url "$(git config --get remote.origin.url)"
