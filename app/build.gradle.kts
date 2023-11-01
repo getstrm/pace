@@ -112,7 +112,7 @@ kotlin {
 }
 
 tasks.named<BootJar>("bootJar") {
-    mainClass =  "com.getstrm.pace.PaceApplicationKt"
+    mainClass = "com.getstrm.pace.PaceApplicationKt"
     manifest {
         attributes["Implementation-Title"] = "Policy and Contract Engine"
         attributes["Implementation-Version"] = version
@@ -262,18 +262,16 @@ fun Task.setFakeOutputFileIn(path: Directory) {
 val createProtoDescriptor =
     tasks.register<Exec>("createProtoDescriptor") {
         group = "docker"
-        if (rootProject.ext.has("ciBuild")) {
-            workingDir("$rootDir/generated")
-            commandLine("cp", "descriptor.binpb", "$projectDir/build/docker/descriptor.binpb")
-        } else {
-            workingDir("$rootDir/protos")
-            commandLine(
-                "buf",
-                "build",
-                "-o",
-                "$projectDir/build/docker/descriptor.binpb"
-            )
-        }
+        workingDir("$rootDir/protos")
+        commandLine(
+            "buf",
+            "build",
+            "-o",
+            "$projectDir/build/docker/descriptor.binpb"
+        )
+
+        // prevent creating a proto descriptor via Gradle build (done manually in CI)
+        onlyIf { !(rootProject.ext.has("ciBuild")) }
     }
 
 val copyDocker =
