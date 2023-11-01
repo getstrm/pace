@@ -1,3 +1,10 @@
+# [1.0.0-alpha.4](https://github.com/getstrm/pace/compare/v1.0.0-alpha.3...v1.0.0-alpha.4) (2023-11-01)
+
+
+### Bug Fixes
+
+* ensure that descriptor.binpb is created after gradle build ([d5dc32d](https://github.com/getstrm/pace/commit/d5dc32da59f3dd3a5dbeadd33187e1194ba8c27c))
+
 # [1.0.0-alpha.3](https://github.com/getstrm/pace/compare/v1.0.0-alpha.2...v1.0.0-alpha.3) (2023-11-01)
 
 
