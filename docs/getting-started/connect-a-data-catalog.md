@@ -4,7 +4,7 @@ description: How PACE connects to 0 or more data catalogs.
 
 # Connect a Data Catalog
 
-PACE can connect to various data catalogs, to retrieve the meta information that these contain about tables. Currently supported are [Collibra](https://www.collibra.com/us/en/resources/enterprise-data-catalogs), [Datahub](https://datahubproject.io/) and [Open Data Discovery](https://opendatadiscovery.org/). The [data-catalog-integrations](../reference/data-catalog-integrations/ "mention")section goes into details about how we use their information.
+PACE can connect to various data catalogs, to retrieve the meta information that these contain about tables. Currently supported are [Collibra](https://www.collibra.com/us/en/resources/enterprise-data-catalogs), [Datahub](https://datahubproject.io/) and [Open Data Discovery](https://opendatadiscovery.org/). The [data-catalog-integrations.md](../reference/data-catalog-integrations.md "mention")section goes into details about how we use their information.
 
 
 

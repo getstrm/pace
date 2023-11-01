@@ -19,10 +19,7 @@
 
 ## Reference
 
-* [Data Catalog Integrations](reference/data-catalog-integrations/README.md)
-  * [Collibra](reference/data-catalog-integrations/collibra.md)
-  * [Datahub](reference/data-catalog-integrations/datahub.md)
-  * [Open Data Discovery (ODD)](reference/data-catalog-integrations/open-data-discovery-odd.md)
+* [Data Catalog Integrations](reference/data-catalog-integrations.md)
 * [Processing Platform Integrations](reference/processing-platform-integrations/README.md)
   * [BigQuery](reference/processing-platform-integrations/bigquery.md)
   * [Databricks](reference/processing-platform-integrations/databricks.md)

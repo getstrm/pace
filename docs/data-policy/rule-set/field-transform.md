@@ -164,7 +164,9 @@ Below you will find raw data and sample outputs for different sets of principals
 | 456    | bob@company.com  | Lenovo  |
 | 789    | carol@domain.com | HP      |
 {% endtab %}
+{% endtabs %}
 
+{% tabs %}
 {% tab title="[ F&R ]" %}
 | userId | email            | brand |
 | ------ | ---------------- | ----- |

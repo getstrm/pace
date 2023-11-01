@@ -8,7 +8,7 @@ description: Condition based row filtering
 
 When you have dataset that includes, for example, both large and small transactions, you might only want the _Fraud and Risk_ [`Principal`](../principals.md) to be able to see these large transactions. We defined row based filtering. Each `Filter` contains a list of `Condition` and each condition consists of a list of `Principal` and the actual condition.
 
-Similar to [`Field Transform`](field-transform.md), the list of `Principal` defines to which groups of users the `Filter` must be applied. The condition is a _SQL expression_ that should match the specified [`Processing Platform`](../../reference/processing-platform-integrations/)'s syntax. If the condition evaluates to true, the set of `Principal` is allowed to view the data, else the rows are omitted in the resulting view.
+Similar to [`Field Transform`](field-transform.md), the list of `Principal` defines to which groups of users the `Filter` must be applied. The condition is a _SQL expression_ that should match the specified [`Processing Platform`](../../reference/processing-platform-integrations/)'s syntax. In contrast to `Field Transforms`, where each transform is defined for exactly one field, the filter conditions can contain logic regarding multiple fields. If the condition evaluates to true, the set of `Principal` is allowed to view the data, else the rows are omitted in the resulting view.
 
 Every `Filter` should at least contain one `Condition` without any `Principal`, defined as last item in the list. This `Condition` acts as the default or fallback filter.
 
@@ -49,10 +49,10 @@ filters:
 | 3             | 5000              | 24  |
 | 4             | 50                | 24  |
 | 5             | 2000              | 17  |
-
-
 {% endtab %}
+{% endtabs %}
 
+{% tabs %}
 {% tab title="[ F&R ]" %}
 | transactionId | transactionAmount | age |
 | ------------- | ----------------- | --- |
