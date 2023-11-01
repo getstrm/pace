@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - alpha # change this to the branch we're actively working on, as Gitbook can only sync from a single branch
+    paths-ignore:
+      - "docs/**"
 
 jobs:
   publish_docs:
