@@ -6,7 +6,7 @@ description: Complete walkthrough of creating a Data Policy
 
 ## Introduction
 
-For this section, we assume you have either created a connection to a [`Processing Platform`](../reference/processing-platform-integrations/) or a [`Data Catalog`](../reference/data-catalog-integrations.md) or you are familiar with the structure of your source data. You will, naturally, also need to have an instance of `PACE` running. We give a step-by-step walkthrough on how to create a `Data Policy`.&#x20;
+For this section, we assume you have either created a connection to a [`Processing Platform`](../reference/processing-platform-integrations/) or a [`Data Catalog`](../reference/data-catalog-integrations/) or you are familiar with the structure of your source data. You will, naturally, also need to have an instance of `PACE` running. We give a step-by-step walkthrough on how to create a `Data Policy`.&#x20;
 
 ## Source Data
 

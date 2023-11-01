@@ -19,7 +19,7 @@
 
 ## Reference
 
-* [Data Catalog Integrations](reference/data-catalog-integrations.md)
+* [Data Catalog Integrations](reference/data-catalog-integrations/README.md)
 * [Processing Platform Integrations](reference/processing-platform-integrations/README.md)
   * [BigQuery](reference/processing-platform-integrations/bigquery.md)
   * [Databricks](reference/processing-platform-integrations/databricks.md)

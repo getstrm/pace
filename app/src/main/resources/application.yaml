@@ -1,6 +1,4 @@
 spring:
-  config:
-    import: file:///Users/trietsch/banana/
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/pace

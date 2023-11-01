@@ -1,17 +1,83 @@
 ---
-description: TODO 🫶🏽
+description: Connecting PACE to a Snowflake database
 ---
 
 # Snowflake
 
-* id: chosen string identifier unique within organization for specific platform
-* server Url: `https://<WORKSPACE>.snowflakecomputing.com`
-* database: Name of the database
-* warehouse: the compute warehouse
-* username: username of the user with sufficient roles
-* account name:  `AB01234`
-* organization name: Identifier of the organization
+## Key pair creation and user privileges
 
-authentication:
+PACE translates Data Policies to Snowflake views. A few steps are required to connect a PACE instance with a Databricks database. First, a public/private key pair must be created. Then, a new user and role must be created in Snowflake.
 
-* snowflake private key saved to `processing-platforms/snowflake/daps-snowflake-private-key.p8`
+{% hint style="info" %}
+PACE currently expects the private key file's path to be passed as a property, and the file itself to be available on the classpath. We are working on an easier approach.
+{% endhint %}
+
+To create a key pair, start with the private key:
+
+{% code overflow="wrap" %}
+```bash
+openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out pace-snowflake-private-key.p8 -nocrypt
+```
+{% endcode %}
+
+Then, create a public key for this private key:
+
+{% code overflow="wrap" %}
+```bash
+openssl rsa -in pace-snowflake-private-key.p8 -pubout -out pace-snowflake-public-key.pub
+```
+{% endcode %}
+
+Now, create a new user (e.g. `pace_user`) in snowflake, with this public key:
+
+```sql
+create user pace_user rsa_public_key = '<key here>';
+```
+
+Next, we recommend creating a dedicated role for the PACE user. Provide this role with `usage` privileges on the desired warehouse, as well as all relevant databases and schemas, and `select` privileges on all **source** tables (i.e. tables for which Data Policies are to be created). Grant the right to `create view`s on all desired **target** schemas. For example:
+
+```sql
+create role pace;
+grant role pace to user pace_user;
+alter user pace_user set default_role = pace;
+grant usage on warehouse compute_wh to role pace;
+grant usage on database pace_db to role pace;
+grant usage on all schemas in database pace_db to role pace;
+grant select on all tables in database pace_db to role pace;
+grant create view on schema public to role pace;
+```
+
+## PACE application properties
+
+After following the above steps, provide the corresponding configuration to the PACE application for each Snowflake database you want to connect with.
+
+{% hint style="info" %}
+PACE currently supports a single database per configuration. Apart from the `id` and `database` properties though, the remaining properties can be reused across configs.
+{% endhint %}
+
+For example:
+
+```yaml
+app:
+  processing-platforms:
+    snowflake:
+      - id: "snowflake-pace"
+        serverUrl: "https://<account-locater>.snowflakecomputing.com"
+        database: "MY_DATABASE"
+        warehouse: "COMPUTE_WH"
+        userName: "pace_user"
+        accountName: "AB12345"
+        organizationName: "ABCDEFG"
+        privateKeyPath: "processing-platforms/pace-snowflake-private-key.p8"
+```
+
+The properties are expected to contain the following:
+
+* `id`: an arbitrary identifier unique within your organization for the specific platform (Snowflake).
+* `serverUrl`: the full url pointing to your Snowflake instance, typically ending with `snowflakecomputing.com`.
+* `database`: name of the database.
+* `warehouse`: the compute warehouse to use for all operations (listing tables, creating views).
+* `userName`: name of the user to be used by PACE.
+* `accountName`: the name of the account to be used, typically of the form `AB12345`.
+* `organizationName`: the name (id) of the organization that owns the account.
+* `privateKeyPath`: the path to a classpath resource containing the private key of the PACE user.
