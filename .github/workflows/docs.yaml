@@ -3,9 +3,7 @@ name: Docs
 on:
   push:
     branches:
-      - main
-      - alpha
-      - beta
+      - alpha # change this to the branch we're actively working on, as Gitbook can only sync from a single branch
 
 jobs:
   publish_docs:
@@ -23,4 +21,4 @@ jobs:
         run: |
           cd scripts/docs
           pip install pyyaml
-          python generate.py
+          python gendocs.py
