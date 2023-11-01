@@ -10,13 +10,66 @@ The first step to defining a `Data Policy` is knowing what your source data look
 
 ### Bare Policy
 
-Below we will talk about getting a _bare policy_. A _bare policy_ is a `Data Policy` where only the source fields are populated. This serves as a starting point for defining the rest of the `Data Policy`.&#x20;
+Below we will talk about getting a _bare policy_. A _bare policy_ is a `Data Policy` where only the source ref and fields are populated. This serves as a starting point for defining the rest of the `Data Policy`.&#x20;
 
 ### Sample Bare Policy
 
-A bare policy consists of metadata such as a title, version, create time and last updated time as well as user defined tags. It has information about the processing platform, being its type and the configured id. But most importantly it contains the fields, or schema, of the source data. Each field consists of an array of `name_parts`, which is the path to field and contains only one entry for columnar/flat data. Furthermore, it contains the type, whether or not it is a required field and user defined tags. Lastly the source section contains a reference to the source table and again user defined tags for the source.
+A bare policy consists of metadata such as a _title_, _version_, _create time_ and _last updated time_ as well as user defined _tags_. It has information about the processing platform, being its type and the configured id. But most importantly it contains the fields, or schema, of the source data. Each field consists of an array of `name_parts`, which is the path to field and typically contains only one entry for columnar/flat data. Furthermore, it contains the type, whether or not it is a required field and user defined tags. Lastly the source section contains a reference to the source table and again user defined tags for the source.
 
 {% tabs %}
+{% tab title="YAML" %}
+{% code lineNumbers="true" %}
+```yaml
+data_policy:
+  rule_sets: []
+  id: ""
+  metadata:
+    tags: []
+    title: SCHEMA.TABLE
+    version: ""
+    create_time: null
+    update_time: null
+  source:
+    fields:
+      - name_parts:
+          - TRANSACTIONID
+        tags: []
+        type: NUMBER(38,0)
+        required: true
+      - name_parts:
+          - USERID
+        tags: []
+        type: VARCHAR(16777216)
+        required: true
+      - name_parts:
+          - EMAIL
+        tags: []
+        type: VARCHAR(16777216)
+        required: true
+      - name_parts:
+          - AGE
+        tags: []
+        type: NUMBER(38,0)
+        required: true
+      - name_parts:
+          - BRAND
+        tags: []
+        type: VARCHAR(16777216)
+        required: true
+      - name_parts:
+          - TRANSACTIONAMOUNT
+        tags: []
+        type: NUMBER(38,0)
+        required: true
+    tags: []
+    ref: SCHEMA.TABLE
+  platform:
+    platform_type: SNOWFLAKE
+    id: snowflake-demo-connection
+```
+{% endcode %}
+{% endtab %}
+
 {% tab title="JSON" %}
 {% code lineNumbers="true" %}
 ```json
@@ -91,59 +144,6 @@ A bare policy consists of metadata such as a title, version, create time and las
         }
     }
 }
-```
-{% endcode %}
-{% endtab %}
-
-{% tab title="YAML" %}
-{% code lineNumbers="true" %}
-```yaml
-data_policy:
-  rule_sets: []
-  id: ""
-  metadata:
-    tags: []
-    title: SCHEMA.TABLE
-    version: ""
-    create_time: null
-    update_time: null
-  source:
-    fields:
-      - name_parts:
-          - TRANSACTIONID
-        tags: []
-        type: NUMBER(38,0)
-        required: true
-      - name_parts:
-          - USERID
-        tags: []
-        type: VARCHAR(16777216)
-        required: true
-      - name_parts:
-          - EMAIL
-        tags: []
-        type: VARCHAR(16777216)
-        required: true
-      - name_parts:
-          - AGE
-        tags: []
-        type: NUMBER(38,0)
-        required: true
-      - name_parts:
-          - BRAND
-        tags: []
-        type: VARCHAR(16777216)
-        required: true
-      - name_parts:
-          - TRANSACTIONAMOUNT
-        tags: []
-        type: NUMBER(38,0)
-        required: true
-    tags: []
-    ref: SCHEMA.TABLE
-  platform:
-    platform_type: SNOWFLAKE
-    id: snowflake-demo-connection
 ```
 {% endcode %}
 {% endtab %}

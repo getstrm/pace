@@ -6,5 +6,6 @@ The `Full Name` is the full and unique name to be used in the target platform. F
 ```yaml
 rule_sets:
   - target:
+      target: "SQL_VIEW"
       fullname: "SCHEMA.VIEW_NAME"
 ```

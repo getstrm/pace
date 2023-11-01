@@ -18,6 +18,9 @@ Note that the order of the Condition in the policy matters. That is, if you are 
 
 ## Example Filter
 
+{% tabs %}
+{% tab title="YAML" %}
+{% code lineNumbers="true" %}
 ```yaml
 filters:
   - conditions:
@@ -27,16 +30,19 @@ filters:
     - principals: []
       condition: "age > 18"
   - conditions:
-      - principals:
-        - group: "MKTNG"
+    - principals:
+      - group: "MKTNG"
       condition: "true"
-      - principals:
-        - group: "F&R"
-        - group: "ANALYSIS"
+    - principals:
+      - group: "F&R"
+      - group: "ANALYSIS"
       condition: "transactionAmount >= 1000"
     - principals: []
       condition: "transactionAmount < 1000"
 ```
+{% endcode %}
+{% endtab %}
+{% endtabs %}
 
 ## Example Results
 
