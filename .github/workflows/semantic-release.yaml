@@ -6,6 +6,8 @@ on:
       - "main"
       - "alpha"
       - "beta"
+    paths-ignore:
+      - "docs/**"
 
 jobs:
   semantic-release:
