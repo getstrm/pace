@@ -1,3 +1,16 @@
+# [0.1.0-alpha.8](https://github.com/getstrm/pace/compare/v0.1.0-alpha.7...v0.1.0-alpha.8) (2023-11-01)
+
+
+### Bug Fixes
+
+* remove unwanted gradle build in docs workflow ([487eb5a](https://github.com/getstrm/pace/commit/487eb5a8bf1344d7198699a02bc4f39819b3ee4b))
+* use bot username ([6bc0f5a](https://github.com/getstrm/pace/commit/6bc0f5a120923ce15d9a990eded68e56155d5f42))
+
+
+### Features
+
+* use cached node lts version ([35c5eb4](https://github.com/getstrm/pace/commit/35c5eb4dfd66d663042e9ff5a775d333f3a4f40e))
+
 # [0.1.0-alpha.7](https://github.com/getstrm/pace/compare/v0.1.0-alpha.6...v0.1.0-alpha.7) (2023-11-01)
 
 
