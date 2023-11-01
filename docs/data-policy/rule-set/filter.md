@@ -42,6 +42,61 @@ filters:
 ```
 {% endcode %}
 {% endtab %}
+
+{% tab title="JSON" %}
+{% code lineNumbers="true" %}
+```json
+{
+  "filters": [
+    {
+      "conditions": [
+        {
+          "principals": [
+            {
+              "group": "F&R"
+            }
+          ],
+          "condition": "true"
+        },
+        {
+          "principals": [],
+          "condition": "age > 18"
+        }
+      ]
+    },
+    {
+      "conditions": [
+        {
+          "principals": [
+            {
+              "group": "MKTNG"
+            }
+          ],
+          "condition": "true"
+        },
+        {
+          "principals": [
+            {
+              "group": "F&R"
+            },
+            {
+              "group": "ANALYSIS"
+            }
+          ],
+          "condition": "transactionAmount >= 1000"
+        },
+        {
+          "principals": [],
+          "condition": "transactionAmount < 1000"
+        }
+      ]
+    }
+  ]
+}
+
+```
+{% endcode %}
+{% endtab %}
 {% endtabs %}
 
 ## Example Results
