@@ -122,7 +122,7 @@ message DataPolicy {
     }
 
     message Field {
-        // Instead of using "nodes", nesting can be expressed by specifying multiple name parts. A flat table (e.g. csv file) will only have a single name part for all fields.
+        // Instead of using "nodes", nesting can be expressed by specifying multiple name parts. A flat table (e.g. csv file) will only contain a single name part for all fields.
         repeated string name_parts = 1 [(buf.validate.field).repeated = {items: {string: {min_len: 1}}}];
         // The data type of the field.
         string type = 2;
