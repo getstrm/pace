@@ -20,3 +20,9 @@ buf-create-descriptor-binpb: # PHONY on purpose, as we want to regenerate every 
 
 run-rest-proxy: buf-create-descriptor-binpb
 	docker run -p 9090:9090 -p 9000:9000 -v $$(pwd)/rest/envoy-local.yaml:/etc/envoy/envoy.yaml -v $$(pwd)/${descriptor_file}:/tmp/envoy/descriptor.binpb envoyproxy/envoy:v1.28-latest
+
+/tmp/envoy.yaml: rest/envoy-local.yaml
+	sed 's/address: host\.docker\.internal/address: localhost/' $< > $@
+
+run-rest-proxy-localhost: buf-create-descriptor-binpb /tmp/envoy.yaml
+	docker run --net=host -p 9090:9090 -p 9000:9000 -v /tmp/envoy.yaml:/etc/envoy/envoy.yaml -v $$(pwd)/${descriptor_file}:/tmp/envoy/descriptor.binpb envoyproxy/envoy:v1.28-latest
