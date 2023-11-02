@@ -3,10 +3,13 @@ components:
     DataCatalog:
       properties:
         databases:
+          description: A top-most level of the catalog. This is typically a database.
           items:
-            $ref: '#/components/schemas/DataCatalog_DataBase'
+            $ref: '#/components/schemas/DataCatalog_Database'
           type: array
         id:
+          description: An arbitrary but unique identifier for the catalog. This matches
+            the id from the PACE app configuration.
           type: string
         tags:
           items:
@@ -21,20 +24,19 @@ components:
           format: enum
           type: string
       type: object
-    DataCatalog_DataBase:
-      description: 'Todo: apart from the discussion on hierarchy vs. flat, Database
-        is written without uppercase B.'
+    DataCatalog_Database:
       properties:
         catalog:
           allOf:
           - $ref: '#/components/schemas/DataCatalog'
-          description: 'Todo: complete parent/child objects instead of ids can sometimes
-            result in some cyclic issues.'
+          description: The parent catalog to which this database belongs.
         displayName:
           type: string
         id:
+          description: The id used by the catalog.
           type: string
         schemas:
+          description: The schemas in this database.
           items:
             $ref: '#/components/schemas/DataCatalog_Schema'
           type: array
@@ -48,12 +50,16 @@ components:
     DataCatalog_Schema:
       properties:
         database:
-          $ref: '#/components/schemas/DataCatalog_DataBase'
+          allOf:
+          - $ref: '#/components/schemas/DataCatalog_Database'
+          description: The parent database to which this schema belongs.
         id:
+          description: The id used by the catalog.
           type: string
         name:
           type: string
         tables:
+          description: The tables in this schema.
           items:
             $ref: '#/components/schemas/DataCatalog_Table'
           type: array
@@ -65,11 +71,14 @@ components:
     DataCatalog_Table:
       properties:
         id:
+          description: The id used by the catalog.
           type: string
         name:
           type: string
         schema:
-          $ref: '#/components/schemas/DataCatalog_Schema'
+          allOf:
+          - $ref: '#/components/schemas/DataCatalog_Schema'
+          description: The parent schema to which this table belongs.
         tags:
           items:
             type: string
@@ -79,8 +88,8 @@ components:
       properties:
         id:
           type: string
-        info:
-          $ref: '#/components/schemas/DataPolicy_Info'
+        metadata:
+          $ref: '#/components/schemas/DataPolicy_Metadata'
         platform:
           $ref: '#/components/schemas/DataPolicy_ProcessingPlatform'
         ruleSets:
@@ -90,28 +99,28 @@ components:
         source:
           $ref: '#/components/schemas/DataPolicy_Source'
       type: object
-    DataPolicy_Attribute:
+    DataPolicy_Field:
       properties:
-        pathComponents:
+        nameParts:
           description: Instead of using "nodes", nesting can be expressed by specifying
-            multiple path components. This is similar to BigQuery.
+            multiple name parts. A flat table (e.g. csv file) will only contain a
+            single name part for all fields.
           items:
             type: string
           type: array
         required:
+          description: Whether the field is required. If not, the field may be null.
           type: boolean
         tags:
           items:
             type: string
           type: array
         type:
-          description: This is the "native" type, originating from the source platform.
+          description: The data type of the field.
           type: string
       type: object
-    DataPolicy_Info:
+    DataPolicy_Metadata:
       properties:
-        context:
-          type: string
         createTime:
           format: date-time
           type: string
@@ -127,11 +136,22 @@ components:
           format: date-time
           type: string
         version:
+          description: For new policies, the version does not need to be set. When
+            updating a policy, the version must match the current version. The version
+            is then automatically incremented.
+          format: int32
+          type: integer
+      type: object
+    DataPolicy_Principal:
+      properties:
+        group:
           type: string
       type: object
     DataPolicy_ProcessingPlatform:
       properties:
         id:
+          description: An arbitrary but unique identifier for the platform. This matches
+            the id from the PACE app configuration.
           type: string
         platformType:
           enum:
@@ -145,10 +165,15 @@ components:
     DataPolicy_RuleSet:
       properties:
         fieldTransforms:
+          description: Zero or more field transforms. Any field for which no field
+            transform is specified will be included as-is.
           items:
             $ref: '#/components/schemas/RuleSet_FieldTransform'
           type: array
         filters:
+          description: "Zero or more filters. Records that match the conditions are\
+            \ included in the result.\n When no filters are defined, all records are\
+            \ always included."
           items:
             $ref: '#/components/schemas/RuleSet_Filter'
           type: array
@@ -158,86 +183,87 @@ components:
     DataPolicy_Source:
       properties:
         fields:
-          description: "attributes are leading.\n Todo: rename to fields? Attribute\
-            \ is an overloaded term in this context."
+          description: A representation of the source data schema. Nested fields are
+            supported.
           items:
-            $ref: '#/components/schemas/DataPolicy_Attribute'
+            $ref: '#/components/schemas/DataPolicy_Field'
           type: array
         ref:
           description: The ref is an identifier for the source, unique at the source
             platform level.
           type: string
-        spec:
-          description: "Note: we are currently not using the string-based spec after\
-            \ all. Using the Attributes instead improves\n testability and should\
-            \ make it easier for the frontend to render the policy. Otherwise the\
-            \ frontend\n would have to parse the string-based spec.\n Todo: remove\
-            \ the string-based spec for now?"
-          type: string
         tags:
           items:
             type: string
           type: array
-        type:
-          enum:
-          - TYPE_UNSPECIFIED
-          - SQL_DDL
-          - DATABRICKS
-          - SNOWFLAKE
-          - BIGQUERY
-          format: enum
-          type: string
       type: object
     DataPolicy_Target:
       properties:
         fullname:
+          description: The full and unique name to be used in the target platform.
+            E.g. the view name.
           type: string
         type:
           enum:
           - TARGET_TYPE_UNSPECIFIED
-          - DYNAMIC_VIEW
+          - SQL_VIEW
           format: enum
           type: string
       type: object
     FieldTransform_Transform:
       properties:
         fixed:
-          $ref: '#/components/schemas/Transform_Fixed'
+          allOf:
+          - $ref: '#/components/schemas/Transform_Fixed'
+          description: Provide a fixed value for the field.
         hash:
-          $ref: '#/components/schemas/Transform_Hash'
+          allOf:
+          - $ref: '#/components/schemas/Transform_Hash'
+          description: Hash the field value, optionally with a seed. The exact algorithm
+            is platform-specific.
         identity:
-          type: boolean
+          allOf:
+          - $ref: '#/components/schemas/Transform_Identity'
+          description: Use the identity transform to copy a field value as-is.
         nullify:
-          $ref: '#/components/schemas/Transform_Nullify'
+          allOf:
+          - $ref: '#/components/schemas/Transform_Nullify'
+          description: Make the field value null.
         principals:
+          description: The principals (e.g. groups) for which this transform will
+            be applied.
           items:
-            type: string
+            $ref: '#/components/schemas/DataPolicy_Principal'
           type: array
         regexp:
-          $ref: '#/components/schemas/Transform_RegexReplace'
+          allOf:
+          - $ref: '#/components/schemas/Transform_Regexp'
+          description: Extract and optionally replace a value in a field using a regular
+            expression. Use the syntax matching the processing platform.
         sqlStatement:
-          $ref: '#/components/schemas/Transform_SqlStatement'
+          allOf:
+          - $ref: '#/components/schemas/Transform_SqlStatement'
+          description: Execute a SQL statement to transform the field value. The exact
+            syntax is platform-specific.
       type: object
     Filter_Condition:
       properties:
         condition:
+          description: A (platform-specific) SQL expression. If it evaluates to true,
+            the principals are allowed to access the data.
           type: string
         principals:
+          description: The principals (e.g. groups) that apply to this condition.
           items:
-            type: string
+            $ref: '#/components/schemas/DataPolicy_Principal'
           type: array
       type: object
-    GetCatalogBarePolicyResponse:
+    GetBarePolicyResponse:
       properties:
         dataPolicy:
           $ref: '#/components/schemas/DataPolicy'
       type: object
     GetDataPolicyResponse:
-      properties:
-        dataPolicy:
-          $ref: '#/components/schemas/DataPolicy'
-      type: object
-    GetProcessingPlatformBarePolicyResponse:
       properties:
         dataPolicy:
           $ref: '#/components/schemas/DataPolicy'
@@ -269,19 +295,12 @@ components:
       properties:
         databases:
           items:
-            $ref: '#/components/schemas/DataCatalog_DataBase'
+            $ref: '#/components/schemas/DataCatalog_Database'
           type: array
       type: object
-    ListProcessingPlatformGroupsResponse:
+    ListGroupsResponse:
       properties:
         groups:
-          items:
-            type: string
-          type: array
-      type: object
-    ListProcessingPlatformTablesResponse:
-      properties:
-        tables:
           items:
             type: string
           type: array
@@ -311,11 +330,12 @@ components:
       type: object
     RuleSet_FieldTransform:
       properties:
-        attribute:
-          $ref: '#/components/schemas/DataPolicy_Attribute'
+        field:
+          $ref: '#/components/schemas/DataPolicy_Field'
         transforms:
-          description: Last condition in the list must have 0 principals, as this
-            acts as the default / else condition.
+          description: "The last condition in the list must have 0 principals, as\
+            \ this acts as the default / else condition.\n Transforms should have\
+            \ mutually exclusive sets of principals."
           items:
             $ref: '#/components/schemas/FieldTransform_Transform'
           type: array
@@ -323,7 +343,7 @@ components:
     RuleSet_Filter:
       properties:
         conditions:
-          description: Last condition in the list must have 0 principals, as this
+          description: The last condition in the list must have 0 principals, as this
             acts as the default / else condition.
           items:
             $ref: '#/components/schemas/Filter_Condition'
@@ -363,16 +383,19 @@ components:
         seed:
           type: string
       type: object
+    Transform_Identity:
+      properties: {}
+      type: object
     Transform_Nullify:
       properties: {}
       type: object
-    Transform_RegexReplace:
-      description: 'Todo: we probably should create a separate RegexExtract, since
-        a RegexReplace with empty replacement is functionally different.'
+    Transform_Regexp:
       properties:
         regexp:
           type: string
         replacement:
+          description: If the replacement is left empty, the regexp match result (full
+            match or first capturing group) is used.
           type: string
       type: object
     Transform_SqlStatement:
@@ -381,11 +404,6 @@ components:
           type: string
       type: object
     UpsertDataPolicyRequest:
-      description: '*
-
-        inserts or updates a DataPolicy into the DPS
-
-        AND applies it to the processing platform.'
       properties:
         dataPolicy:
           $ref: '#/components/schemas/DataPolicy'
@@ -397,12 +415,13 @@ components:
       type: object
 info:
   title: PACE API
-  version: 0.0.42
+  version: 1.0.0-alpha.6
 openapi: 3.0.3
 paths:
   /catalogs:
     get:
-      operationId: DataPolicyService_ListCatalogs
+      description: Lists all configured catalogs.
+      operationId: DataCatalogsService_ListCatalogs
       responses:
         '200':
           content:
@@ -418,10 +437,52 @@ paths:
           description: Default error response
       summary: ListCatalogs
       tags:
-      - DataPolicyService
+      - DataCatalogsService
+  /catalogs/{catalogId}/bare-policy:
+    get:
+      description: "Returns a data policy without any rule sets, based on the given\
+        \ table's data structure in the catalog.\n Extend this bare policy with field\
+        \ transforms and/or rule sets to create a complete data policy.\n Use the\
+        \ UpsertDataPolicy endpoint to save and enforce the policy."
+      operationId: DataCatalogsService_GetBarePolicy
+      parameters:
+      - in: path
+        name: catalogId
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: databaseId
+        schema:
+          type: string
+      - in: query
+        name: schemaId
+        schema:
+          type: string
+      - in: query
+        name: tableId
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetBarePolicyResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: GetBarePolicy
+      tags:
+      - DataCatalogsService
   /catalogs/{catalogId}/databases:
     get:
-      operationId: DataPolicyService_ListDatabases
+      description: Lists all databases for the given catalog.
+      operationId: DataCatalogsService_ListDatabases
       parameters:
       - in: path
         name: catalogId
@@ -443,19 +504,19 @@ paths:
           description: Default error response
       summary: ListDatabases
       tags:
-      - DataPolicyService
-  /catalogs/{catalogId}/databases/{databaseId}/schemas:
+      - DataCatalogsService
+  /catalogs/{catalogId}/schemas:
     get:
-      operationId: DataPolicyService_ListSchemas
+      description: Lists all schemas (for a given database, if applicable).
+      operationId: DataCatalogsService_ListSchemas
       parameters:
       - in: path
         name: catalogId
         required: true
         schema:
           type: string
-      - in: path
+      - in: query
         name: databaseId
-        required: true
         schema:
           type: string
       responses:
@@ -473,24 +534,23 @@ paths:
           description: Default error response
       summary: ListSchemas
       tags:
-      - DataPolicyService
-  /catalogs/{catalogId}/databases/{databaseId}/schemas/{schemaId}/tables:
+      - DataCatalogsService
+  /catalogs/{catalogId}/tables:
     get:
-      operationId: DataPolicyService_ListTables
+      description: Lists all tables (for a given schema and database, if applicable).
+      operationId: DataCatalogsService_ListTables
       parameters:
       - in: path
         name: catalogId
         required: true
         schema:
           type: string
-      - in: path
+      - in: query
         name: databaseId
-        required: true
         schema:
           type: string
-      - in: path
+      - in: query
         name: schemaId
-        required: true
         schema:
           type: string
       responses:
@@ -508,58 +568,26 @@ paths:
           description: Default error response
       summary: ListTables
       tags:
-      - DataPolicyService
-  /catalogs/{catalogId}/databases/{databaseId}/schemas/{schemaId}/tables/{tableId}/bare-policy:
-    get:
-      description: return a data-policy without rules sets as built from the table
-        description on the platform
-      operationId: DataPolicyService_GetCatalogBarePolicy
-      parameters:
-      - in: path
-        name: catalogId
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: databaseId
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: schemaId
-        required: true
-        schema:
-          type: string
-      - in: path
-        name: tableId
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetCatalogBarePolicyResponse'
-          description: OK
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Status'
-          description: Default error response
-      summary: GetCatalogBarePolicy
-      tags:
-      - DataPolicyService
+      - DataCatalogsService
   /data-policies:
     get:
-      operationId: DataPolicyService_ListDataPolicies
+      description: Returns the latest policy for a given id and platform.
+      operationId: DataPoliciesService_GetDataPolicy
+      parameters:
+      - in: query
+        name: dataPolicyId
+        schema:
+          type: string
+      - in: query
+        name: platformId
+        schema:
+          type: string
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListDataPoliciesResponse'
+                $ref: '#/components/schemas/GetDataPolicyResponse'
           description: OK
         default:
           content:
@@ -567,11 +595,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Status'
           description: Default error response
-      summary: ListDataPolicies
+      summary: GetDataPolicy
       tags:
-      - DataPolicyService
+      - DataPoliciesService
     post:
-      operationId: DataPolicyService_UpsertDataPolicy
+      description: Creates or updates a DataPolicy in PACE and applies it to the processing
+        platform.
+      operationId: DataPoliciesService_UpsertDataPolicy
       requestBody:
         content:
           application/json:
@@ -593,23 +623,17 @@ paths:
           description: Default error response
       summary: UpsertDataPolicy
       tags:
-      - DataPolicyService
-  /data-policies/{dataPolicyId}:
+      - DataPoliciesService
+  /data-policies/list:
     get:
-      description: returns latest policy for an id
-      operationId: DataPolicyService_GetDataPolicy
-      parameters:
-      - in: path
-        name: dataPolicyId
-        required: true
-        schema:
-          type: string
+      description: Lists all DataPolicies for all platforms.
+      operationId: DataPoliciesService_ListDataPolicies
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetDataPolicyResponse'
+                $ref: '#/components/schemas/ListDataPoliciesResponse'
           description: OK
         default:
           content:
@@ -617,13 +641,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Status'
           description: Default error response
-      summary: GetDataPolicy
+      summary: ListDataPolicies
       tags:
-      - DataPolicyService
+      - DataPoliciesService
   /processing-platforms:
     get:
-      description: return configured processing platforms in DPS
-      operationId: DataPolicyService_ListProcessingPlatforms
+      description: Lists all configured processing platforms.
+      operationId: ProcessingPlatformsService_ListProcessingPlatforms
       responses:
         '200':
           content:
@@ -639,11 +663,11 @@ paths:
           description: Default error response
       summary: ListProcessingPlatforms
       tags:
-      - DataPolicyService
+      - ProcessingPlatformsService
   /processing-platforms/{platformId}/groups:
     get:
-      description: return groups as known by the platform
-      operationId: DataPolicyService_ListProcessingPlatformGroups
+      description: Lists all available user groups for the given platform.
+      operationId: ProcessingPlatformsService_ListGroups
       parameters:
       - in: path
         name: platformId
@@ -655,7 +679,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListProcessingPlatformGroupsResponse'
+                $ref: '#/components/schemas/ListGroupsResponse'
           description: OK
         default:
           content:
@@ -663,13 +687,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Status'
           description: Default error response
-      summary: ListProcessingPlatformGroups
+      summary: ListGroups
       tags:
-      - DataPolicyService
+      - ProcessingPlatformsService
   /processing-platforms/{platformId}/tables:
     get:
-      description: return table names as known by the platform
-      operationId: DataPolicyService_ListProcessingPlatformTables
+      description: Lists all available table names for the given platform.
+      operationId: ProcessingPlatformsService_ListTables
       parameters:
       - in: path
         name: platformId
@@ -681,7 +705,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListProcessingPlatformTablesResponse'
+                $ref: '#/components/schemas/ListTablesResponse'
           description: OK
         default:
           content:
@@ -689,14 +713,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/Status'
           description: Default error response
-      summary: ListProcessingPlatformTables
+      summary: ListTables
       tags:
-      - DataPolicyService
-  /processing-platforms/{platformId}/tables/{table_id}/bare-policy:
+      - ProcessingPlatformsService
+  /processing-platforms/{platformId}/tables/{tableId}/bare-policy:
     get:
-      description: return a data-policy without rules sets as built from the table
-        description on the platform
-      operationId: DataPolicyService_GetProcessingPlatformBarePolicy
+      description: "Returns a data policy without any rule sets, based on the given\
+        \ table's data structure in the platform.\n Extend this bare policy with field\
+        \ transforms and/or rule sets to create a complete data policy.\n Use the\
+        \ UpsertDataPolicy endpoint to save and enforce the policy."
+      operationId: ProcessingPlatformsService_GetBarePolicy
       parameters:
       - in: path
         name: platformId
@@ -704,12 +730,8 @@ paths:
         schema:
           type: string
       - in: path
-        name: table_id
+        name: tableId
         required: true
-        schema:
-          type: string
-      - in: query
-        name: table
         schema:
           type: string
       responses:
@@ -717,7 +739,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetProcessingPlatformBarePolicyResponse'
+                $ref: '#/components/schemas/GetBarePolicyResponse'
           description: OK
         default:
           content:
@@ -725,8 +747,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/Status'
           description: Default error response
-      summary: GetProcessingPlatformBarePolicy
+      summary: GetBarePolicy
       tags:
-      - DataPolicyService
+      - ProcessingPlatformsService
 tags:
-- name: DataPolicyService
+- name: DataCatalogsService
+- name: DataPoliciesService
+- name: ProcessingPlatformsService
