@@ -1,11 +1,6 @@
----
-description: >-
-  PACE can use a data catalog to retrieve schemas and labels or tags on tables
-  or table columns. These can be used to create data-policies that will be
-  applied on the processing platforms.
----
-
 # Data Catalog Integrations
+
+PACE can retrieve metadata from a data catalog. This includes schemas, as well as field or table tags. These can be used to create Data Policies that will be applied on the processing platforms.
 
 The tables in a data catalog are referenced via the following hierarchy
 

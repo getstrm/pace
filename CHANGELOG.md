@@ -1,3 +1,15 @@
+# [1.0.0-alpha.8](https://github.com/getstrm/pace/compare/v1.0.0-alpha.7...v1.0.0-alpha.8) (2023-11-02)
+
+
+### Bug Fixes
+
+* **alpha:** trigger docs build ([42210f7](https://github.com/getstrm/pace/commit/42210f74e80ad418f7158fd790aba7d243702b8e))
+
+
+### Features
+
+* **strm-2725:** change snowflake secret configuration ([0afcc60](https://github.com/getstrm/pace/commit/0afcc6082087cb202d237f20c6354bf90969deea))
+
 # [1.0.0-alpha.7](https://github.com/getstrm/pace/compare/v1.0.0-alpha.6...v1.0.0-alpha.7) (2023-11-02)
 
 

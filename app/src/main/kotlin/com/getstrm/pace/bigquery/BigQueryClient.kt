@@ -29,7 +29,7 @@ class BigQueryClient(
 ) : ProcessingPlatform {
     constructor(config: BigQueryConfig) : this(
         config.id,
-        config.serviceAccountKeyJson,
+        config.serviceAccountJsonKey,
         config.projectId,
         config.userGroupsTable,
     )

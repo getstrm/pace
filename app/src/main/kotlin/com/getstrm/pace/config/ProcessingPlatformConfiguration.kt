@@ -17,14 +17,14 @@ data class SnowflakeConfig(
     val userName: String,
     val accountName: String,
     val organizationName: String,
-    val privateKeyPath: String,
+    val privateKey: String,
 )
 
 data class BigQueryConfig(
     val id: String,
     val projectId: String,
     val userGroupsTable: String,
-    val serviceAccountKeyJson: String,
+    val serviceAccountJsonKey: String,
 )
 
 data class DatabricksConfig(

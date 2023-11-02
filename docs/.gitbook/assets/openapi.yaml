@@ -415,7 +415,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.7
+  version: 1.0.0-alpha.8
 openapi: 3.0.3
 paths:
   /catalogs:
