@@ -1,4 +1,4 @@
-## pace
+# pace
 
 Pace CLI dev
 
