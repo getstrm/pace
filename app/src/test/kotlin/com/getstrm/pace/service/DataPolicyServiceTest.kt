@@ -5,6 +5,8 @@ import com.getstrm.pace.domain.Group
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.snowflake.SnowflakeClient
+import com.getstrm.pace.util.parseDataPolicy
+import com.getstrm.pace.util.yaml2json
 import com.google.rpc.BadRequest
 import com.google.rpc.ResourceInfo
 import io.grpc.Status
@@ -13,23 +15,19 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import org.jooq.DSLContext
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import com.getstrm.pace.util.parseDataPolicy
-import com.getstrm.pace.util.yaml2json
-import org.intellij.lang.annotations.Language
 
 class DataPolicyServiceTest {
     private lateinit var underTest: DataPolicyService
     private val dao = mockk<DataPolicyDao>()
     private val platforms = mockk<ProcessingPlatformsService>()
-    private val jooq = mockk<DSLContext>()
     private val platform = mockk<SnowflakeClient>()
 
     @BeforeEach
     fun setUp() {
-        underTest = DataPolicyService(dao, platforms, jooq)
+        underTest = DataPolicyService(dao, platforms)
     }
 
     @Test

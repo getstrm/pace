@@ -22,16 +22,16 @@ service DataCatalogsService {
             get: "/catalogs/{catalog_id}/databases"
         };
     }
-    // Lists all schemas for the given database.
+    // Lists all schemas (for a given database, if applicable).
     rpc ListSchemas (ListSchemasRequest) returns (ListSchemasResponse) {
         option (google.api.http) = {
-            get: "/catalogs/{catalog_id}/databases/{database_id}/schemas"
+            get: "/catalogs/{catalog_id}/schemas"
         };
     }
-    // Lists all tables for the given schema.
+    // Lists all tables (for a given schema and database, if applicable).
     rpc ListTables (ListTablesRequest) returns (ListTablesResponse) {
         option (google.api.http) = {
-            get: "/catalogs/{catalog_id}/databases/{database_id}/schemas/{schema_id}/tables"
+            get: "/catalogs/{catalog_id}/tables"
         };
     };
     // Returns a data policy without any rule sets, based on the given table's data structure in the catalog.
@@ -39,15 +39,15 @@ service DataCatalogsService {
     // Use the UpsertDataPolicy endpoint to save and enforce the policy.
     rpc GetBarePolicy (GetBarePolicyRequest) returns (GetBarePolicyResponse) {
         option (google.api.http) = {
-            get: "/catalogs/{catalog_id}/databases/{database_id}/schemas/{schema_id}/tables/{table_id}/bare-policy"
+            get: "/catalogs/{catalog_id}/bare-policy"
         };
     };
 }
 
 message GetBarePolicyRequest {
     string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
-    string database_id = 2 [(buf.validate.field).string = {min_len: 1}];
-    string schema_id = 3 [(buf.validate.field).string = {min_len: 1}];
+    optional string database_id = 2;
+    optional string schema_id = 3;
     string table_id = 4 [(buf.validate.field).string = {min_len: 1}];
 }
 
@@ -72,7 +72,7 @@ message ListDatabasesResponse {
 
 message ListSchemasRequest {
     string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
-    string database_id = 2 [(buf.validate.field).string = {min_len: 1}];
+    optional string database_id = 2;
 }
 
 // (-- api-linter: core::0158::response-plural-first-field=disabled
@@ -83,8 +83,8 @@ message ListSchemasResponse {
 
 message ListTablesRequest {
     string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
-    string database_id = 2 [(buf.validate.field).string = {min_len: 1}];
-    string schema_id = 3 [(buf.validate.field).string = {min_len: 1}];
+    optional string database_id = 2;
+    optional string schema_id = 3;
 }
 
 message ListTablesResponse {

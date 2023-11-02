@@ -21,13 +21,12 @@ class RuleSetServiceTest {
     private lateinit var dps: DataPolicyService
     private val dao = mockk<DataPolicyDao>()
     private val platforms = mockk<ProcessingPlatformsService>()
-    private val jooq = mockk<DSLContext>()
     private val platform = mockk<SnowflakeClient>()
     private val rulesetsDao = mockk<RuleSetsDao>()
 
     @BeforeEach
     fun setUp() {
-        dps = DataPolicyService(dao, platforms, jooq)
+        dps = DataPolicyService(dao, platforms)
         underTest = RuleSetService(dps, rulesetsDao)
     }
 

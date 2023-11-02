@@ -8,22 +8,20 @@ import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.pathString
 import com.google.rpc.BadRequest
 import com.google.rpc.ResourceInfo
-import org.jooq.DSLContext
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 
 @Component
 class DataPolicyService(
     private val dataPolicyDao: DataPolicyDao,
     private val processingPlatforms: ProcessingPlatformsService,
-    private val jooq: DSLContext,
 ) {
     suspend fun listDataPolicies(): List<DataPolicy> = dataPolicyDao.listDataPolicies()
 
+    @Transactional
     suspend fun upsertDataPolicy(dataPolicy: DataPolicy): DataPolicy {
         validate(dataPolicy)
-        // TODO should it remove old ruleset targets?
-        // TODO the two statements below should be wrapped in a transaction
-        val newDataPolicy = dataPolicyDao.upsertDataPolicy(dataPolicy, jooq)
+        val newDataPolicy = dataPolicyDao.upsertDataPolicy(dataPolicy)
         enforceStatement(newDataPolicy)
         return newDataPolicy
     }
@@ -216,7 +214,8 @@ class DataPolicyService(
         }
     }
 
-    fun getLatestDataPolicy(id: String): DataPolicy = dataPolicyDao.getLatestDataPolicy(id) ?: throw ResourceException(
+    fun getLatestDataPolicy(id: String, platformId: String): DataPolicy =
+        dataPolicyDao.getLatestDataPolicy(id, platformId) ?: throw ResourceException(
         ResourceException.Code.NOT_FOUND,
         ResourceInfo.newBuilder()
             .setResourceType("DataPolicy")

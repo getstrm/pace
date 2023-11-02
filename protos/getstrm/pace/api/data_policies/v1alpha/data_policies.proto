@@ -10,37 +10,36 @@ option java_package = "com.getstrm.pace.api.data_policies.v1alpha";
 option java_multiple_files = true;
 
 service DataPoliciesService {
+    // Lists all DataPolicies for all platforms.
     rpc ListDataPolicies (ListDataPoliciesRequest) returns (ListDataPoliciesResponse) {
         option (google.api.http) = {
-            get: "/data-policies"
+            get: "/data-policies/list"
         };
     };
+    // Creates or updates a DataPolicy in PACE and applies it to the processing platform.
     rpc UpsertDataPolicy (UpsertDataPolicyRequest) returns (UpsertDataPolicyResponse) {
         option (google.api.http) = {
             post: "/data-policies"
             body: "*"
         };
     };
-    // returns latest policy for an id
+    // Returns the latest policy for a given id and platform.
     rpc GetDataPolicy (GetDataPolicyRequest) returns (GetDataPolicyResponse) {
         option (google.api.http) = {
-            get: "/data-policies/{data_policy_id}"
+            get: "/data-policies"
         };
     };
 }
 
 message GetDataPolicyRequest {
-    string data_policy_id = 1 [(buf.validate.field).string.uuid = true];
+    string data_policy_id = 1 [(buf.validate.field).string.min_len = 1];
+    string platform_id = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 message GetDataPolicyResponse {
     entities.v1alpha.DataPolicy data_policy = 1;
 }
 
-/**
-inserts or updates a DataPolicy into the DPS
-AND applies it to the processing platform.
- */
 message UpsertDataPolicyRequest {
     entities.v1alpha.DataPolicy data_policy = 1;
 }
