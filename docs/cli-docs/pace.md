@@ -1,8 +1,8 @@
-# pace
+## pace
 
 Pace CLI dev
 
-## Options
+### Options
 
 ```
       --api-host string   api host (default "localhost:50051")
@@ -10,9 +10,10 @@ Pace CLI dev
   -o, --output string     output format [yaml, json, json-raw] (default "yaml")
 ```
 
-## SEE ALSO
+### SEE ALSO
 
-* [pace completion](pace\_completion.md) - Generate the autocompletion script for the specified shell
-* [pace get](pace\_get.md) - Get entities
-* [pace list](pace\_list.md) - List entities
-* [pace upsert](pace\_upsert.md) - Upsert entities
+* [pace completion](pace_completion.md)	 - Generate the autocompletion script for the specified shell
+* [pace get](pace_get.md)	 - Get entities
+* [pace list](pace_list.md)	 - List entities
+* [pace upsert](pace_upsert.md)	 - Upsert entities
+

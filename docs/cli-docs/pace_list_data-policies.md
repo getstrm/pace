@@ -1,4 +1,4 @@
-# data policies
+## pace list data-policies
 
 List Datapolicies
 
@@ -6,19 +6,20 @@ List Datapolicies
 pace list data-policies [flags]
 ```
 
-## Options
+### Options
 
 ```
   -h, --help   help for data-policies
 ```
 
-## Options inherited from parent commands
+### Options inherited from parent commands
 
 ```
       --api-host string   api host (default "localhost:50051")
   -o, --output string     output format [yaml, json, json-raw] (default "yaml")
 ```
 
-## SEE ALSO
+### SEE ALSO
 
-* [pace list](pace\_list.md) - List entities
+* [pace list](pace_list.md)	 - List entities
+

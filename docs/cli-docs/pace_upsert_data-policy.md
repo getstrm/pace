@@ -1,18 +1,20 @@
-# data policy
+## pace upsert data-policy
 
 Upsert a data policy
 
-## Synopsis
+### Synopsis
 
-Upserts (inserts or updates) a data policy into Pace AND applies it to the target platform.
+Upserts (inserts or updates) a data policy into Pace AND
+applies it to the target platform.
 
-The file to upsert is checked for validity, a transformation is generated for the processing platform, and then applied on it.
+The file to upsert is checked for validity, a transformation is generated
+for the processing platform, and then applied on it.
 
 ```
 pace upsert data-policy (yaml or json file) [flags]
 ```
 
-## Examples
+### Examples
 
 ```
 pace upsert data-policy sample_data/bigquery-cdc.json
@@ -38,19 +40,20 @@ data_policy:
 ...
 ```
 
-## Options
+### Options
 
 ```
   -h, --help   help for data-policy
 ```
 
-## Options inherited from parent commands
+### Options inherited from parent commands
 
 ```
       --api-host string   api host (default "localhost:50051")
   -o, --output string     output format [yaml, json, json-raw] (default "yaml")
 ```
 
-## SEE ALSO
+### SEE ALSO
 
-* [pace upsert](pace\_upsert.md) - Upsert entities
+* [pace upsert](pace_upsert.md)	 - Upsert entities
+
