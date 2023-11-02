@@ -1,15 +1,11 @@
-# upsert
+# get
 
-Upsert entities
-
-## Synopsis
-
-Insert or Update an entity
+Get entities
 
 ## Options
 
 ```
-  -h, --help   help for upsert
+  -h, --help   help for get
 ```
 
 ## Options inherited from parent commands
@@ -21,5 +17,5 @@ Insert or Update an entity
 
 ## SEE ALSO
 
-* [pace](../) - Pace CLI dev
-* [pace upsert data-policy](pace\_upsert\_data-policy.md) - Upsert a data policy
+* [pace](pace.md) - Pace CLI dev
+* [pace get data-policy](pace\_get\_data-policy.md) - Get a data policy

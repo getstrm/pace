@@ -34,4 +34,4 @@ pace completion powershell [flags]
 
 ## SEE ALSO
 
-* [pace completion](./) - Generate the autocompletion script for the specified shell
+* [pace completion](pace\_completion.md) - Generate the autocompletion script for the specified shell

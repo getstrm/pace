@@ -33,4 +33,4 @@ pace list databases --catalog COLLIBRA-testdrive --output table
 
 ## SEE ALSO
 
-* [pace list](./) - List entities
+* [pace list](pace\_list.md) - List entities

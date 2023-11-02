@@ -105,4 +105,4 @@ dataPolicy:
 
 ## SEE ALSO
 
-* [pace get](./) - Get entities
+* [pace get](pace\_get.md) - Get entities

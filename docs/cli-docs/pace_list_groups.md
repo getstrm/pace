@@ -33,4 +33,4 @@ pace list groups --processing-platform bigquery-dev --output table
 
 ## SEE ALSO
 
-* [pace list](./) - List entities
+* [pace list](pace\_list.md) - List entities
