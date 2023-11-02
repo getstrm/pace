@@ -1,3 +1,10 @@
+# [1.0.0-alpha.6](https://github.com/getstrm/pace/compare/v1.0.0-alpha.5...v1.0.0-alpha.6) (2023-11-02)
+
+
+### Bug Fixes
+
+* minor comment change in protos; trigger docs release ([7eeb466](https://github.com/getstrm/pace/commit/7eeb466cd527084abee154e36caebdaa3fef9f8e))
+
 # [1.0.0-alpha.5](https://github.com/getstrm/pace/compare/v1.0.0-alpha.4...v1.0.0-alpha.5) (2023-11-02)
 
 
