@@ -15,14 +15,13 @@ pace list catalogs [flags]
 ### Examples
 
 ```
-pace list catalogs
+pace list catalogs --output table
  ID                       TYPE
 
  COLLIBRA-testdrive   COLLIBRA
  datahub-on-dev        DATAHUB
 
-# in yaml
-pace list catalogs -o yaml
+pace list catalogs
 catalogs:
 - id: COLLIBRA-testdrive
   type: COLLIBRA

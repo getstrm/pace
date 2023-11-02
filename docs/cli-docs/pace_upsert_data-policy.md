@@ -36,7 +36,7 @@ data_policy:
         type: integer
       transforms:
       - fixed:
-          value: blabla
+          value: "****"
 ...
 ```
 

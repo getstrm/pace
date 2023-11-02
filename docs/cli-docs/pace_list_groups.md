@@ -9,7 +9,7 @@ pace list groups [flags]
 ### Examples
 
 ```
-pace list groups --processing-platform bigquery-dev
+pace list groups --processing-platform bigquery-dev --output table
  NAME
 
  marketing

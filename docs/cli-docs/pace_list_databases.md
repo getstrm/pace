@@ -9,7 +9,7 @@ pace list databases [flags]
 ### Examples
 
 ```
-pace list databases --catalog COLLIBRA-testdrive
+pace list databases --catalog COLLIBRA-testdrive --output table
  ID                                     NAME
 
  8665f375-e08a-4810-add6-7af490f748ad

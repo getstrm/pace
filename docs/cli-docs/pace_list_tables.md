@@ -10,10 +10,15 @@ pace list tables [flags]
 
 ```
 pace list tables --catalog COLLIBRA-testdrive \
-	--database 99379294-6e87-4e26-9f09-21c6bf86d415 \
-	--schema c0a8b864-83e7-4dd1-a71d-0c356c1ae9be
+	--database b6e043a7-88f1-42ee-8e81-0fdc1c96f471  \
+	--schema 10255be7-c2ac-43ae-be0a-a34d4e7c88b7 -o table
 
-pace list tables --processing-platform bigquery-dev
+ ID                                     NAME                                                               TAGS
+
+ 54443cf7-3974-4050-b742-7babe4edc50e   Snowflake Protect>DC22_PROTECT_TESTDRIVE>DEMO>MANAGERS
+ 3fc8b5ff-ae92-4cd2-9e02-d2d5ca61ed29   Snowflake Protect>DC22_PROTECT_TESTDRIVE>DEMO>EMPLOYEES
+ 37f0dec4-097f-42b1-8cb6-23b46927a6ef   Snowflake Protect>DC22_PROTECT_TESTDRIVE>DEMO>ECOMMERCE_PRODUCTS
+ c50ddafe-4263-44d2-8bc7-7080260013f0   Snowflake Protect>DC22_PROTECT_TESTDRIVE>DEMO>CAR_DETAILS
 ```
 
 ### Options

@@ -9,7 +9,7 @@ pace list processing-platforms [flags]
 ### Examples
 
 ```
-pace list processing-platforms
+pace list processing-platforms --output table
  ID                                 TYPE
 
  databricks-pim@getstrm.com   DATABRICKS
