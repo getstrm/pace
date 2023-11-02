@@ -30,7 +30,7 @@ A user may appear in multiple rows, one per group. Changes to this table will im
 
 ## PACE application properties
 
-After following the above steps, provide the corresponding configuration to the PACE application for each BigQuery instance you want to connect with. For example:
+After following the above steps, provide the corresponding [configuration](../../getting-started/example-configuration-file.md) to the PACE application for each BigQuery instance you want to connect with. For example:
 
 ```yaml
 app:
@@ -39,7 +39,7 @@ app:
       - id: "bigquery-dev"
         projectId: "my-google-cloud-project"
         userGroupsTable: "my-other-cloud-project.config_dataset.user_groups"
-        serviceAccountKeyJson: |
+        serviceAccountJsonKey: |
           {
             "type": "service_account",
             "project_id": "my-google-cloud-project",
@@ -60,5 +60,5 @@ The properties are expected to contain the following:
 * `id`: an arbitrary identifier unique within your organization for the specific platform (BigQuery).
 * `projectId`: the google cloud project id where PACE should execute its queries (may differ from source/target datasets).
 * `userGroupsTable`: the full name of the table containing the user group mapping, i.e. `<project>.<dataset>.<table>`.
-* `serviceAccountKeyJson`: the JSON key created for the service account to be used by PACE.
+* `serviceAccountJsonKey`: the JSON key created for the service account to be used by PACE.
 

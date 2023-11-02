@@ -35,7 +35,7 @@ To verify your setup, run or restart your PACE instance. Your platform should sh
 
 {% tabs %}
 {% tab title="CLI" %}
-```
+```bash
 pace list processing-platforms
 processing_platforms:
 - id: pace-databricks
@@ -44,7 +44,7 @@ processing_platforms:
 {% endtab %}
 
 {% tab title="curl" %}
-```
+```bash
 curl localhost:9090/processing-platforms
 {"processingPlatforms":[{"platformType":"DATABRICKS","id":"pace-databricks"}]}
 ```
@@ -55,7 +55,7 @@ If your service principal or similar has read access to tables on the platform, 
 
 {% tabs %}
 {% tab title="CLI" %}
-```
+```bash
 pace list tables --processing-platform pace-databricks
 tables:
 - main.default.my_default_table
@@ -65,7 +65,7 @@ tables:
 {% endtab %}
 
 {% tab title="curl" %}
-```
+```bash
 curl localhost:9090/processing-platforms/dbr-pace/tables
 {"tables":["main.default.my_default_table","pace.protected.sample_input","pace.public.sample_input_with_policy"]}
 ```

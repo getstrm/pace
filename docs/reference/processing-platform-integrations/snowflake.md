@@ -68,7 +68,10 @@ app:
         userName: "pace_user"
         accountName: "AB12345"
         organizationName: "ABCDEFG"
-        privateKeyPath: "processing-platforms/pace-snowflake-private-key.p8"
+        privateKey: |
+          -----BEGIN PRIVATE KEY-----
+          ... private key contents ...
+          -----END PRIVATE KEY-----
 ```
 
 The properties are expected to contain the following:
@@ -80,4 +83,4 @@ The properties are expected to contain the following:
 * `userName`: name of the user to be used by PACE.
 * `accountName`: the name of the account to be used, typically of the form `AB12345`.
 * `organizationName`: the name (id) of the organization that owns the account.
-* `privateKeyPath`: the path to a classpath resource containing the private key of the PACE user.
+* `privateKey`: the contents of the generated private key file.

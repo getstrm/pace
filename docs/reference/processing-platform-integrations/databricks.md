@@ -37,6 +37,6 @@ The properties are expected to contain the following:
 * `workspaceHost`: the URL to your Databricks workspace, containing its unique deployment name.
 * `accountHost`: typically `https://accounts.cloud.databricks.com`.
 * `accountId`: the id of the Databricks account that owns the workspace.
-* `clientId`: the client id of the generated OAuth secret for service principal to be used by PACE.
+* `clientId`: the client id of the generated OAuth secret for the service principal to be used by PACE.
 * `clientSecret`: the secret value of this generated OAuth secret.
 * `warehouseId`: the id of the SQL Warehouse to be used by PACE.
