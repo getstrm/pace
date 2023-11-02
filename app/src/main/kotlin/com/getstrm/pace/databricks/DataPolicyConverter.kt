@@ -2,6 +2,7 @@ package com.getstrm.pace.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.databricks.sdk.service.catalog.TableInfo
+import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.toTimestamp
 
 fun TableInfo.toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy =
@@ -23,7 +24,7 @@ fun TableInfo.toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy 
                             .addAllNameParts(listOf(column.name))
                             .setType(column.typeText)
                             .setRequired(!(column.nullable ?: false))
-                            .build()
+                            .build().normalizeType()
                     },
                 )
                 .build(),
