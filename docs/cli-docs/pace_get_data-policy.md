@@ -64,35 +64,35 @@ dataPolicy:
 
 
 # get a complete datapolicy from the Pace database
-pace get data-policy 414c8334-08e4-4655-979a-32f1c8951817
-dataPolicy:
-  id: 414c8334-08e4-4655-979a-32f1c8951817
-  info:
-    createTime: '2023-10-24T13:58:05.140442789Z'
-    updateTime: '2023-10-24T13:58:05.140442789Z'
-  platform:
-    id: snowflake-demo
-    platformType: SNOWFLAKE
-  ruleSets:
-  - fieldTransforms:
-    - attribute:
-        pathComponents:
-        - HIGHCHOL
-      transforms:
-      - fixed:
-          value: "****"
-    target:
-      fullname: POC.CDC_DIABETES_VIEW
-  source:
-    attributes:
-    - pathComponents:
-      - HIGHBP
+pace get data-policy --processing-platform bigquery-dev \
+	stream-machine-development.dynamic_views.cdc_diabetes
+
+id: stream-machine-development.dynamic_views.cdc_diabetes
+metadata:
+  create_time: "2023-11-02T12:51:23.108319730Z"
+  description: ""
+  title: stream-machine-development.dynamic_views.cdc_diabetes
+  update_time: "2023-11-02T12:51:23.108319730Z"
+  version: 1
+platform:
+  id: bigquery-dev
+  platform_type: BIGQUERY
+rule_sets:
+- field_transforms:
+  - field:
+      name_parts:
+      - HighChol
+      type: integer
+    transforms:
+    - fixed:
+        value: blabla
+  target:
 ```
 
 ### Options
 
 ```
-  -b, --bare                         when true ask platform or catalog, otherwise ask Pace itself
+  -b, --bare                         when true ask platform or catalog for a bare data policy without rulesets.
   -c, --catalog string               id of catalog
   -d, --database string              database in the catalog
   -h, --help                         help for data-policy
@@ -109,5 +109,5 @@ dataPolicy:
 
 ### SEE ALSO
 
-* [pace get](pace_get.md)	 - Get entities
+* [pace get](pace_get.md)	 - Get a single entity
 

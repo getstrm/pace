@@ -2,6 +2,11 @@
 
 List Schemas
 
+### Synopsis
+
+Lists all schemas in a certain database. Some catalogs (like Collibra) are hierarchical, while others
+are just a flat list of tables. In that case we might  just return a single 'Schema' for the whole catalog.
+
 ```
 pace list schemas [flags]
 ```

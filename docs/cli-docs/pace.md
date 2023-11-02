@@ -13,7 +13,7 @@ Pace CLI dev
 ### SEE ALSO
 
 * [pace completion](pace_completion.md)	 - Generate the autocompletion script for the specified shell
-* [pace get](pace_get.md)	 - Get entities
+* [pace get](pace_get.md)	 - Get a single entity
 * [pace list](pace_list.md)	 - List entities
 * [pace upsert](pace_upsert.md)	 - Upsert entities
 

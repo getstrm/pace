@@ -1,6 +1,6 @@
 ## pace get
 
-Get entities
+Get a single entity
 
 ### Options
 

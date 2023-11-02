@@ -2,6 +2,10 @@
 
 List Processing Platforms
 
+### Synopsis
+
+list all the processing platforms that are connected to PACE.
+
 ```
 pace list processing-platforms [flags]
 ```

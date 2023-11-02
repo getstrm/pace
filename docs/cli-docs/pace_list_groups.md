@@ -2,6 +2,13 @@
 
 List Groups
 
+### Synopsis
+
+list the groups that exist in a processing platform.
+
+These groups are needed in the rule sets to determine group membership of the
+entity executing the query on the view in the rule set.
+
 ```
 pace list groups [flags]
 ```

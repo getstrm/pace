@@ -2,6 +2,10 @@
 
 List entities
 
+### Synopsis
+
+return 0 or more entities of a certain type
+
 ### Options
 
 ```

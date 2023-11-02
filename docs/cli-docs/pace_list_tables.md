@@ -2,6 +2,10 @@
 
 List Tables
 
+### Synopsis
+
+Lists all tables in a certain schema.
+
 ```
 pace list tables [flags]
 ```
