@@ -1,3 +1,10 @@
+---
+description: >-
+  PACE can use a data catalog to retrieve schemas and labels or tags on tables
+  or table columns. These can be used to create data-policies that will be
+  applied on the processing platforms.
+---
+
 # Data Catalog Integrations
 
 PACE can retrieve metadata from a data catalog. This includes schemas, as well as field or table tags. These can be used to create Data Policies that will be applied on the processing platforms.
@@ -13,7 +20,7 @@ The PACE cli clearly shows this hierarchy.
 
 {% code title="list all configured data catalogs" fullWidth="false" %}
 ```
-pace list catalogs
+pace list catalogs --output table
 catalogs:
 - id: COLLIBRA-testdrive
   type: COLLIBRA
@@ -26,7 +33,7 @@ catalogs:
 
 {% code title="list the databases on Collibra" fullWidth="false" %}
 ```
-pace list databases --catalog COLLIBRA-testdrive
+pace list databases --catalog COLLIBRA-testdrive --output table
 databases:
 - catalog:
     id: COLLIBRA-testdrive
@@ -62,8 +69,8 @@ pace list schemas --catalog COLLIBRA-testdrive \
 ```
 # command output shortened
 pace list tables --catalog COLLIBRA-testdrive \
-  --database 99379294-6e87-4e26-9f09-21c6bf86d415
-  --schema 342f676c-341e-4229-b3c2-3e71f9ed0fcd
+  --database 99379294-6e87-4e26-9f09-21c6bf86d415 \
+  --schema 342f676c-341e-4229-b3c2-3e71f9ed0fcd -o table
 tables:
 - id: 821b684d-7fd4-428f-8d10-8e90f52aa5b9
   name: Google BigQuery>test-drive-329411>HR>attendancelogs

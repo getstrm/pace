@@ -34,32 +34,32 @@ data_policy:
       - name_parts:
           - TRANSACTIONID
         tags: []
-        type: NUMBER(38,0)
+        type: numeric
         required: true
       - name_parts:
           - USERID
         tags: []
-        type: VARCHAR(16777216)
+        type: varchar
         required: true
       - name_parts:
           - EMAIL
         tags: []
-        type: VARCHAR(16777216)
+        type: varchar
         required: true
       - name_parts:
           - AGE
         tags: []
-        type: NUMBER(38,0)
+        type: numeric
         required: true
       - name_parts:
           - BRAND
         tags: []
-        type: VARCHAR(16777216)
+        type: varchar
         required: true
       - name_parts:
           - TRANSACTIONAMOUNT
         tags: []
-        type: NUMBER(38,0)
+        type: numeric
         required: true
     tags: []
     ref: SCHEMA.TABLE
