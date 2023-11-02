@@ -21,13 +21,12 @@ class RuleSetServiceTest {
     private lateinit var dps: DataPolicyService
     private val dao = mockk<DataPolicyDao>()
     private val platforms = mockk<ProcessingPlatformsService>()
-    private val jooq = mockk<DSLContext>()
     private val platform = mockk<SnowflakeClient>()
     private val rulesetsDao = mockk<RuleSetsDao>()
 
     @BeforeEach
     fun setUp() {
-        dps = DataPolicyService(dao, platforms, jooq)
+        dps = DataPolicyService(dao, platforms)
         underTest = RuleSetService(dps, rulesetsDao)
     }
 
@@ -37,6 +36,8 @@ class RuleSetServiceTest {
 
         @Language("yaml")
         val dataPolicy = """
+            metadata:
+              version: foo
             platform: 
               platform_type: SNOWFLAKE
               id: snowflake
@@ -58,6 +59,8 @@ class RuleSetServiceTest {
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)
             @Language("yaml")
             val result = """
+                metadata:
+                  version: foo
                 source:
                   ref: test1
                   type: SNOWFLAKE
@@ -104,6 +107,8 @@ class RuleSetServiceTest {
 
         @Language("yaml")
         val dataPolicy = """
+            metadata:
+              version: foo
             platform: 
               platform_type: SNOWFLAKE
               id: snowflake
@@ -124,6 +129,8 @@ class RuleSetServiceTest {
         runBlocking {
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)
             policyWithRulesets shouldBe """
+metadata:
+  version: foo
 source:
   ref: test1
   type: SNOWFLAKE
@@ -175,6 +182,8 @@ ruleSets:
 
         @Language("yaml")
         val dataPolicy = """
+            metadata:
+              version: foo
             platform: 
               platform_type: SNOWFLAKE
               id: snowflake
@@ -196,6 +205,8 @@ ruleSets:
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)
             @Language("yaml")
             val result = """
+metadata:
+  version: foo
 source:
   ref: test1
   type: SNOWFLAKE

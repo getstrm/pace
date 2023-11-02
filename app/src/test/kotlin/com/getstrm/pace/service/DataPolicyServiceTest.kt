@@ -5,6 +5,8 @@ import com.getstrm.pace.domain.Group
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.snowflake.SnowflakeClient
+import com.getstrm.pace.util.parseDataPolicy
+import com.getstrm.pace.util.yaml2json
 import com.google.rpc.BadRequest
 import com.google.rpc.ResourceInfo
 import io.grpc.Status
@@ -13,23 +15,48 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import org.jooq.DSLContext
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import com.getstrm.pace.util.parseDataPolicy
-import com.getstrm.pace.util.yaml2json
-import org.intellij.lang.annotations.Language
 
 class DataPolicyServiceTest {
     private lateinit var underTest: DataPolicyService
     private val dao = mockk<DataPolicyDao>()
     private val platforms = mockk<ProcessingPlatformsService>()
-    private val jooq = mockk<DSLContext>()
     private val platform = mockk<SnowflakeClient>()
 
     @BeforeEach
     fun setUp() {
-        underTest = DataPolicyService(dao, platforms, jooq)
+        underTest = DataPolicyService(dao, platforms)
+    }
+
+    @Test
+    fun `validate version-less policy`() {
+        // Given a data policy without a version
+        @Language("yaml")
+        val dataPolicy = """
+platform:
+  platform_type: SNOWFLAKE
+  id: snowflake
+source: 
+  ref: mycatalog.my_schema.gddemo
+  fields:
+    - name_parts: [transactionId]
+      type: bigint
+""".yaml2json().parseDataPolicy()
+
+        runBlocking {
+            val exception = shouldThrow<BadRequestException> {
+                underTest.validate(dataPolicy)
+            }
+
+            exception.code.status shouldBe Status.INVALID_ARGUMENT
+            exception.badRequest.fieldViolationsCount shouldBe 1
+            exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
+                .setField("metadata.version")
+                .setDescription("DataPolicy version is empty. Please specify a (new) version.")
+                .build()
+        }
     }
 
     @Test
@@ -561,6 +588,8 @@ fun groups(vararg group: String) = group.map { Group(it, it, it) }
  * base yaml of policy with happy flow attributes
  */
 const val policyBase = """
+metadata:
+  version: 1.0.0
 platform:
   platform_type: SNOWFLAKE
   id: snowflake

@@ -8,28 +8,41 @@ import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.pathString
 import com.google.rpc.BadRequest
 import com.google.rpc.ResourceInfo
-import org.jooq.DSLContext
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 
 @Component
 class DataPolicyService(
     private val dataPolicyDao: DataPolicyDao,
     private val processingPlatforms: ProcessingPlatformsService,
-    private val jooq: DSLContext,
 ) {
     suspend fun listDataPolicies(): List<DataPolicy> = dataPolicyDao.listDataPolicies()
 
+    @Transactional
     suspend fun upsertDataPolicy(dataPolicy: DataPolicy): DataPolicy {
         validate(dataPolicy)
-        // TODO should it remove old ruleset targets?
-        // TODO the two statements below should be wrapped in a transaction
-        val newDataPolicy = dataPolicyDao.upsertDataPolicy(dataPolicy, jooq)
+        val newDataPolicy = dataPolicyDao.upsertDataPolicy(dataPolicy)
         enforceStatement(newDataPolicy)
         return newDataPolicy
     }
 
     // Todo: improve readability - the exceptions and nested functions make it hard to follow
     suspend fun validate(dataPolicy: DataPolicy) {
+        if (dataPolicy.metadata.version.isNullOrBlank()) {
+            throw BadRequestException(
+                BadRequestException.Code.INVALID_ARGUMENT,
+                BadRequest.newBuilder()
+                    .addAllFieldViolations(
+                        listOf(
+                            BadRequest.FieldViolation.newBuilder()
+                                .setField("metadata.version")
+                                .setDescription("DataPolicy version is empty. Please specify a (new) version.")
+                                .build()
+                        )
+                    )
+                    .build()
+            )
+        }
         if (dataPolicy.source.ref.isNullOrEmpty()) {
             throw BadRequestException(
                 BadRequestException.Code.INVALID_ARGUMENT,
