@@ -28,21 +28,6 @@ class DataPolicyService(
 
     // Todo: improve readability - the exceptions and nested functions make it hard to follow
     suspend fun validate(dataPolicy: DataPolicy) {
-        if (dataPolicy.metadata.version.isNullOrBlank()) {
-            throw BadRequestException(
-                BadRequestException.Code.INVALID_ARGUMENT,
-                BadRequest.newBuilder()
-                    .addAllFieldViolations(
-                        listOf(
-                            BadRequest.FieldViolation.newBuilder()
-                                .setField("metadata.version")
-                                .setDescription("DataPolicy version is empty. Please specify a (new) version.")
-                                .build()
-                        )
-                    )
-                    .build()
-            )
-        }
         if (dataPolicy.source.ref.isNullOrEmpty()) {
             throw BadRequestException(
                 BadRequestException.Code.INVALID_ARGUMENT,
@@ -229,7 +214,8 @@ class DataPolicyService(
         }
     }
 
-    fun getLatestDataPolicy(id: String): DataPolicy = dataPolicyDao.getLatestDataPolicy(id) ?: throw ResourceException(
+    fun getLatestDataPolicy(id: String, platformId: String): DataPolicy =
+        dataPolicyDao.getLatestDataPolicy(id, platformId) ?: throw ResourceException(
         ResourceException.Code.NOT_FOUND,
         ResourceInfo.newBuilder()
             .setResourceType("DataPolicy")

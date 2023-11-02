@@ -30,7 +30,7 @@ class DataPoliciesApi(
 
     override suspend fun getDataPolicy(request: GetDataPolicyRequest): GetDataPolicyResponse {
         return GetDataPolicyResponse.newBuilder()
-            .setDataPolicy(dataPolicyService.getLatestDataPolicy(request.dataPolicyId))
+            .setDataPolicy(dataPolicyService.getLatestDataPolicy(request.dataPolicyId, request.platformId))
             .build()
     }
 }

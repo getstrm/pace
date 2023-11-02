@@ -10,7 +10,7 @@ create table if not exists pace.data_policies
     platform_id     varchar                   not null,
     title           varchar                   not null,
     description     varchar,
-    version         varchar                   not null,
+    version         int                       not null,
     created_at      timestamptz default now() not null,
     updated_at      timestamptz default now() not null,
     policy          jsonb                     not null,
