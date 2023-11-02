@@ -1,3 +1,10 @@
+# [1.0.0-alpha.9](https://github.com/getstrm/pace/compare/v1.0.0-alpha.8...v1.0.0-alpha.9) (2023-11-02)
+
+
+### Bug Fixes
+
+* **alpha:** added normalizeType to processing platforms code ([4fe6f21](https://github.com/getstrm/pace/commit/4fe6f214bedd642873282fc98633ab535325906c))
+
 # [1.0.0-alpha.8](https://github.com/getstrm/pace/compare/v1.0.0-alpha.7...v1.0.0-alpha.8) (2023-11-02)
 
 
