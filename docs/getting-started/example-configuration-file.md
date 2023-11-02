@@ -4,7 +4,8 @@ description: PACE yaml configuration file
 
 # Example configuration file
 
-PACE is a Spring Boot application that needs a configuration file following its conventions. Here's an example configuration file.
+PACE is a Spring Boot application that needs a configuration file following its conventions.
+Here's an example configuration file.
 
 {% code title="app/src/mainapp/src/main/resources/application-local.yaml" %}
 ```yaml
