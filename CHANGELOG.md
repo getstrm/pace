@@ -1,3 +1,10 @@
+# [1.0.0-alpha.7](https://github.com/getstrm/pace/compare/v1.0.0-alpha.6...v1.0.0-alpha.7) (2023-11-02)
+
+
+### Bug Fixes
+
+* correct directory to openapi spec for docs ([b6b12ba](https://github.com/getstrm/pace/commit/b6b12ba8df06d5b886850b7a4fa5b8bcbf10f935))
+
 # [1.0.0-alpha.6](https://github.com/getstrm/pace/compare/v1.0.0-alpha.5...v1.0.0-alpha.6) (2023-11-02)
 
 
