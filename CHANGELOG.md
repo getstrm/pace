@@ -1,3 +1,11 @@
+# [1.0.0-alpha.5](https://github.com/getstrm/pace/compare/v1.0.0-alpha.4...v1.0.0-alpha.5) (2023-11-02)
+
+
+### Features
+
+* **alpha:** cli-docs ([10ee7cc](https://github.com/getstrm/pace/commit/10ee7cca094df57faf0947cdff8478d4eb0bfa2b))
+* **strm-2724:** various api and DAO improvements ([#12](https://github.com/getstrm/pace/issues/12)) ([7a30074](https://github.com/getstrm/pace/commit/7a300741165d18301f00fe3741d84c8a1ab904bf))
+
 # [1.0.0-alpha.4](https://github.com/getstrm/pace/compare/v1.0.0-alpha.3...v1.0.0-alpha.4) (2023-11-01)
 
 
