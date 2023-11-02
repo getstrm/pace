@@ -1,4 +1,4 @@
-## pace list processing-platforms
+# processing platforms
 
 List Processing Platforms
 
@@ -6,7 +6,7 @@ List Processing Platforms
 pace list processing-platforms [flags]
 ```
 
-### Examples
+## Examples
 
 ```
 pace list processing-platforms --output table
@@ -17,20 +17,19 @@ pace list processing-platforms --output table
  bigquery-dev                   BIGQUERY
 ```
 
-### Options
+## Options
 
 ```
   -h, --help            help for processing-platforms
   -o, --output string   output formats [yaml, json, json-raw, table, plain] (default "yaml")
 ```
 
-### Options inherited from parent commands
+## Options inherited from parent commands
 
 ```
       --api-host string   api host (default "localhost:50051")
 ```
 
-### SEE ALSO
+## SEE ALSO
 
-* [pace list](pace_list.md)	 - List entities
-
+* [pace list](./) - List entities
