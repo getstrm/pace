@@ -25,3 +25,7 @@
   * [Databricks](reference/processing-platform-integrations/databricks.md)
   * [Snowflake](reference/processing-platform-integrations/snowflake.md)
 * [API Reference](reference/api-reference.md)
+
+## CLI Docs
+
+* [pace](cli-docs/pace.md)
