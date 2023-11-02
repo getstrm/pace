@@ -29,7 +29,7 @@ import java.util.*
  * TODO make sure to handle the 401 properly, because that is most often caused by an incorrect account identifier, which leads to an incorrect JWT
  */
 class SnowflakeJwtIssuer private constructor(
-    privateKeyResourcePath: String,
+    privateKeyContent: String,
     /**
      * Make sure this is the accountName (the prefix for your account URL), not the account ID
      */
@@ -48,12 +48,6 @@ class SnowflakeJwtIssuer private constructor(
         this.accountIdentifier = accountIdentifier.uppercase(Locale.getDefault())
 
         val keyFactory = KeyFactory.getInstance("RSA")
-        val privateKeyContent = File(
-            this::class.java.classLoader.getResource(privateKeyResourcePath)?.toURI() ?: throw IllegalArgumentException(
-                "Private key not found"
-            )
-        ).readText()
-
         val privateKeyBytes = PemReader(StringReader(privateKeyContent))
             .use { it.readPemObject().content }
 
@@ -140,13 +134,13 @@ class SnowflakeJwtIssuer private constructor(
          * https://docs.snowflake.com/en/user-guide/admin-account-identifier#format-1-preferred-account-name-in-your-organization
          */
         fun fromOrganizationAndAccountName(
-            privateKeyResourcePath: String,
+            privateKey: String,
             organizationName: String,
             accountName: String,
             userName: String
         ): SnowflakeJwtIssuer {
             val accountIdentifier = "$organizationName-$accountName"
-            return SnowflakeJwtIssuer(privateKeyResourcePath, accountIdentifier, userName)
+            return SnowflakeJwtIssuer(privateKey, accountIdentifier, userName)
         }
     }
 }

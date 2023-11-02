@@ -26,7 +26,7 @@ class SnowflakeClient(
     constructor(config: SnowflakeConfig) : this(config.id, config)
 
     private val snowflakeJwtIssuer = SnowflakeJwtIssuer.fromOrganizationAndAccountName(
-        privateKeyResourcePath = config.privateKeyPath,
+        privateKey = config.privateKey,
         organizationName = config.organizationName,
         accountName = config.accountName,
         userName = config.userName
