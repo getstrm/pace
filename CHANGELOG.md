@@ -1,3 +1,10 @@
+# [1.0.0-alpha.10](https://github.com/getstrm/pace/compare/v1.0.0-alpha.9...v1.0.0-alpha.10) (2023-11-03)
+
+
+### Bug Fixes
+
+* **alpha:** run build before semantic release & fix snowflake converter test ([43c6ac9](https://github.com/getstrm/pace/commit/43c6ac91dca946bf7e1297899c29fdc838a5da1a))
+
 # [1.0.0-alpha.9](https://github.com/getstrm/pace/compare/v1.0.0-alpha.8...v1.0.0-alpha.9) (2023-11-02)
 
 
