@@ -44,6 +44,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     // Self-managed dependencies
     implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")

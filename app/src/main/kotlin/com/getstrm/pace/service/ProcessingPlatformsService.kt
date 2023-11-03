@@ -26,7 +26,7 @@ class ProcessingPlatformsService(
         val snowflake = config.snowflake.map { SnowflakeClient(it) }
         val bigQuery = config.bigquery.map { BigQueryClient(it) }
         val postgres = config.postgres.map { PostgresClient(it) }
-        platforms = (databricks + snowflake + bigQuery).associateBy { it.id }
+        platforms = (databricks + snowflake + bigQuery + postgres).associateBy { it.id }
     }
 
     suspend fun listGroups(platformId: String): List<Group> =
