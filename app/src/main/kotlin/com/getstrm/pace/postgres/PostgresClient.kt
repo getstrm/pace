@@ -6,6 +6,7 @@ import com.getstrm.pace.config.PostgresConfig
 import com.getstrm.pace.domain.Group
 import com.getstrm.pace.domain.ProcessingPlatform
 import com.getstrm.pace.domain.Table
+import com.getstrm.pace.util.normalizeType
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
@@ -39,13 +40,15 @@ class PostgresClient(
 
     override suspend fun listTables(): List<Table> = jooq.meta().tables
         .filter { !schemasToIgnore.contains(it.schema?.name) }
-        .map { PostgresTable(config.database, it) }
+        .map { PostgresTable(it) }
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
-        // SELECT rolname, rolcanlogin isuser FROM pg_roles WHERE
-        //   pg_has_role( (select session_user), oid, 'member');
+        val viewGenerator = PostgresDynamicViewGenerator(dataPolicy)
+        val query = viewGenerator.toDynamicViewSQL()
 
-        TODO()
+        withContext(Dispatchers.IO) {
+            jooq.query(query).execute()
+        }
     }
 
     override suspend fun listGroups(): List<Group> {
@@ -69,13 +72,33 @@ class PostgresClient(
 }
 
 class PostgresTable(
-    database: String,
     val table: org.jooq.Table<*>
 ) : Table() {
-    override val fullName: String = "$database.${table.schema?.name}.${table.name}"
+    override val fullName: String = "${table.schema?.name}.${table.name}"
 
     override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
-        TODO("Not yet implemented")
+        return DataPolicy.newBuilder()
+            .setMetadata(
+                DataPolicy.Metadata.newBuilder()
+                    .setTitle(fullName)
+                    .setDescription(table.comment)
+            )
+            .setPlatform(platform)
+            .setSource(
+                DataPolicy.Source.newBuilder()
+                    .setRef(fullName)
+                    .addAllFields(
+                        table.fields().map { field ->
+                            DataPolicy.Field.newBuilder()
+                                .addNameParts(field.name)
+                                .setType(field.dataType.typeName)
+                                .setRequired(!field.dataType.nullable())
+                                .build().normalizeType()
+                        },
+                    )
+                    .build(),
+            )
+            .build()
     }
 }
 
