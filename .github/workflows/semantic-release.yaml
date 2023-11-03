@@ -42,7 +42,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/gradle-build-action@v2
-      - run: ./gradlew -PciBuild
+      - run: ./gradlew build -PciBuild
 
       # Semantic Release
       - name: Setup Node.js
