@@ -7,6 +7,7 @@ data class ProcessingPlatformConfiguration(
     val databricks: List<DatabricksConfig> = emptyList(),
     val snowflake: List<SnowflakeConfig> = emptyList(),
     val bigquery: List<BigQueryConfig> = emptyList(),
+    val postgres: List<PostgresConfig> = emptyList(),
 )
 
 data class SnowflakeConfig(
@@ -25,6 +26,11 @@ data class BigQueryConfig(
     val projectId: String,
     val userGroupsTable: String,
     val serviceAccountJsonKey: String,
+)
+
+data class PostgresConfig(
+    val id: String,
+    val jdbcUrl: String,
 )
 
 data class DatabricksConfig(

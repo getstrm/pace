@@ -99,6 +99,7 @@ message DataPolicy {
             DATABRICKS = 1;
             SNOWFLAKE = 2;
             BIGQUERY = 3;
+            POSTGRES = 4;
         }
     }
 

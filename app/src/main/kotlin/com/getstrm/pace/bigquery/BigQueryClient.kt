@@ -8,6 +8,7 @@ import com.getstrm.pace.domain.ProcessingPlatform
 import com.getstrm.pace.domain.Table
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
+import com.getstrm.pace.util.toFullName
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.Acl
 import com.google.cloud.bigquery.BigQuery
@@ -18,7 +19,6 @@ import com.google.cloud.bigquery.QueryJobConfiguration
 import com.google.cloud.bigquery.TableId
 import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
-import com.getstrm.pace.util.toFullName
 import com.google.cloud.bigquery.Table as BQTable
 
 class BigQueryClient(
@@ -73,11 +73,11 @@ class BigQueryClient(
                 InternalException.Code.INTERNAL,
                 DebugInfo.newBuilder()
                     .setDetail(
-                        "Error while executing BigQuery query (error message: ${e.message}), please check the logs of your PACE deployment. $BUG_REPORT"
+                        "Error while executing BigQuery query (error message: ${e.message}), please check the logs of your PACE deployment. $BUG_REPORT",
                     )
                     .addAllStackEntries(e.stackTrace.map { it.toString() })
                     .build(),
-                e
+                e,
             )
         }
         try {
@@ -90,11 +90,11 @@ class BigQueryClient(
                     InternalException.Code.INTERNAL,
                     DebugInfo.newBuilder()
                         .setDetail(
-                            "Error while authorizing views (error message: ${e.message}), please check the logs of your PACE deployment. $BUG_REPORT"
+                            "Error while authorizing views (error message: ${e.message}), please check the logs of your PACE deployment. $BUG_REPORT",
                         )
                         .addAllStackEntries(e.stackTrace.map { it.toString() })
                         .build(),
-                    e
+                    e,
                 )
             }
         }

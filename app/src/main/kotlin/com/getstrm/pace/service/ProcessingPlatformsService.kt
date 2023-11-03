@@ -9,6 +9,7 @@ import com.getstrm.pace.domain.ProcessingPlatform
 import com.getstrm.pace.domain.Table
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.ResourceException
+import com.getstrm.pace.postgres.PostgresClient
 import com.getstrm.pace.snowflake.SnowflakeClient
 import com.google.rpc.BadRequest
 import com.google.rpc.ResourceInfo
@@ -24,6 +25,7 @@ class ProcessingPlatformsService(
         val databricks = config.databricks.map { DatabricksClient(it) }
         val snowflake = config.snowflake.map { SnowflakeClient(it) }
         val bigQuery = config.bigquery.map { BigQueryClient(it) }
+        val postgres = config.postgres.map { PostgresClient(it) }
         platforms = (databricks + snowflake + bigQuery).associateBy { it.id }
     }
 
