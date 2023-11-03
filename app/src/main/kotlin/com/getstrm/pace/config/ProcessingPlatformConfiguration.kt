@@ -30,12 +30,13 @@ data class BigQueryConfig(
 
 data class PostgresConfig(
     val id: String,
-    val hostName: String? = "localhost",
-    val port: Int? = 5432,
-    val userName: String? = "",
-    val password: String? = "",
+    val hostName: String = "localhost",
+    val port: Int = 5432,
+    val database: String = "postgres",
+    val userName: String = "",
+    val password: String = "",
 ) {
-    internal fun getJdbcUrl() = "jdbc:postgresql://$hostName:$port/"
+    internal fun getJdbcUrl() = "jdbc:postgresql://$hostName:$port/$database"
 }
 
 data class DatabricksConfig(
