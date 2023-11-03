@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.9
+    version: 1.0.0-alpha.10
 paths:
     /catalogs:
         get:

@@ -147,7 +147,7 @@ class SnowflakeTable(
     private val client: SnowflakeClient,
 ) : Table() {
     override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
-        return client.describeTable(schema, table)?.toDataPolicy(platform, this)
+        return client.describeTable(schema, table)?.toDataPolicy(platform, fullName)
             ?: throw ResourceException(
                 ResourceException.Code.NOT_FOUND,
                 ResourceInfo.newBuilder()

@@ -7,7 +7,7 @@ import com.google.protobuf.Timestamp
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
-class DataPolicyConverterTest {
+class DatabricksDataPolicyConverterTest {
 
     @Test
     fun `convert full table info`() {
@@ -35,9 +35,10 @@ class DataPolicyConverterTest {
                         .setTypeText("bigint")
                 )
             )
+        val platform = DataPolicy.ProcessingPlatform.newBuilder().setId("test-platform").build()
 
         // When
-        val policy = tableInfo.toDataPolicy(DataPolicy.ProcessingPlatform.getDefaultInstance())
+        val policy = tableInfo.toDataPolicy(platform)
 
         // Then
         val createdTimestamp = Timestamp.newBuilder()
@@ -56,7 +57,7 @@ class DataPolicyConverterTest {
                     .setCreateTime(createdTimestamp)
                     .setUpdateTime(updateTimestamp)
             )
-            .setPlatform(DataPolicy.ProcessingPlatform.getDefaultInstance())
+            .setPlatform(platform)
             .setSource(
                 DataPolicy.Source.newBuilder()
                     .setRef("test_catalog.test_schema.test_table")
@@ -64,7 +65,7 @@ class DataPolicyConverterTest {
                         listOf(
                             DataPolicy.Field.newBuilder()
                                 .addAllNameParts(listOf("test_string_column"))
-                                .setType("string")
+                                .setType("varchar")
                                 .setRequired(false)
                                 .build(),
                             DataPolicy.Field.newBuilder()

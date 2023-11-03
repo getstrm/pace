@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class SnowflakeResponse (
     val resultSetMetaData: ResultSetMetaData?,
     val code: String,
+    // Todo: make this more type-safe (e.g. create different response types)
     val data: List<List<String>>?,
     val createdOn: Long?,
     val message: String?
