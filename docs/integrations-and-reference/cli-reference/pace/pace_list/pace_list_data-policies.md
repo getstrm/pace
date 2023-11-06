@@ -1,8 +1,8 @@
-## pace list data-policies
+# data policies
 
 List Datapolicies
 
-### Synopsis
+## Synopsis
 
 lists all the active policies defined and applied by PACE.
 
@@ -12,7 +12,7 @@ These will always include at least one rule set.
 pace list data-policies [flags]
 ```
 
-### Examples
+## Examples
 
 ```
 pace list data-policies --output table
@@ -21,20 +21,19 @@ pace list data-policies --output table
  bigquery-dev   stream-machine-development.dynamic_views.cdc_diabetes
 ```
 
-### Options
+## Options
 
 ```
   -h, --help            help for data-policies
   -o, --output string   output formats [yaml, json, json-raw, table, plain] (default "yaml")
 ```
 
-### Options inherited from parent commands
+## Options inherited from parent commands
 
 ```
       --api-host string   api host (default "localhost:50051")
 ```
 
-### SEE ALSO
+## SEE ALSO
 
-* [pace list](pace_list.md)	 - List entities
-
+* [pace list](./) - List entities

@@ -36,6 +36,10 @@ spring:
 ```
 {% endcode %}
 
+{% hint style="info" %}
+If you don't come from the Java world, [`hikari`](https://github.com/brettwooldridge/HikariCP) is a widely adopted connection pooling library - not some kind of strange dependency.&#x20;
+{% endhint %}
+
 #### Create a Docker Compose setup
 
 Create the following `docker-compose.yaml` in the parent directory of where you created `config/application.yaml`.
@@ -98,7 +102,7 @@ If you are already logged in to ghcr.io with Docker, you can skip this step. If 
 
 To start pace, execute `docker compose up` in the directory containing your `docker-compose.yaml` file. You should see the Spring Boot startup logs, which will end with `Started PaceApplicationKt [...]` , if all went well.
 
-Next up, you can start interacting with your PACE instance, by accessing the [REST interface](../reference/api-reference.md), [gRPC interface](https://github.com/getstrm/pace/tree/alpha/protos) or through the [CLI](https://github.com/getstrm/cli). Here's an example listing the available Data Catalog integrations through the REST interface:
+Next up, you can start interacting with your PACE instance, by accessing the [REST interface](../integrations-and-reference/api-reference.md), [gRPC interface](https://github.com/getstrm/pace/tree/alpha/protos) or through the [CLI](https://github.com/getstrm/cli). Here's an example listing the available Data Catalog integrations through the REST interface:
 
 {% tabs %}
 {% tab title="CLI" %}

@@ -1,24 +1,20 @@
-## pace get data-policy
+# data policy
 
 Get a data policy
 
-### Synopsis
+## Synopsis
 
 retrieves a DataPolicy from Pace.
 
-`--bare` means we retrieve a policy without RuleSets from a Catalog or
-Processing Platform. This means we use the table information in the platform to
-build the `source` part of a data policy. We must either provide a platform or a catalog
-id to make the call succeed.
+`--bare` means we retrieve a policy without RuleSets from a Catalog or Processing Platform. This means we use the table information in the platform to build the `source` part of a data policy. We must either provide a platform or a catalog id to make the call succeed.
 
-Without `--bare` it just means we interact with the Pace database and retrieve succesfully applied
-data policies.
+Without `--bare` it just means we interact with the Pace database and retrieve succesfully applied data policies.
 
 ```
 pace get data-policy (table-id|policy-id) [flags]
 ```
 
-### Examples
+## Examples
 
 ```
 # get a bare policy without rulesets from Catalog Collibra
@@ -89,7 +85,7 @@ rule_sets:
   target:
 ```
 
-### Options
+## Options
 
 ```
   -b, --bare                         when true ask platform or catalog for a bare data policy without rulesets.
@@ -100,14 +96,13 @@ rule_sets:
   -s, --schema string                schema in database on catalog
 ```
 
-### Options inherited from parent commands
+## Options inherited from parent commands
 
 ```
       --api-host string   api host (default "localhost:50051")
   -o, --output string     output format [yaml, json, json-raw] (default "yaml")
 ```
 
-### SEE ALSO
+## SEE ALSO
 
-* [pace get](pace_get.md)	 - Get a single entity
-
+* [pace get](./) - Get a single entity

@@ -1,17 +1,16 @@
-## pace list databases
+# databases
 
 List Databases
 
-### Synopsis
+## Synopsis
 
-Lists all databases in a certain catalog. Some catalogs (like Collibra) are hierarchical, while others
-are just a flat list of tables. In that case we might  just return a single 'Database' for the whole catalog.
+Lists all databases in a certain catalog. Some catalogs (like Collibra) are hierarchical, while others are just a flat list of tables. In that case we might just return a single 'Database' for the whole catalog.
 
 ```
 pace list databases [flags]
 ```
 
-### Examples
+## Examples
 
 ```
 pace list databases --catalog COLLIBRA-testdrive  --output table
@@ -22,7 +21,7 @@ pace list databases --catalog COLLIBRA-testdrive  --output table
  b6e043a7-88f1-42ee-8e81-0fdc1c96f471          Snowflake
 ```
 
-### Options
+## Options
 
 ```
   -c, --catalog string   id of catalog
@@ -30,13 +29,12 @@ pace list databases --catalog COLLIBRA-testdrive  --output table
   -o, --output string    output formats [yaml, json, json-raw, table, plain] (default "yaml")
 ```
 
-### Options inherited from parent commands
+## Options inherited from parent commands
 
 ```
       --api-host string   api host (default "localhost:50051")
 ```
 
-### SEE ALSO
+## SEE ALSO
 
-* [pace list](pace_list.md)	 - List entities
-
+* [pace list](./) - List entities

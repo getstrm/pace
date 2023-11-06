@@ -6,6 +6,10 @@ description: Connecting PACE to a BigQuery instance
 
 PACE translates Data Policies to authorized views. This requires certain privileges. Additionally, a user group mapping table is required, since BigQuery doesn't offer a way to retrieve user groups natively in (authorized) views. Follow the below sections to connect PACE to a BigQuery instance.
 
+In a standard GPC deployment, PACE's integration will look like this:&#x20;
+
+<figure><img src="../../../.gitbook/assets/STRM-PACE-in-GCP-biquery" alt=""><figcaption></figcaption></figure>
+
 {% hint style="info" %}
 PACE creates authorized views so that users of these views do not need read access to the underlying data, which would defeat the purpose of controlling access and policies through PACE Data Policies.
 {% endhint %}
@@ -24,13 +28,13 @@ The easiest way to configure the required privileges is to grant the PACE servic
 
 ## User group mapping table
 
-To keep track of the group [principals.md](../../data-policy/principals.md "mention") a user belongs to, create a table (or view) with the following **string** fields: `userEmail` and `userGroup`.
+To keep track of the group [principals.md](../../../data-policy/principals.md "mention") a user belongs to, create a table (or view) with the following **string** fields: `userEmail` and `userGroup`.
 
 A user may appear in multiple rows, one per group. Changes to this table will immediately affect the query results on PACE authorized views for the modified users.
 
 ## PACE application properties
 
-After following the above steps, provide the corresponding [configuration](../../getting-started/example-configuration-file.md) to the PACE application for each BigQuery instance you want to connect with. For example:
+After following the above steps, provide the corresponding [configuration](../../../getting-started/example-configuration-file.md) to the PACE application for each BigQuery instance you want to connect with. For example:
 
 ```yaml
 app:

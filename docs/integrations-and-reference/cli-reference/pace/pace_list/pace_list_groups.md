@@ -1,19 +1,18 @@
-## pace list groups
+# groups
 
 List Groups
 
-### Synopsis
+## Synopsis
 
 list the groups that exist in a processing platform.
 
-These groups are needed in the rule sets to determine group membership of the
-entity executing the query on the view in the rule set.
+These groups are needed in the rule sets to determine group membership of the entity executing the query on the view in the rule set.
 
 ```
 pace list groups [flags]
 ```
 
-### Examples
+## Examples
 
 ```
 pace list groups --processing-platform bigquery-dev --output table
@@ -24,7 +23,7 @@ pace list groups --processing-platform bigquery-dev --output table
  fraud-detection
 ```
 
-### Options
+## Options
 
 ```
   -h, --help                         help for groups
@@ -32,13 +31,12 @@ pace list groups --processing-platform bigquery-dev --output table
   -p, --processing-platform string   id of processing platform
 ```
 
-### Options inherited from parent commands
+## Options inherited from parent commands
 
 ```
       --api-host string   api host (default "localhost:50051")
 ```
 
-### SEE ALSO
+## SEE ALSO
 
-* [pace list](pace_list.md)	 - List entities
-
+* [pace list](./) - List entities
