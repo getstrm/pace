@@ -37,7 +37,7 @@ The following commands that are not directly tied to a resource are available in
 \--api-host --help --output
 
 \--api-host\
-API host name (default "apis.strmprivacy.io:443")
+API host name (default "localhost:50051")
 
 \--help\
 Displays the help page
