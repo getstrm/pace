@@ -14,6 +14,8 @@ import com.getstrm.pace.config.DatabricksConfig
 import com.getstrm.pace.domain.*
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
+import com.getstrm.pace.util.normalizeType
+import com.getstrm.pace.util.toTimestamp
 import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
 
@@ -91,7 +93,8 @@ class DatabricksClient(
             else ->
                 if (response.status.error.errorCode != null) {
                     log.warn("SQL statement\n{}", statement)
-                    val errorMessage = "Databricks response %s: %s".format(response.status.error, response.status.error.message)
+                    val errorMessage =
+                        "Databricks response %s: %s".format(response.status.error, response.status.error.message)
                     log.warn("Caused error {}", errorMessage)
 
                     throw InternalException(
@@ -113,5 +116,33 @@ class DatabricksTable(
     private val tableInfo: TableInfo,
 ) : Table() {
 
-    override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy = tableInfo.toDataPolicy(platform)
+    override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy =
+        tableInfo.toDataPolicy(platform)
+
+    private fun TableInfo.toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy =
+        DataPolicy.newBuilder()
+            .setMetadata(
+                DataPolicy.Metadata.newBuilder()
+                    .setTitle(name)
+                    .setDescription(comment.orEmpty())
+                    .setCreateTime(createdAt.toTimestamp())
+                    .setUpdateTime(updatedAt.toTimestamp()),
+            )
+            .setPlatform(platform)
+            .setSource(
+                DataPolicy.Source.newBuilder()
+                    .setRef(fullName)
+                    .addAllFields(
+                        columns.map { column ->
+                            DataPolicy.Field.newBuilder()
+                                .addAllNameParts(listOf(column.name))
+                                .setType(column.typeText)
+                                .setRequired(!(column.nullable ?: false))
+                                .build().normalizeType()
+                        },
+                    )
+                    .build(),
+            )
+            .build()
+
 }

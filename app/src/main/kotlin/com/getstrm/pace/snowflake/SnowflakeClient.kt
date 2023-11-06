@@ -8,6 +8,7 @@ import com.getstrm.pace.domain.ProcessingPlatform
 import com.getstrm.pace.domain.Table
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
+import com.getstrm.pace.util.normalizeType
 import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
@@ -157,5 +158,31 @@ class SnowflakeTable(
                     .setOwner("Schema: $schema")
                     .build()
             )
+    }
+
+    private fun SnowflakeResponse.toDataPolicy(platform: DataPolicy.ProcessingPlatform, fullName: String): DataPolicy {
+        return DataPolicy.newBuilder()
+            .setMetadata(
+                DataPolicy.Metadata.newBuilder()
+                    .setTitle(fullName),
+            )
+            .setPlatform(platform)
+            .setSource(
+                DataPolicy.Source.newBuilder()
+                    .setRef(fullName)
+                    .addAllFields(
+                        // Todo: make this more type-safe
+                        data.orEmpty().map { (name, type, _, nullable) ->
+                            DataPolicy.Field.newBuilder()
+                                .addAllNameParts(listOf(name))
+                                .setType(type)
+                                .setRequired(nullable != "y")
+                                .build()
+                                .normalizeType()
+                        },
+                    )
+                    .build(),
+            )
+            .build()
     }
 }

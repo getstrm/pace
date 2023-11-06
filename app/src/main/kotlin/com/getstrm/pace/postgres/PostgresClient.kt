@@ -26,6 +26,10 @@ class PostgresClient(
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
+    // To match the behavior of the other ProcessingPlatform implementations, we connect to a
+    // single database. If we want to add support for a single client to connect to mulitple
+    // databases, more info can be found here:
+    // https://www.codejava.net/java-se/jdbc/how-to-list-names-of-all-databases-in-java
     private val jooq = DSL.using(
         HikariDataSource(
             HikariConfig().apply {
@@ -101,39 +105,3 @@ class PostgresTable(
             .build()
     }
 }
-
-/*
-Connect to a database SERVER, not a specific database
-https://www.codejava.net/java-se/jdbc/how-to-list-names-of-all-databases-in-java
-
-
-create user paceso with encrypted password 'paceso';
-grant all privileges on database paceso to paceso;
-
-create user mark with encrypted password 'mark';
-create user fin with encrypted password 'fin';
-create role marketing;
-create role finance;
-create role analytics;
-grant marketing to mark;
-grant analytics to mark;
-grant finance to fin;
-
-!-- list groups
-select rolname from pg_roles where not rolcanlogin and rolname not like 'pg_%';
-  rolname
------------
- marketing
- finance
- analytics
-
-!-- groups of current session user
-SELECT rolname, rolcanlogin isuser FROM pg_roles WHERE
-   pg_has_role( (select session_user), oid, 'member');
-
-  rolname  | isuser
------------+--------
- mark      | t
- marketing | f
- analytics | f
- */

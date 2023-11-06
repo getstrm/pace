@@ -2,12 +2,16 @@ package com.getstrm.pace.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
 class SnowflakeDataPolicyConverterTest {
     @Test
     fun `convert snowflake describe table result`() {
         // Given
+        val snowflakeClient = mockk<SnowflakeClient>()
         val snowflakeResponse = SnowflakeResponse(
             resultSetMetaData = null,
             data = listOf(
@@ -22,45 +26,49 @@ class SnowflakeDataPolicyConverterTest {
         )
         val platform = DataPolicy.ProcessingPlatform.newBuilder().setId("test-platform").build()
 
+        every { snowflakeClient.describeTable("test_schema", "test_table") } returns snowflakeResponse
+
+        val table = SnowflakeTable("test_schema.test_table", "test_table", "test_schema", snowflakeClient)
+
         // When
-        val policy = snowflakeResponse.toDataPolicy(platform, "test_schema.test_table")
+        val policy = runBlocking { table.toDataPolicy(platform) }
 
         // Then
         policy shouldBe
-            DataPolicy.newBuilder()
-                .setMetadata(
-                    DataPolicy.Metadata.newBuilder()
-                        .setTitle("test_schema.test_table")
-                )
-                .setPlatform(platform)
-                .setSource(
-                    DataPolicy.Source.newBuilder()
-                        .setRef("test_schema.test_table")
-                        .addAllFields(
-                            listOf(
-                                DataPolicy.Field.newBuilder()
-                                    .addAllNameParts(listOf("test_nullable_varchar_column"))
-                                    .setType("varchar")
-                                    .setRequired(false)
-                                    .build(),
-                                DataPolicy.Field.newBuilder()
-                                    .addAllNameParts(listOf("test_required_varchar_column"))
-                                    .setType("varchar")
-                                    .setRequired(true)
-                                    .build(),
-                                DataPolicy.Field.newBuilder()
-                                    .addAllNameParts(listOf("test_number_column"))
-                                    .setType("numeric")
-                                    .setRequired(true)
-                                    .build(),
-                                DataPolicy.Field.newBuilder()
-                                    .addAllNameParts(listOf("test_timestamp_column"))
-                                    .setType("varchar")
-                                    .setRequired(false)
-                                    .build(),
+                DataPolicy.newBuilder()
+                    .setMetadata(
+                        DataPolicy.Metadata.newBuilder()
+                            .setTitle("test_schema.test_table")
+                    )
+                    .setPlatform(platform)
+                    .setSource(
+                        DataPolicy.Source.newBuilder()
+                            .setRef("test_schema.test_table")
+                            .addAllFields(
+                                listOf(
+                                    DataPolicy.Field.newBuilder()
+                                        .addAllNameParts(listOf("test_nullable_varchar_column"))
+                                        .setType("varchar")
+                                        .setRequired(false)
+                                        .build(),
+                                    DataPolicy.Field.newBuilder()
+                                        .addAllNameParts(listOf("test_required_varchar_column"))
+                                        .setType("varchar")
+                                        .setRequired(true)
+                                        .build(),
+                                    DataPolicy.Field.newBuilder()
+                                        .addAllNameParts(listOf("test_number_column"))
+                                        .setType("numeric")
+                                        .setRequired(true)
+                                        .build(),
+                                    DataPolicy.Field.newBuilder()
+                                        .addAllNameParts(listOf("test_timestamp_column"))
+                                        .setType("varchar")
+                                        .setRequired(false)
+                                        .build(),
+                                ),
                             ),
-                        ),
-                )
-                .build()
+                    )
+                    .build()
     }
 }
