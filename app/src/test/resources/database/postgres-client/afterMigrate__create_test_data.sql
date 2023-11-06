@@ -1,4 +1,8 @@
 drop table if exists public.demo;
+drop role if exists mark;
+drop role if exists far;
+drop role if exists marketing;
+drop role if exists fraud_and_risk;
 
 create table public.demo
 (
