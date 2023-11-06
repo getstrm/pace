@@ -87,7 +87,7 @@ class BigQueryDynamicViewGeneratorTest {
             .addAllPrincipals(listOf("FRAUD_DETECTION").toPrincipals())
             .build()
         val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("stoelpoot"))
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("fixed-value"))
             .build()
         val fieldTransform = DataPolicy.RuleSet.FieldTransform.newBuilder()
             .setField(field)
@@ -99,7 +99,7 @@ class BigQueryDynamicViewGeneratorTest {
 
         // Then
         jooqField.toSql() shouldBe "case when (('ANALYTICS' IN ( SELECT userGroup FROM user_groups )) or ('MARKETING' IN ( SELECT userGroup FROM user_groups ))) then '****' when ('FRAUD_DETECTION' " +
-            "IN ( SELECT userGroup FROM user_groups )) then 'REDACTED EMAIL' else 'stoelpoot' end \"email\""
+            "IN ( SELECT userGroup FROM user_groups )) then 'REDACTED EMAIL' else 'fixed-value' end \"email\""
     }
 
     @Test
@@ -109,7 +109,7 @@ class BigQueryDynamicViewGeneratorTest {
             .addAllConditions(
                 listOf(
                     DataPolicy.RuleSet.Filter.Condition.newBuilder()
-                        .addAllPrincipals(listOf("fraud-detection").toPrincipals())
+                        .addAllPrincipals(listOf("fraud-and-risk").toPrincipals())
                         .setCondition("true")
                         .build(),
                     DataPolicy.RuleSet.Filter.Condition.newBuilder()
@@ -127,7 +127,7 @@ class BigQueryDynamicViewGeneratorTest {
         val condition = underTest.toCondition(filter)
 
         // Then
-        condition.toSql() shouldBe "case when ('fraud-detection' IN ( SELECT userGroup FROM user_groups )) then true when (('analytics' IN ( SELECT userGroup FROM user_groups )) or ('marketing' IN ( SELECT userGroup FROM user_groups ))) then age > 18 else false end"
+        condition.toSql() shouldBe "case when ('fraud-and-risk' IN ( SELECT userGroup FROM user_groups )) then true when (('analytics' IN ( SELECT userGroup FROM user_groups )) or ('marketing' IN ( SELECT userGroup FROM user_groups ))) then age > 18 else false end"
     }
 
     @Test
@@ -163,13 +163,13 @@ select
   end email,
   age,
   size,
-  case when hairColor = 'blonde' then 'fair' else 'dark' end hairColor,
+  case when brand = 'Macbook' then 'Apple' else 'Other' end brand,
   transactionAmount,
   null items,
   itemCount,
   date,
   purpose
-from `my_project.my_dataset.gddemo`
+from `my_project.my_dataset.my_table`
 where (
   case
     when ('FRAUD_DETECTION' IN ( SELECT userGroup FROM user_groups )) then true
@@ -188,7 +188,7 @@ where (
         @Language("yaml")
         val dataPolicy = """
 source:
-  ref: "my_project.my_dataset.gddemo"
+  ref: "my_project.my_dataset.my_table"
   fields:
     - name_parts: [transactionId]
       type: bigint
@@ -200,7 +200,7 @@ source:
       type: NUMBER(38,0)
     - name_parts: [size]
       type: string
-    - name_parts: [hairColor]
+    - name_parts: [brand]
       type: string
     - name_parts: [transactionAmount]
       type: bigint
@@ -255,11 +255,11 @@ rule_sets:
           nullify: {}
     - field:
         name_parts:
-          - hairColor
+          - brand
       transforms:
         - principals: []
           sql_statement:
-            statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
+            statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
   filters:
     - field:
         name_parts:
@@ -286,8 +286,8 @@ rule_sets:
         - principals: []
           condition: "transactionAmount < 10"
 info:
-  title: "Data Policy for GDDemo"
-  description: "The demo data policy for the poc with databricks using gddemo dataset."
+  title: "Data Policy for Pace BigQuery Demo Dataset"
+  description: "Pace Demo Dataset"
   version: "1.0.0"
   create_time: "2023-09-26T16:33:51.150Z"
   update_time: "2023-09-26T16:33:51.150Z"

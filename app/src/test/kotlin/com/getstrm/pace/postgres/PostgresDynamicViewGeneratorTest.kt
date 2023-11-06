@@ -76,7 +76,7 @@ class PostgresDynamicViewGeneratorTest {
             .addAllPrincipals(listOf("fraud_and_risk").toPrincipals())
             .build()
         val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("banana"))
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("fixed-value"))
             .build()
         val fieldTransform = DataPolicy.RuleSet.FieldTransform.newBuilder()
             .setField(field)
@@ -87,7 +87,7 @@ class PostgresDynamicViewGeneratorTest {
         val jooqField = underTest.toField(field, fieldTransform)
 
         // Then
-        jooqField.toSql() shouldBe "case when (('analytics' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') )) or ('marketing' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') ))) then '****' when ('fraud_and_risk' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') )) then 'REDACTED EMAIL' else 'banana' end \"email\""
+        jooqField.toSql() shouldBe "case when (('analytics' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') )) or ('marketing' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') ))) then '****' when ('fraud_and_risk' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') )) then 'REDACTED EMAIL' else 'fixed-value' end \"email\""
     }
 
     @Test
@@ -161,7 +161,7 @@ grant SELECT on public.demo_view to "marketing";"""
               version: 5
               title: public.demo
             platform:
-              id: banana
+              id: platform-id
               platform_type: 4
             source:
               fields:

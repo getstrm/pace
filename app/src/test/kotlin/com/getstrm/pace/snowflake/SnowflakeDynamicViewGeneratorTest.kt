@@ -81,7 +81,7 @@ class SnowflakeDynamicViewGeneratorTest {
             .build()
         val otherFixed =DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("REDACTED EMAIL"))
-            .addAllPrincipals(listOf("FRAUD_DETECTION").toPrincipals())
+            .addAllPrincipals(listOf("FRAUD_AND_RISK").toPrincipals())
             .build()
         val fallbackTransform =DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("stoelpoot"))
@@ -95,7 +95,7 @@ class SnowflakeDynamicViewGeneratorTest {
         val jooqField = underTest.toField(field, fieldTransform)
 
         // Then
-        jooqField.toSql() shouldBe "case when ((IS_ROLE_IN_SESSION('ANALYTICS')) or (IS_ROLE_IN_SESSION('MARKETING'))) then '****' when (IS_ROLE_IN_SESSION('FRAUD_DETECTION')) then 'REDACTED EMAIL' " +
+        jooqField.toSql() shouldBe "case when ((IS_ROLE_IN_SESSION('ANALYTICS')) or (IS_ROLE_IN_SESSION('MARKETING'))) then '****' when (IS_ROLE_IN_SESSION('FRAUD_AND_RISK')) then 'REDACTED EMAIL' " +
                 "else 'stoelpoot' end \"email\""
     }
 
@@ -106,7 +106,7 @@ class SnowflakeDynamicViewGeneratorTest {
             .addAllConditions(
                 listOf(
                     DataPolicy.RuleSet.Filter.Condition.newBuilder()
-                        .addAllPrincipals(listOf("fraud-detection").toPrincipals())
+                        .addAllPrincipals(listOf("fraud-and-risk").toPrincipals())
                         .setCondition("true")
                         .build(),
                     DataPolicy.RuleSet.Filter.Condition.newBuilder()
@@ -124,7 +124,7 @@ class SnowflakeDynamicViewGeneratorTest {
         val condition = underTest.toCondition(filter)
 
         // Then
-        condition.toSql() shouldBe "case when (IS_ROLE_IN_SESSION('fraud-detection')) then true when ((IS_ROLE_IN_SESSION('analytics')) " +
+        condition.toSql() shouldBe "case when (IS_ROLE_IN_SESSION('fraud-and-risk')) then true when ((IS_ROLE_IN_SESSION('analytics')) " +
                 "or (IS_ROLE_IN_SESSION('marketing'))) then age > 18 else false end"
     }
 
@@ -139,7 +139,7 @@ as
 select
   transactionId,
   case
-    when (IS_ROLE_IN_SESSION('FRAUD_DETECTION')) then userId
+    when (IS_ROLE_IN_SESSION('FRAUD_AND_RISK')) then userId
     else hash(1234, userId)
   end userId,
   case
@@ -148,14 +148,14 @@ select
       or (IS_ROLE_IN_SESSION('MARKETING'))
     ) then regexp_replace(email, '^.*(@.*)${'$'}', '****\\1')
     when (
-      (IS_ROLE_IN_SESSION('FRAUD_DETECTION'))
+      (IS_ROLE_IN_SESSION('FRAUD_AND_RISK'))
       or (IS_ROLE_IN_SESSION('ADMIN'))
     ) then email
     else '****'
   end email,
   age,
   size,
-  case when hairColor = 'blonde' then 'fair' else 'dark' end hairColor,
+  case when brand = 'Macbook' then 'Apple' else 'Other' end brand,
   transactionAmount,
   null items,
   itemCount,
@@ -164,7 +164,7 @@ select
 from mydb.my_schema.gddemo
 where (
   case
-    when (IS_ROLE_IN_SESSION('FRAUD_DETECTION')) then true
+    when (IS_ROLE_IN_SESSION('FRAUD_AND_RISK')) then true
     else age > 18
   end
   and case
@@ -175,7 +175,7 @@ where (
 );
 grant SELECT on my_database.my_schema.gddemo_public to ANALYTICS;
 grant SELECT on my_database.my_schema.gddemo_public to MARKETING;
-grant SELECT on my_database.my_schema.gddemo_public to FRAUD_DETECTION;
+grant SELECT on my_database.my_schema.gddemo_public to FRAUD_AND_RISK;
 grant SELECT on my_database.my_schema.gddemo_public to ADMIN;"""
             )
     }
@@ -196,7 +196,7 @@ source:
       type: NUMBER(38,0)
     - name_parts: [size]
       type: string
-    - name_parts: [hairColor]
+    - name_parts: [brand]
       type: string
     - name_parts: [transactionAmount]
       type: bigint
@@ -225,7 +225,7 @@ rule_sets:
             regexp: '^.*(@.*)${'$'}'
             replacement: '****\\1'
         - principals:
-            - group: FRAUD_DETECTION
+            - group: FRAUD_AND_RISK
             - group: ADMIN
           identity: {}
         - principals: []
@@ -236,7 +236,7 @@ rule_sets:
           - userId
       transforms:
         - principals:
-            - group: FRAUD_DETECTION
+            - group: FRAUD_AND_RISK
           identity: {}
         - principals: []
           hash:
@@ -249,18 +249,18 @@ rule_sets:
           nullify: {}
     - field:
         name_parts:
-          - hairColor
+          - brand
       transforms:
         - principals: []
           sql_statement:
-            statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
+            statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
   filters:
     - field:
         name_parts:
           - age
       conditions:
         - principals:
-            - group: FRAUD_DETECTION
+            - group: FRAUD_AND_RISK
           condition: "true"
         - principals: []
           condition: "age > 18"
@@ -280,8 +280,8 @@ rule_sets:
         - principals: []
           condition: "transactionAmount < 10"
 info:
-  title: "Data Policy for GDDemo"
-  description: "The demo data policy for the poc with databricks using gddemo dataset."
+  title: "Data Policy for Pace BigQuery Demo Dataset"
+  description: "Pace Demo Dataset"
   version: "1.0.0"
   create_time: "2023-09-26T16:33:51.150Z"
   update_time: "2023-09-26T16:33:51.150Z"
