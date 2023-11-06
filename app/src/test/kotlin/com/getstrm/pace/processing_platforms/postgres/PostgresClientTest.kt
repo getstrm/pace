@@ -1,4 +1,4 @@
-package com.getstrm.pace.postgres
+package com.getstrm.pace.processing_platforms.postgres
 
 import com.getstrm.pace.AbstractDatabaseTest
 import com.getstrm.pace.processing_platforms.Group
