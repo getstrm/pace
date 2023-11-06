@@ -7,7 +7,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
-class SnowflakeDataPolicyConverterTest {
+class SnowflakeClientTest {
     @Test
     fun `convert snowflake describe table result`() {
         // Given

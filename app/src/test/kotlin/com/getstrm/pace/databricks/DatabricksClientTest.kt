@@ -8,7 +8,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
-class DatabricksDataPolicyConverterTest {
+class DatabricksClientTest {
 
     @Test
     fun `convert full table info`() {
