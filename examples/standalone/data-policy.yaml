@@ -59,8 +59,8 @@ rule_sets:
             identity: { }
           - principals: [ { group: marketing } ]
             regexp:
-              regexp: "^.*(@.*)${'$'}"
-              replacement: "****\\1"
+              regexp: "^.*(@.*)$"
+              replacement: "****\1"
           - principals: [ { group: fraud_and_risk } ]
             identity: { }
           - principals: [ ]
