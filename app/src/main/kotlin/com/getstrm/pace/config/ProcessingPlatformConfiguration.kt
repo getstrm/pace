@@ -30,11 +30,11 @@ data class BigQueryConfig(
 
 data class PostgresConfig(
     val id: String,
-    val hostName: String = "localhost",
-    val port: Int = 5432,
-    val database: String = "postgres",
-    val userName: String = "",
-    val password: String = "",
+    val hostName: String,
+    val port: Int,
+    val database: String,
+    val userName: String,
+    val password: String,
 ) {
     internal fun getJdbcUrl() = "jdbc:postgresql://$hostName:$port/$database"
 }
