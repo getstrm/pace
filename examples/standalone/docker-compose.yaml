@@ -29,7 +29,7 @@ services:
     networks:
       - postgres_processing_platform
 
-  pace:
+  pace_app:
     depends_on:
       - postgres_pace
       - postgres_processing_platform
