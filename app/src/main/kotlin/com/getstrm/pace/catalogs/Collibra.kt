@@ -6,7 +6,6 @@ import com.collibra.generated.ListSchemaIdsQuery
 import com.collibra.generated.ListTablesInSchemaQuery
 import com.collibra.generated.TableWithColumnsQuery
 import com.getstrm.pace.config.CatalogConfiguration
-import com.getstrm.pace.domain.DataCatalog
 import com.getstrm.pace.util.normalizeType
 import java.util.*
 

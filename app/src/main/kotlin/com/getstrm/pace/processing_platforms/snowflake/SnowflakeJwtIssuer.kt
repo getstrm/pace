@@ -1,4 +1,4 @@
-package com.getstrm.pace.snowflake
+package com.getstrm.pace.processing_platforms.snowflake
 
 import com.nimbusds.jose.JOSEException
 import com.nimbusds.jose.JWSAlgorithm

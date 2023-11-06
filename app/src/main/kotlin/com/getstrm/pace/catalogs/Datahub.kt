@@ -3,7 +3,6 @@ package com.getstrm.pace.catalogs
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.apollographql.apollo3.ApolloClient
 import com.getstrm.pace.config.CatalogConfiguration
-import com.getstrm.pace.domain.DataCatalog
 import io.datahubproject.generated.GetDatasetDetailsQuery
 import io.datahubproject.generated.ListDatasetsQuery
 import com.getstrm.pace.util.normalizeType

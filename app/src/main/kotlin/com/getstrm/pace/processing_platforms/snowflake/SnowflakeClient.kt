@@ -1,11 +1,11 @@
-package com.getstrm.pace.snowflake
+package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE
 import com.getstrm.pace.config.SnowflakeConfig
-import com.getstrm.pace.domain.Group
-import com.getstrm.pace.domain.ProcessingPlatform
-import com.getstrm.pace.domain.Table
+import com.getstrm.pace.processing_platforms.Group
+import com.getstrm.pace.processing_platforms.ProcessingPlatform
+import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.normalizeType
@@ -27,10 +27,10 @@ class SnowflakeClient(
     constructor(config: SnowflakeConfig) : this(config.id, config)
 
     private val snowflakeJwtIssuer = SnowflakeJwtIssuer.fromOrganizationAndAccountName(
-        privateKey = config.privateKey,
-        organizationName = config.organizationName,
-        accountName = config.accountName,
-        userName = config.userName
+	    privateKey = config.privateKey,
+	    organizationName = config.organizationName,
+	    accountName = config.accountName,
+	    userName = config.userName
     )
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -142,10 +142,10 @@ private data class SnowflakeRequest(
 )
 
 class SnowflakeTable(
-    override val fullName: String,
-    private val table: String,
-    private val schema: String,
-    private val client: SnowflakeClient,
+	override val fullName: String,
+	private val table: String,
+	private val schema: String,
+	private val client: SnowflakeClient,
 ) : Table() {
     override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
         return client.describeTable(schema, table)?.toDataPolicy(platform, fullName)

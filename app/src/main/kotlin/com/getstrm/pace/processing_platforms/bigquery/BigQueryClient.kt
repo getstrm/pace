@@ -1,11 +1,11 @@
-package com.getstrm.pace.bigquery
+package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.BIGQUERY
 import com.getstrm.pace.config.BigQueryConfig
-import com.getstrm.pace.domain.Group
-import com.getstrm.pace.domain.ProcessingPlatform
-import com.getstrm.pace.domain.Table
+import com.getstrm.pace.processing_platforms.Group
+import com.getstrm.pace.processing_platforms.ProcessingPlatform
+import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.util.normalizeType

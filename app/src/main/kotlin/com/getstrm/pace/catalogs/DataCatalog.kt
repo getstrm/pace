@@ -1,4 +1,4 @@
-package com.getstrm.pace.domain
+package com.getstrm.pace.catalogs
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.config.CatalogConfiguration

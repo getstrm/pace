@@ -1,6 +1,9 @@
 package com.getstrm.pace.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.processing_platforms.snowflake.SnowflakeClient
+import com.getstrm.pace.processing_platforms.snowflake.SnowflakeResponse
+import com.getstrm.pace.processing_platforms.snowflake.SnowflakeTable
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk

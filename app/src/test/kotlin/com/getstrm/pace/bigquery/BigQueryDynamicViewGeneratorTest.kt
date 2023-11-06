@@ -2,6 +2,7 @@ package com.getstrm.pace.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
+import com.getstrm.pace.processing_platforms.bigquery.BigQueryDynamicViewGenerator
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import io.kotest.matchers.nulls.shouldBeNull

@@ -1,6 +1,7 @@
 package com.getstrm.pace.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.processing_platforms.snowflake.SnowflakeDynamicViewGenerator
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import io.kotest.matchers.nulls.shouldBeNull

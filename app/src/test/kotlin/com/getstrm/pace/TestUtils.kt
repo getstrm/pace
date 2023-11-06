@@ -1,7 +1,7 @@
 package com.getstrm.pace
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import com.getstrm.pace.common.AbstractDynamicViewGenerator
+import com.getstrm.pace.processing_platforms.AbstractDynamicViewGenerator
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres

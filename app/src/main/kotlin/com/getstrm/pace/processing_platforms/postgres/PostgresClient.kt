@@ -1,11 +1,11 @@
-package com.getstrm.pace.postgres
+package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.POSTGRES
 import com.getstrm.pace.config.PostgresConfig
-import com.getstrm.pace.domain.Group
-import com.getstrm.pace.domain.ProcessingPlatform
-import com.getstrm.pace.domain.Table
+import com.getstrm.pace.processing_platforms.Group
+import com.getstrm.pace.processing_platforms.ProcessingPlatform
+import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.util.normalizeType
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource

@@ -2,7 +2,6 @@ package com.getstrm.pace.catalogs
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.config.CatalogConfiguration
-import com.getstrm.pace.domain.DataCatalog
 import com.getstrm.pace.util.normalizeType
 import org.opendatadiscovery.generated.api.DataSetApi
 import org.opendatadiscovery.generated.api.DataSourceApi
