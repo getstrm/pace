@@ -26,7 +26,7 @@ class PostgresDynamicViewGeneratorTest {
         val (condition, field) = underTest.toCase(transform, attribute)
 
         // Then
-        condition!!.toSql() shouldBe "(('analytics' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') )) or ('marketing' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') )))"
+        condition!!.toSql() shouldBe "(('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups )))"
         field.toSql() shouldBe "'****'"
     }
 
@@ -43,7 +43,7 @@ class PostgresDynamicViewGeneratorTest {
         val (condition, field) = underTest.toCase(transform, attribute)
 
         // Then
-        condition!!.toSql() shouldBe "('analytics' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') ))"
+        condition!!.toSql() shouldBe "('analytics' IN ( SELECT rolname FROM user_groups ))"
         field.toSql() shouldBe "'****'"
     }
 
@@ -87,7 +87,7 @@ class PostgresDynamicViewGeneratorTest {
         val jooqField = underTest.toField(field, fieldTransform)
 
         // Then
-        jooqField.toSql() shouldBe "case when (('analytics' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') )) or ('marketing' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') ))) then '****' when ('fraud_and_risk' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') )) then 'REDACTED EMAIL' else 'fixed-value' end \"email\""
+        jooqField.toSql() shouldBe "case when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then '****' when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then 'REDACTED EMAIL' else 'fixed-value' end \"email\""
     }
 
     @Test
@@ -115,7 +115,7 @@ class PostgresDynamicViewGeneratorTest {
         val condition = underTest.toCondition(filter)
 
         // Then
-        condition.toSql() shouldBe "case when ('fraud_and_risk' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') )) then true when (('analytics' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') )) or ('marketing' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') ))) then age > 18 else false end"
+        condition.toSql() shouldBe "case when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then age > 18 else false end"
     }
 
     @Test
@@ -126,15 +126,28 @@ class PostgresDynamicViewGeneratorTest {
             .shouldBe(
                 """create or replace view public.demo_view
 as
+with
+  user_groups as (
+    select rolname
+    from pg_roles
+    where (
+      rolcanlogin = false
+      and pg_has_role(
+        session_user,
+        oid,
+        'member'
+      )
+    )
+  )
 select
   transactionid,
   case
-    when ('fraud_and_risk' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') )) then userid
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then userid
     else null
   end userid,
   case
-    when ('marketing' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') )) then regexp_replace(email, '^.*(@.*)${'$'}', '****\1')
-    when ('fraud_and_risk' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') )) then email
+    when ('marketing' IN ( SELECT rolname FROM user_groups )) then regexp_replace(email, '^.*(@.*)${'$'}', '****\1')
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then email
     else '****'
   end email,
   age,
@@ -143,7 +156,7 @@ select
 from public.demo
 where (
   case
-    when ('fraud_and_risk' IN ( SELECT rolname FROM pg_roles WHERE not rolcanlogin and pg_has_role( (select session_user), oid, 'member') )) then true
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
     else age > 8
   end
   and transactionamount < 10
