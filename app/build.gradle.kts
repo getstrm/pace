@@ -313,32 +313,8 @@ val buildDocker =
         dependsOn(prepareForDocker)
         workingDir("build/docker")
 
-        if (System.getProperty("os.name") == "Mac OS X" && System.getProperty("os.arch") == "aarch64") {
-            println("Building docker image on ARM Mac system. If you don't have a cross platform builder instance yet, create one using:")
-            println("  docker buildx create --use")
-            commandLine(
-                "/usr/bin/env",
-                "docker",
-                "buildx",
-                "build",
-                "--platform",
-                "linux/amd64",
-                "-t",
-                project.properties["dockertag"],
-                "."
-            )
-        } else {
-            commandLine("/usr/bin/env", "docker", "build", ".", "-t", project.properties["dockertag"])
-        }
+        commandLine("/usr/bin/env", "docker", "build", ".", "-t", project.properties["dockertag"])
     }
-
-val pushDocker = tasks.register<Exec>("pushDocker") {
-    group = "docker"
-    dependsOn(buildDocker)
-    workingDir("build/docker")
-
-    commandLine("/usr/bin/env", "docker", "push", project.properties["dockertag"])
-}
 
 apollo {
     service("collibra") {
