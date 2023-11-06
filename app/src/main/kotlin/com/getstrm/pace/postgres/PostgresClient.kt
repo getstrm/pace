@@ -11,34 +11,33 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
 
 class PostgresClient(
     override val id: String,
-    private val config: PostgresConfig,
+    private val jooq: DSLContext,
 ) : ProcessingPlatform {
-    constructor(config: PostgresConfig) : this(
-        config.id,
-        config,
-    )
-
-    private val log by lazy { LoggerFactory.getLogger(javaClass) }
-
     // To match the behavior of the other ProcessingPlatform implementations, we connect to a
     // single database. If we want to add support for a single client to connect to mulitple
     // databases, more info can be found here:
     // https://www.codejava.net/java-se/jdbc/how-to-list-names-of-all-databases-in-java
-    private val jooq = DSL.using(
-        HikariDataSource(
-            HikariConfig().apply {
-                jdbcUrl = config.getJdbcUrl()
-                username = config.userName
-                password = config.password
-            }),
-        SQLDialect.POSTGRES
+    constructor(config: PostgresConfig) : this(
+        config.id,
+        DSL.using(
+            HikariDataSource(
+                HikariConfig().apply {
+                    jdbcUrl = config.getJdbcUrl()
+                    username = config.userName
+                    password = config.password
+                }),
+            SQLDialect.POSTGRES
+        )
     )
+
+    private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
     override val type = POSTGRES
 
