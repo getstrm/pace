@@ -42,7 +42,7 @@ class BigQueryDynamicViewGeneratorTest {
     }
 
     @Test
-    fun `fixed value transform with with a single principal`() {
+    fun `fixed value transform with a single principal`() {
         // Given
         val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
@@ -59,7 +59,7 @@ class BigQueryDynamicViewGeneratorTest {
     }
 
     @Test
-    fun `fixed value transform with without principals`() {
+    fun `fixed value transform without principals`() {
         // Given
         val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()

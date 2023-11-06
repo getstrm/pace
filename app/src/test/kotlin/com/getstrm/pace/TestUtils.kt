@@ -72,7 +72,6 @@ abstract class AbstractDatabaseTest {
                     .loggers("slf4j")
                     .dataSource(it)
                     .locations(*locations)
-                    .callbacks("callback")
                     .load()
                     .migrate()
             }

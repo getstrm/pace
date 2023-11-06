@@ -5,9 +5,7 @@ import com.getstrm.pace.common.AbstractDynamicViewGenerator
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException
 import com.google.rpc.DebugInfo
-import org.jooq.Condition
-import org.jooq.Queries
-import org.jooq.SQLDialect
+import org.jooq.*
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 
@@ -60,4 +58,9 @@ class PostgresDynamicViewGenerator(
     }
 
     override fun renderName(name: String): String = postgresDsl.renderNamedParams(DSL.unquotedName(name))
+
+    // FIXME setup a base query for quering the PG roles, otherwise queries become quite complex to read and I'm not sure whether the query is executed once or multiple times (i.e. whether this is optimized in the query plan)
+    override fun selectWithAdditionalHeaderStatements(fields: List<Field<*>>): SelectSelectStep<Record> {
+        return super.selectWithAdditionalHeaderStatements(fields)
+    }
 }
