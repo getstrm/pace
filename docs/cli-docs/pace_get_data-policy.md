@@ -27,7 +27,7 @@ pace get data-policy --catalog COLLIBRA-testdrive \
 	--schema 342f676c-341e-4229-b3c2-3e71f9ed0fcd \
 	6e978083-bb8f-459d-a48b-c9a50289b327
 data_policy:
-  info:
+  metadata:
     title: employee_yearly_income
     description: Google BigQuery
   source:
@@ -45,7 +45,7 @@ pace get data-policy \
 	--processing-platform bigquery-dev \
 	stream-machine-development.dynamic_view_poc.gddemo
 dataPolicy:
-  info:
+  metadata:
     createTime: '2023-10-04T09:04:56.246Z'
     description: ''
     title: stream-machine-development.dynamic_view_poc.gddemo
