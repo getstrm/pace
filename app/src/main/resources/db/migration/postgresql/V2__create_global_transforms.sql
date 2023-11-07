@@ -7,5 +7,5 @@ create table if not exists pace.global_transforms
     updated_at      timestamptz default now() not null,
     transform       jsonb                     not null,
     active          boolean     default false not null,
-    constraint data_policies_pk primary key (ref)
+    constraint global_transforms_pk primary key (ref)
 );
