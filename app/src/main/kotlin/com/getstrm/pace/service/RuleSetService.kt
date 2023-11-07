@@ -47,21 +47,23 @@ class RuleSetService(
  * ORDER of tags important. Let's hope the catalogs present the tags in a deterministic order!
  *
  * TODO: think about if this is a good idea, or should we enforce that for
- * a certain attribute the tags define non-overlapping rules? The [DataPolicyService.validate]
+ * a certain fields the tags define non-overlapping rules? The [DataPolicyService.validate]
  * method already executes this check.
  *
  */
 fun List<ApiTransform>.filterFieldTransforms(): List<ApiTransform> {
     val filtered: List<ApiTransform> = this.fold(
         emptySet<String>() to listOf<ApiTransform>(),
-    ) { (
-        /* the principals that we've already encountered while going through the list */
-        alreadySeenPrincipals: Set<String>,
-        /* the cleaned-up list of ApiTransforms */
-        acc: List<ApiTransform>,
-    ),
+    ) {
+            (
+                /* the principals that we've already encountered while going through the list */
+                alreadySeenPrincipals: Set<String>,
+                /* the cleaned-up list of ApiTransforms */
+                acc: List<ApiTransform>,
+            ),
             /* the original ApiTransform */
-            transform: ApiTransform, ->
+            transform: ApiTransform,
+        ->
         val principals = transform.principalsList.map { it.group }.toSet() - alreadySeenPrincipals
         val dataPolicyWithoutOverlappingPrincipals = transform.toBuilder()
             .clearPrincipals()

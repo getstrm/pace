@@ -109,7 +109,7 @@ class ExceptionHandlerInterceptor(private val exposeExceptions: Boolean) : Serve
                     val id = randomUniqueId()
                     log.error(
                         "Tried to extract an PACE-<UUIDv4> from a response with status code INTERNAL, but failed " +
-                                "because no match was found. Falling back to id '{}'. Status code description: {}",
+                            "because no match was found. Falling back to id '{}'. Status code description: {}",
                         id,
                         description,
                     )

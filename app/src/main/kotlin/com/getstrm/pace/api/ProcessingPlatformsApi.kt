@@ -1,15 +1,7 @@
 package com.getstrm.pace.api
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBarePolicyRequest
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBarePolicyResponse
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListGroupsRequest
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListGroupsResponse
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListProcessingPlatformsRequest
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListProcessingPlatformsResponse
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListTablesRequest
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListTablesResponse
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ProcessingPlatformsServiceGrpcKt
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.*
 import com.getstrm.pace.service.ProcessingPlatformsService
 import net.devh.boot.grpc.server.service.GrpcService
 

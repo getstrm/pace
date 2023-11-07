@@ -1,14 +1,17 @@
-package com.getstrm.pace.processing_platforms.postgres
+package com.getstrm.pace.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
 import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.util.yaml2json
+import com.google.rpc.BadRequest
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class PostgresDynamicViewGeneratorTest {
     private val underTest = PostgresDynamicViewGenerator(dataPolicy)
@@ -116,6 +119,31 @@ class PostgresDynamicViewGeneratorTest {
 
         // Then
         condition.toSql() shouldBe "case when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then age > 18 else false end"
+    }
+
+    @Test
+    fun `fixed value data type should match the attribute data type`() {
+        // Given an attribute and a transform
+        val attribute = DataPolicy.Field.newBuilder().addNameParts("age").setType("integer").build()
+        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
+            .build()
+
+        // When the transform is rendered as case
+        val exception = assertThrows<BadRequestException> { underTest.toCase(transform, attribute) }
+
+        // Then
+        exception.code shouldBe BadRequestException.Code.INVALID_ARGUMENT
+        exception.badRequest shouldBe BadRequest.newBuilder()
+            .addAllFieldViolations(
+                listOf(
+                    BadRequest.FieldViolation.newBuilder()
+                        .setField("dataPolicy.ruleSetsList.fieldTransformsList.fixed")
+                        .setDescription("Data type of fixed value provided for field age does not match the data type of the field")
+                        .build()
+                )
+            )
+            .build()
     }
 
     @Test

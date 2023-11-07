@@ -10,12 +10,15 @@ create table public.demo
 
 create user mark with encrypted password 'mark';
 create user far with encrypted password 'far';
+create user other with encrypted password 'other';
 create role administrator;
 create role marketing;
 create role fraud_and_risk;
 grant marketing to mark;
 grant fraud_and_risk to far;
 grant administrator to standalone_user;
+-- Grant select access to user 'other' on all (including future) tables
+alter default privileges in schema public grant all on tables to other;
 
 insert into public.demo (transactionid, userid, email, age, transactionamount, brand)
 values (861200791, 533445, 'jeffreypowell@hotmail.com', 33, 123, 'Lenovo')

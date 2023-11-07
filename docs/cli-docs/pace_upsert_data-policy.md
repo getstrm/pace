@@ -10,6 +10,9 @@ applies it to the target platform.
 The file to upsert is checked for validity, a transformation is generated
 for the processing platform, and then applied on it.
 
+When updating an existing policy, the latest existing version should be set
+in the metadata. When creating a new policy, no version needs to be specified.
+
 ```
 pace upsert data-policy (yaml or json file) [flags]
 ```
@@ -17,14 +20,11 @@ pace upsert data-policy (yaml or json file) [flags]
 ### Examples
 
 ```
-pace upsert data-policy sample_data/bigquery-cdc.json
+pace upsert data-policy examples/sample_data/bigquery-cdc.json
 data_policy:
   id: fb76958d-63a9-4b5e-bf36-fdc4d7ab807f
-  info:
-    context: 120ee556-8666-4438-9c2b-315a0ab2f494
-    create_time: "2023-10-27T11:28:37.658384414Z"
+  metadata:
     title: stream-machine-development.dynamic_views.cdc_diabetes
-    update_time: "2023-10-27T14:17:14.422071500Z"
   platform:
     id: bigquery-dev
     platform_type: BIGQUERY

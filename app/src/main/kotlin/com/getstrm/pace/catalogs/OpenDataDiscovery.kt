@@ -6,12 +6,7 @@ import com.getstrm.pace.util.normalizeType
 import org.opendatadiscovery.generated.api.DataSetApi
 import org.opendatadiscovery.generated.api.DataSourceApi
 import org.opendatadiscovery.generated.api.SearchApi
-import org.opendatadiscovery.generated.model.DataEntity
-import org.opendatadiscovery.generated.model.DataSetField
-import org.opendatadiscovery.generated.model.DataSource
-import org.opendatadiscovery.generated.model.SearchFilterState
-import org.opendatadiscovery.generated.model.SearchFormData
-import org.opendatadiscovery.generated.model.SearchFormDataFilters
+import org.opendatadiscovery.generated.model.*
 import java.util.*
 
 /**

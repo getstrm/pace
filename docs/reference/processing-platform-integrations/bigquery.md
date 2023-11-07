@@ -6,6 +6,10 @@ description: Connecting PACE to a BigQuery instance
 
 PACE translates Data Policies to authorized views. This requires certain privileges. Additionally, a user group mapping table is required, since BigQuery doesn't offer a way to retrieve user groups natively in (authorized) views. Follow the below sections to connect PACE to a BigQuery instance.
 
+In a standard GPC deployment, PACE's integration will look like this:&#x20;
+
+<figure><img src="../../.gitbook/assets/STRM-PACE-in-GCP-biquery" alt=""><figcaption></figcaption></figure>
+
 {% hint style="info" %}
 PACE creates authorized views so that users of these views do not need read access to the underlying data, which would defeat the purpose of controlling access and policies through PACE Data Policies.
 {% endhint %}

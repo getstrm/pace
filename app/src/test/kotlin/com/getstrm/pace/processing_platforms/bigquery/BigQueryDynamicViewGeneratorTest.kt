@@ -96,7 +96,7 @@ class BigQueryDynamicViewGeneratorTest {
             .build()
 
         // When
-        val jooqField = underTest.toField(field, fieldTransform)
+        val jooqField = underTest.toJooqField(field, fieldTransform)
 
         // Then
         jooqField.toSql() shouldBe "case when (('ANALYTICS' IN ( SELECT userGroup FROM user_groups )) or ('MARKETING' IN ( SELECT userGroup FROM user_groups ))) then '****' when ('FRAUD_DETECTION' " +

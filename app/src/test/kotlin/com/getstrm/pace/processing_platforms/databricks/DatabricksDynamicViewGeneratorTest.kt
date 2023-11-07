@@ -111,7 +111,7 @@ class DatabricksDynamicViewGeneratorTest {
             .build()
 
         // When
-        val field = underTest.toField(attribute, fieldTransform)
+        val field = underTest.toJooqField(attribute, fieldTransform)
 
         // Then
         field.toSql() shouldBe "case when ((is_account_group_member('marketing')) or (is_account_group_member('analytics'))) then '****' when (is_account_group_member('fraud-and-risk')) then " +
@@ -135,7 +135,7 @@ class DatabricksDynamicViewGeneratorTest {
             .build()
 
         // When
-        val field = underTest.toField(attribute, fieldTransform)
+        val field = underTest.toJooqField(attribute, fieldTransform)
 
         // Then
         field.toSql() shouldBe "case when (is_account_group_member('analytics')) then '****' else 'stoelpoot' end \"email\""
@@ -154,7 +154,7 @@ class DatabricksDynamicViewGeneratorTest {
             .build()
 
         // When
-        val field = underTest.toField(attribute, fieldTransform)
+        val field = underTest.toJooqField(attribute, fieldTransform)
 
         // Then
         field.toSql() shouldBe "regexp_replace(email, '^.*(@.*)\$', '****\$1') \"email\""
@@ -166,7 +166,7 @@ class DatabricksDynamicViewGeneratorTest {
         val attribute = DataPolicy.Field.newBuilder().addNameParts("email").build()
 
         // When
-        val field = underTest.toField(attribute, null)
+        val field = underTest.toJooqField(attribute, null)
 
         // Then
         field shouldBe DSL.field("email")

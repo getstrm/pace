@@ -4,22 +4,18 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.util.headTailFold
 import com.getstrm.pace.util.sqlDataType
+import com.github.drapostolos.typeparser.TypeParser
+import com.github.drapostolos.typeparser.TypeParserException
 import com.google.rpc.BadRequest
-import org.jooq.Condition
-import org.jooq.Field
-import org.jooq.Queries
-import org.jooq.Record
-import org.jooq.SQLDialect
-import org.jooq.SelectSelectStep
+import org.jooq.*
 import org.jooq.conf.ParseNameCase
 import org.jooq.conf.ParseUnknownFunctions
 import org.jooq.conf.RenderQuotedNames
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.field
-import org.jooq.impl.DSL.name
-import org.jooq.impl.DSL.unquotedName
+import org.jooq.impl.DSL.*
 import org.jooq.impl.ParserException
+import org.jooq.Field as JooqField
 
 abstract class AbstractDynamicViewGenerator(
     protected val dataPolicy: DataPolicy,
@@ -27,7 +23,7 @@ abstract class AbstractDynamicViewGenerator(
 ) {
     protected abstract fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition?
 
-    protected open fun selectWithAdditionalHeaderStatements(fields: List<Field<*>>): SelectSelectStep<Record> =
+    protected open fun selectWithAdditionalHeaderStatements(fields: List<JooqField<*>>): SelectSelectStep<Record> =
         jooq.select(fields)
 
     protected open fun additionalFooterStatements(): Queries = DSL.queries()
@@ -35,7 +31,8 @@ abstract class AbstractDynamicViewGenerator(
     protected open fun renderName(name: String): String = jooq.renderNamedParams(name(name))
 
     protected val jooq = DSL.using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
-    protected val parser = jooq.parser()
+    private val parser = jooq.parser()
+    private val typeParser: TypeParser = TypeParser.newBuilder().build()
 
     fun toDynamicViewSQL(): String {
         val queries = dataPolicy.ruleSetsList.map { ruleSet ->
@@ -44,7 +41,7 @@ abstract class AbstractDynamicViewGenerator(
             jooq.createOrReplaceView(renderName(targetView)).`as`(
                 selectWithAdditionalHeaderStatements(
                     dataPolicy.source.fieldsList.map { field ->
-                        toField(
+                        toJooqField(
                             field,
                             ruleSet.fieldTransformsList.firstOrNull {
                                 it.field.fullName() == field.fullName()
@@ -95,32 +92,32 @@ abstract class AbstractDynamicViewGenerator(
         return DSL.condition(whereCondition)
     }
 
-    fun toField(
-        attribute: DataPolicy.Field,
+    fun toJooqField(
+        field: DataPolicy.Field,
         fieldTransform: DataPolicy.RuleSet.FieldTransform?,
-    ): Field<*> {
+    ): JooqField<*> {
         if (fieldTransform == null) {
             // If there is no transform, we return just the field path (joined by a dot for now)
-            return field(attribute.fullName())
+            return field(field.fullName())
         }
         if (fieldTransform.transformsList.size == 1) {
             // If there is only one transform it should be the only option
-            val (_, queryPart) = toCase(fieldTransform.transformsList.last(), attribute)
-            return queryPart.`as`(attribute.fullName())
+            val (_, queryPart) = toCase(fieldTransform.transformsList.last(), field)
+            return queryPart.`as`(field.fullName())
         }
 
         val caseWhenStatement = fieldTransform.transformsList.headTailFold(
             headOperation = { transform ->
-                val (c, q) = toCase(transform, attribute)
+                val (c, q) = toCase(transform, field)
                 DSL.`when`(c, q)
             },
             bodyOperation = { conditionStep, transform ->
-                val (c, q) = toCase(transform, attribute)
+                val (c, q) = toCase(transform, field)
                 conditionStep.`when`(c, q)
             },
             tailOperation = { conditionStep, transform ->
-                val (c, q) = toCase(transform, attribute)
-                conditionStep.otherwise(q).`as`(attribute.fullName())
+                val (c, q) = toCase(transform, field)
+                conditionStep.otherwise(q).`as`(field.fullName())
             },
         )
 
@@ -129,8 +126,8 @@ abstract class AbstractDynamicViewGenerator(
 
     fun toCase(
         transform: DataPolicy.RuleSet.FieldTransform.Transform?,
-        attribute: DataPolicy.Field,
-    ): Pair<Condition?, Field<Any>> {
+        field: DataPolicy.Field,
+    ): Pair<Condition?, JooqField<Any>> {
         val memberCheck = transform?.principalsList?.toPrincipalCondition()
 
         val statement = when (transform?.transformCase) {
@@ -139,19 +136,20 @@ abstract class AbstractDynamicViewGenerator(
                     field(
                         "regexp_extract({0}, {1})",
                         String::class.java,
-                        unquotedName(attribute.fullName()),
+                        unquotedName(field.fullName()),
                         DSL.`val`(transform.regexp.regexp),
                     )
                 } else
                     DSL.regexpReplaceAll(
-                        field(attribute.fullName(), String::class.java),
+                        field(field.fullName(), String::class.java),
                         transform.regexp.regexp,
                         transform.regexp.replacement,
                     )
             }
 
             DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.FIXED -> {
-                DSL.inline(transform.fixed.value, attribute.sqlDataType())
+                fixedDataTypeMatchesFieldType(transform.fixed.value, field)
+                DSL.inline(transform.fixed.value, field.sqlDataType())
             }
 
             DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.HASH -> {
@@ -159,7 +157,7 @@ abstract class AbstractDynamicViewGenerator(
                     "hash({0}, {1})",
                     Any::class.java,
                     DSL.`val`(transform.hash.seed),
-                    unquotedName(attribute.fullName()),
+                    unquotedName(field.fullName()),
                 )
             }
 
@@ -178,12 +176,34 @@ abstract class AbstractDynamicViewGenerator(
             DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.NULLIFY -> DSL.inline<Any>(null)
 
             DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.TRANSFORM_NOT_SET, DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.IDENTITY, null -> {
-                field(
-                    attribute.fullName(),
-                )
+                field(field.fullName())
             }
         }
-        return memberCheck to (statement as Field<Any>)
+        return memberCheck to (statement as JooqField<Any>)
+    }
+
+    private fun fixedDataTypeMatchesFieldType(
+        fixedValue: String,
+        field: DataPolicy.Field
+    ) {
+        try {
+            typeParser.parse(fixedValue, field.sqlDataType().type)
+        } catch (e: TypeParserException) {
+            throw BadRequestException(
+                BadRequestException.Code.INVALID_ARGUMENT,
+                BadRequest.newBuilder()
+                    .addAllFieldViolations(
+                        listOf(
+                            BadRequest.FieldViolation.newBuilder()
+                                .setField("dataPolicy.ruleSetsList.fieldTransformsList.fixed")
+                                .setDescription("Data type of fixed value provided for field ${field.fullName()} does not match the data type of the field")
+                                .build()
+                        )
+                    )
+                    .build(),
+                e
+            )
+        }
     }
 
     private fun invalidSqlStatementException(e: ParserException) = BadRequestException(

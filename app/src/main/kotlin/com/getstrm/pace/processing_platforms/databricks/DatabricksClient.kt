@@ -4,7 +4,6 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.DATABRICKS
 import com.databricks.sdk.AccountClient
 import com.databricks.sdk.WorkspaceClient
-import com.databricks.sdk.core.DatabricksConfig as DatabricksClientConfig
 import com.databricks.sdk.service.catalog.TableInfo
 import com.databricks.sdk.service.iam.ListAccountGroupsRequest
 import com.databricks.sdk.service.sql.ExecuteStatementRequest
@@ -20,6 +19,7 @@ import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.toTimestamp
 import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
+import com.databricks.sdk.core.DatabricksConfig as DatabricksClientConfig
 
 class DatabricksClient(
     override val id: String,

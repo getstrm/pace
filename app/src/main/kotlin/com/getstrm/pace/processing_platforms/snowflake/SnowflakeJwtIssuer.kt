@@ -10,7 +10,6 @@ import com.nimbusds.jwt.SignedJWT
 import org.apache.commons.codec.binary.Base64
 import org.bouncycastle.util.io.pem.PemReader
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.io.StringReader
 import java.security.KeyFactory
 import java.security.MessageDigest

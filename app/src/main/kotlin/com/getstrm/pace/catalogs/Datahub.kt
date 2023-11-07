@@ -3,9 +3,9 @@ package com.getstrm.pace.catalogs
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.apollographql.apollo3.ApolloClient
 import com.getstrm.pace.config.CatalogConfiguration
+import com.getstrm.pace.util.normalizeType
 import io.datahubproject.generated.GetDatasetDetailsQuery
 import io.datahubproject.generated.ListDatasetsQuery
-import com.getstrm.pace.util.normalizeType
 
 class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
     val client = apolloClient()
@@ -50,7 +50,8 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         override suspend fun getTables(): List<DataCatalog.Table> = listOf(Table(this, dataset))
     }
 
-    class Table(schema: Schema, private val dataset: GetDatasetDetailsQuery.Dataset) : DataCatalog.Table(schema, dataset.urn, dataset.platform.properties?.displayName ?: dataset.urn) {
+    class Table(schema: Schema, private val dataset: GetDatasetDetailsQuery.Dataset) :
+        DataCatalog.Table(schema, dataset.urn, dataset.platform.properties?.displayName ?: dataset.urn) {
         override suspend fun getDataPolicy(): DataPolicy? {
             val policyBuilder = DataPolicy.newBuilder()
 
@@ -88,6 +89,7 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             private val stripKafkaPrefix = """^(\[[^]]+\]\.)+""".toRegex()
         }
     }
+
     private fun apolloClient(): ApolloClient = ApolloClient.Builder()
         .serverUrl(config.serverUrl)
         .addHttpHeader("Authorization", "Bearer ${config.token}")

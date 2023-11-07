@@ -1,12 +1,14 @@
 # Table of contents
 
 * [Getting Started](README.md)
+  * [Quickstart](readme/quickstart.md)
+  * [GitHub Authentication](readme/github-authentication.md)
   * [Installation](getting-started/installation.md)
-  * [Kubernetes Deployment](getting-started/kubernetes-deployment.md)
   * [Connect a Processing Platform](getting-started/connect-a-processing-platform.md)
   * [Connect a Data Catalog](getting-started/connect-a-data-catalog.md)
   * [Create a Data Policy](getting-started/create-a-data-policy.md)
   * [Example configuration file](getting-started/example-configuration-file.md)
+  * [Kubernetes Deployment](getting-started/kubernetes-deployment.md)
 
 ## Data policy
 
@@ -17,13 +19,8 @@
   * [Field Transform](data-policy/rule-set/field-transform.md)
   * [Filter](data-policy/rule-set/filter.md)
 
-## Reference
+## Integrations & Reference
 
-* [Data Catalog Integrations](reference/data-catalog-integrations/README.md)
-* [Processing Platform Integrations](reference/processing-platform-integrations/README.md)
-  * [BigQuery](reference/processing-platform-integrations/bigquery.md)
-  * [Databricks](reference/processing-platform-integrations/databricks.md)
-  * [Snowflake](reference/processing-platform-integrations/snowflake.md)
 * [API Reference](reference/api-reference.md)
 * [CLI Reference](reference/cli-reference/README.md)
   * [pace](cli-docs/pace.md)
@@ -44,3 +41,10 @@
       * [tables](cli-docs/pace\_list\_tables.md)
     * [upsert](cli-docs/pace\_upsert.md)
       * [data policy](cli-docs/pace\_upsert\_data-policy.md)
+* [Integrations](integrations-and-reference/integrations/README.md)
+  * [Data Catalog Integrations](reference/data-catalog-integrations/README.md)
+  * [Processing Platform Integrations](reference/processing-platform-integrations/README.md)
+    * [BigQuery](reference/processing-platform-integrations/bigquery.md)
+    * [Databricks](reference/processing-platform-integrations/databricks.md)
+    * [Snowflake](reference/processing-platform-integrations/snowflake.md)
+* [Glossary](integrations-and-reference/glossary.md)

@@ -3,7 +3,6 @@ package com.getstrm.pace.processing_platforms.databricks
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.databricks.sdk.service.catalog.ColumnInfo
 import com.databricks.sdk.service.catalog.TableInfo
-import com.getstrm.pace.processing_platforms.databricks.DatabricksTable
 import com.google.protobuf.Timestamp
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking

@@ -1,4 +1,4 @@
-package com.getstrm.pace.processing_platforms.postgres
+package com.getstrm.pace.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.InternalException
@@ -19,7 +19,7 @@ class PostgresDynamicViewGenerator(
         val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->
             val principals =
                 ruleSet.fieldTransformsList.flatMap { it.transformsList }.flatMap { it.principalsList }.toSet() +
-                    ruleSet.filtersList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet()
+                        ruleSet.filtersList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet()
 
             val viewName = ruleSet.target.fullname
 
@@ -79,7 +79,6 @@ class PostgresDynamicViewGenerator(
                             )
                         )
                 )
-
             )
 
         return DSL.with(userGroupSelect).select(fields)
