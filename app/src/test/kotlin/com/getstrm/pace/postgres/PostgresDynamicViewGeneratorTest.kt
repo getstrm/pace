@@ -9,7 +9,6 @@ import com.getstrm.pace.util.yaml2json
 import com.google.rpc.BadRequest
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeTypeOf
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -88,7 +87,7 @@ class PostgresDynamicViewGeneratorTest {
             .build()
 
         // When
-        val jooqField = underTest.toField(field, fieldTransform)
+        val jooqField = underTest.toJooqField(field, fieldTransform)
 
         // Then
         jooqField.toSql() shouldBe "case when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then '****' when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then 'REDACTED EMAIL' else 'fixed-value' end \"email\""
@@ -140,7 +139,7 @@ class PostgresDynamicViewGeneratorTest {
                 listOf(
                     BadRequest.FieldViolation.newBuilder()
                         .setField("dataPolicy.ruleSetsList.fieldTransformsList.fixed")
-                        .setDescription("Data type of fixed value provided for field age does not match the data type of the attribute")
+                        .setDescription("Data type of fixed value provided for field age does not match the data type of the field")
                         .build()
                 )
             )

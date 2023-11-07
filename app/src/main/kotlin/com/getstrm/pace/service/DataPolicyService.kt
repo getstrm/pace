@@ -60,7 +60,7 @@ class DataPolicyService(
         }
         val platform = processingPlatforms.getProcessingPlatform(dataPolicy)
         val validGroups = platform.listGroups().map { it.name }.toSet()
-        val validAttributes = dataPolicy.source.fieldsList.map(DataPolicy.Field::pathString).toSet()
+        val validFields = dataPolicy.source.fieldsList.map(DataPolicy.Field::pathString).toSet()
 
         // check that every principal exists in validGroups
         fun checkPrincipals(principals: List<Principal>) {
@@ -83,17 +83,17 @@ class DataPolicyService(
             }
         }
 
-        // check that every attribute in a field transform or row filter exists in the DataPolicy
-        fun checkAttribute(attribute: DataPolicy.Field) {
-            if (!validAttributes.contains(attribute.pathString())) {
+        // check that every field in a field transform or row filter exists in the DataPolicy
+        fun checkField(field: DataPolicy.Field) {
+            if (!validFields.contains(field.pathString())) {
                 throw BadRequestException(
                     BadRequestException.Code.INVALID_ARGUMENT,
                     BadRequest.newBuilder()
                         .addAllFieldViolations(
                             listOf(
                                 BadRequest.FieldViolation.newBuilder()
-                                    .setField("attribute")
-                                    .setDescription("Attribute ${attribute.pathString()} does not exist in source ${dataPolicy.source.ref}")
+                                    .setField(field.pathString())
+                                    .setDescription("Field does not exist in source ${dataPolicy.source.ref}")
                                     .build()
                             )
                         )
@@ -104,7 +104,7 @@ class DataPolicyService(
 
         dataPolicy.ruleSetsList.forEach { ruleSet ->
             ruleSet.fieldTransformsList.forEach { fieldTransform ->
-                checkAttribute(fieldTransform.field)
+                checkField(fieldTransform.field)
                 if (fieldTransform.transformsList.isEmpty()) {
                     throw BadRequestException(
                         BadRequestException.Code.INVALID_ARGUMENT,
@@ -182,17 +182,17 @@ class DataPolicyService(
                 }
             }
             // check for every row filter that the principals overlap with groups in the processing platform
-            // and that the attributes exist in the DataPolicy
+            // and that the fields exist in the DataPolicy
             ruleSet.filtersList.forEach { filter ->
                 filter.conditionsList.forEach { condition ->
                     checkPrincipals(condition.principalsList)
                 }
             }
-            // check non-overlapping attributes within one ruleset
+            // check non-overlapping fields within one ruleset
             ruleSet.fieldTransformsList.map { it.field }.fold(
                 emptySet<String>(),
-            ) { alreadySeen, attribute ->
-                attribute.pathString().let {
+            ) { alreadySeen, field ->
+                field.pathString().let {
                     if (alreadySeen.contains(it)) {
                         throw BadRequestException(
                             BadRequestException.Code.INVALID_ARGUMENT,
@@ -201,7 +201,7 @@ class DataPolicyService(
                                     listOf(
                                         BadRequest.FieldViolation.newBuilder()
                                             .setField("ruleSet")
-                                            .setDescription("RuleSet has overlapping attributes, ${attribute.pathString()} is already present")
+                                            .setDescription("RuleSet has overlapping fields, ${field.pathString()} is already present")
                                             .build()
                                     )
                                 )

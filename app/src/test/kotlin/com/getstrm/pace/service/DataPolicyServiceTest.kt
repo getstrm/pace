@@ -546,7 +546,7 @@ rule_sets:
             exception.badRequest.fieldViolationsCount shouldBe 1
             exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
                 .setField("ruleSet")
-                .setDescription("RuleSet has overlapping attributes, email is already present")
+                .setDescription("RuleSet has overlapping fields, email is already present")
                 .build()
         }
     }

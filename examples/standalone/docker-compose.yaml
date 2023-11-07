@@ -35,7 +35,7 @@ services:
       - postgres_processing_platform
     container_name: pace
     # you may want to update the image to the latest version
-    image: pace-local
+    image: ghcr.io/getstrm/pace:1.0.0-alpha.11
     volumes:
       - ./config/:/app/config/
 

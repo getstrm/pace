@@ -92,7 +92,7 @@ class SnowflakeDynamicViewGeneratorTest {
             .build()
 
         // When
-        val jooqField = underTest.toField(field, fieldTransform)
+        val jooqField = underTest.toJooqField(field, fieldTransform)
 
         // Then
         jooqField.toSql() shouldBe "case when ((IS_ROLE_IN_SESSION('ANALYTICS')) or (IS_ROLE_IN_SESSION('MARKETING'))) then '****' when (IS_ROLE_IN_SESSION('FRAUD_AND_RISK')) then 'REDACTED EMAIL' " +
