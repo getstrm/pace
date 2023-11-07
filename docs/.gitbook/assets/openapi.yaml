@@ -159,6 +159,7 @@ components:
           - DATABRICKS
           - SNOWFLAKE
           - BIGQUERY
+          - POSTGRES
           format: enum
           type: string
       type: object
@@ -415,7 +416,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.10
+  version: 1.0.0-alpha.11
 openapi: 3.0.3
 paths:
   /catalogs:
