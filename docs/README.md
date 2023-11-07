@@ -10,13 +10,17 @@ PACE is the **P**olicy **A**nd **C**ontract **E**ngine. It helps you to programa
 
 <mark style="color:blue;background-color:blue;">Data policy IN, dynamic view OUT</mark> is the easiest way to describe it.&#x20;
 
-**Problem sPACE**
+{% hint style="info" %}
+PACE is currently in closed alpha! Reach out to pace \[a] getstrm.com to request access! Please list your name, org, and why you would like to try PACE.&#x20;
+{% endhint %}
+
+**ProblemsPACE**
 
 PACE is designed to remove friction and cost from using data in real-world organisational settings. In other words: just build with data, instead of jumping through hoop after hoop to  \*access\* the data you need to deliver that next project, report or data product.&#x20;
 
 PACE does this by connecting data governance tooling (usually a catalog) to the actual data processing.&#x20;
 
-If this sounds familiar AND you're using one the currently supported platforms, PACE is worth a try:
+If (one of) these sound familiar AND you're using one the currently supported platforms, PACE is worth a try:
 
 * You have to navigate many (competing) policies, constraints and stakeholders to access data.&#x20;
 * The data approval process is complicated, costly and lengthy.
@@ -42,5 +46,3 @@ To install and use PACE, you need:
 
 * The [PACE app ](https://github.com/getstrm/pace)(as Spring Boot app or Docker image)&#x20;
 * The PACE [CLI](https://github.com/getstrm/cli) to interact with your deployment
-
-In the current Alpha release, PACE is a closed repo. Get in touch to request access and take it for a spin! pace \[a] getstrm.com
