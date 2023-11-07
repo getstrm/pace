@@ -8,6 +8,8 @@ description: Complete walkthrough of creating a Data Policy
 
 For this section, we assume you have either created a connection to a [`Processing Platform`](../reference/processing-platform-integrations/) or a [`Data Catalog`](../reference/data-catalog-integrations/) or you are familiar with the structure of your source data. You will, naturally, also need to have an instance of `PACE` running. We give a step-by-step walkthrough on how to create a `Data Policy`.&#x20;
 
+Please refer to the [schema.md](../data-policy/schema.md "mention"), [principals.md](../data-policy/principals.md "mention") and [rule-set](../data-policy/rule-set/ "mention") sections for additional explanations.&#x20;
+
 ## Source Data
 
 For this example we will use a very small sample data set:
@@ -16,12 +18,12 @@ For this example we will use a very small sample data set:
 
 ## Get bare policy
 
-Let the id of your connected `Processing Platform` be `pace-pp` and the source reference be `pace-db.pace-schema.pace-table`. Getting a bare policy yields a nearly empty `Data Policy` with populated source fields, thus defining the structure of your source data. In this example we will use both the [`pace cli`](https://github.com/getstrm/cli) and call the [REST API](../reference/api-reference.md#processing-platforms-platformid-tables-table\_id-bare-policy) using `curl`. The request has two variables, `platform-id` and `table-id`. The CLI makes use of gRPC.  We assume here that the instance is running on localhost, the gRPC port is 50051 and the envoy proxy is listening on port 9090 as per the defaults. Getting a bare policy yields:
+Let the id of your connected `Processing Platform` be `pace-pp` and the source reference be `pace-db.pace-schema.pace-table`. Getting a bare policy yields a nearly empty `Data Policy` with populated source fields, thus defining the structure of your source data. In this example we will use both the [`pace cli`](https://github.com/getstrm/cli) and call the [REST API](../reference/api-reference.md#processing-platforms-platformid-tables-table\_id-bare-policy) using `curl`. The request has two variables, `platform-id` and `table-id`. The CLI makes use of gRPC.  We assume here that the instance is running on localhost, the gRPC port is 50051 and the envoy proxy is listening on port 9090 as per the defaults.  For the CLI holds, that if you specify the processing platform and the reference to the table, the corresponding bare policy is returned. Requesting a bare policy then yields:
 
 {% tabs %}
 {% tab title="CLI" %}
 ```bash
-pace get data-policy --bare -p pace-pp pace-db.pace-schema.pace-table
+pace get data-policy -p pace-pp pace-db.pace-schema.pace-table
 ```
 {% endtab %}
 
@@ -470,7 +472,7 @@ data_policy:
 </strong>  "data_policy": {
     "id": "",
     "metadata": {
-      "title": "pace-db.pace-schema.gddemo",
+      "title": "pace-db.pace-schema.pace-table",
       "description": "",
       "version": "",
       "create_time": {
@@ -483,7 +485,7 @@ data_policy:
       }
     },
     "source": {
-      "ref": "pace-db.pace-schema.gddemo",
+      "ref": "pace-db.pace-schema.pace-table",
       "fields": [
         {
           "name_parts": [

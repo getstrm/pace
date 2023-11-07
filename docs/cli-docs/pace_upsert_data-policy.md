@@ -17,7 +17,7 @@ pace upsert data-policy (yaml or json file) [flags]
 ### Examples
 
 ```
-pace upsert data-policy sample_data/bigquery-cdc.json
+pace upsert data-policy examples/sample_data/bigquery-cdc.json
 data_policy:
   id: fb76958d-63a9-4b5e-bf36-fdc4d7ab807f
   info:

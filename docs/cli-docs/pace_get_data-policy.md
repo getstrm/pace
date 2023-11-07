@@ -6,13 +6,13 @@ Get a data policy
 
 retrieves a DataPolicy from Pace.
 
-`--bare` means we retrieve a policy without RuleSets from a Catalog or
-Processing Platform. This means we use the table information in the platform to
+A bare policy is a policy without a rule set that can be retrieved from a data catalog or a
+processing platform. This means we use the table information in the platform to
 build the `source` part of a data policy. We must either provide a platform or a catalog
 id to make the call succeed.
 
-Without `--bare` it just means we interact with the Pace database and retrieve succesfully applied
-data policies.
+Without a `--processing-platform` or a `--catalog` it just means we interact with the Pace
+database and retrieve succesfully applied data policies.
 
 ```
 pace get data-policy (table-id|policy-id) [flags]
@@ -22,7 +22,7 @@ pace get data-policy (table-id|policy-id) [flags]
 
 ```
 # get a bare policy without rulesets from Catalog Collibra
-pace get data-policy --bare --catalog COLLIBRA-testdrive \
+pace get data-policy --catalog COLLIBRA-testdrive \
 	--database 99379294-6e87-4e26-9f09-21c6bf86d415 \
 	--schema 342f676c-341e-4229-b3c2-3e71f9ed0fcd \
 	6e978083-bb8f-459d-a48b-c9a50289b327
@@ -41,7 +41,7 @@ data_policy:
 	...
 
 # get a bare policy without rulesets from Processing Platform BigQuery
-pace get data-policy --bare \
+pace get data-policy \
 	--processing-platform bigquery-dev \
 	stream-machine-development.dynamic_view_poc.gddemo
 dataPolicy:
@@ -92,7 +92,6 @@ rule_sets:
 ### Options
 
 ```
-  -b, --bare                         when true ask platform or catalog for a bare data policy without rulesets.
   -c, --catalog string               id of catalog
   -d, --database string              database in the catalog
   -h, --help                         help for data-policy
