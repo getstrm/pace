@@ -1,3 +1,15 @@
+# [1.0.0-alpha.11](https://github.com/getstrm/pace/compare/v1.0.0-alpha.10...v1.0.0-alpha.11) (2023-11-07)
+
+
+### Bug Fixes
+
+* ensure release succeeds with replacing the docker compose image tag ([e6f1dea](https://github.com/getstrm/pace/commit/e6f1dea689d01e0cad389325c9fe954941925ff0))
+
+
+### Features
+
+* add postgres processing platform support + standalone example ([6e80b94](https://github.com/getstrm/pace/commit/6e80b940b29580aac8efd61f946431b1c8e27fd9))
+
 # [1.0.0-alpha.10](https://github.com/getstrm/pace/compare/v1.0.0-alpha.9...v1.0.0-alpha.10) (2023-11-03)
 
 
