@@ -14,7 +14,7 @@ A [`Schema`](../data-policy/schema.md) is your data structure, i.e. the column h
 
 **Data Policy**
 
-A [`Data Policy`](cli-reference/pace/pace\_upsert/pace\_upsert\_data-policy.md) is the combination of schema and [`Rule Sets`](../data-policy/rule-set/).&#x20;
+A [`Data Policy`](../cli-docs/pace\_upsert\_data-policy.md) is the combination of schema and [`Rule Sets`](../data-policy/rule-set/).&#x20;
 
 **Data Contract**
 
@@ -28,12 +28,12 @@ It includes:
 
 * [`Field Transforms`](../data-policy/rule-set/field-transform.md), how to transform data (e.g. regex or nullify)
 * How to [`Filter`](../data-policy/rule-set/filter.md) data for a user based on conditions.
-* [Access](cli-reference/pace/pace\_list/pace\_list\_groups.md) definitions (who can access the resulting view?)
+* [Access](../cli-docs/pace\_list\_groups.md) definitions (who can access the resulting view?)
 
 **Processing platform**
 
-A [`Processing Platform`](integrations/processing-platform-integrations/) is commonly referred to as a data platform, like Snowflake, Databricks or Bigquery.
+A [`Processing Platform`](../reference/processing-platform-integrations/) is commonly referred to as a data platform, like Snowflake, Databricks or Bigquery.
 
 **Data Catalog**
 
-A [`Data Catalog`](cli-reference/pace/pace\_list/pace\_list\_catalogs.md) is your data shopping experience. For PACE, it's the source of the schema and global policies.&#x20;
+A [`Data Catalog`](../cli-docs/pace\_list\_catalogs.md) is your data shopping experience. For PACE, it's the source of the schema and global policies.&#x20;

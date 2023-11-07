@@ -21,7 +21,7 @@ Generate the autocompletion script for pace for the specified shell. See each su
 
 ## SEE ALSO
 
-* [pace](../) - Pace CLI dev
+* [pace](pace.md) - Pace CLI dev
 * [pace completion bash](pace\_completion\_bash.md) - Generate the autocompletion script for bash
 * [pace completion fish](pace\_completion\_fish.md) - Generate the autocompletion script for fish
 * [pace completion powershell](pace\_completion\_powershell.md) - Generate the autocompletion script for powershell

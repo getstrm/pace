@@ -13,7 +13,7 @@ description: PACE currently supports integrations to the following external plat
 
 **Processing platforms**
 
-* [Snowflake](processing-platform-integrations/snowflake.md)
-* [Databricks](processing-platform-integrations/databricks.md)
-* [BigQuery](processing-platform-integrations/bigquery.md)
+* [Snowflake](../../reference/processing-platform-integrations/snowflake.md)
+* [Databricks](../../reference/processing-platform-integrations/databricks.md)
+* [BigQuery](../../reference/processing-platform-integrations/bigquery.md)
 * **Yours**? Reach out to _pace \[a] getstrm.com_

@@ -53,4 +53,4 @@ data_policy:
 
 ## SEE ALSO
 
-* [pace upsert](./) - Upsert entities
+* [pace upsert](pace\_upsert.md) - Upsert entities

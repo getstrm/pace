@@ -8,7 +8,7 @@ description: Pave the way to creating your first Data Policy
 
 Before you can [create and apply your first Data Policy](create-a-data-policy.md), PACE requires a little bit of additional configuration.
 
-For details on the required configuration for your specific platform, see the [corresponding reference pages](../integrations-and-reference/integrations/processing-platform-integrations/). Below, we will use Databricks as an example.
+For details on the required configuration for your specific platform, see the [corresponding reference pages](../reference/processing-platform-integrations/). Below, we will use Databricks as an example.
 
 During installation, you provided a few database related properties in a Spring Boot application yaml format, either as a file or through Kubernetes configmaps or secrets. To configure a Databricks Workspace as a processing platform, the required additional configuration would look like this:
 

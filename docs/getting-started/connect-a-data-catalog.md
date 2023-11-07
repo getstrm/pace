@@ -10,7 +10,7 @@ PACE can connect to various data catalogs, to retrieve the metadata that these c
 * [Datahub](https://datahubproject.io/)
 * [Open Data Discovery](https://opendatadiscovery.org/)
 
-The [Data Catalog Integrations](../integrations-and-reference/integrations/data-catalog-integrations.md) section goes into detail about how we use their information.
+The [Data Catalog Integrations](../reference/data-catalog-integrations/) section goes into detail about how we use their information.
 
 ## Connections
 

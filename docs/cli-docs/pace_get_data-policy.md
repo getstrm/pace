@@ -105,4 +105,4 @@ rule_sets:
 
 ## SEE ALSO
 
-* [pace get](./) - Get a single entity
+* [pace get](pace\_get.md) - Get a single entity
