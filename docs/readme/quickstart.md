@@ -1,10 +1,10 @@
 ---
-description: Setup the standalone example
+description: Set up the standalone example
 ---
 
 # 🚀 Quickstart
 
-This document helps you to setup a standalone example for PACE. This includes:
+This document helps you to set up a standalone example for PACE. This includes:
 
 * **pace\_app:** PACE application running as a container image
 * **postgres\_pace**: PostgreSQL database for PACE to persist Data Policies
@@ -14,6 +14,10 @@ This document helps you to setup a standalone example for PACE. This includes:
 The goal of this tutorial is to run the standalone example, create a Data Policy based on the data schema of the sample data table, and view the data as the different users that we will define.
 
 The source of the standalone example can be found in the [GitHub repository](https://github.com/getstrm/pace/tree/standalone/examples/standalone).
+
+{% hint style="info" %}
+Make sure you have everything setup according to the [installation](../getting-started/installation.md) steps.
+{% endhint %}
 
 ## Prerequisites
 
@@ -50,10 +54,16 @@ Grab the contents of the files from the [GitHub repository](https://github.com/g
 {% endtab %}
 {% endtabs %}
 
+Now navigate  to the `standalone` directory inside the newly create `pace` folder:
+
+```bash
+cd pace/examples/standalone
+```
+
 Next, let's have a look at the contents of these files.
 
 {% hint style="warning" %}
-The compose file is setup without any persistence of data across different startups of the services. Keep in mind that any changes to the data will be persisted for as long as you keep the services running.
+The compose file is set up without any persistence of data across different startups of the services. Keep in mind that any changes to the data will be persisted for as long as you keep the services running.
 {% endhint %}
 
 <details>
@@ -204,7 +214,7 @@ ERROR:  permission denied for table demo
 By default, the CLI connects to `localhost:50051`, as it uses the gRPC interface of PACE. Let's see whether we can list the available groups.
 
 {% hint style="success" %}
-**Tip**: try out the autocomplete on arguments and flags, e.g. `--processing-platform <tab>` to see the available options for your PACE deployment.
+**Tip**: set up the [CLI](https://github.com/getstrm/cli) and try out the autocomplete on arguments and flags, e.g. `--processing-platform <tab>` to see the available options for your PACE deployment.
 {% endhint %}
 
 ```bash

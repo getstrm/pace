@@ -8,7 +8,7 @@ description: Welcome to the PACE docs!
 
 PACE is the **P**olicy **A**nd **C**ontract **E**ngine. It helps you to programatically create a data contract to define and apply a data policy to a processing platform (like Databricks, Snowflake or BigQuery). &#x20;
 
-<mark style="color:blue;background-color:blue;">Data policy IN, dynamic view OUT</mark> is the easiest way to describe it.&#x20;
+_`Data policy IN, dynamic view OUT`_ is the easiest way to describe it.&#x20;
 
 {% hint style="info" %}
 PACE is currently in closed alpha! Reach out to pace \[a] getstrm.com to request access! Please list your name, org, and why you would like to try PACE.&#x20;
@@ -16,11 +16,9 @@ PACE is currently in closed alpha! Reach out to pace \[a] getstrm.com to request
 
 **ProblemsPACE**
 
-PACE is designed to remove friction and cost from using data in real-world organisational settings. In other words: just build with data, instead of jumping through hoop after hoop to  \*access\* the data you need to deliver that next project, report or data product.&#x20;
+PACE is designed to remove friction and cost from using data in real-world organisational settings. In other words: just build with data, instead of jumping through hoop after hoop. PACE does this by connecting data governance tooling (usually a catalog) to the  data processing platform
 
-PACE does this by connecting data governance tooling (usually a catalog) to the actual data processing.&#x20;
-
-If (one of) these sound familiar AND you're using one the currently supported platforms, PACE is worth a try:
+If (one of) these sound familiar and you're using one the currently supported platforms, PACE is worth a try:
 
 * You have to navigate many (competing) policies, constraints and stakeholders to access data.&#x20;
 * The data approval process is complicated, costly and lengthy.
@@ -34,11 +32,11 @@ If (one of) these sound familiar AND you're using one the currently supported pl
 
 Once installed, PACE sits between your data definitions (often a [catalog](cli-docs/pace\_list\_catalogs.md)) and [processing platform](cli-docs/pace\_list\_processing-platforms.md):
 
-\[add image van paul]
+<figure><img src=".gitbook/assets/PACE-process-2.0@2x+interlace (1).png" alt=""><figcaption></figcaption></figure>
 
 **Supported platforms**
 
-Pace currently [supports](integrations-and-reference/integrations/) Collibra, Datahub and Open Data Discovery on the catalog side, connecting to Snowflake, Databricks, Google BigQuery, and PostgreSQL.&#x20;
+Pace currently [supports](integrations-and-reference/integrations/) Collibra, Datahub and Open Data Discovery on the catalog side, connecting to Snowflake, Databricks, Google BigQuery, and PostgreSQL for creating your dynamic views.
 
 **Let's go**
 
