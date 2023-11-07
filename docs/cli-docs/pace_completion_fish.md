@@ -1,43 +1,41 @@
-# fish
+## pace completion fish
 
 Generate the autocompletion script for fish
 
-## Synopsis
+### Synopsis
 
 Generate the autocompletion script for the fish shell.
 
 To load completions in your current shell session:
 
-```
-pace completion fish | source
-```
+	pace completion fish | source
 
 To load completions for every new session, execute once:
 
-```
-pace completion fish > ~/.config/fish/completions/pace.fish
-```
+	pace completion fish > ~/.config/fish/completions/pace.fish
 
 You will need to start a new shell for this setup to take effect.
+
 
 ```
 pace completion fish [flags]
 ```
 
-## Options
+### Options
 
 ```
   -h, --help              help for fish
       --no-descriptions   disable completion descriptions
 ```
 
-## Options inherited from parent commands
+### Options inherited from parent commands
 
 ```
       --api-host string   api host (default "localhost:50051")
   -o, --output string     output format [yaml, json, json-raw] (default "yaml")
 ```
 
-## SEE ALSO
+### SEE ALSO
 
-* [pace completion](pace\_completion.md) - Generate the autocompletion script for the specified shell
+* [pace completion](pace_completion.md)	 - Generate the autocompletion script for the specified shell
+

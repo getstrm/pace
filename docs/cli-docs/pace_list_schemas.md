@@ -1,16 +1,17 @@
-# schemas
+## pace list schemas
 
 List Schemas
 
-## Synopsis
+### Synopsis
 
-Lists all schemas in a certain database. Some catalogs (like Collibra) are hierarchical, while others are just a flat list of tables. In that case we might just return a single 'Schema' for the whole catalog.
+Lists all schemas in a certain database. Some catalogs (like Collibra) are hierarchical, while others
+are just a flat list of tables. In that case we might  just return a single 'Schema' for the whole catalog.
 
 ```
 pace list schemas [flags]
 ```
 
-## Examples
+### Examples
 
 ```
 pace list schemas --catalog COLLIBRA-testdrive \
@@ -21,7 +22,7 @@ pace list schemas --catalog COLLIBRA-testdrive \
  10255be7-c2ac-43ae-be0a-a34d4e7c88b7   Snowflake Protect>DC22_PROTECT_TESTDRIVE>DEMO
 ```
 
-## Options
+### Options
 
 ```
   -c, --catalog string    id of catalog
@@ -30,12 +31,13 @@ pace list schemas --catalog COLLIBRA-testdrive \
   -o, --output string     output formats [yaml, json, json-raw, table, plain] (default "yaml")
 ```
 
-## Options inherited from parent commands
+### Options inherited from parent commands
 
 ```
       --api-host string   api host (default "localhost:50051")
 ```
 
-## SEE ALSO
+### SEE ALSO
 
-* [pace list](pace\_list.md) - List entities
+* [pace list](pace_list.md)	 - List entities
+

@@ -1,37 +1,38 @@
-# powershell
+## pace completion powershell
 
 Generate the autocompletion script for powershell
 
-## Synopsis
+### Synopsis
 
 Generate the autocompletion script for powershell.
 
 To load completions in your current shell session:
 
-```
-pace completion powershell | Out-String | Invoke-Expression
-```
+	pace completion powershell | Out-String | Invoke-Expression
 
-To load completions for every new session, add the output of the above command to your powershell profile.
+To load completions for every new session, add the output of the above command
+to your powershell profile.
+
 
 ```
 pace completion powershell [flags]
 ```
 
-## Options
+### Options
 
 ```
   -h, --help              help for powershell
       --no-descriptions   disable completion descriptions
 ```
 
-## Options inherited from parent commands
+### Options inherited from parent commands
 
 ```
       --api-host string   api host (default "localhost:50051")
   -o, --output string     output format [yaml, json, json-raw] (default "yaml")
 ```
 
-## SEE ALSO
+### SEE ALSO
 
-* [pace completion](pace\_completion.md) - Generate the autocompletion script for the specified shell
+* [pace completion](pace_completion.md)	 - Generate the autocompletion script for the specified shell
+

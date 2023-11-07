@@ -1,8 +1,8 @@
-# tables
+## pace list tables
 
 List Tables
 
-## Synopsis
+### Synopsis
 
 Lists all tables in a certain schema.
 
@@ -10,7 +10,7 @@ Lists all tables in a certain schema.
 pace list tables [flags]
 ```
 
-## Examples
+### Examples
 
 ```
 pace list tables --catalog COLLIBRA-testdrive \
@@ -25,7 +25,7 @@ pace list tables --catalog COLLIBRA-testdrive \
  c50ddafe-4263-44d2-8bc7-7080260013f0   Snowflake Protect>DC22_PROTECT_TESTDRIVE>DEMO>CAR_DETAILS
 ```
 
-## Options
+### Options
 
 ```
   -c, --catalog string               id of catalog
@@ -36,12 +36,13 @@ pace list tables --catalog COLLIBRA-testdrive \
   -s, --schema string                schema in database on catalog
 ```
 
-## Options inherited from parent commands
+### Options inherited from parent commands
 
 ```
       --api-host string   api host (default "localhost:50051")
 ```
 
-## SEE ALSO
+### SEE ALSO
 
-* [pace list](pace\_list.md) - List entities
+* [pace list](pace_list.md)	 - List entities
+
