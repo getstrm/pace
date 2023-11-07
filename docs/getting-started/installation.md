@@ -2,7 +2,7 @@
 description: Learn how to run PACE in your local environment
 ---
 
-# 💻 Installation
+# Installation
 
 There are several ways to run PACE – including starting the Spring Boot application from your IDE – but the easiest way to run it, is via Docker. This way, no JVM is needed, and a REST interface to PACE is included out of the box (whereas the standalone Spring Boot application only exposes a [gRPC interface](https://grpc.io/)).
 
@@ -20,7 +20,7 @@ Before you get started, make sure you've installed the following tools:
 The relative location of the files created in the rest of this document can be seen as titles in the respective code blocks.
 {% endhint %}
 
-This&#x20;
+Follow the steps in the [Github Authentication](../readme/github-authentication.md) docs to get access to the repo and the docker images.
 
 #### Create a basic PACE configuration
 

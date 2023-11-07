@@ -2,7 +2,7 @@
 description: Set up the standalone example
 ---
 
-# 🚀 Quickstart
+# Quickstart
 
 This document helps you to set up a standalone example for PACE. This includes:
 
@@ -16,7 +16,7 @@ The goal of this tutorial is to run the standalone example, create a Data Policy
 The source of the standalone example can be found in the [GitHub repository](https://github.com/getstrm/pace/tree/standalone/examples/standalone).
 
 {% hint style="info" %}
-Make sure you have everything setup according to the [installation](../getting-started/installation.md) steps.
+Make sure you have everything setup according to the [GitHub authentication](github-authentication.md) and [installation](../getting-started/installation.md) steps.
 {% endhint %}
 
 ## Prerequisites

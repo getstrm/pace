@@ -1,8 +1,9 @@
 # Table of contents
 
 * [Getting Started](README.md)
-  * [🚀 Quickstart](readme/quickstart.md)
-  * [💻 Installation](getting-started/installation.md)
+  * [Quickstart](readme/quickstart.md)
+  * [Github Authentication](readme/github-authentication.md)
+  * [Installation](getting-started/installation.md)
   * [Connect a Processing Platform](getting-started/connect-a-processing-platform.md)
   * [Connect a Data Catalog](getting-started/connect-a-data-catalog.md)
   * [Create a Data Policy](getting-started/create-a-data-policy.md)
