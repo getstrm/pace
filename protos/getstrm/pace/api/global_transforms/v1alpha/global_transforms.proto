@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package getstrm.pace.api.global_transforms.v1alpha;
+import "getstrm/pace/api/entities/v1alpha/entities.proto";
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/getstrm/pace/protos/global_transforms;global_transforms";
+option java_package = "com.getstrm.pace.api.global_transforms.v1alpha";
+option java_multiple_files = true;
+
+service GlobalTransformsService {
+    // Lists all configured processing platforms.
+    rpc ListGlobalTransforms (ListGlobalTransformsRequest) returns (ListGlobalTransformsResponse) {
+        option (google.api.http) = {
+            get: "/global-transforms"
+        };
+    };
+    rpc CreateGlobalTransform (CreateGlobalTransformRequest ) returns (CreateGlobalTransformResponse );
+    rpc DeleteGlobalTransform (DeleteGlobalTransformRequest ) returns (DeleteGlobalTransformResponse );
+}
+
+message CreateGlobalTransformRequest {
+    repeated entities.v1alpha.GlobalTransform transform = 1;
+}
+
+message CreateGlobalTransformResponse {
+    repeated entities.v1alpha.GlobalTransform transform = 1;
+}
+
+message DeleteGlobalTransformRequest {
+    repeated entities.v1alpha.GlobalTransform transform = 1;
+}
+
+message DeleteGlobalTransformResponse {
+    repeated entities.v1alpha.GlobalTransform transform = 1;
+}
+
+
+message ListGlobalTransformsRequest {
+}
+
+message ListGlobalTransformsResponse {
+    repeated entities.v1alpha.GlobalTransform global_transforms = 1;
+}

@@ -139,6 +139,20 @@ message DataPolicy {
     }
 }
 
+message GlobalTransform {
+    // unique identifier for a certain Global Transform. When empty
+    // the identifier of the transform will be used (for TagTransform tag_content)
+    string ref = 1;
+    string description = 2;
+    oneof transform {
+        TagTransform tag_transform = 3;
+    }
+    message TagTransform {
+        string tag_content = 1;
+        repeated DataPolicy.RuleSet.FieldTransform.Transform transforms = 2;
+    }
+}
+
 message DataCatalog {
     // An arbitrary but unique identifier for the catalog. This matches the id from the PACE app configuration.
     string id = 1 [(buf.validate.field) = {ignore_empty: false, string: {min_len: 1}}];
