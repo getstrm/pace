@@ -51,6 +51,7 @@ dependencies {
     // Self-managed dependencies
     implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
     implementation("com.databricks:databricks-sdk-java:0.10.0")
+    implementation("com.github.drapostolos:type-parser:0.8.1")
 
     implementation("com.nimbusds:nimbus-jose-jwt:9.37")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.76")

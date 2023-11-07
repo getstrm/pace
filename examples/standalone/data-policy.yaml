@@ -37,9 +37,7 @@ rule_sets:
       fullname: public.demo_view
     filters:
       - conditions:
-          - principals: [ { group: administrator } ]
-            condition: "true"
-          - principals: [ { group: fraud_and_risk } ]
+          - principals: [ { group: administrator }, { group: fraud_and_risk } ]
             condition: "true"
           - principals: [ ]
             condition: "age > 8"
@@ -51,7 +49,7 @@ rule_sets:
             identity: { }
           - principals: [ ]
             fixed:
-              value: "****"
+              value: "0000"
       - field:
           name_parts: [ email ]
         transforms:
@@ -60,7 +58,7 @@ rule_sets:
           - principals: [ { group: marketing } ]
             regexp:
               regexp: "^.*(@.*)$"
-              replacement: "****\1"
+              replacement: "****\\1"
           - principals: [ { group: fraud_and_risk } ]
             identity: { }
           - principals: [ ]

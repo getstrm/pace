@@ -4,6 +4,8 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.util.headTailFold
 import com.getstrm.pace.util.sqlDataType
+import com.github.drapostolos.typeparser.TypeParser
+import com.github.drapostolos.typeparser.TypeParserException
 import com.google.rpc.BadRequest
 import org.jooq.Condition
 import org.jooq.Field
@@ -35,7 +37,8 @@ abstract class AbstractDynamicViewGenerator(
     protected open fun renderName(name: String): String = jooq.renderNamedParams(name(name))
 
     protected val jooq = DSL.using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
-    protected val parser = jooq.parser()
+    private val parser = jooq.parser()
+    private val typeParser: TypeParser = TypeParser.newBuilder().build()
 
     fun toDynamicViewSQL(): String {
         val queries = dataPolicy.ruleSetsList.map { ruleSet ->
@@ -151,6 +154,7 @@ abstract class AbstractDynamicViewGenerator(
             }
 
             DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.FIXED -> {
+                fixedDataTypeMatchesAttributeType(transform.fixed.value, attribute)
                 DSL.inline(transform.fixed.value, attribute.sqlDataType())
             }
 
@@ -184,6 +188,30 @@ abstract class AbstractDynamicViewGenerator(
             }
         }
         return memberCheck to (statement as Field<Any>)
+    }
+
+    private fun fixedDataTypeMatchesAttributeType(
+        fixedValue: String,
+        attribute: DataPolicy.Field
+    ) {
+        try {
+            typeParser.parse(fixedValue, attribute.sqlDataType().type)
+        } catch (e: TypeParserException) {
+            throw BadRequestException(
+                BadRequestException.Code.INVALID_ARGUMENT,
+                BadRequest.newBuilder()
+                    .addAllFieldViolations(
+                        listOf(
+                            BadRequest.FieldViolation.newBuilder()
+                                .setField("dataPolicy.ruleSetsList.fieldTransformsList.fixed")
+                                .setDescription("Data type of fixed value provided for field ${attribute.fullName()} does not match the data type of the attribute")
+                                .build()
+                        )
+                    )
+                    .build(),
+                e
+            )
+        }
     }
 
     private fun invalidSqlStatementException(e: ParserException) = BadRequestException(
