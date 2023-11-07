@@ -1,9 +1,9 @@
-package com.getstrm.pace.databricks
+package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import com.getstrm.pace.common.AbstractDynamicViewGenerator
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.UNIMPLEMENTED
+import com.getstrm.pace.processing_platforms.AbstractDynamicViewGenerator
 import com.google.rpc.DebugInfo
 import org.jooq.Condition
 import org.jooq.conf.Settings

@@ -1,16 +1,16 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import com.getstrm.pace.bigquery.BigQueryClient
 import com.getstrm.pace.config.ProcessingPlatformConfiguration
-import com.getstrm.pace.databricks.DatabricksClient
-import com.getstrm.pace.domain.Group
-import com.getstrm.pace.domain.ProcessingPlatform
-import com.getstrm.pace.domain.Table
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.ResourceException
-import com.getstrm.pace.postgres.PostgresClient
-import com.getstrm.pace.snowflake.SnowflakeClient
+import com.getstrm.pace.processing_platforms.Group
+import com.getstrm.pace.processing_platforms.ProcessingPlatform
+import com.getstrm.pace.processing_platforms.Table
+import com.getstrm.pace.processing_platforms.bigquery.BigQueryClient
+import com.getstrm.pace.processing_platforms.databricks.DatabricksClient
+import com.getstrm.pace.processing_platforms.postgres.PostgresClient
+import com.getstrm.pace.processing_platforms.snowflake.SnowflakeClient
 import com.google.rpc.BadRequest
 import com.google.rpc.ResourceInfo
 import org.springframework.stereotype.Component

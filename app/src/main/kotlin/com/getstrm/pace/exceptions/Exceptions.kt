@@ -30,6 +30,7 @@ sealed class PaceStatusException(val status: Status) : Exception(status.cause) {
             is ResourceException -> Any.pack(resourceInfo)
             is ClientErrorException -> Any.pack(errorInfo.toBuilder().apply { putAllMetadata(errorInfoMetadata) }
                 .build())
+
             is InternalException -> Any.pack(debugInfo)
             is PreconditionFailedException -> Any.pack(preconditionFailure)
             is QuotaFailureException -> Any.pack(quotaFailure)

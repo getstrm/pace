@@ -54,14 +54,16 @@ class RuleSetService(
 fun List<ApiTransform>.filterFieldTransforms(): List<ApiTransform> {
     val filtered: List<ApiTransform> = this.fold(
         emptySet<String>() to listOf<ApiTransform>(),
-    ) { (
-        /* the principals that we've already encountered while going through the list */
-        alreadySeenPrincipals: Set<String>,
-        /* the cleaned-up list of ApiTransforms */
-        acc: List<ApiTransform>,
-    ),
+    ) {
+            (
+                /* the principals that we've already encountered while going through the list */
+                alreadySeenPrincipals: Set<String>,
+                /* the cleaned-up list of ApiTransforms */
+                acc: List<ApiTransform>,
+            ),
             /* the original ApiTransform */
-            transform: ApiTransform, ->
+            transform: ApiTransform,
+        ->
         val principals = transform.principalsList.map { it.group }.toSet() - alreadySeenPrincipals
         val dataPolicyWithoutOverlappingPrincipals = transform.toBuilder()
             .clearPrincipals()

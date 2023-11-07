@@ -216,13 +216,13 @@ class DataPolicyService(
 
     fun getLatestDataPolicy(id: String, platformId: String): DataPolicy =
         dataPolicyDao.getLatestDataPolicy(id, platformId) ?: throw ResourceException(
-        ResourceException.Code.NOT_FOUND,
-        ResourceInfo.newBuilder()
-            .setResourceType("DataPolicy")
-            .setResourceName(id)
-            .setDescription("DataPolicy $id not found")
-            .build()
-    )
+            ResourceException.Code.NOT_FOUND,
+            ResourceInfo.newBuilder()
+                .setResourceType("DataPolicy")
+                .setResourceName(id)
+                .setDescription("DataPolicy $id not found")
+                .build()
+        )
 
     private suspend fun enforceStatement(dataPolicy: DataPolicy) {
         processingPlatforms.getProcessingPlatform(dataPolicy).applyPolicy(dataPolicy)

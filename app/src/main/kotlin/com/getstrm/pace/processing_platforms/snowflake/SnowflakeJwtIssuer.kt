@@ -1,4 +1,4 @@
-package com.getstrm.pace.snowflake
+package com.getstrm.pace.processing_platforms.snowflake
 
 import com.nimbusds.jose.JOSEException
 import com.nimbusds.jose.JWSAlgorithm
@@ -10,7 +10,6 @@ import com.nimbusds.jwt.SignedJWT
 import org.apache.commons.codec.binary.Base64
 import org.bouncycastle.util.io.pem.PemReader
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.io.StringReader
 import java.security.KeyFactory
 import java.security.MessageDigest

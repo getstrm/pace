@@ -1,23 +1,25 @@
-package com.getstrm.pace.databricks
+package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.DATABRICKS
 import com.databricks.sdk.AccountClient
 import com.databricks.sdk.WorkspaceClient
-import com.databricks.sdk.core.DatabricksConfig as DatabricksClientConfig
 import com.databricks.sdk.service.catalog.TableInfo
 import com.databricks.sdk.service.iam.ListAccountGroupsRequest
 import com.databricks.sdk.service.sql.ExecuteStatementRequest
 import com.databricks.sdk.service.sql.ExecuteStatementResponse
 import com.databricks.sdk.service.sql.StatementState
 import com.getstrm.pace.config.DatabricksConfig
-import com.getstrm.pace.domain.*
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
+import com.getstrm.pace.processing_platforms.Group
+import com.getstrm.pace.processing_platforms.ProcessingPlatform
+import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.toTimestamp
 import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
+import com.databricks.sdk.core.DatabricksConfig as DatabricksClientConfig
 
 class DatabricksClient(
     override val id: String,

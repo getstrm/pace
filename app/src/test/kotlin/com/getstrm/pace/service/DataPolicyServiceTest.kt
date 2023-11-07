@@ -1,10 +1,10 @@
 package com.getstrm.pace.service
 
 import com.getstrm.pace.dao.DataPolicyDao
-import com.getstrm.pace.domain.Group
+import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.ResourceException
-import com.getstrm.pace.snowflake.SnowflakeClient
+import com.getstrm.pace.processing_platforms.snowflake.SnowflakeClient
 import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.util.yaml2json
 import com.google.rpc.BadRequest

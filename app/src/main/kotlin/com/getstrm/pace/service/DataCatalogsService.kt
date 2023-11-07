@@ -2,10 +2,10 @@ package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.catalogs.CollibraCatalog
+import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.catalogs.DatahubCatalog
 import com.getstrm.pace.catalogs.OpenDataDiscoveryCatalog
 import com.getstrm.pace.config.CatalogsConfiguration
-import com.getstrm.pace.domain.*
 import com.getstrm.pace.exceptions.ResourceException
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory

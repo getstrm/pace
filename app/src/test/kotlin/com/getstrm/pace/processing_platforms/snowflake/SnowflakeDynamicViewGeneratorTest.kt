@@ -1,12 +1,11 @@
-package com.getstrm.pace.bigquery
+package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
+import com.getstrm.pace.processing_platforms.snowflake.SnowflakeDynamicViewGenerator
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
-import org.jooq.impl.DSL
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import com.getstrm.pace.util.parseDataPolicy
@@ -14,14 +13,13 @@ import com.getstrm.pace.toSql
 import com.getstrm.pace.util.yaml2json
 import org.intellij.lang.annotations.Language
 
-class BigQueryDynamicViewGeneratorTest {
+class SnowflakeDynamicViewGeneratorTest {
 
-    private lateinit var underTest: BigQueryDynamicViewGenerator
-    private val defaultUserGroupsTable = "`my_project.my_dataset.my_user_groups`"
+    private lateinit var underTest: SnowflakeDynamicViewGenerator
 
     @BeforeEach
     fun setUp() {
-        underTest = BigQueryDynamicViewGenerator(DataPolicy.getDefaultInstance(), defaultUserGroupsTable)
+        underTest = SnowflakeDynamicViewGenerator(DataPolicy.getDefaultInstance())
     }
 
     @Test
@@ -30,15 +28,15 @@ class BigQueryDynamicViewGeneratorTest {
         val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("ANALYTICS", "MARKETING").map { Principal.newBuilder().setGroup(it).build() })
+            .addAllPrincipals(listOf("ANALYTICS", "MARKETING").toPrincipals())
             .build()
 
-        // when
+        // When
         val (condition, field) = underTest.toCase(transform, attribute)
 
         // Then
-        condition!!.toSql() shouldBe "(('ANALYTICS' IN ( SELECT userGroup FROM user_groups )) or ('MARKETING' IN ( SELECT userGroup FROM user_groups )))"
-        field shouldBe DSL.`val`("****")
+        condition!!.toSql() shouldBe "((IS_ROLE_IN_SESSION('ANALYTICS')) or (IS_ROLE_IN_SESSION('MARKETING')))"
+        field.toSql() shouldBe "'****'"
     }
 
     @Test
@@ -50,12 +48,12 @@ class BigQueryDynamicViewGeneratorTest {
             .addPrincipals("MARKETING".toPrincipal())
             .build()
 
-        // when
+        // When
         val (condition, field) = underTest.toCase(transform, attribute)
 
         // Then
-        condition!!.toSql() shouldBe "('MARKETING' IN ( SELECT userGroup FROM user_groups ))"
-        field shouldBe DSL.`val`("****")
+        condition!!.toSql() shouldBe "(IS_ROLE_IN_SESSION('MARKETING'))"
+        field.toSql() shouldBe "'****'"
     }
 
     @Test
@@ -66,30 +64,30 @@ class BigQueryDynamicViewGeneratorTest {
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .build()
 
-        // when
+        // When
         val (condition, field) = underTest.toCase(transform, attribute)
 
         // Then
         condition.shouldBeNull()
-        field shouldBe DSL.`val`("****")
+        field.toSql() shouldBe "'****'"
     }
 
     @Test
     fun `field transform with a few transforms`() {
         // Given
         val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
-        val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+        val fixed =DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addAllPrincipals(listOf("ANALYTICS", "MARKETING").toPrincipals())
             .build()
-        val otherFixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+        val otherFixed =DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("REDACTED EMAIL"))
-            .addAllPrincipals(listOf("FRAUD_DETECTION").toPrincipals())
+            .addAllPrincipals(listOf("FRAUD_AND_RISK").toPrincipals())
             .build()
-        val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("fixed-value"))
+        val fallbackTransform =DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("stoelpoot"))
             .build()
-        val fieldTransform = DataPolicy.RuleSet.FieldTransform.newBuilder()
+        val fieldTransform =DataPolicy.RuleSet.FieldTransform.newBuilder()
             .setField(field)
             .addAllTransforms(listOf(fixed, otherFixed, fallbackTransform))
             .build()
@@ -98,12 +96,12 @@ class BigQueryDynamicViewGeneratorTest {
         val jooqField = underTest.toJooqField(field, fieldTransform)
 
         // Then
-        jooqField.toSql() shouldBe "case when (('ANALYTICS' IN ( SELECT userGroup FROM user_groups )) or ('MARKETING' IN ( SELECT userGroup FROM user_groups ))) then '****' when ('FRAUD_DETECTION' " +
-            "IN ( SELECT userGroup FROM user_groups )) then 'REDACTED EMAIL' else 'fixed-value' end \"email\""
+        jooqField.toSql() shouldBe "case when ((IS_ROLE_IN_SESSION('ANALYTICS')) or (IS_ROLE_IN_SESSION('MARKETING'))) then '****' when (IS_ROLE_IN_SESSION('FRAUD_AND_RISK')) then 'REDACTED EMAIL' " +
+                "else 'stoelpoot' end \"email\""
     }
 
     @Test
-    fun `row filters to condition`() {
+    fun `row filter to condition`() {
         // Given
         val filter = DataPolicy.RuleSet.Filter.newBuilder()
             .addAllConditions(
@@ -127,37 +125,32 @@ class BigQueryDynamicViewGeneratorTest {
         val condition = underTest.toCondition(filter)
 
         // Then
-        condition.toSql() shouldBe "case when ('fraud-and-risk' IN ( SELECT userGroup FROM user_groups )) then true when (('analytics' IN ( SELECT userGroup FROM user_groups )) or ('marketing' IN ( SELECT userGroup FROM user_groups ))) then age > 18 else false end"
+        condition.toSql() shouldBe "case when (IS_ROLE_IN_SESSION('fraud-and-risk')) then true when ((IS_ROLE_IN_SESSION('analytics')) " +
+                "or (IS_ROLE_IN_SESSION('marketing'))) then age > 18 else false end"
     }
 
     @Test
     fun `transform test all transforms`() {
         // Given
-        underTest = BigQueryDynamicViewGenerator(dataPolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
+        underTest = SnowflakeDynamicViewGenerator(dataPolicy) { withRenderFormatted(true) }
         underTest.toDynamicViewSQL()
             .shouldBe(
-                """create or replace view `my_target_project.my_target_dataset.my_target_view`
+                """create or replace view my_database.my_schema.gddemo_public
 as
-with
-  user_groups as (
-    select userGroup
-    from `my_project.my_dataset.my_user_groups`
-    where userEmail = SESSION_USER()
-  )
 select
   transactionId,
   case
-    when ('FRAUD_DETECTION' IN ( SELECT userGroup FROM user_groups )) then CAST(userId AS string)
-    else TO_HEX(SHA256(CAST(userId AS string)))
+    when (IS_ROLE_IN_SESSION('FRAUD_AND_RISK')) then userId
+    else hash(1234, userId)
   end userId,
   case
     when (
-      ('ANALYTICS' IN ( SELECT userGroup FROM user_groups ))
-      or ('MARKETING' IN ( SELECT userGroup FROM user_groups ))
+      (IS_ROLE_IN_SESSION('ANALYTICS'))
+      or (IS_ROLE_IN_SESSION('MARKETING'))
     ) then regexp_replace(email, '^.*(@.*)${'$'}', '****\\1')
     when (
-      ('FRAUD_DETECTION' IN ( SELECT userGroup FROM user_groups ))
-      or ('ADMIN' IN ( SELECT userGroup FROM user_groups ))
+      (IS_ROLE_IN_SESSION('FRAUD_AND_RISK'))
+      or (IS_ROLE_IN_SESSION('ADMIN'))
     ) then email
     else '****'
   end email,
@@ -169,26 +162,30 @@ select
   itemCount,
   date,
   purpose
-from `my_project.my_dataset.my_table`
+from mydb.my_schema.gddemo
 where (
   case
-    when ('FRAUD_DETECTION' IN ( SELECT userGroup FROM user_groups )) then true
+    when (IS_ROLE_IN_SESSION('FRAUD_AND_RISK')) then true
     else age > 18
   end
   and case
-    when ('MARKETING' IN ( SELECT userGroup FROM user_groups )) then userId in ('1', '2', '3', '4')
+    when (IS_ROLE_IN_SESSION('MARKETING')) then userId in ('1', '2', '3', '4')
     else true
   end
   and transactionAmount < 10
-);"""
+);
+grant SELECT on my_database.my_schema.gddemo_public to ANALYTICS;
+grant SELECT on my_database.my_schema.gddemo_public to MARKETING;
+grant SELECT on my_database.my_schema.gddemo_public to FRAUD_AND_RISK;
+grant SELECT on my_database.my_schema.gddemo_public to ADMIN;"""
             )
     }
 
     companion object {
         @Language("yaml")
         val dataPolicy = """
-source:
-  ref: "my_project.my_dataset.my_table"
+source: 
+  ref: mydb.my_schema.gddemo
   fields:
     - name_parts: [transactionId]
       type: bigint
@@ -213,15 +210,14 @@ source:
     - name_parts: [purpose]
       type: bigint
 
-rule_sets:
+rule_sets: 
 - target:
     type: DYNAMIC_VIEW
-    fullname: 'my_target_project.my_target_dataset.my_target_view'
+    fullname: 'my_database.my_schema.gddemo_public'
   field_transforms:
     - field:
         name_parts:
           - email
-        type: "string"
       transforms:
         - principals:
             - group: ANALYTICS
@@ -230,7 +226,7 @@ rule_sets:
             regexp: '^.*(@.*)${'$'}'
             replacement: '****\\1'
         - principals:
-            - group: FRAUD_DETECTION
+            - group: FRAUD_AND_RISK
             - group: ADMIN
           identity: {}
         - principals: []
@@ -241,12 +237,11 @@ rule_sets:
           - userId
       transforms:
         - principals:
-            - group: FRAUD_DETECTION
-          sql_statement:
-            statement: "CAST(userId AS string)"
+            - group: FRAUD_AND_RISK
+          identity: {}
         - principals: []
-          sql_statement:
-            statement: "TO_HEX(SHA256(CAST(userId AS string)))"
+          hash:
+            seed: "1234"
     - field:
         name_parts:
           - items
@@ -266,7 +261,7 @@ rule_sets:
           - age
       conditions:
         - principals:
-            - group: FRAUD_DETECTION
+            - group: FRAUD_AND_RISK
           condition: "true"
         - principals: []
           condition: "age > 18"
