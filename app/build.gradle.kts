@@ -34,6 +34,8 @@ plugins {
 dependencies {
     // Dependencies managed by Spring
     implementation("org.springframework.boot:spring-boot-starter-jooq")
+    // TODO remove once we upgrade Spring: override SnakeYAML dependency, as the one managed by Spring is too old and is vulnerable
+    implementation("org.yaml:snakeyaml:2.0")
     implementation("org.flywaydb:flyway-core")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.postgresql:postgresql")
@@ -44,10 +46,12 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     // Self-managed dependencies
     implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
     implementation("com.databricks:databricks-sdk-java:0.10.0")
+    implementation("com.github.drapostolos:type-parser:0.8.1")
 
     implementation("com.nimbusds:nimbus-jose-jwt:9.37")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.76")
@@ -66,6 +70,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.kotest:kotest-assertions-core-jvm:5.7.2")
     testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("io.zonky.test:embedded-postgres:2.0.4")
 }
 
 openApiGenerate {
@@ -309,32 +314,8 @@ val buildDocker =
         dependsOn(prepareForDocker)
         workingDir("build/docker")
 
-        if (System.getProperty("os.name") == "Mac OS X" && System.getProperty("os.arch") == "aarch64") {
-            println("Building docker image on ARM Mac system. If you don't have a cross platform builder instance yet, create one using:")
-            println("  docker buildx create --use")
-            commandLine(
-                "/usr/bin/env",
-                "docker",
-                "buildx",
-                "build",
-                "--platform",
-                "linux/amd64",
-                "-t",
-                project.properties["dockertag"],
-                "."
-            )
-        } else {
-            commandLine("/usr/bin/env", "docker", "build", ".", "-t", project.properties["dockertag"])
-        }
+        commandLine("/usr/bin/env", "docker", "build", ".", "-t", project.properties["dockertag"])
     }
-
-val pushDocker = tasks.register<Exec>("pushDocker") {
-    group = "docker"
-    dependsOn(buildDocker)
-    workingDir("build/docker")
-
-    commandLine("/usr/bin/env", "docker", "push", project.properties["dockertag"])
-}
 
 apollo {
     service("collibra") {

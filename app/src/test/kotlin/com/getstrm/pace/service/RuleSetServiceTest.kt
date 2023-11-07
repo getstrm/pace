@@ -45,7 +45,7 @@ class RuleSetServiceTest {
               fields:
                 - name_parts: [name]
                   type: varchar
-                  tags: [ pii, banaan ]
+                  tags: [ pii, tag123 ]
                 - name_parts: [email]
                   type: varchar
                   tags: [ email ]
@@ -63,7 +63,7 @@ class RuleSetServiceTest {
                   fields:
                   - nameParts:  [ name ]
                     type: varchar
-                    tags:  [ pii, banaan ]
+                    tags:  [ pii, tag123 ]
                   - nameParts:  [ email ]
                     type: varchar
                     tags:  [ email ]
@@ -77,9 +77,9 @@ class RuleSetServiceTest {
                   - field:
                       nameParts:  [ name ]
                       type: varchar
-                      tags:  [ pii, banaan ]
+                      tags:  [ pii, tag123 ]
                     transforms:
-                    - principals: [ {group: fraud-detection} ]
+                    - principals: [ {group: fraud-and-risk} ]
                       identity: {}
                     - hash: {seed: "1234"}
                   - field:
@@ -89,7 +89,7 @@ class RuleSetServiceTest {
                     transforms:
                     - principals:  [ group: marketing ]
                       regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
-                    - principals: [ {group: fraud-detection} ]
+                    - principals: [ {group: fraud-and-risk} ]
                       identity: {}
                     - fixed: {value: "****"}
             """
@@ -112,7 +112,7 @@ class RuleSetServiceTest {
               fields:
                 - name_parts: [name]
                   type: varchar
-                  tags: [ pii, banaan, overlap ]
+                  tags: [ pii, tag123, overlap ]
                 - name_parts: [email]
                   type: varchar
                   tags: [ email, overlap ]
@@ -129,7 +129,7 @@ source:
   fields:
   - nameParts:  [ name ]
     type: varchar
-    tags: [ pii,  banaan, overlap ]
+    tags: [ pii,  tag123, overlap ]
   - nameParts:  [ email ]
     type: varchar
     tags: [  email, overlap ]
@@ -143,12 +143,12 @@ ruleSets:
   - field:
       nameParts: [ name ]
       type: "varchar"
-      tags: [  pii, banaan, overlap ]
+      tags: [  pii, tag123, overlap ]
     transforms:
-    - principals:  [ {group: fraud-detection} ]
+    - principals:  [ {group: fraud-and-risk} ]
       identity: {}
     - principals: [ {group: marketing} ]
-      fixed: {value: bla}
+      fixed: {value: fixed-value2}
     - principals: [ group: "analytics" ]
       hash: {seed: "3"}
     - hash: {seed: "1234"}
@@ -159,7 +159,7 @@ ruleSets:
     transforms:
     - principals: [ {group: marketing} ]
       regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
-    - principals: [ {group: fraud-detection} ]
+    - principals: [ {group: fraud-and-risk} ]
       identity: {}
     - principals: [ {group: analytics} ]
       hash: {seed: "3" }
@@ -183,7 +183,7 @@ ruleSets:
               fields:
                 - name_parts: [name]
                   type: varchar
-                  tags: [ overlap, pii, banaan ]
+                  tags: [ overlap, pii, tag123 ]
                 - name_parts: [email]
                   type: varchar
                   tags: [ overlap, email ]
@@ -201,7 +201,7 @@ source:
   fields:
   - nameParts:  [ name ]
     type: varchar
-    tags: [  overlap, pii,  banaan ]
+    tags: [  overlap, pii,  tag123 ]
   - nameParts:  [ email ]
     type: varchar
     tags: [  overlap, email ]
@@ -216,27 +216,27 @@ ruleSets:
       nameParts: [ name ]
       type: varchar
       # checks ignoring unknown tags
-      tags: [  overlap, pii, banaan  ]
+      tags: [  overlap, pii, tag123  ]
     transforms:
     - principals: [ {group: marketing} ]
-      fixed: {value: bla}
+      fixed: {value: fixed-value2}
     - principals: [ {group: analytics} ]
       hash: {seed: "3"}
-    - principals: [ {group: fraud-detection} ]
+    - principals: [ {group: fraud-and-risk} ]
       nullify: {}
-    - fixed: {value: jopie}
+    - fixed: {value: fixed-value}
   - field:
       nameParts: [ email ]
       type: "varchar"
       tags: [  overlap, email  ]
     transforms:
     - principals: [ {group: marketing} ]
-      fixed: {value: bla}
+      fixed: {value: fixed-value2}
     - principals: [ {group: analytics} ]
       hash: {seed: "3" }
-    - principals: [ {group: fraud-detection} ]
+    - principals: [ {group: fraud-and-risk} ]
       nullify: {}
-    - fixed: {value: "jopie" }
+    - fixed: {value: "fixed-value" }
             """
             policyWithRulesets shouldBe result.yaml2json().parseDataPolicy()
         }
@@ -244,7 +244,7 @@ ruleSets:
 
     private fun setupGlobalBusinessRules() {
         coEvery { platforms.getProcessingPlatform(any()) } returns platform
-        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-detection", "admin")
+        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-and-risk", "admin")
 
         // Global business rules
         // a map of field level tags to a list of Api Transforms that define how the
@@ -256,7 +256,7 @@ ruleSets:
                   - principals: [ {group: marketing} ]
                     regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
                   # security gets everything
-                  - principals: [ {group: fraud-detection} ]
+                  - principals: [ {group: fraud-and-risk} ]
                     identity: {}
                   # everyone else gets 4 stars
                   - fixed: {value: "****"}
@@ -264,8 +264,8 @@ ruleSets:
             "pii" to """
                 # transforms to be applied to fields classified as PII
                 transforms:
-                # fraud-detection sees the original value
-                - principals: [ {group: fraud-detection} ]
+                # fraud-and-risk sees the original value
+                - principals: [ {group: fraud-and-risk} ]
                   identity: {}
                 # everyone else gets a hashed value
                 - hash: {seed: "1234"}
@@ -273,17 +273,16 @@ ruleSets:
             "overlap" to """
                # a business policy that is deliberately overlapping with both others
                transforms:
-                  # marketeers get only the domain
                   - principals: [ {group: marketing} ]
-                    fixed: {value: bla}
+                    fixed: {value: fixed-value2}
                   # analytics gets a hash
                   - principals: [ {group: analytics}]
                     hash: {seed: "3" }
                   # security gets null
-                  - principals: [ {group: fraud-detection} ]
+                  - principals: [ {group: fraud-and-risk} ]
                     nullify: {}
-                  # everyone else gets jopie
-                  - fixed: {value: jopie}
+                  # everyone else gets 'fixed-value'
+                  - fixed: {value: fixed-value}
                 """,
         ).mapValues { it.value.parseTransforms() }
 

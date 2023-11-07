@@ -8,17 +8,13 @@ import com.getstrm.pace.domain.ProcessingPlatform
 import com.getstrm.pace.domain.Table
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
+import com.getstrm.pace.util.normalizeType
+import com.getstrm.pace.util.toFullName
+import com.getstrm.pace.util.toTimestamp
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.bigquery.Acl
-import com.google.cloud.bigquery.BigQuery
-import com.google.cloud.bigquery.BigQueryException
-import com.google.cloud.bigquery.BigQueryOptions
-import com.google.cloud.bigquery.JobException
-import com.google.cloud.bigquery.QueryJobConfiguration
-import com.google.cloud.bigquery.TableId
+import com.google.cloud.bigquery.*
 import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
-import com.getstrm.pace.util.toFullName
 import com.google.cloud.bigquery.Table as BQTable
 
 class BigQueryClient(
@@ -73,11 +69,11 @@ class BigQueryClient(
                 InternalException.Code.INTERNAL,
                 DebugInfo.newBuilder()
                     .setDetail(
-                        "Error while executing BigQuery query (error message: ${e.message}), please check the logs of your PACE deployment. $BUG_REPORT"
+                        "Error while executing BigQuery query (error message: ${e.message}), please check the logs of your PACE deployment. $BUG_REPORT",
                     )
                     .addAllStackEntries(e.stackTrace.map { it.toString() })
                     .build(),
-                e
+                e,
             )
         }
         try {
@@ -90,11 +86,11 @@ class BigQueryClient(
                     InternalException.Code.INTERNAL,
                     DebugInfo.newBuilder()
                         .setDetail(
-                            "Error while authorizing views (error message: ${e.message}), please check the logs of your PACE deployment. $BUG_REPORT"
+                            "Error while authorizing views (error message: ${e.message}), please check the logs of your PACE deployment. $BUG_REPORT",
                         )
                         .addAllStackEntries(e.stackTrace.map { it.toString() })
                         .build(),
-                    e
+                    e,
                 )
             }
         }
@@ -143,4 +139,36 @@ class BigQueryTable(
 
     override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy =
         table.toDataPolicy(platform)
+
+    private fun BQTable.toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
+        // The reload ensures all metadata is fetched, including the schema
+        val table = reload()
+        return DataPolicy.newBuilder()
+            .setMetadata(
+                DataPolicy.Metadata.newBuilder()
+                    .setTitle(this.toFullName())
+                    .setDescription(table.description.orEmpty())
+                    .setCreateTime(table.creationTime.toTimestamp())
+                    .setUpdateTime(table.lastModifiedTime.toTimestamp()),
+            )
+            .setPlatform(platform)
+            .setSource(
+                DataPolicy.Source.newBuilder()
+                    .setRef(this.toFullName())
+                    .addAllFields(
+                        table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map { field ->
+                            // Todo: add support for nested fields using getSubFields()
+                            DataPolicy.Field.newBuilder()
+                                .addNameParts(field.name)
+                                .setType(field.type.name())
+                                // Todo: correctly handle repeated fields (defined by mode REPEATED)
+                                .setRequired(field.mode != Field.Mode.NULLABLE)
+                                .build().normalizeType()
+                        },
+                    )
+                    .build(),
+            )
+            .build()
+    }
+
 }

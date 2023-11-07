@@ -7,6 +7,7 @@ data class ProcessingPlatformConfiguration(
     val databricks: List<DatabricksConfig> = emptyList(),
     val snowflake: List<SnowflakeConfig> = emptyList(),
     val bigquery: List<BigQueryConfig> = emptyList(),
+    val postgres: List<PostgresConfig> = emptyList(),
 )
 
 data class SnowflakeConfig(
@@ -26,6 +27,17 @@ data class BigQueryConfig(
     val userGroupsTable: String,
     val serviceAccountJsonKey: String,
 )
+
+data class PostgresConfig(
+    val id: String,
+    val hostName: String,
+    val port: Int,
+    val database: String,
+    val userName: String,
+    val password: String,
+) {
+    internal fun getJdbcUrl() = "jdbc:postgresql://$hostName:$port/$database"
+}
 
 data class DatabricksConfig(
     val id: String,

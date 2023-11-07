@@ -47,7 +47,7 @@ class RuleSetService(
  * ORDER of tags important. Let's hope the catalogs present the tags in a deterministic order!
  *
  * TODO: think about if this is a good idea, or should we enforce that for
- * a certain attribute the tags define non-overlapping rules? The [DataPolicyService.validate]
+ * a certain fields the tags define non-overlapping rules? The [DataPolicyService.validate]
  * method already executes this check.
  *
  */

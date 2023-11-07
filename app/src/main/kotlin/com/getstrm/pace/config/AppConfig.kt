@@ -6,7 +6,6 @@ import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 
-
 @Configuration
 @EnableConfigurationProperties(ProcessingPlatformConfiguration::class, CatalogsConfiguration::class)
 class AppConfig {

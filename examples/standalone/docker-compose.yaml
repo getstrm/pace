@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  postgres_pace:
+    container_name: postgres_pace
+    image: postgres
+    environment:
+      POSTGRES_USER: pace_user
+      POSTGRES_PASSWORD: pace
+      POSTGRES_DB: pace
+      PGDATA: /data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres_pace
+
+  postgres_processing_platform:
+    container_name: postgres_processing_platform
+    image: postgres
+    environment:
+      POSTGRES_USER: standalone_user
+      POSTGRES_PASSWORD: standalone
+      POSTGRES_DB: standalone
+      PGDATA: /data/postgres
+    volumes:
+      - ./data.sql:/docker-entrypoint-initdb.d/data.sql
+    ports:
+      - "5431:5432"
+    networks:
+      - postgres_processing_platform
+
+  pace_app:
+    depends_on:
+      - postgres_pace
+      - postgres_processing_platform
+    container_name: pace
+    # you may want to update the image to the latest version
+    image: ghcr.io/getstrm/pace:1.0.0-alpha.11
+    volumes:
+      - ./config/:/app/config/
+
+    ports:
+      - "8080:8080" # Spring Boot
+      - "9090:9090" # Envoy JSON / gRPC Proxy
+      - "50051:50051" # gRPC
+    networks:
+      - postgres_pace
+      - postgres_processing_platform
+
+networks:
+  postgres_pace:
+    name: postgres_pace
+    driver: bridge
+  postgres_processing_platform:
+    name: postgres_processing_platform
+    driver: bridge

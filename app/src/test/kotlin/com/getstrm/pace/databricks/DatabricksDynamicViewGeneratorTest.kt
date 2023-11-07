@@ -99,7 +99,7 @@ class DatabricksDynamicViewGeneratorTest {
             .build()
         val otherFixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("REDACTED EMAIL"))
-            .addAllPrincipals(listOf("fraud-detection").toPrincipals())
+            .addAllPrincipals(listOf("fraud-and-risk").toPrincipals())
             .build()
         val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("stoelpoot"))
@@ -110,10 +110,10 @@ class DatabricksDynamicViewGeneratorTest {
             .build()
 
         // When
-        val field = underTest.toField(attribute, fieldTransform)
+        val field = underTest.toJooqField(attribute, fieldTransform)
 
         // Then
-        field.toSql() shouldBe "case when ((is_account_group_member('marketing')) or (is_account_group_member('analytics'))) then '****' when (is_account_group_member('fraud-detection')) then " +
+        field.toSql() shouldBe "case when ((is_account_group_member('marketing')) or (is_account_group_member('analytics'))) then '****' when (is_account_group_member('fraud-and-risk')) then " +
             "'REDACTED EMAIL' else 'stoelpoot' end \"email\""
     }
 
@@ -134,7 +134,7 @@ class DatabricksDynamicViewGeneratorTest {
             .build()
 
         // When
-        val field = underTest.toField(attribute, fieldTransform)
+        val field = underTest.toJooqField(attribute, fieldTransform)
 
         // Then
         field.toSql() shouldBe "case when (is_account_group_member('analytics')) then '****' else 'stoelpoot' end \"email\""
@@ -153,7 +153,7 @@ class DatabricksDynamicViewGeneratorTest {
             .build()
 
         // When
-        val field = underTest.toField(attribute, fieldTransform)
+        val field = underTest.toJooqField(attribute, fieldTransform)
 
         // Then
         field.toSql() shouldBe "regexp_replace(email, '^.*(@.*)\$', '****\$1') \"email\""
@@ -165,7 +165,7 @@ class DatabricksDynamicViewGeneratorTest {
         val attribute = DataPolicy.Field.newBuilder().addNameParts("email").build()
 
         // When
-        val field = underTest.toField(attribute, null)
+        val field = underTest.toJooqField(attribute, null)
 
         // Then
         field shouldBe DSL.field("email")
@@ -257,7 +257,7 @@ class DatabricksDynamicViewGeneratorTest {
             .addAllConditions(
                 listOf(
                     DataPolicy.RuleSet.Filter.Condition.newBuilder()
-                        .addAllPrincipals(listOf("fraud-detection").toPrincipals())
+                        .addAllPrincipals(listOf("fraud-and-risk").toPrincipals())
                         .setCondition("true")
                         .build(),
                     DataPolicy.RuleSet.Filter.Condition.newBuilder()
@@ -275,7 +275,7 @@ class DatabricksDynamicViewGeneratorTest {
         val condition = underTest.toCondition(filter)
 
         // Then
-        condition.toSql() shouldBe "case when (is_account_group_member('fraud-detection')) then true when ((is_account_group_member('analytics')) or (is_account_group_member('marketing'))) " +
+        condition.toSql() shouldBe "case when (is_account_group_member('fraud-and-risk')) then true when ((is_account_group_member('analytics')) or (is_account_group_member('marketing'))) " +
             "then age > 18 else false end"
     }
 
@@ -289,7 +289,7 @@ as
 select
   transactionId,
   case
-    when (is_account_group_member('fraud-detection')) then userId
+    when (is_account_group_member('fraud-and-risk')) then userId
     else hash(1234, userId)
   end userId,
   case
@@ -298,14 +298,14 @@ select
       or (is_account_group_member('marketing'))
     ) then regexp_replace(email, '^.*(@.*)${'$'}', '****${'$'}1')
     when (
-      (is_account_group_member('fraud-detection'))
+      (is_account_group_member('fraud-and-risk'))
       or (is_account_group_member('admin'))
     ) then email
     else '****'
   end email,
   age,
   size,
-  case when hairColor = 'blonde' then 'fair' else 'dark' end hairColor,
+  case when brand = 'Macbook' then 'Apple' else 'Other' end brand,
   transactionAmount,
   null items,
   itemCount,
@@ -314,7 +314,7 @@ select
 from mycatalog.my_schema.gddemo
 where (
   case
-    when (is_account_group_member('fraud-detection')) then true
+    when (is_account_group_member('fraud-and-risk')) then true
     else age > 18
   end
   and case
@@ -337,7 +337,7 @@ as
 select
   transactionId,
   case
-    when (is_account_group_member('fraud-detection')) then userId
+    when (is_account_group_member('fraud-and-risk')) then userId
     else hash(1234, userId)
   end userId,
   case
@@ -346,14 +346,14 @@ select
       or (is_account_group_member('marketing'))
     ) then regexp_replace(email, '^.*(@.*)${'$'}', '****${'$'}1')
     when (
-      (is_account_group_member('fraud-detection'))
+      (is_account_group_member('fraud-and-risk'))
       or (is_account_group_member('admin'))
     ) then email
     else '****'
   end email,
   age,
   size,
-  case when hairColor = 'blonde' then 'fair' else 'dark' end hairColor,
+  case when brand = 'Macbook' then 'Apple' else 'Other' end brand,
   transactionAmount,
   null items,
   itemCount,
@@ -375,7 +375,7 @@ from mycatalog.my_schema.gddemo;"""
           email string,
           age bigint,
           size string,
-          hairColor string,
+          brand string,
           transactionAmount bigint,
           items string,
           itemCount bigint,
@@ -394,7 +394,7 @@ from mycatalog.my_schema.gddemo;"""
           type: bigint
         - name_parts: [size]
           type: string
-        - name_parts: [hairColor]
+        - name_parts: [brand]
           type: string
         - name_parts: [transactionAmount]
           type: bigint
@@ -423,7 +423,7 @@ from mycatalog.my_schema.gddemo;"""
                 regexp: '^.*(@.*)${'$'}'
                 replacement: '****${'$'}1'
             - principals:
-                - group: fraud-detection
+                - group: fraud-and-risk
                 - group: admin
               identity: {}
             - principals: []
@@ -434,7 +434,7 @@ from mycatalog.my_schema.gddemo;"""
               - userId
           transforms:
             - principals:
-                - group: fraud-detection
+                - group: fraud-and-risk
               identity: {}
             - principals: []
               hash:
@@ -447,18 +447,18 @@ from mycatalog.my_schema.gddemo;"""
               nullify: {}
         - field:
             name_parts:
-              - hairColor
+              - brand
           transforms:
             - principals: []
               sql_statement:
-                statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
+                statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
       filters:
         - field:
             name_parts:
               - age
           conditions:
             - principals:
-                - group: fraud-detection
+                - group: fraud-and-risk
               condition: "true"
             - principals: []
               condition: "age > 18"
@@ -478,8 +478,8 @@ from mycatalog.my_schema.gddemo;"""
             - principals: []
               condition: "transactionAmount < 10"
     info:
-      title: "Data Policy for GDDemo"
-      description: "The demo data policy for the poc with databricks using gddemo dataset."
+      title: "Data Policy for Pace Databricks Demo Dataset"
+      description: "Pace Demo Dataset"
       version: "1.0.0"
       create_time: "2023-09-26T16:33:51.150Z"
       update_time: "2023-09-26T16:33:51.150Z"

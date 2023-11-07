@@ -50,7 +50,7 @@ rule_sets:
             regexp: '^.*(@.*)${'$'}'
             replacement: '****${'$'}1'
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
             - group: admin
           identity: {}
         - principals: []
@@ -60,7 +60,7 @@ rule_sets:
         name_parts: [ userId ]
       transforms:
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
           identity: {}
         - principals: []
           hash:
@@ -72,17 +72,17 @@ rule_sets:
           fixed:
             value: "'****'"
     - field:
-        name_parts: [ hairColor ]
+        name_parts: [ brand ]
       transforms:
         - principals: []
           sql_statement:
-            statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
+            statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
   filters:
     - field:
         name_parts: [ age ]
       conditions:
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
           condition: "true"
         - principals: []
           condition: "age > 18"
@@ -101,7 +101,7 @@ rule_sets:
           condition: "transactionAmount < 10"
           """.yaml2json().parseDataPolicy()
         coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
-        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-detection", "admin")
+        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-and-risk", "admin")
         runBlocking {
             underTest.validate(dataPolicy)
         }
@@ -127,7 +127,7 @@ rule_sets:
             regexp: '^.*(@.*)${'$'}'
             replacement: '****${'$'}1'
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
             - group: admin
           identity: {}
         - principals: [ {group: analytics} ]
@@ -137,7 +137,7 @@ rule_sets:
         name_parts: [ userId ]
       transforms:
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
           identity: {}
         - principals: []
           hash:
@@ -149,17 +149,17 @@ rule_sets:
           fixed:
             value: "'****'"
     - field:
-        name_parts: [ hairColor ]
+        name_parts: [ brand ]
       transforms:
         - principals: []
           sql_statement:
-            statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
+            statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
   filters:
     - field:
         name_parts: [ age ]
       conditions:
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
           condition: "true"
         - principals: []
           condition: "age > 18"
@@ -186,7 +186,7 @@ rule_sets:
                 .setOwner("SNOWFLAKE")
                 .build()
         )
-        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-detection", "admin")
+        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-and-risk", "admin")
         runBlocking {
             val exception = shouldThrow<ResourceException> {
                 underTest.validate(dataPolicy)
@@ -222,7 +222,7 @@ rule_sets:
             regexp: '^.*(@.*)${'$'}'
             replacement: '****${'$'}1'
         - principals:
-          - group: fraud-detection
+          - group: fraud-and-risk
           - group: admin
           identity: {}
         - principals:
@@ -233,7 +233,7 @@ rule_sets:
         name_parts: [ userId ]
       transforms:
         - principals:
-          - group: fraud-detection
+          - group: fraud-and-risk
           identity: {}
         - principals: []
           hash:
@@ -245,17 +245,17 @@ rule_sets:
           fixed:
             value: "'****'"
     - field:
-        name_parts: [ hairColor ]
+        name_parts: [ brand ]
       transforms:
         - principals: []
           sql_statement:
-            statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
+            statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
   filters:
     - field:
         name_parts: [ age ]
       conditions:
         - principals:
-          - group: fraud-detection
+          - group: fraud-and-risk
           condition: "true"
         - principals: []
           condition: "age > 18"
@@ -274,7 +274,7 @@ rule_sets:
           condition: "transactionAmount < 10"
           """.yaml2json().parseDataPolicy()
         coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
-        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-detection", "admin")
+        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-and-risk", "admin")
         runBlocking {
             val exception = shouldThrow<BadRequestException> {
                 underTest.validate(dataPolicy)
@@ -310,7 +310,7 @@ rule_sets:
             regexp: '^.*(@.*)${'$'}'
             replacement: '****${'$'}1'
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
             - group: admin
           identity: {}
         - principals: []
@@ -321,7 +321,7 @@ rule_sets:
           - userId
       transforms:
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
           identity: {}
         - principals: []
           hash:
@@ -335,17 +335,17 @@ rule_sets:
             value: "'****'"
     - field:
         name_parts:
-          - hairColor
+          - brand
       transforms:
         - principals: []
           sql_statement:
-            statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
+            statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
   filters:
     - field:
         name_parts: [ age ]
       conditions:
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
           condition: "true"
         - principals: []
           condition: "age > 18"
@@ -364,7 +364,7 @@ rule_sets:
           condition: "transactionAmount < 10"
           """.yaml2json().parseDataPolicy()
         coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
-        coEvery { platform.listGroups() } returns groups("marketing", "fraud-detection", "admin")
+        coEvery { platform.listGroups() } returns groups("marketing", "fraud-and-risk", "admin")
         runBlocking {
             val exception = shouldThrow<BadRequestException> {
                 underTest.validate(dataPolicy)
@@ -401,7 +401,7 @@ rule_sets:
             - group: analytics
           nullify: {}
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
             - group: admin
           identity: {}
         - principals: []
@@ -411,7 +411,7 @@ rule_sets:
         name_parts: [ userId ]
       transforms:
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
           identity: {}
         - principals: []
           hash:
@@ -423,17 +423,17 @@ rule_sets:
           fixed:
             value: "'****'"
     - field:
-        name_parts: [ hairColor ]
+        name_parts: [ brand ]
       transforms:
         - principals: []
           sql_statement:
-            statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
+            statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
   filters:
     - field:
         name_parts: [ age ]
       conditions:
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
           condition: "true"
         - principals: []
           condition: "age > 18"
@@ -452,7 +452,7 @@ rule_sets:
           condition: "transactionAmount < 10"
           """.yaml2json().parseDataPolicy()
         coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
-        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-detection", "admin")
+        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-and-risk", "admin")
         runBlocking {
             val exception = shouldThrow<BadRequestException> {
                 underTest.validate(dataPolicy)
@@ -486,7 +486,7 @@ rule_sets:
             regexp: '^.*(@.*)${'$'}'
             replacement: '****${'$'}1'
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
             - group: admin
           identity: {}
         - principals: []
@@ -496,7 +496,7 @@ rule_sets:
         name_parts: [ email ]
       transforms:
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
           identity: {}
         - principals: []
           hash:
@@ -508,17 +508,17 @@ rule_sets:
           fixed:
             value: "'****'"
     - field:
-        name_parts: [ hairColor ]
+        name_parts: [ brand ]
       transforms:
         - principals: []
           sql_statement:
-            statement: "case when hairColor = 'blonde' then 'fair' else 'dark' end"
+            statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
   filters:
     - field:
         name_parts: [ age ]
       conditions:
         - principals:
-            - group: fraud-detection
+            - group: fraud-and-risk
           condition: "true"
         - principals: []
           condition: "age > 18"
@@ -537,7 +537,7 @@ rule_sets:
           condition: "transactionAmount < 10"
           """.yaml2json().parseDataPolicy()
         coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
-        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-detection", "admin")
+        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-and-risk", "admin")
         runBlocking {
             val exception = shouldThrow<BadRequestException> {
                 underTest.validate(dataPolicy)
@@ -546,7 +546,7 @@ rule_sets:
             exception.badRequest.fieldViolationsCount shouldBe 1
             exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
                 .setField("ruleSet")
-                .setDescription("RuleSet has overlapping attributes, email is already present")
+                .setDescription("RuleSet has overlapping fields, email is already present")
                 .build()
         }
     }
@@ -576,7 +576,7 @@ source:
       type: bigint h
     - name_parts: [size]
       type: string
-    - name_parts: [hairColor]
+    - name_parts: [brand]
       type: string
     - name_parts: [transactionAmount]
       type: bigint

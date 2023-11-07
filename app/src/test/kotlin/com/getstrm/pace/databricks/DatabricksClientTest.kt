@@ -5,15 +5,17 @@ import com.databricks.sdk.service.catalog.ColumnInfo
 import com.databricks.sdk.service.catalog.TableInfo
 import com.google.protobuf.Timestamp
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
-class DatabricksDataPolicyConverterTest {
+class DatabricksClientTest {
 
     @Test
     fun `convert full table info`() {
         // Given
         val createdAt = 1695803510859
         val updatedAt = 1695803610859
+
         val tableInfo = TableInfo()
             .setName("test_table")
             .setComment("test comment")
@@ -35,10 +37,12 @@ class DatabricksDataPolicyConverterTest {
                         .setTypeText("bigint")
                 )
             )
+        val table = DatabricksTable(tableInfo.name, tableInfo)
+
         val platform = DataPolicy.ProcessingPlatform.newBuilder().setId("test-platform").build()
 
         // When
-        val policy = tableInfo.toDataPolicy(platform)
+        val policy = runBlocking { table.toDataPolicy(platform) }
 
         // Then
         val createdTimestamp = Timestamp.newBuilder()
