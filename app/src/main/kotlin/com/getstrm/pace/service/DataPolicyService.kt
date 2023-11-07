@@ -113,7 +113,7 @@ class DataPolicyService(
                                 listOf(
                                     BadRequest.FieldViolation.newBuilder()
                                         .setField("fieldTransform")
-                                        .setDescription("FieldTransform ${fieldTransform.field.pathString()} has no transforms")
+                                        .setDescription("FieldTransform " + fieldTransform.field.pathString() + " has no transforms")
                                         .build()
                                 )
                             )

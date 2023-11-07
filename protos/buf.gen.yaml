@@ -7,3 +7,8 @@ plugins:
       - version=1.0.0-alpha.11
       - title=PACE API
       - enum_type=string
+  - plugin: buf.build/community/chrusty-jsonschema:v1.4.1
+    out: json-schema
+    opt:
+      - prefix_schema_files_with_package
+      - disallow_additional_properties

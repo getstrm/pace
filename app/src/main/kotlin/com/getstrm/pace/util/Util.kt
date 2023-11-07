@@ -1,6 +1,8 @@
 package com.getstrm.pace.util
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
+import build.buf.gen.getstrm.pace.api.global_transforms.v1alpha.ListGlobalTransformsResponse
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
@@ -74,10 +76,10 @@ fun String.parseDataPolicy(): DataPolicy = let {
     builder.build()
 }
 
-fun String.parseTransforms(): List<ApiTransform> = let {
-    val builder = ApiFieldTransform.newBuilder()
+fun String.parseTransforms(): List<GlobalTransform> = let {
+    val builder = ListGlobalTransformsResponse.newBuilder()
     JsonFormat.parser().merge(this.yaml2json(), builder)
-    builder.build().transformsList
+    builder.build().globalTransformsList
 }
 
 fun Long.toTimestamp(): Timestamp {

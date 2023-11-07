@@ -10,3 +10,7 @@ tab_width = 4
 
 [*.proto]
 indent_size = 2
+
+[Makefile]
+indent_size = 4
+indent_style = tab

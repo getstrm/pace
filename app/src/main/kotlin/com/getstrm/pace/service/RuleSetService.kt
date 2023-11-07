@@ -2,6 +2,7 @@ package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import com.getstrm.pace.dao.RuleSetsDao
 import org.springframework.stereotype.Component
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform as ApiFieldTransform
@@ -14,8 +15,8 @@ class RuleSetService(
     private val ruleSetsDao: RuleSetsDao,
 ) {
 
-    private suspend fun getFieldTransforms(tag: String): List<ApiTransform> =
-        ruleSetsDao.getFieldTransforms((tag))
+    private suspend fun getFieldTransforms(tag: String): GlobalTransform =
+        ruleSetsDao.getFieldTransforms(tag, GlobalTransform.TransformCase.TAG_TRANSFORM)
 
     suspend fun getFilters(tag: String): List<ApiFilter> = ruleSetsDao.getFilters(tag)
 
@@ -27,9 +28,14 @@ class RuleSetService(
      */
     suspend fun addRuleSet(dataPolicy: DataPolicy): DataPolicy {
         val fieldTransforms = dataPolicy.source.fieldsList.filter { it.tagsList.isNotEmpty() }.map { field ->
+
             with(ApiFieldTransform.newBuilder()) {
                 this.field = field
-                this.addAllTransforms(field.tagsList.flatMap { getFieldTransforms(it) }.filterFieldTransforms())
+                this.addAllTransforms(
+                    field.tagsList.flatMap {
+                        (getFieldTransforms(it).tagTransform).transformsList
+                    }.filterFieldTransforms(),
+                )
             }.build()
         }
         val policyWithRuleSet = dataPolicy.toBuilder()

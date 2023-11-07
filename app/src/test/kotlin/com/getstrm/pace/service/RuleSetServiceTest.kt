@@ -1,20 +1,20 @@
 package com.getstrm.pace.service
 
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import com.getstrm.pace.dao.DataPolicyDao
 import com.getstrm.pace.dao.RuleSetsDao
 import com.getstrm.pace.processing_platforms.snowflake.SnowflakeClient
+import com.getstrm.pace.util.parseDataPolicy
+import com.getstrm.pace.util.parseTransforms
+import com.getstrm.pace.util.yaml2json
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
-import org.jooq.DSLContext
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import com.getstrm.pace.util.parseDataPolicy
-import com.getstrm.pace.util.parseTransforms
-import com.getstrm.pace.util.yaml2json
 
 class RuleSetServiceTest {
     private lateinit var underTest: RuleSetService
@@ -55,6 +55,7 @@ class RuleSetServiceTest {
 
         runBlocking {
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)
+
             @Language("yaml")
             val result = """
                 source:
@@ -193,6 +194,7 @@ ruleSets:
 
         runBlocking {
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)
+
             @Language("yaml")
             val result = """
 source:
@@ -249,46 +251,58 @@ ruleSets:
         // Global business rules
         // a map of field level tags to a list of Api Transforms that define how the
         // field value gets transformed for which group member
-        val businessRules = mapOf(
-            "email" to """
-               transforms:
-                  # marketeers get only the domain
-                  - principals: [ {group: marketing} ]
-                    regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
-                  # security gets everything
-                  - principals: [ {group: fraud-and-risk} ]
-                    identity: {}
-                  # everyone else gets 4 stars
-                  - fixed: {value: "****"}
-                """,
-            "pii" to """
-                # transforms to be applied to fields classified as PII
-                transforms:
-                # fraud-and-risk sees the original value
-                - principals: [ {group: fraud-and-risk} ]
-                  identity: {}
-                # everyone else gets a hashed value
-                - hash: {seed: "1234"}
-            """,
-            "overlap" to """
-               # a business policy that is deliberately overlapping with both others
-               transforms:
-                  - principals: [ {group: marketing} ]
-                    fixed: {value: fixed-value2}
-                  # analytics gets a hash
-                  - principals: [ {group: analytics}]
-                    hash: {seed: "3" }
-                  # security gets null
-                  - principals: [ {group: fraud-and-risk} ]
-                    nullify: {}
-                  # everyone else gets 'fixed-value'
-                  - fixed: {value: fixed-value}
-                """,
-        ).mapValues { it.value.parseTransforms() }
+        val businessRules = """
+global_transforms:
+  - ref: irrelevant
+    description: email
+    tag_transform:
+      tag_content: email
+      transforms:
+        # marketeers get only the domain
+        - principals: [ {group: marketing} ]
+          regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
+        # security gets everything
+        - principals: [ {group: fraud-and-risk} ]
+          identity: {}
+        # everyone else gets 4 stars
+        - fixed: {value: "****"}
+  - ref: also irrelevant
+    description: pii
+    tag_transform:
+      tag_content: pii
+      # transforms to be applied to fields classified as PII
+      transforms:
+        # fraud-and-risk sees the original value
+        - principals: [ {group: fraud-and-risk} ]
+          identity: {}
+        # everyone else gets a hashed value
+        - hash: {seed: "1234"}
+  - ref: overlap
+    description: overlap
+    tag_transform:
+      tag_content: overlap
+      # a business policy that is deliberately overlapping with both others
+      transforms:
+        - principals: [ {group: marketing} ]
+          fixed: {value: fixed-value2}
+        # analytics gets a hash
+        - principals: [ {group: analytics}]
+          hash: {seed: "3" }
+        # security gets null
+        - principals: [ {group: fraud-and-risk} ]
+          nullify: {}
+        # everyone else gets 'fixed-value'
+        - fixed: {value: fixed-value}  
+    """.parseTransforms().associateBy { it.tagTransform.tagContent }
 
         val tagSlot = slot<String>()
-        coEvery { rulesetsDao.getFieldTransforms(capture(tagSlot)) } answers {
-            businessRules[tagSlot.captured] ?: emptyList()
+        coEvery {
+            rulesetsDao.getFieldTransforms(
+                capture(tagSlot),
+                GlobalTransform.TransformCase.TAG_TRANSFORM,
+            )
+        } answers { // ktlint-disable max-line-length
+            businessRules[tagSlot.captured] ?: GlobalTransform.getDefaultInstance()
         }
     }
 }
