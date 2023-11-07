@@ -1,4 +1,4 @@
-package com.getstrm.pace.domain
+package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.ResourceException

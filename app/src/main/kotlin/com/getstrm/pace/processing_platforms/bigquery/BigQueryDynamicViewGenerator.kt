@@ -1,9 +1,9 @@
-package com.getstrm.pace.bigquery
+package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import com.getstrm.pace.common.AbstractDynamicViewGenerator
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException
+import com.getstrm.pace.processing_platforms.AbstractDynamicViewGenerator
 import com.google.rpc.DebugInfo
 import org.jooq.*
 import org.jooq.conf.Settings

@@ -1,9 +1,9 @@
-package com.getstrm.pace.snowflake
+package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import com.getstrm.pace.common.AbstractDynamicViewGenerator
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.UNIMPLEMENTED
+import com.getstrm.pace.processing_platforms.AbstractDynamicViewGenerator
 import com.google.rpc.DebugInfo
 import org.jooq.Condition
 import org.jooq.Queries
@@ -40,7 +40,7 @@ class SnowflakeDynamicViewGenerator(
         val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->
             val principals =
                 ruleSet.fieldTransformsList.flatMap { it.transformsList }.flatMap { it.principalsList }.toSet() +
-                        ruleSet.filtersList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet()
+                    ruleSet.filtersList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet()
 
             val viewName = ruleSet.target.fullname
 

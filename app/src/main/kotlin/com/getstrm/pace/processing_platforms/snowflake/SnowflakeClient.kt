@@ -1,13 +1,13 @@
-package com.getstrm.pace.snowflake
+package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE
 import com.getstrm.pace.config.SnowflakeConfig
-import com.getstrm.pace.domain.Group
-import com.getstrm.pace.domain.ProcessingPlatform
-import com.getstrm.pace.domain.Table
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
+import com.getstrm.pace.processing_platforms.Group
+import com.getstrm.pace.processing_platforms.ProcessingPlatform
+import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.util.normalizeType
 import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo

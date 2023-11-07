@@ -1,4 +1,4 @@
-package com.getstrm.pace.domain
+package com.getstrm.pace.catalogs
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.config.CatalogConfiguration
@@ -53,7 +53,12 @@ abstract class DataCatalog(
     }
 
     /** meta information database */
-    abstract class Database(open val catalog: DataCatalog, val id: String, val dbType: String? = null, val displayName: String? = null) {
+    abstract class Database(
+        open val catalog: DataCatalog,
+        val id: String,
+        val dbType: String? = null,
+        val displayName: String? = null
+    ) {
         open suspend fun getSchemas(): List<Schema> = emptyList()
         open suspend fun getTags(): List<String> = emptyList()
         override fun toString() = dbType?.let { "Database($id, $dbType, $displayName)" } ?: "Database($id)"

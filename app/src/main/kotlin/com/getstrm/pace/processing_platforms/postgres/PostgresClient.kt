@@ -1,4 +1,4 @@
-package com.getstrm.pace.postgres
+package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.POSTGRES

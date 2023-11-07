@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class PaceApplication
 
 fun main(args: Array<String>) {
-	runApplication<PaceApplication>(*args)
+    runApplication<PaceApplication>(*args)
 }

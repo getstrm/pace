@@ -2,7 +2,7 @@ package com.getstrm.pace.service
 
 import com.getstrm.pace.dao.DataPolicyDao
 import com.getstrm.pace.dao.RuleSetsDao
-import com.getstrm.pace.snowflake.SnowflakeClient
+import com.getstrm.pace.processing_platforms.snowflake.SnowflakeClient
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
