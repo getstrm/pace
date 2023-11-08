@@ -69,22 +69,6 @@
                 }
               ],
               "countMatches": true
-            },
-            {
-              "files": [
-                "examples/standalone/docker-compose.yaml"
-              ],
-              "from": "ghcr.io/getstrm/pace:.*",
-              "to": "ghcr.io/getstrm/pace:${nextRelease.version}",
-              "results": [
-                {
-                  "file": "examples/standalone/docker-compose.yaml",
-                  "hasChanged": true,
-                  "numMatches": 1,
-                  "numReplacements": 1
-                }
-              ],
-              "countMatches": true
             }
           ]
         }
@@ -96,7 +80,6 @@
           "assets": [
             "gradle.properties",
             "protos/buf.gen.yaml",
-            "examples/standalone/docker-compose.yaml",
             "CHANGELOG.md"
           ]
         }

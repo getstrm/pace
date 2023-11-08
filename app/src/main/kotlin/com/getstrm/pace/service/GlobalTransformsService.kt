@@ -15,7 +15,6 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldT
 
 @Component
 class GlobalTransformsService(
-    private val dataPolicyService: DataPolicyService,
     private val globalTransformsDao: GlobalTransformsDao,
 ) {
 
@@ -69,11 +68,9 @@ class GlobalTransformsService(
                 )
             }.build()
         }
-        val policyWithRuleSet = dataPolicy.toBuilder()
+        return dataPolicy.toBuilder()
             .addRuleSets(RuleSet.newBuilder().addAllFieldTransforms(fieldTransforms))
             .build()
-        dataPolicyService.validate(policyWithRuleSet)
-        return policyWithRuleSet
     }
 }
 

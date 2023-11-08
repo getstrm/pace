@@ -1,34 +1,19 @@
 package com.getstrm.pace.service
 
-import com.getstrm.pace.dao.DataPolicyDao
-import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.exceptions.ResourceException
-import com.getstrm.pace.processing_platforms.snowflake.SnowflakeClient
+import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.util.yaml2json
 import com.google.rpc.BadRequest
-import com.google.rpc.ResourceInfo
 import io.grpc.Status
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.mockk.coEvery
-import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 
-class DataPolicyServiceTest {
-    private lateinit var underTest: DataPolicyService
-    private val dao = mockk<DataPolicyDao>()
-    private val platforms = mockk<ProcessingPlatformsService>()
-    private val platform = mockk<SnowflakeClient>()
-
-    @BeforeEach
-    fun setUp() {
-        underTest = DataPolicyService(dao, platforms)
-    }
+class DataPolicyValidatorServiceTest {
+    private val underTest: DataPolicyValidatorService = DataPolicyValidatorService()
 
     @Test
     fun `validate complex happy flow`() {
@@ -100,105 +85,9 @@ rule_sets:
         - principals: []
           condition: "transactionAmount < 10"
           """.yaml2json().parseDataPolicy()
-        coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
-        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-and-risk", "admin")
-        runBlocking {
-            underTest.validate(dataPolicy)
-        }
-    }
 
-    @Test
-    fun `validate processing platform`() {
-        @Language("yaml")
-        val dataPolicy = """
-$policyBase
-rule_sets: 
-- target:
-    type: DYNAMIC_VIEW
-    fullname: 'my_catalog.my_schema.gddemo_public'
-  field_transforms:
-    - field:
-        name_parts: [ email ]
-      transforms:
-        - principals:
-            - group: analytics
-            - group: marketing
-          regexp:
-            regexp: '^.*(@.*)${'$'}'
-            replacement: '****${'$'}1'
-        - principals:
-            - group: fraud-and-risk
-            - group: admin
-          identity: {}
-        - principals: [ {group: analytics} ]
-          fixed:
-            value: "'****'"
-    - field:
-        name_parts: [ userId ]
-      transforms:
-        - principals:
-            - group: fraud-and-risk
-          identity: {}
-        - principals: []
-          hash:
-            seed: "1234"
-    - field:
-        name_parts: [ items ]
-      transforms:
-        - principals: []
-          fixed:
-            value: "'****'"
-    - field:
-        name_parts: [ brand ]
-      transforms:
-        - principals: []
-          sql_statement:
-            statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
-  filters:
-    - field:
-        name_parts: [ age ]
-      conditions:
-        - principals:
-            - group: fraud-and-risk
-          condition: "true"
-        - principals: []
-          condition: "age > 18"
-    - field:
-        name_parts: [ userId ]
-      conditions:
-        - principals:
-            - group: marketing
-          condition: "userId in ('1', '2', '3', '4')"
-        - principals: []
-          condition: "true"
-    - field:
-        name_parts: [ transactionAmount ]
-      conditions:
-        - principals: []
-          condition: "transactionAmount < 10"
-          """.yaml2json().parseDataPolicy()
-        coEvery { platforms.getProcessingPlatform(dataPolicy) } throws ResourceException(
-            ResourceException.Code.NOT_FOUND,
-            ResourceInfo.newBuilder()
-                .setResourceType("Processing Platform")
-                .setResourceName(dataPolicy.platform.id)
-                .setDescription("Platform with id ${dataPolicy.platform.id} not found, please ensure it is present in the configuration of the processing platforms.")
-                .setOwner("SNOWFLAKE")
-                .build()
-        )
-        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-and-risk", "admin")
-        runBlocking {
-            val exception = shouldThrow<ResourceException> {
-                underTest.validate(dataPolicy)
-            }
-
-            exception.code.status shouldBe Status.NOT_FOUND
-            exception.resourceInfo shouldBe ResourceInfo.newBuilder()
-                .setResourceType("Processing Platform")
-                .setResourceName("snowflake")
-                .setDescription("Platform with id snowflake not found, please ensure it is present in the configuration of the processing platforms.")
-                .setOwner("SNOWFLAKE")
-                .build()
+        assertDoesNotThrow {
+            underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
         }
     }
 
@@ -273,20 +162,17 @@ rule_sets:
         - principals: []
           condition: "transactionAmount < 10"
           """.yaml2json().parseDataPolicy()
-        coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
-        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-and-risk", "admin")
-        runBlocking {
-            val exception = shouldThrow<BadRequestException> {
-                underTest.validate(dataPolicy)
-            }
 
-            exception.code.status shouldBe Status.INVALID_ARGUMENT
-            exception.badRequest.fieldViolationsCount shouldBe 1
-            exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
-                .setField("fieldTransform")
-                .setDescription("FieldTransform email does not have an empty principals list as last field")
-                .build()
+        val exception = shouldThrow<BadRequestException> {
+            underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
         }
+
+        exception.code.status shouldBe Status.INVALID_ARGUMENT
+        exception.badRequest.fieldViolationsCount shouldBe 1
+        exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
+            .setField("fieldTransform")
+            .setDescription("FieldTransform email does not have an empty principals list as last field")
+            .build()
     }
 
     @Test
@@ -363,19 +249,16 @@ rule_sets:
         - principals: []
           condition: "transactionAmount < 10"
           """.yaml2json().parseDataPolicy()
-        coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
-        coEvery { platform.listGroups() } returns groups("marketing", "fraud-and-risk", "admin")
-        runBlocking {
-            val exception = shouldThrow<BadRequestException> {
-                underTest.validate(dataPolicy)
-            }
-            exception.code.status shouldBe Status.INVALID_ARGUMENT
-            exception.badRequest.fieldViolationsCount shouldBe 1
-            exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
-                .setField("principal")
-                .setDescription("Principal analytics does not exist in platform snowflake")
-                .build()
+
+        val exception = shouldThrow<BadRequestException> {
+            underTest.validate(dataPolicy, setOf("marketing", "fraud-and-risk", "admin"))
         }
+        exception.code.status shouldBe Status.INVALID_ARGUMENT
+        exception.badRequest.fieldViolationsCount shouldBe 1
+        exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
+            .setField("principal")
+            .setDescription("Principal analytics does not exist in platform snowflake")
+            .build()
     }
 
     @Test
@@ -451,19 +334,16 @@ rule_sets:
         - principals: []
           condition: "transactionAmount < 10"
           """.yaml2json().parseDataPolicy()
-        coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
-        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-and-risk", "admin")
-        runBlocking {
-            val exception = shouldThrow<BadRequestException> {
-                underTest.validate(dataPolicy)
-            }
-            exception.code.status shouldBe Status.INVALID_ARGUMENT
-            exception.badRequest.fieldViolationsCount shouldBe 1
-            exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
-                .setField("fieldTransform")
-                .setDescription("FieldTransform email has overlapping principals")
-                .build()
+
+        val exception = shouldThrow<BadRequestException> {
+            underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
         }
+        exception.code.status shouldBe Status.INVALID_ARGUMENT
+        exception.badRequest.fieldViolationsCount shouldBe 1
+        exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
+            .setField("fieldTransform")
+            .setDescription("FieldTransform email has overlapping principals")
+            .build()
     }
 
     @Test
@@ -536,19 +416,16 @@ rule_sets:
         - principals: []
           condition: "transactionAmount < 10"
           """.yaml2json().parseDataPolicy()
-        coEvery { platforms.getProcessingPlatform(dataPolicy) } returns platform
-        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-and-risk", "admin")
-        runBlocking {
-            val exception = shouldThrow<BadRequestException> {
-                underTest.validate(dataPolicy)
-            }
-            exception.code.status shouldBe Status.INVALID_ARGUMENT
-            exception.badRequest.fieldViolationsCount shouldBe 1
-            exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
-                .setField("ruleSet")
-                .setDescription("RuleSet has overlapping fields, email is already present")
-                .build()
+
+        val exception = shouldThrow<BadRequestException> {
+            underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
         }
+        exception.code.status shouldBe Status.INVALID_ARGUMENT
+        exception.badRequest.fieldViolationsCount shouldBe 1
+        exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
+            .setField("ruleSet")
+            .setDescription("RuleSet has overlapping fields, email is already present")
+            .build()
     }
 }
 

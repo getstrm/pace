@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component
 class ProcessingPlatformsService(
     config: ProcessingPlatformConfiguration,
     private val globalTransformsService: GlobalTransformsService,
+    private val dataPolicyValidatorService: DataPolicyValidatorService,
 ) {
     final val platforms: Map<String, ProcessingPlatform>
 
@@ -32,6 +33,9 @@ class ProcessingPlatformsService(
 
     suspend fun listGroups(platformId: String): List<Group> =
         platforms[platformId]?.listGroups() ?: throw processingPlatformNotFound(platformId)
+
+    suspend fun listGroupNames(platformId: String): Set<String> =
+        listGroups(platformId).map { it.name }.toSet()
 
     fun getProcessingPlatform(dataPolicy: DataPolicy): ProcessingPlatform {
         val processingPlatform = platforms[dataPolicy.platform.id] ?: throw processingPlatformNotFound(
@@ -71,7 +75,9 @@ class ProcessingPlatformsService(
                 .setPlatformType(processingPlatformInterface.type).build()
         )
 
-        return globalTransformsService.addRuleSet(baseDataPolicy)
+        return globalTransformsService.addRuleSet(baseDataPolicy).also {
+            dataPolicyValidatorService.validate(it, listGroupNames(platformId))
+        }
     }
 
     private fun processingPlatformNotFound(platformId: String, owner: String? = null) = ResourceException(

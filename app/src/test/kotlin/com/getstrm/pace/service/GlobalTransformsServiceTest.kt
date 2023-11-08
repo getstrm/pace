@@ -3,9 +3,7 @@ package com.getstrm.pace.service
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.RefAndType
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
-import com.getstrm.pace.dao.DataPolicyDao
 import com.getstrm.pace.dao.GlobalTransformsDao
-import com.getstrm.pace.processing_platforms.snowflake.SnowflakeClient
 import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.util.parseTransforms
 import com.getstrm.pace.util.toJsonbWithDefaults
@@ -21,21 +19,16 @@ import org.junit.jupiter.api.Test
 
 class GlobalTransformsServiceTest {
     private lateinit var underTest: GlobalTransformsService
-    private lateinit var dps: DataPolicyService
-    private val dao = mockk<DataPolicyDao>()
-    private val platforms = mockk<ProcessingPlatformsService>()
-    private val platform = mockk<SnowflakeClient>()
-    private val rulesetsDao = mockk<GlobalTransformsDao>()
+    private val globalTransformsDao = mockk<GlobalTransformsDao>()
 
     @BeforeEach
     fun setUp() {
-        dps = DataPolicyService(dao, platforms)
-        underTest = GlobalTransformsService(dps, rulesetsDao)
+        underTest = GlobalTransformsService(globalTransformsDao)
     }
 
     @Test
     fun addRuleSet() {
-        setupGlobalBusinessRules()
+        setupGlobalTagTransforms()
 
         @Language("yaml")
         val dataPolicy = """
@@ -103,7 +96,7 @@ class GlobalTransformsServiceTest {
 
     @Test
     fun `test overlapping rules`() {
-        setupGlobalBusinessRules()
+        setupGlobalTagTransforms()
 
         @Language("yaml")
         val dataPolicy = """
@@ -174,7 +167,7 @@ ruleSets:
 
     @Test
     fun `test overlapping reversed tags`() {
-        setupGlobalBusinessRules()
+        setupGlobalTagTransforms()
 
         @Language("yaml")
         val dataPolicy = """
@@ -247,10 +240,7 @@ ruleSets:
         }
     }
 
-    private fun setupGlobalBusinessRules() {
-        coEvery { platforms.getProcessingPlatform(any()) } returns platform
-        coEvery { platform.listGroups() } returns groups("analytics", "marketing", "fraud-and-risk", "admin")
-
+    private fun setupGlobalTagTransforms() {
         // Global business rules
         // a map of field level tags to a list of Api Transforms that define how the
         // field value gets transformed for which group member
@@ -305,7 +295,7 @@ global_transforms:
 
         val tagSlot = slot<RefAndType>()
         coEvery {
-            rulesetsDao.getTransform(capture(tagSlot))
+            globalTransformsDao.getTransform(capture(tagSlot))
         } answers { // ktlint-disable max-line-length
             businessRules[tagSlot.captured] ?: GlobalTransform.getDefaultInstance().toRecord()
         }
