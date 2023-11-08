@@ -4,9 +4,11 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.RefAndType
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.jooq.generated.tables.references.GLOBAL_TRANSFORMS
+import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.util.refAndType
 import com.getstrm.pace.util.toJsonbWithDefaults
 import com.getstrm.pace.util.toOffsetDateTime
+import com.google.rpc.DebugInfo
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.row
 import org.springframework.stereotype.Component
@@ -31,7 +33,7 @@ class GlobalTransformsDao(
             .apply { if (transformType != null) where(GLOBAL_TRANSFORMS.TRANSFORM_TYPE.eq(transformType.name)) }
             .fetchInto(GLOBAL_TRANSFORMS)
 
-    fun upsertTransform(globalTransform: GlobalTransform) {
+    fun upsertTransform(globalTransform: GlobalTransform): GlobalTransformsRecord {
         val now = Instant.now().toOffsetDateTime()
 
         val record = getTransform(globalTransform.refAndType()) ?: jooq.newRecord(GLOBAL_TRANSFORMS)
@@ -44,6 +46,13 @@ class GlobalTransformsDao(
             this.transform = globalTransform.toJsonbWithDefaults()
             this.active = true
         }.store()
+
+        return getTransform(globalTransform.refAndType()) ?: throw InternalException(
+            InternalException.Code.INTERNAL,
+            DebugInfo.newBuilder()
+                .setDetail("Failed to upsert transform, record was not found after upsert")
+                .build()
+        )
     }
 
     fun deleteTransform(refAndTypes: List<RefAndType>): Int {

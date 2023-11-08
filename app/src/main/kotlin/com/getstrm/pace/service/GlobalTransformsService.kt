@@ -19,7 +19,7 @@ class GlobalTransformsService(
     private val globalTransformsDao: GlobalTransformsDao,
 ) {
 
-    fun getFieldTransforms(refAndType: RefAndType): GlobalTransform {
+    fun getTransform(refAndType: RefAndType): GlobalTransform {
         val record = globalTransformsDao.getTransform(refAndType) ?: throw ResourceException(
             ResourceException.Code.NOT_FOUND,
             ResourceInfo.newBuilder()
@@ -30,9 +30,17 @@ class GlobalTransformsService(
 
         return record.toGlobalTransform()
     }
-
     fun getFieldTransformOrNull(refAndType: RefAndType): GlobalTransform? =
         globalTransformsDao.getTransform(refAndType)?.toGlobalTransform()
+
+    fun listTransforms(type: GlobalTransform.TransformCase? = null) =
+        globalTransformsDao.listTransforms(type).map { it.toGlobalTransform() }
+
+    fun upsertTransform(globalTransform: GlobalTransform): GlobalTransform =
+        globalTransformsDao.upsertTransform(globalTransform).toGlobalTransform()
+
+    fun deleteTransforms(refAndTypes: List<RefAndType>): Int =
+        globalTransformsDao.deleteTransform(refAndTypes)
 
 
     /**

@@ -29,7 +29,9 @@ message GetGlobalTransformResponse {
   entities.v1alpha.GlobalTransform transform = 1;
 }
 
-message ListGlobalTransformsRequest {}
+message ListGlobalTransformsRequest {
+  repeated string types = 1; // TODO PACE-17 add validation to check whether the types are allows oneof transform enum types
+}
 
 message ListGlobalTransformsResponse {
   repeated entities.v1alpha.GlobalTransform global_transforms = 1;
@@ -48,5 +50,5 @@ message DeleteGlobalTransformRequest {
 }
 
 message DeleteGlobalTransformResponse {
+  uint32 deleted_count = 1;
 }
-

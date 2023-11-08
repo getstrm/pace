@@ -81,10 +81,9 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
         }.build()
 
         // When
-        underTest.upsertTransform(updateToEmailTransform)
+        val actual = underTest.upsertTransform(updateToEmailTransform)
 
         // Then
-        val actual = underTest.getTransform(updateToEmailTransform.refAndType())
         actual.shouldNotBeNull()
         actual.withoutTimestamps() shouldBe updateToEmailTransform.toRecord()
     }
