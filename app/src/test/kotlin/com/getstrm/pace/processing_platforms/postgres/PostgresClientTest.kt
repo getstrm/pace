@@ -2,7 +2,6 @@ package com.getstrm.pace.processing_platforms.postgres
 
 import com.getstrm.pace.AbstractDatabaseTest
 import com.getstrm.pace.processing_platforms.Group
-import com.getstrm.pace.processing_platforms.postgres.PostgresClient
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach

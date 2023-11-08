@@ -2,6 +2,7 @@ package com.getstrm.pace.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.processing_platforms.postgres.PostgresDynamicViewGenerator
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
 import com.getstrm.pace.util.parseDataPolicy
