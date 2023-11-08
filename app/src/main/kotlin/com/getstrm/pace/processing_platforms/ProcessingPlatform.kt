@@ -29,8 +29,6 @@ data class Group(val id: String, val name: String, val description: String? = nu
 
 abstract class Table {
     abstract val fullName: String
-
     abstract suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy
-
     override fun toString(): String = "${javaClass.simpleName}(fullName=$fullName)"
 }

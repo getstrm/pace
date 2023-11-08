@@ -17,7 +17,7 @@ create table public.demo
     transactionamount int     not null
 );
 
-comment on column public.demo.email IS 'This is a user email pace:pii pace:email and considered sensitive';
+comment on column public.demo.email IS 'This is a user email pace::pii pace::email and considered sensitive and pace::"with whitespace" and more';
 create user mark with encrypted password 'mark';
 create user far with encrypted password 'far';
 create role marketing;
