@@ -1,11 +1,14 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.RefAndType
+import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.pace.dao.DataPolicyDao
-import com.getstrm.pace.dao.RuleSetsDao
+import com.getstrm.pace.dao.GlobalTransformsDao
 import com.getstrm.pace.processing_platforms.snowflake.SnowflakeClient
 import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.util.parseTransforms
+import com.getstrm.pace.util.toJsonbWithDefaults
 import com.getstrm.pace.util.yaml2json
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -16,18 +19,18 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class RuleSetServiceTest {
-    private lateinit var underTest: RuleSetService
+class GlobalTransformsServiceTest {
+    private lateinit var underTest: GlobalTransformsService
     private lateinit var dps: DataPolicyService
     private val dao = mockk<DataPolicyDao>()
     private val platforms = mockk<ProcessingPlatformsService>()
     private val platform = mockk<SnowflakeClient>()
-    private val rulesetsDao = mockk<RuleSetsDao>()
+    private val rulesetsDao = mockk<GlobalTransformsDao>()
 
     @BeforeEach
     fun setUp() {
         dps = DataPolicyService(dao, platforms)
-        underTest = RuleSetService(dps, rulesetsDao)
+        underTest = GlobalTransformsService(dps, rulesetsDao)
     }
 
     @Test
@@ -293,16 +296,28 @@ global_transforms:
           nullify: {}
         # everyone else gets 'fixed-value'
         - fixed: {value: fixed-value}  
-    """.parseTransforms().associateBy { it.tagTransform.tagContent }
+    """.parseTransforms().associate {
+            RefAndType.newBuilder()
+                .setRef(it.tagTransform.tagContent)
+                .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
+                .build() to it.toRecord()
+        }
 
-        val tagSlot = slot<String>()
+        val tagSlot = slot<RefAndType>()
         coEvery {
-            rulesetsDao.getFieldTransforms(
-                capture(tagSlot),
-                GlobalTransform.TransformCase.TAG_TRANSFORM,
-            )
+            rulesetsDao.getTransform(capture(tagSlot))
         } answers { // ktlint-disable max-line-length
-            businessRules[tagSlot.captured] ?: GlobalTransform.getDefaultInstance()
+            businessRules[tagSlot.captured] ?: GlobalTransform.getDefaultInstance().toRecord()
+        }
+    }
+
+    companion object {
+        private fun GlobalTransform.toRecord(): GlobalTransformsRecord {
+            val record = GlobalTransformsRecord()
+            record.ref = this.ref
+            record.transformType = this.transformCase.name
+            record.transform = this.toJsonbWithDefaults()
+            return record
         }
     }
 }

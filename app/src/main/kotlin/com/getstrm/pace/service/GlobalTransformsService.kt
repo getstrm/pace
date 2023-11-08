@@ -3,22 +3,37 @@ package com.getstrm.pace.service
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
-import com.getstrm.pace.dao.RuleSetsDao
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.RefAndType
+import com.getstrm.pace.dao.GlobalTransformsDao
+import com.getstrm.pace.exceptions.ResourceException
+import com.getstrm.pace.util.name
+import com.getstrm.pace.util.toGlobalTransform
+import com.google.rpc.ResourceInfo
 import org.springframework.stereotype.Component
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform as ApiFieldTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform as ApiTransform
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter as ApiFilter
 
 @Component
-class RuleSetService(
+class GlobalTransformsService(
     private val dataPolicyService: DataPolicyService,
-    private val ruleSetsDao: RuleSetsDao,
+    private val globalTransformsDao: GlobalTransformsDao,
 ) {
 
-    private suspend fun getFieldTransforms(tag: String): GlobalTransform =
-        ruleSetsDao.getFieldTransforms(tag, GlobalTransform.TransformCase.TAG_TRANSFORM)
+    fun getFieldTransforms(refAndType: RefAndType): GlobalTransform {
+        val record = globalTransformsDao.getTransform(refAndType) ?: throw ResourceException(
+            ResourceException.Code.NOT_FOUND,
+            ResourceInfo.newBuilder()
+                .setResourceName(refAndType.name())
+                .setResourceType("GlobalTransform ${refAndType.type}")
+                .build()
+        )
 
-    suspend fun getFilters(tag: String): List<ApiFilter> = ruleSetsDao.getFilters(tag)
+        return record.toGlobalTransform()
+    }
+
+    fun getFieldTransformOrNull(refAndType: RefAndType): GlobalTransform? =
+        globalTransformsDao.getTransform(refAndType)?.toGlobalTransform()
+
 
     /**
      * add a rule set to a data policy based on tags.
@@ -32,8 +47,16 @@ class RuleSetService(
             with(ApiFieldTransform.newBuilder()) {
                 this.field = field
                 this.addAllTransforms(
-                    field.tagsList.flatMap {
-                        (getFieldTransforms(it).tagTransform).transformsList
+                    field.tagsList.flatMap { tag ->
+                        // TODO this should be a batch call for multiple refAndTypes
+                        val tagTransform = getFieldTransformOrNull(
+                            RefAndType.newBuilder()
+                                .setRef(tag)
+                                .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
+                                .build()
+                        )?.tagTransform
+
+                        tagTransform?.transformsList ?: emptyList()
                     }.filterFieldTransforms(),
                 )
             }.build()
@@ -52,10 +75,10 @@ class RuleSetService(
  * Since each tag can have a list of associated ApiTransforms, this makes the
  * ORDER of tags important. Let's hope the catalogs present the tags in a deterministic order!
  *
- * TODO: think about if this is a good idea, or should we enforce that for
  * a certain fields the tags define non-overlapping rules? The [DataPolicyService.validate]
  * method already executes this check.
  *
+ * The strategy here is an ongoing discussion: https://github.com/getstrm/pace/issues/33
  */
 fun List<ApiTransform>.filterFieldTransforms(): List<ApiTransform> {
     val filtered: List<ApiTransform> = this.fold(
@@ -70,6 +93,7 @@ fun List<ApiTransform>.filterFieldTransforms(): List<ApiTransform> {
             /* the original ApiTransform */
             transform: ApiTransform,
         ->
+        // TODO principals should also support other types than just groups
         val principals = transform.principalsList.map { it.group }.toSet() - alreadySeenPrincipals
         val dataPolicyWithoutOverlappingPrincipals = transform.toBuilder()
             .clearPrincipals()

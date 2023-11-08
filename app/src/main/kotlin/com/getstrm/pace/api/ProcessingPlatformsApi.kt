@@ -32,6 +32,6 @@ class ProcessingPlatformsApi(
 
     override suspend fun getBarePolicy(request: GetBarePolicyRequest): GetBarePolicyResponse =
         GetBarePolicyResponse.newBuilder()
-            .setDataPolicy(processingPlatformsService.createBarePolicy(request.platformId, request.tableId))
+            .setDataPolicy(processingPlatformsService.getBarePolicy(request.platformId, request.tableId))
             .build()
 }

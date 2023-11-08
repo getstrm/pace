@@ -33,6 +33,7 @@ abstract class AbstractDatabaseTest {
         private val log by lazy { LoggerFactory.getLogger(AbstractDatabaseTest::class.java) }
         lateinit var dataSource: DataSource
         lateinit var jooq: DSLContext
+        var port: Int = 5432
 
         @BeforeAll
         @JvmStatic
@@ -47,9 +48,10 @@ abstract class AbstractDatabaseTest {
                     } else {
                         log.info("Starting EmbeddedPostgres...")
                         val embedded = EmbeddedPostgres.start()
+                        port = embedded.port
 
                         HikariDataSource(createHikariConfig(embedded.port))
-                    }.executeMigrations("db/migration/common", "db/migration/dev")
+                    }.executeMigrations("db/migration/postgresql")
             }
 
             if (!::jooq.isInitialized) {

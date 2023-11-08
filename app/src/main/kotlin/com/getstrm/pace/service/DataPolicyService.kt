@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 class DataPolicyService(
     private val dataPolicyDao: DataPolicyDao,
-    private val processingPlatforms: ProcessingPlatformsService,
+    private val processingPlatforms: ProcessingPlatformsService
 ) {
     suspend fun listDataPolicies(): List<DataPolicy> = dataPolicyDao.listDataPolicies()
 
@@ -26,7 +26,8 @@ class DataPolicyService(
         return newDataPolicy
     }
 
-    // Todo: improve readability - the exceptions and nested functions make it hard to follow
+    // TODO move this to a DataPolicyValidator class to improve readability
+    //      the exceptions and nested functions make it hard to follow
     suspend fun validate(dataPolicy: DataPolicy) {
         if (dataPolicy.source.ref.isNullOrEmpty()) {
             throw BadRequestException(
