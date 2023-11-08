@@ -107,7 +107,7 @@ class PostgresTable(
     }
 
     companion object {
-        private val regex = """(?:pace)\:\:((?:\"[\w\s]+\"|[\w]+))""".toRegex()
+        private val regex = """(?:pace)\:\:((?:\"[\w\s\-\_]+\"|[\w\-\_]+))""".toRegex()
         private fun <T> Field<T>.toTags(): List<String> {
             val match = regex.findAll(comment)
             return match.map {

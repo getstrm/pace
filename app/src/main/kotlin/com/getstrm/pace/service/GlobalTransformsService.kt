@@ -29,7 +29,8 @@ class GlobalTransformsService(
 
         return record.toGlobalTransform()
     }
-    fun getFieldTransformOrNull(refAndType: RefAndType): GlobalTransform? =
+
+    fun getTransformOrNull(refAndType: RefAndType): GlobalTransform? =
         globalTransformsDao.getTransform(refAndType)?.toGlobalTransform()
 
     fun listTransforms(type: GlobalTransform.TransformCase? = null) =
@@ -49,28 +50,37 @@ class GlobalTransformsService(
      * @return policy with embedded ruleset.
      */
     suspend fun addRuleSet(dataPolicy: DataPolicy): DataPolicy {
-        val fieldTransforms = dataPolicy.source.fieldsList.filter { it.tagsList.isNotEmpty() }.map { field ->
+        val fieldTransforms = dataPolicy.source.fieldsList
+            .filter { it.tagsList.isNotEmpty() }
+            .mapNotNull { field ->
+                val transforms = field.tagsList.flatMap { tag ->
+                    // TODO this should be a batch call for multiple refAndTypes
+                    getTransformOrNull(
+                        RefAndType.newBuilder()
+                            .setRef(tag)
+                            .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
+                            .build()
+                    )?.tagTransform?.transformsList ?: emptyList()
+                }.combineTransforms()
 
-            with(ApiFieldTransform.newBuilder()) {
-                this.field = field
-                this.addAllTransforms(
-                    field.tagsList.flatMap { tag ->
-                        // TODO this should be a batch call for multiple refAndTypes
-                        val tagTransform = getFieldTransformOrNull(
-                            RefAndType.newBuilder()
-                                .setRef(tag)
-                                .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
-                                .build()
-                        )?.tagTransform
+                return@mapNotNull if (transforms.isNotEmpty()) {
+                    ApiFieldTransform.newBuilder()
+                        .setField(field)
+                        .addAllTransforms(transforms)
+                        .build()
+                } else {
+                    // Ensure no field transforms are added to the ruleset that don't have any transforms
+                    null
+                }
+            }
 
-                        tagTransform?.transformsList ?: emptyList()
-                    }.filterFieldTransforms(),
-                )
-            }.build()
+        return if (fieldTransforms.isNotEmpty()) {
+            dataPolicy.toBuilder()
+                .addRuleSets(RuleSet.newBuilder().addAllFieldTransforms(fieldTransforms))
+                .build()
+        } else {
+            dataPolicy
         }
-        return dataPolicy.toBuilder()
-            .addRuleSets(RuleSet.newBuilder().addAllFieldTransforms(fieldTransforms))
-            .build()
     }
 }
 
@@ -85,7 +95,7 @@ class GlobalTransformsService(
  *
  * The strategy here is an ongoing discussion: https://github.com/getstrm/pace/issues/33
  */
-fun List<ApiTransform>.filterFieldTransforms(): List<ApiTransform> {
+fun List<ApiTransform>.combineTransforms(): List<ApiTransform> {
     val filtered: List<ApiTransform> = this.fold(
         emptySet<String>() to listOf<ApiTransform>(),
     ) {
