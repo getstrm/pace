@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.11
+    version: 1.0.0-alpha.12
 paths:
     /catalogs:
         get:
@@ -560,6 +560,10 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/Transform_Nullify'
                     description: Make the field value null.
+                detokenize:
+                    allOf:
+                        - $ref: '#/components/schemas/Transform_Detokenize'
+                    description: Replaces a tokenized field value with its original value, looked up in a token source. If no value is found, the tokenized value is left as-is.
         Filter_Condition:
             type: object
             properties:
@@ -677,6 +681,20 @@ components:
                         $ref: '#/components/schemas/GoogleProtobufAny'
                     description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
             description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+        Transform_Detokenize:
+            type: object
+            properties:
+                tokenSourceRef:
+                    type: string
+                    description: Full reference to the token source, e.g. a fully qualified table name.
+                tokenField:
+                    allOf:
+                        - $ref: '#/components/schemas/DataPolicy_Field'
+                    description: The field in the token source that contains the token. Only the name parts are required.
+                valueField:
+                    allOf:
+                        - $ref: '#/components/schemas/DataPolicy_Field'
+                    description: The field in the token source that contains the value. Only the name parts are required.
         Transform_Fixed:
             type: object
             properties:
