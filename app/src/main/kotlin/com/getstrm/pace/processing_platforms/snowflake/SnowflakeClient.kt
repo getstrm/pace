@@ -38,7 +38,7 @@ class SnowflakeClient(
 
     override val type = SNOWFLAKE
 
-    private fun executeRequest(request: SnowflakeRequest): ResponseEntity<SnowflakeResponse> {
+    fun executeRequest(request: SnowflakeRequest): ResponseEntity<SnowflakeResponse> {
         try {
             return restTemplate.postForEntity<SnowflakeResponse>(
                 "${config.serverUrl}/api/v2/statements",
@@ -83,7 +83,7 @@ class SnowflakeClient(
         )
         return executeRequest(request).body?.data.orEmpty().map { (schemaName, tableName) ->
             val fullName = "$schemaName.$tableName"
-            SnowflakeTable(fullName, tableName, schemaName, this)
+            SnowflakeTable(fullName, config, tableName, schemaName, this)
         }
     }
 
@@ -131,7 +131,7 @@ class SnowflakeClient(
     }
 }
 
-private data class SnowflakeRequest(
+data class SnowflakeRequest(
     val statement: String,
     val timeout: Int = 60,
     val resultSetMetaData: Map<String, String> = mapOf("format" to "json"),
@@ -143,10 +143,12 @@ private data class SnowflakeRequest(
 
 class SnowflakeTable(
     override val fullName: String,
+    private val config: SnowflakeConfig,
     private val table: String,
     private val schema: String,
     private val client: SnowflakeClient,
 ) : Table() {
+    private val log by lazy { LoggerFactory.getLogger(javaClass) }
     override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
         return client.describeTable(schema, table)?.toDataPolicy(platform, fullName)
             ?: throw ResourceException(
@@ -173,8 +175,13 @@ class SnowflakeTable(
                     .addAllFields(
                         // Todo: make this more type-safe
                         data.orEmpty().map { (name, type, _, nullable) ->
+                            // select * from table( PACE.INFORMATION_SCHEMA.TAG_REFERENCES('ALPHA_TEST.GDDEMO.EMAIL', 'COLUMN'));
+                            val snowflakeResponse = retrieveColumnTags(name)
+                            val tags = snowflakeResponse.body.data?.map{it[0]}?: emptyList()
+
                             DataPolicy.Field.newBuilder()
                                 .addAllNameParts(listOf(name))
+                                .addAllTags(tags)
                                 .setType(type)
                                 .setRequired(nullable != "y")
                                 .build()
@@ -184,5 +191,25 @@ class SnowflakeTable(
                     .build(),
             )
             .build()
+    }
+
+    private fun retrieveColumnTags(name: String): ResponseEntity<SnowflakeResponse> {
+        val request = SnowflakeRequest(
+            statement = """
+                SELECT TAG_NAME, TAG_VALUE FROM TABLE (
+                    ${config.database}.INFORMATION_SCHEMA.TAG_REFERENCES(
+                        '$schema.$table.$name', 'COLUMN'))
+                 """.trimIndent(),
+            database = config.database,
+            warehouse = config.warehouse,
+            schema = schema,
+        )
+        val snowflakeResponse = client.executeRequest(request)
+
+        if (snowflakeResponse.body?.message != "Statement executed successfully.") {
+            log.error("{}", snowflakeResponse)
+            throw RuntimeException(snowflakeResponse.body?.message)
+        }
+        return snowflakeResponse
     }
 }

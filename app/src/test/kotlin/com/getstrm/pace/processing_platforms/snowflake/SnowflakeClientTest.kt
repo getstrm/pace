@@ -28,7 +28,7 @@ class SnowflakeClientTest {
 
         every { snowflakeClient.describeTable("test_schema", "test_table") } returns snowflakeResponse
 
-        val table = SnowflakeTable("test_schema.test_table", "test_table", "test_schema", snowflakeClient)
+        val table = SnowflakeTable(config, "test_schema.test_table", "test_table", "test_schema", snowflakeClient)
 
         // When
         val policy = runBlocking { table.toDataPolicy(platform) }
