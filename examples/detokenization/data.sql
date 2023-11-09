@@ -11,20 +11,20 @@ create table public.demo
     date               varchar not null
 );
 
-create table public.demo_tokens
+create table public.tokens
 (
-    token_id    varchar not null,
-    card_number varchar not null
+    token    varchar not null,
+    value    varchar not null
 );
 
-create user mark with encrypted password 'mark';
 create user far with encrypted password 'far';
+create user fin with encrypted password 'fin';
 create user other with encrypted password 'other';
 create role administrator;
-create role marketing;
 create role fraud_and_risk;
-grant marketing to mark;
+create role fraud_investigation;
 grant fraud_and_risk to far;
+grant fraud_investigation to fin;
 grant administrator to detokenization_user;
 -- Grant select access to user 'other' on all (including future) tables
 alter default privileges in schema public grant all on tables to other;
@@ -131,7 +131,7 @@ values  ('Maria Gonzalez', '637246159', '-1394', 'payment', 'Middle East/Africa'
         ('Maria Gonzalez', '358959117', '-1094', 'bank_transfer', 'Middle East/Africa', '2023-11-01 15:27:04', 'f431ec17-f1d8-498a-8773-41a2c689d527'),
         ('Chris Santos', '959996002', '-3608', 'payment', 'Americas', '2023-08-05 15:27:04', 'd8506910-d940-41b1-b9b6-940502f5233c');
 
-insert into public.demo_tokens (token_id, card_number)
+insert into public.tokens (token, value)
 values  ('f431ec17-f1d8-498a-8773-41a2c689d527', '676249732592'),
         ('9437a24a-6ecf-4e0b-b2ec-b7cb44ed49ee', '502069034259'),
         ('810f9606-aa81-4aa6-8dc0-46ceeb176358', '676273039476'),
