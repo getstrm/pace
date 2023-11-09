@@ -85,6 +85,22 @@
                 }
               ],
               "countMatches": true
+            },
+            {
+              "files": [
+                "examples/detokenization/docker-compose.yaml"
+              ],
+              "from": "ghcr.io/getstrm/pace:.*",
+              "to": "ghcr.io/getstrm/pace:${nextRelease.version}",
+              "results": [
+                {
+                  "file": "examples/detokenization/docker-compose.yaml",
+                  "hasChanged": true,
+                  "numMatches": 1,
+                  "numReplacements": 1
+                }
+              ],
+              "countMatches": true
             }
           ]
         }

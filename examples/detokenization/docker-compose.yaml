@@ -35,8 +35,7 @@ services:
       - postgres_processing_platform
     container_name: pace
     # you may want to update the image to the latest version
-    # todo: use the build with detokenization support
-    image: ghcr.io/getstrm/pace:1.0.0-alpha.11
+    image: ghcr.io/getstrm/pace:1.0.0-alpha.12
     volumes:
       - ./config/:/app/config/
 
