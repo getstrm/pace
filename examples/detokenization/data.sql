@@ -11,7 +11,7 @@ create table public.demo
     date               varchar not null
 );
 
-create table public.demo_token
+create table public.demo_tokens
 (
     token_id    varchar not null,
     card_number varchar not null
@@ -29,7 +29,6 @@ grant administrator to detokenization_user;
 -- Grant select access to user 'other' on all (including future) tables
 alter default privileges in schema public grant all on tables to other;
 
--- insert into public.demo (card_holder_name, card_number, transaction_id, transaction_amount, transaction_type, region, date)
 insert into public.demo (card_holder_name, transaction_id, transaction_amount, transaction_type, region, date, card_number)
 values  ('Maria Gonzalez', '637246159', '-1394', 'payment', 'Middle East/Africa', '2023-10-02 15:27:04', 'f431ec17-f1d8-498a-8773-41a2c689d527'),
         ('Shawn Lopez', '120990465', '4885', 'refund', 'Europe', '2023-10-01 15:27:04', '9437a24a-6ecf-4e0b-b2ec-b7cb44ed49ee'),
@@ -45,7 +44,7 @@ values  ('Maria Gonzalez', '637246159', '-1394', 'payment', 'Middle East/Africa'
         ('Joseph Hebert', '653364138', '-1525', 'payment', 'Asia Pacific', '2023-07-15 15:27:04', '97b8882c-69e2-4266-9d5f-df0238d98a5e'),
         ('Jordan Jackson', '492349894', '-3134', 'withdrawal', 'Middle East/Africa', '2023-08-26 15:27:04', 'fb56ff4a-f0e5-4b29-afb4-fac3e0483438'),
         ('Kathleen Gibson', '892398800', '196', 'refund', 'Middle East/Africa', '2023-08-04 15:27:04', '6af2e834-438b-404a-a357-76bcd3e7ce12'),
-        ('Russell Johnson', '518809552', '-3657', 'withdrawal', 'Middle East/Africa', '2023-09-09 15:27:04', '2b9c33ee-9b76-416c-b979-b326819298fe'),
+        ('Russell Johnson', '518809552', '-3657', 'withdrawal', 'Midle East/Africa', '2023-09-09 15:27:04', '2b9c33ee-9b76-416c-b979-b326819298fe'),
         ('William Chandler Jr.', '910069465', '-2132', 'withdrawal', 'Asia Pacific', '2023-07-29 15:27:04', '8dfa60a3-d1ae-4494-9550-5e4fe6130e8f'),
         ('Meghan Knight', '161308368', '1793', 'refund', 'Americas', '2023-06-09 15:27:04', '078793cf-9fcd-475a-9cd0-ad7e125c3f71'),
         ('William Chandler Jr.', '840377772', '2447', 'refund', 'Asia Pacific', '2023-06-17 15:27:04', '8dfa60a3-d1ae-4494-9550-5e4fe6130e8f'),
@@ -132,7 +131,7 @@ values  ('Maria Gonzalez', '637246159', '-1394', 'payment', 'Middle East/Africa'
         ('Maria Gonzalez', '358959117', '-1094', 'bank_transfer', 'Middle East/Africa', '2023-11-01 15:27:04', 'f431ec17-f1d8-498a-8773-41a2c689d527'),
         ('Chris Santos', '959996002', '-3608', 'payment', 'Americas', '2023-08-05 15:27:04', 'd8506910-d940-41b1-b9b6-940502f5233c');
 
-insert into public.demo_token (token_id, card_number)
+insert into public.demo_tokens (token_id, card_number)
 values  ('f431ec17-f1d8-498a-8773-41a2c689d527', '676249732592'),
         ('9437a24a-6ecf-4e0b-b2ec-b7cb44ed49ee', '502069034259'),
         ('810f9606-aa81-4aa6-8dc0-46ceeb176358', '676273039476'),
@@ -158,7 +157,6 @@ values  ('f431ec17-f1d8-498a-8773-41a2c689d527', '676249732592'),
         ('35e4dcaf-b3fc-4ff4-8f99-ffee20c534ee', '579095161660'),
         ('730d9e5a-fe25-4702-af21-7d2fa2adbd83', '501805019228'),
         ('e0f88d0d-352c-4ef0-8a30-6142f910458a', '675925802208'),
-        ('f431ec17-f1d8-498a-8773-41a2c689d527', '676249732592'),
         ('07ed4ab5-f177-4dde-afe5-8956803fbfcb', '501870715171'),
         ('7a923fed-03ec-4917-b36a-e9f95544cdc6', '675935446889'),
         ('ace95c87-caf5-4ba6-b95d-2f64119e3dd0', '560266430399'),
@@ -167,6 +165,5 @@ values  ('f431ec17-f1d8-498a-8773-41a2c689d527', '676249732592'),
         ('32a86565-a0d1-42ce-b381-78672b32d45a', '676101329032'),
         ('34b9a6c8-d95a-4fe9-8df3-8bc6aa31df99', '581103944194'),
         ('3fd1ff5c-fea7-4f00-9434-82816465c004', '676201440085'),
-        ('d8506910-d940-41b1-b9b6-940502f5233c', '502057191939'),
         ('66f0bd02-4f36-4521-ac41-2d41ff8a7255', '501876699635'),
         ('d8506910-d940-41b1-b9b6-940502f5233c', '502057191939');

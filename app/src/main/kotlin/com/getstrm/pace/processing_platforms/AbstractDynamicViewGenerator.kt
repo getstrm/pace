@@ -51,10 +51,7 @@ abstract class AbstractDynamicViewGenerator(
                     },
                 )
                     .from(renderName(dataPolicy.source.ref)).let {
-                        if (targetView == "foo") {
-                            it.leftOuterJoin("foo")
-                                .on("foo")
-                        } else it
+                        addDetokenizeJoins(it, ruleSet)
                     }
                     .where(
                         ruleSet.filtersList.map { filter ->
@@ -67,6 +64,28 @@ abstract class AbstractDynamicViewGenerator(
         val allQueries = queries + additionalFooterStatements()
 
         return jooq.queries(allQueries).sql
+    }
+
+    private fun addDetokenizeJoins(
+        selectJoinStep: SelectJoinStep<Record>,
+        ruleSet: DataPolicy.RuleSet
+    ): SelectJoinStep<Record> {
+        var result = selectJoinStep
+        ruleSet.fieldTransformsList.forEach { fieldTransform ->
+            fieldTransform.transformsList.forEach { transform ->
+                if (transform.hasDetokenize()) {
+                    result = result.leftOuterJoin(renderName(transform.detokenize.tokenSourceRef))
+                        .on(
+                            condition(
+                                "{0} = {1}",
+                                unquotedName("${renderName(dataPolicy.source.ref)}.${fieldTransform.field.fullName()}"),
+                                unquotedName("${renderName(transform.detokenize.tokenSourceRef)}.${transform.detokenize.tokenField.fullName()}")
+                            )
+                        )
+                }
+            }
+        }
+        return result
     }
 
     fun toCondition(filter: DataPolicy.RuleSet.Filter): Condition {
