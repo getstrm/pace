@@ -37,7 +37,7 @@ class DatabricksClientTest {
                         .setTypeText("bigint")
                 )
             )
-        val table = DatabricksTable(tableInfo.name, tableInfo)
+        val table = DatabricksTable(tableInfo.name, tableInfo, this)
 
         val platform = DataPolicy.ProcessingPlatform.newBuilder().setId("test-platform").build()
 
