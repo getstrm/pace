@@ -52,7 +52,7 @@ class BigQueryDynamicViewGenerator(
                 select(
                     DSL.field("userGroup")
                 ).from(
-                    DSL.table(DSL.unquotedName(userGroupsTable))
+                    DSL.table(renderName(userGroupsTable))
                 ).where(
                     DSL.field("userEmail").eq(DSL.function("SESSION_USER", Boolean::class.java))
                 )
