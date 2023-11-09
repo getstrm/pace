@@ -2,6 +2,7 @@ package com.getstrm.pace.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
 import com.getstrm.pace.util.parseDataPolicy
@@ -19,51 +20,95 @@ class PostgresDynamicViewGeneratorTest {
     @Test
     fun `fixed value transform with multiple principals`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
             .build()
 
         // When
-        val (condition, field) = underTest.toCase(transform, attribute)
+        val (condition, jooqField) = underTest.toCase(transform, field)
 
         // Then
         condition!!.toSql() shouldBe "(('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups )))"
-        field.toSql() shouldBe "'****'"
+        jooqField.toSql() shouldBe "'****'"
     }
 
     @Test
     fun `fixed value transform with a single principal`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addAllPrincipals(listOf("analytics").toPrincipals())
             .build()
 
         // When
-        val (condition, field) = underTest.toCase(transform, attribute)
+        val (condition, jooqField) = underTest.toCase(transform, field)
 
         // Then
         condition!!.toSql() shouldBe "('analytics' IN ( SELECT rolname FROM user_groups ))"
-        field.toSql() shouldBe "'****'"
+        jooqField.toSql() shouldBe "'****'"
     }
 
     @Test
     fun `fixed value transform without principals`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .build()
 
         // When
-        val (condition, field) = underTest.toCase(transform, attribute)
+        val (condition, jooqField) = underTest.toCase(transform, field)
 
         // Then
         condition.shouldBeNull()
-        field.toSql() shouldBe "'****'"
+        jooqField.toSql() shouldBe "'****'"
+    }
+
+    @Test
+    fun `test detokenize condition`() {
+        // Given
+        val field = DataPolicy.Field.newBuilder().addNameParts("user_id_token").setType("string").build()
+        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+            .setDetokenize(
+                DataPolicy.RuleSet.FieldTransform.Transform.Detokenize.newBuilder()
+                    .setTokenSourceRef("public.user_id_tokens")
+                    .setTokenField(DataPolicy.Field.newBuilder().addNameParts("token"))
+                    .setValueField(DataPolicy.Field.newBuilder().addNameParts("user_id"))
+            )
+            .addPrincipals("analytics".toPrincipal())
+            .build()
+
+        // When
+        val (condition, jooqField) = underTest.toCase(transform, field)
+
+        // Then
+        condition!!.toSql() shouldBe "('analytics' IN ( SELECT rolname FROM user_groups ))"
+        jooqField.toSql() shouldBe "coalesce(user_id_tokens.user_id, user_id_token)"
+    }
+
+    @Test
+    fun `test detokenize condition without schema in token source ref`() {
+        // Given
+        val field = DataPolicy.Field.newBuilder().addNameParts("user_id_token").setType("string").build()
+        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+            .setDetokenize(
+                DataPolicy.RuleSet.FieldTransform.Transform.Detokenize.newBuilder()
+                    .setTokenSourceRef("user_id_tokens")
+                    .setTokenField(DataPolicy.Field.newBuilder().addNameParts("token"))
+                    .setValueField(DataPolicy.Field.newBuilder().addNameParts("user_id"))
+            )
+            .addPrincipals("analytics".toPrincipal())
+            .build()
+
+        // When
+        val (condition, jooqField) = underTest.toCase(transform, field)
+
+        // Then
+        condition!!.toSql() shouldBe "('analytics' IN ( SELECT rolname FROM user_groups ))"
+        jooqField.toSql() shouldBe "coalesce(user_id_tokens.user_id, user_id_token)"
     }
 
     @Test
@@ -124,13 +169,13 @@ class PostgresDynamicViewGeneratorTest {
     @Test
     fun `fixed value data type should match the attribute data type`() {
         // Given an attribute and a transform
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("age").setType("integer").build()
+        val field = DataPolicy.Field.newBuilder().addNameParts("age").setType("integer").build()
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .build()
 
         // When the transform is rendered as case
-        val exception = assertThrows<BadRequestException> { underTest.toCase(transform, attribute) }
+        val exception = assertThrows<BadRequestException> { underTest.toCase(transform, field) }
 
         // Then
         exception.code shouldBe BadRequestException.Code.INVALID_ARGUMENT
@@ -147,7 +192,43 @@ class PostgresDynamicViewGeneratorTest {
     }
 
     @Test
-    fun `transform test all transforms`() {
+    fun `full SQL view statement with a single detokenize join`() {
+        // Given
+        val viewGenerator = PostgresDynamicViewGenerator(detokenizePolicy) { withRenderFormatted(true) }
+        viewGenerator.toDynamicViewSQL() shouldBe
+            """create or replace view public.demo_view
+as
+with
+  user_groups as (
+    select rolname
+    from pg_roles
+    where (
+      rolcanlogin = false
+      and pg_has_role(
+        session_user,
+        oid,
+        'member'
+      )
+    )
+  )
+select
+  transactionid,
+  case
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce(tokens.userid_tokens.userid, public.demo_tokenized.userid)
+    else userid
+  end userid,
+  transactionamount
+from public.demo_tokenized
+left outer join tokens.user_id_tokens on public.demo_tokenized.user_id = tokens.user_id_tokens.token
+where case
+  when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
+  else transactionamount < 10
+end;
+grant SELECT on public.demo_view to "fraud_and_risk";"""
+    }
+
+    @Test
+    fun `full SQL view statement with multiple transforms`() {
         // Given
         val viewGenerator = PostgresDynamicViewGenerator(dataPolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL()
@@ -203,7 +284,7 @@ grant SELECT on public.demo_view to "marketing";"""
               title: public.demo
             platform:
               id: platform-id
-              platform_type: 4
+              platform_type: POSTGRES
             source:
               fields:
                 - name_parts:
@@ -270,6 +351,54 @@ grant SELECT on public.demo_view to "marketing";"""
                       - principals: []
                         sql_statement:
                           statement: "CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END"
+        """.trimIndent().yaml2json().parseDataPolicy()
+
+        @Language("yaml")
+        val detokenizePolicy = """
+            metadata:
+              description: ""
+              version: 1
+              title: public.demo
+            platform:
+              id: platform-id
+              platform_type: POSTGRES
+            source:
+              fields:
+                - name_parts:
+                    - transactionid
+                  required: true
+                  type: integer
+                - name_parts:
+                    - userid
+                  required: true
+                  type: integer
+                - name_parts:
+                    - transactionamount
+                  required: true
+                  type: integer
+              ref: public.demo_tokenized
+            rule_sets:
+              - target:
+                  fullname: public.demo_view
+                filters:
+                  - conditions:
+                      - principals: [ {group: fraud_and_risk} ]
+                        condition: "true"
+                      - principals : []
+                        condition: "transactionamount < 10"
+                field_transforms:
+                  - field:
+                      name_parts: [ userid ]
+                    transforms:
+                      - principals: [ {group: fraud_and_risk} ]
+                        detokenize:
+                          token_source_ref: tokens.userid_tokens
+                          token_field:
+                            name_parts: [ token ]
+                          value_field:
+                            name_parts: [ userid ]
+                      - principals: []
+                        identity: {}
         """.trimIndent().yaml2json().parseDataPolicy()
     }
 }

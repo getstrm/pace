@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.DETOKENIZE
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.util.headTailFold
 import com.getstrm.pace.util.sqlDataType
@@ -49,7 +50,12 @@ abstract class AbstractDynamicViewGenerator(
                         )
                     },
                 )
-                    .from(renderName(dataPolicy.source.ref))
+                    .from(renderName(dataPolicy.source.ref)).let {
+                        if (targetView == "foo") {
+                            it.leftOuterJoin("foo")
+                                .on("foo")
+                        } else it
+                    }
                     .where(
                         ruleSet.filtersList.map { filter ->
                             toCondition(filter)
@@ -137,10 +143,10 @@ abstract class AbstractDynamicViewGenerator(
                         "regexp_extract({0}, {1})",
                         String::class.java,
                         unquotedName(field.fullName()),
-                        DSL.`val`(transform.regexp.regexp),
+                        `val`(transform.regexp.regexp),
                     )
                 } else
-                    DSL.regexpReplaceAll(
+                    regexpReplaceAll(
                         field(field.fullName(), String::class.java),
                         transform.regexp.regexp,
                         transform.regexp.replacement,
@@ -149,14 +155,14 @@ abstract class AbstractDynamicViewGenerator(
 
             DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.FIXED -> {
                 fixedDataTypeMatchesFieldType(transform.fixed.value, field)
-                DSL.inline(transform.fixed.value, field.sqlDataType())
+                inline(transform.fixed.value, field.sqlDataType())
             }
 
             DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.HASH -> {
                 field(
                     "hash({0}, {1})",
                     Any::class.java,
-                    DSL.`val`(transform.hash.seed),
+                    `val`(transform.hash.seed),
                     unquotedName(field.fullName()),
                 )
             }
@@ -173,10 +179,19 @@ abstract class AbstractDynamicViewGenerator(
                 field(transform.sqlStatement.statement)
             }
 
-            DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.NULLIFY -> DSL.inline<Any>(null)
+            DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.NULLIFY -> inline<Any>(null)
 
             DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.TRANSFORM_NOT_SET, DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.IDENTITY, null -> {
                 field(field.fullName())
+            }
+
+            DETOKENIZE -> {
+                field(
+                    "coalesce({0}, {1})",
+                    String::class.java,
+                    unquotedName("${transform.detokenize.tokenSourceRef}.${transform.detokenize.valueField.fullName()}"),
+                    unquotedName("${dataPolicy.source.ref}.${field.fullName()}"),
+                )
             }
         }
         return memberCheck to (statement as JooqField<Any>)

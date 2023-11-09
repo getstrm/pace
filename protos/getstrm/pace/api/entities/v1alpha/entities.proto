@@ -67,6 +67,8 @@ message DataPolicy {
                     SqlStatement sql_statement = 7;
                     // Make the field value null.
                     Nullify nullify = 8;
+                    // Replaces a tokenized field value with its original value, looked up in a token source. If no value is found, the tokenized value is left as-is.
+                    Detokenize detokenize = 9;
                 }
                 message SqlStatement {
                     string statement = 1;
@@ -85,6 +87,14 @@ message DataPolicy {
                     string replacement = 2;
                 }
                 message Nullify {
+                }
+                message Detokenize {
+                    // Full reference to the token source, e.g. a fully qualified table name.
+                    string token_source_ref = 1;
+                    // The field in the token source that contains the token. Only the name parts are required.
+                    Field token_field = 2;
+                    // The field in the token source that contains the value. Only the name parts are required.
+                    Field value_field = 3;
                 }
             }
         }
