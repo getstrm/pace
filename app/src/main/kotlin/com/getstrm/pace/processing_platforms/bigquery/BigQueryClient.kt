@@ -12,7 +12,15 @@ import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.toFullName
 import com.getstrm.pace.util.toTimestamp
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.bigquery.*
+import com.google.cloud.bigquery.Acl
+import com.google.cloud.bigquery.BigQuery
+import com.google.cloud.bigquery.BigQueryException
+import com.google.cloud.bigquery.BigQueryOptions
+import com.google.cloud.bigquery.Field
+import com.google.cloud.bigquery.JobException
+import com.google.cloud.bigquery.QueryJobConfiguration
+import com.google.cloud.bigquery.TableDefinition
+import com.google.cloud.bigquery.TableId
 import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
 import com.google.cloud.bigquery.Table as BQTable
@@ -100,8 +108,20 @@ class BigQueryClient(
     private fun authorizeViews(dataPolicy: DataPolicy) {
         val sourceDataSet = bigQuery.getDataset(dataPolicy.source.ref.toTableId().dataset)
         val sourceAcl = sourceDataSet.acl
-        val viewsAcl = dataPolicy.ruleSetsList.map {
-            Acl.of(Acl.View(it.target.fullname.toTableId()))
+        val viewsAcl = dataPolicy.ruleSetsList.flatMap { ruleSet ->
+            // Allow the target view to view the source table
+            val targetAcl = Acl.of(Acl.View(ruleSet.target.fullname.toTableId()))
+            // Allow the target view to view any applicable token source tables
+            val tokenSourceAcls = ruleSet.fieldTransformsList.flatMap { fieldTransform ->
+                fieldTransform.transformsList.mapNotNull { transform ->
+                    if (transform.hasDetokenize()) {
+                        Acl.of(Acl.View(transform.detokenize.tokenSourceRef.toTableId()))
+                    } else {
+                        null
+                    }
+                }
+            }
+            tokenSourceAcls + targetAcl
         }
         sourceDataSet.toBuilder().setAcl(sourceAcl + viewsAcl).build().update()
     }

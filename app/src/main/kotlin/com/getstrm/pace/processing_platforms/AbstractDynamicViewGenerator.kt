@@ -208,8 +208,8 @@ abstract class AbstractDynamicViewGenerator(
                 field(
                     "coalesce({0}, {1})",
                     String::class.java,
-                    unquotedName("${transform.detokenize.tokenSourceRef}.${transform.detokenize.valueField.fullName()}"),
-                    unquotedName("${dataPolicy.source.ref}.${field.fullName()}"),
+                    unquotedName("${renderName(transform.detokenize.tokenSourceRef)}.${transform.detokenize.valueField.fullName()}"),
+                    unquotedName("${renderName(dataPolicy.source.ref)}.${field.fullName()}"),
                 )
             }
         }
