@@ -5,9 +5,9 @@
 
 ![outline](./assets/svg/pace-logo-orange-outline.svg)
 
-> PACE is the _Policy and Contract Engine_. It helps you to programatically create and apply a data policy to a processing platform (like Databricks, Snowflake or BigQuery). Through a data contract, you can apply filters, field transforms and access settings to create a view inside a data platform. With Pace, you can enforce policies to data to ensure that data is only used by those allowed and in the way it was intended to be used.
+> PACE is the _Policy and Contract Engine_. It helps you to programatically create and apply a data policy to a processing platform (like Databricks, Snowflake or BigQuery). Through a data contract, you can apply filters, field transforms, tag-based conditions and access settings to create a view inside a data platform. With Pace, you can enforce policies to data to ensure that data is only used by those allowed and in the way it was intended to be used.
 
-Follow the [quickstart](https://pace.getstrm.com/docs/readme/quickstart) if you want to dive right in 
+Follow the [quickstart](https://pace.getstrm.com/docs/readme/quickstart) if you want to dive right in. 
 
 ## Motivation and problem
 
@@ -27,29 +27,27 @@ Pace currently supports Collibra, Datahub and Open Data Discovery on the catalog
 
 ## Supported policy methods
 It's early for PACE (we're in alpha)|. The following policy methods (called a `rule set` in PACE) are currently available:
-- Field transforms, e.g. "replace everything before the @ in the column `email`, or "nullify the `phone number`"
+- Field transforms, e.g. "replace everything before the @ in the column `email`, or "nullify the `phone number`".
 - Access definitions (called _Principals_): who can access this view?
-- Filter conditions, e.g. "analysts in Greece can only see transaction from our Greek stores"
-- Tag-based rules, e.g. "do `something` if data is tagged `Greece`
-- Global rulesets, e.g. "All data tagged `PII` should always be masked
+- Filter conditions, e.g. "analysts in Greece can only see transaction from our Greek stores".
+- Tag-based rules, e.g. "do `something` if data is tagged `Greece`.
+- Global rulesets, e.g. "All data tagged `PII` should always be masked.
 
-These policy methods can be layered to create a powerful programmatic interface to define, implement, maintain and update policies. 
+These policy methods can be layered to create a powerful programmatic interface to define, implement, maintain and update policies. Create an issue if you think a valuable policy method is missing!
 
 ## Let's go
 To install and use PACE, you need:
-The PACE app (as Spring Boot app or Docker image) 
-The PACE CLI to interact with your deployment
+- The PACE app (as Spring Boot app or Docker image) 
+- The PACE CLI to interact with your deployment
 
 ## Learn more
-Head over the [docs](https://pace.getstrm.com/docs/readme/quickstart) for more info and reach out to the [STRM](https://getstrm.com) team for more info and/or to test and implement PACE together. 
+Head over to the [docs](https://pace.getstrm.com/docs/readme/quickstart) for more info and reach out to the [STRM](https://getstrm.com) team for more info and/or to test and implement PACE together. 
 
 ## Deep dive
 PACE is built to connect the world of descriptive data tools to the actual data processing platforms (where all that data stuff takes place!). 
 
 It's designed to make sure your data governance can follow this pattern:
-> Various **data consumers** (1), should only be shown **a representation of data** (2) that is **tailored to who they
-are and what they're allowed to see** (3), regardless of **the data catalog** (4) in which they explore and find data,
-> and regardless of the **data processing platform** (5) on which they consume the data.
+> Various **data consumers** (1), should only be shown **a representation of data** (2) that is **tailored to who they are and what they're allowed to see** (3), regardless of **the data catalog** (4) in which they explore and find data, and regardless of the **data processing platform** (5) on which they consume the data.
 
 ### Definitions
 1. **Data Consumers**  
