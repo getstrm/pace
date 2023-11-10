@@ -211,7 +211,7 @@ nullify: {}
 {% tab title="YAML" %}
 ```yaml
 detokenize:
-  token_source_ref: my-schema.token-table
+  token_source_ref: my_schema.token_table
   token_field:
     name_parts:
       - token
@@ -247,7 +247,7 @@ detokenize:
 | `TOKEN-123` | `5425233430109903` |
 
 {% hint style="warning" %}
-As of yet, this is limited to _one_ detokenize transform for _one_ field per`RuleSet`.
+While multiple detokenize transforms are allowed,  there is a limit of _one_ detokenize transform per token table.
 {% endhint %}
 
 ## Example Field Transform
@@ -287,7 +287,7 @@ field_transforms:
       - principals:
         - group: "F&R"
       detokenize:
-        token_source_ref: my-schema.token-table
+        token_source_ref: my_schema.token_table
         token_field:
           name_parts:
             - token
@@ -438,6 +438,14 @@ Below you will find raw data and sample outputs for different (sets of) principa
 | 123    | TOKEN\_123   | alice@store.com  | Macbook |
 | 456    | TOKEN\_456   | bob@company.com  | Lenovo  |
 | 789    | TOKEN\_789   | carol@domain.com | HP      |
+{% endtab %}
+
+{% tab title="my_schema.token_table" %}
+| token      | value            |
+| ---------- | ---------------- |
+| TOKEN\_123 | 5425233430109903 |
+| TOKEN\_456 | 2223000048410010 |
+| TOKEN\_789 | 2222420000001113 |
 {% endtab %}
 {% endtabs %}
 
