@@ -1,6 +1,6 @@
 create extension if not exists "uuid-ossp";
 
-create table public.demo
+create table public.transactions
 (
     card_holder_name   varchar not null,
     card_number        varchar not null,
@@ -29,7 +29,7 @@ grant administrator to detokenization_user;
 -- Grant select access to user 'other' on all (including future) tables
 alter default privileges in schema public grant all on tables to other;
 
-insert into public.demo (card_holder_name, transaction_id, transaction_amount, transaction_type, region, date, card_number)
+insert into public.transactions (card_holder_name, transaction_id, transaction_amount, transaction_type, region, date, card_number)
 values  ('Maria Gonzalez', '637246159', '-1394', 'payment', 'Middle East/Africa', '2023-10-02 15:27:04', 'f431ec17-f1d8-498a-8773-41a2c689d527'),
         ('Shawn Lopez', '120990465', '4885', 'refund', 'Europe', '2023-10-01 15:27:04', '9437a24a-6ecf-4e0b-b2ec-b7cb44ed49ee'),
         ('Ronald Skinner', '214706393', '3318', 'bank_transfer', 'Asia Pacific', '2023-09-16 15:27:04', '810f9606-aa81-4aa6-8dc0-46ceeb176358'),
