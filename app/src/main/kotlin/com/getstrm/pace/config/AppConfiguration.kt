@@ -4,7 +4,8 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "app")
-data class CatalogsConfiguration(
+data class AppConfiguration(
+    val defaultViewSuffix: String = "",
     val catalogs: List<CatalogConfiguration> = emptyList(),
 )
 

@@ -3,6 +3,7 @@ package com.getstrm.pace.service
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.RefAndType
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
+import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.dao.GlobalTransformsDao
 import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.util.parseTransforms
@@ -23,7 +24,7 @@ class GlobalTransformsServiceTest {
 
     @BeforeEach
     fun setUp() {
-        underTest = GlobalTransformsService(globalTransformsDao)
+        underTest = GlobalTransformsService(AppConfiguration("_view"), globalTransformsDao)
     }
 
     @Test
@@ -70,7 +71,9 @@ class GlobalTransformsServiceTest {
                   platformType: SNOWFLAKE
                   id: snowflake
                 ruleSets:
-                - fieldTransforms:
+                - target:
+                    fullname: "test1_view"
+                  fieldTransforms:
                   - field:
                       nameParts:  [ name ]
                       type: varchar
@@ -119,49 +122,55 @@ class GlobalTransformsServiceTest {
 
         runBlocking {
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)
-            policyWithRulesets shouldBe """
-source:
-  ref: test1
-  type: SNOWFLAKE
-  fields:
-  - nameParts:  [ name ]
-    type: varchar
-    tags: [ pii,  tag123, overlap ]
-  - nameParts:  [ email ]
-    type: varchar
-    tags: [  email, overlap ]
-  - nameParts: [ description ]
-    type: varchar
-platform:
-  platformType: SNOWFLAKE
-  id: snowflake
-ruleSets:
-- fieldTransforms:
-  - field:
-      nameParts: [ name ]
-      type: "varchar"
-      tags: [  pii, tag123, overlap ]
-    transforms:
-    - principals:  [ {group: fraud-and-risk} ]
-      identity: {}
-    - principals: [ {group: marketing} ]
-      fixed: {value: fixed-value2}
-    - principals: [ group: "analytics" ]
-      hash: {seed: "3"}
-    - hash: {seed: "1234"}
-  - field:
-      nameParts: [ email ]
-      type: varchar
-      tags: [  email,  overlap ]
-    transforms:
-    - principals: [ {group: marketing} ]
-      regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
-    - principals: [ {group: fraud-and-risk} ]
-      identity: {}
-    - principals: [ {group: analytics} ]
-      hash: {seed: "3" }
-    - fixed: {value: "****" }
-         """.yaml2json().parseDataPolicy()
+
+            @Language("yaml")
+            val expected = """
+            source:
+              ref: test1
+              type: SNOWFLAKE
+              fields:
+              - nameParts:  [ name ]
+                type: varchar
+                tags: [ pii,  tag123, overlap ]
+              - nameParts:  [ email ]
+                type: varchar
+                tags: [  email, overlap ]
+              - nameParts: [ description ]
+                type: varchar
+            platform:
+              platformType: SNOWFLAKE
+              id: snowflake
+            ruleSets:
+            - target:
+                fullname: "test1_view"
+              fieldTransforms:
+              - field:
+                  nameParts: [ name ]
+                  type: "varchar"
+                  tags: [  pii, tag123, overlap ]
+                transforms:
+                - principals:  [ {group: fraud-and-risk} ]
+                  identity: {}
+                - principals: [ {group: marketing} ]
+                  fixed: {value: fixed-value2}
+                - principals: [ group: "analytics" ]
+                  hash: {seed: "3"}
+                - hash: {seed: "1234"}
+              - field:
+                  nameParts: [ email ]
+                  type: varchar
+                  tags: [  email,  overlap ]
+                transforms:
+                - principals: [ {group: marketing} ]
+                  regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
+                - principals: [ {group: fraud-and-risk} ]
+                  identity: {}
+                - principals: [ {group: analytics} ]
+                  hash: {seed: "3" }
+                - fixed: {value: "****" }
+         """.trimIndent().yaml2json().parseDataPolicy()
+
+            policyWithRulesets shouldBe expected
         }
     }
 
@@ -192,51 +201,54 @@ ruleSets:
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)
 
             @Language("yaml")
-            val result = """
-source:
-  ref: test1
-  type: SNOWFLAKE
-  fields:
-  - nameParts:  [ name ]
-    type: varchar
-    tags: [  overlap, pii,  tag123 ]
-  - nameParts:  [ email ]
-    type: varchar
-    tags: [  overlap, email ]
-  - nameParts: [ description ]
-    type: varchar
-platform:
-  platformType: SNOWFLAKE
-  id: snowflake
-ruleSets:
-- fieldTransforms:
-  - field:
-      nameParts: [ name ]
-      type: varchar
-      # checks ignoring unknown tags
-      tags: [  overlap, pii, tag123  ]
-    transforms:
-    - principals: [ {group: marketing} ]
-      fixed: {value: fixed-value2}
-    - principals: [ {group: analytics} ]
-      hash: {seed: "3"}
-    - principals: [ {group: fraud-and-risk} ]
-      nullify: {}
-    - fixed: {value: fixed-value}
-  - field:
-      nameParts: [ email ]
-      type: "varchar"
-      tags: [  overlap, email  ]
-    transforms:
-    - principals: [ {group: marketing} ]
-      fixed: {value: fixed-value2}
-    - principals: [ {group: analytics} ]
-      hash: {seed: "3" }
-    - principals: [ {group: fraud-and-risk} ]
-      nullify: {}
-    - fixed: {value: "fixed-value" }
-            """
-            policyWithRulesets shouldBe result.yaml2json().parseDataPolicy()
+            val expected = """
+            source:
+              ref: test1
+              type: SNOWFLAKE
+              fields:
+              - nameParts:  [ name ]
+                type: varchar
+                tags: [  overlap, pii,  tag123 ]
+              - nameParts:  [ email ]
+                type: varchar
+                tags: [  overlap, email ]
+              - nameParts: [ description ]
+                type: varchar
+            platform:
+              platformType: SNOWFLAKE
+              id: snowflake
+            ruleSets:
+            - target:
+                fullname: "test1_view"
+              fieldTransforms:
+              - field:
+                  nameParts: [ name ]
+                  type: varchar
+                  # checks ignoring unknown tags
+                  tags: [  overlap, pii, tag123  ]
+                transforms:
+                - principals: [ {group: marketing} ]
+                  fixed: {value: fixed-value2}
+                - principals: [ {group: analytics} ]
+                  hash: {seed: "3"}
+                - principals: [ {group: fraud-and-risk} ]
+                  nullify: {}
+                - fixed: {value: fixed-value}
+              - field:
+                  nameParts: [ email ]
+                  type: "varchar"
+                  tags: [  overlap, email  ]
+                transforms:
+                - principals: [ {group: marketing} ]
+                  fixed: {value: fixed-value2}
+                - principals: [ {group: analytics} ]
+                  hash: {seed: "3" }
+                - principals: [ {group: fraud-and-risk} ]
+                  nullify: {}
+                - fixed: {value: "fixed-value" }
+            """.trimIndent().yaml2json().parseDataPolicy()
+
+            policyWithRulesets shouldBe expected
         }
     }
 
@@ -244,49 +256,50 @@ ruleSets:
         // Global business rules
         // a map of field level tags to a list of Api Transforms that define how the
         // field value gets transformed for which group member
+        @Language("yaml")
         val businessRules = """
-global_transforms:
-  - ref: irrelevant
-    description: email
-    tag_transform:
-      tag_content: email
-      transforms:
-        # marketeers get only the domain
-        - principals: [ {group: marketing} ]
-          regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
-        # security gets everything
-        - principals: [ {group: fraud-and-risk} ]
-          identity: {}
-        # everyone else gets 4 stars
-        - fixed: {value: "****"}
-  - ref: also irrelevant
-    description: pii
-    tag_transform:
-      tag_content: pii
-      # transforms to be applied to fields classified as PII
-      transforms:
-        # fraud-and-risk sees the original value
-        - principals: [ {group: fraud-and-risk} ]
-          identity: {}
-        # everyone else gets a hashed value
-        - hash: {seed: "1234"}
-  - ref: overlap
-    description: overlap
-    tag_transform:
-      tag_content: overlap
-      # a business policy that is deliberately overlapping with both others
-      transforms:
-        - principals: [ {group: marketing} ]
-          fixed: {value: fixed-value2}
-        # analytics gets a hash
-        - principals: [ {group: analytics}]
-          hash: {seed: "3" }
-        # security gets null
-        - principals: [ {group: fraud-and-risk} ]
-          nullify: {}
-        # everyone else gets 'fixed-value'
-        - fixed: {value: fixed-value}  
-    """.parseTransforms().associate {
+            global_transforms:
+              - ref: irrelevant
+                description: email
+                tag_transform:
+                  tag_content: email
+                  transforms:
+                    # marketeers get only the domain
+                    - principals: [ {group: marketing} ]
+                      regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
+                    # security gets everything
+                    - principals: [ {group: fraud-and-risk} ]
+                      identity: {}
+                    # everyone else gets 4 stars
+                    - fixed: {value: "****"}
+              - ref: also irrelevant
+                description: pii
+                tag_transform:
+                  tag_content: pii
+                  # transforms to be applied to fields classified as PII
+                  transforms:
+                    # fraud-and-risk sees the original value
+                    - principals: [ {group: fraud-and-risk} ]
+                      identity: {}
+                    # everyone else gets a hashed value
+                    - hash: {seed: "1234"}
+              - ref: overlap
+                description: overlap
+                tag_transform:
+                  tag_content: overlap
+                  # a business policy that is deliberately overlapping with both others
+                  transforms:
+                    - principals: [ {group: marketing} ]
+                      fixed: {value: fixed-value2}
+                    # analytics gets a hash
+                    - principals: [ {group: analytics}]
+                      hash: {seed: "3" }
+                    # security gets null
+                    - principals: [ {group: fraud-and-risk} ]
+                      nullify: {}
+                    # everyone else gets 'fixed-value'
+                    - fixed: {value: fixed-value}  
+    """.trimIndent().parseTransforms().associate {
             RefAndType.newBuilder()
                 .setRef(it.tagTransform.tagContent)
                 .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)

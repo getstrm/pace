@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.RefAndType
+import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.dao.GlobalTransformsDao
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.name
@@ -15,6 +16,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldT
 
 @Component
 class GlobalTransformsService(
+    private val appConfiguration: AppConfiguration,
     private val globalTransformsDao: GlobalTransformsDao,
 ) {
 
@@ -76,7 +78,15 @@ class GlobalTransformsService(
 
         return if (fieldTransforms.isNotEmpty()) {
             dataPolicy.toBuilder()
-                .addRuleSets(RuleSet.newBuilder().addAllFieldTransforms(fieldTransforms))
+                .addRuleSets(
+                    RuleSet.newBuilder()
+                        .setTarget(
+                            DataPolicy.Target.newBuilder()
+                                .setFullname("${dataPolicy.source.ref}${appConfiguration.defaultViewSuffix}")
+                                .build()
+                        )
+                        .addAllFieldTransforms(fieldTransforms)
+                )
                 .build()
         } else {
             dataPolicy

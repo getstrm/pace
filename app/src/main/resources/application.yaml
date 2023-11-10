@@ -17,3 +17,6 @@ management:
 logging:
   level:
     org.jooq.Constants: off
+
+app:
+  default-view-suffix: "_pace_view"

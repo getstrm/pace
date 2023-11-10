@@ -5,7 +5,7 @@ import com.getstrm.pace.catalogs.CollibraCatalog
 import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.catalogs.DatahubCatalog
 import com.getstrm.pace.catalogs.OpenDataDiscoveryCatalog
-import com.getstrm.pace.config.CatalogsConfiguration
+import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.exceptions.ResourceException
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
@@ -17,7 +17,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Table as ApiT
 
 @Component
 class DataCatalogsService(
-    catalogsConfig: CatalogsConfiguration,
+    catalogsConfig: AppConfiguration,
 ) {
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
