@@ -95,10 +95,7 @@ volumes:
 
 #### Authenticate with the GitHub container registry (ghcr.io)
 
-If you are already logged in to ghcr.io with Docker, you can skip this step. If not, or if you get an _unauthorized_ exception during the next step, you most likely need to do the following:
-
-1. Create a new personal access token (PAT) through your [GitHub settings page](https://github.com/settings/tokens/new). You only need to specify the **read:packages** scope.
-2. On your command line, execute `docker login ghcr.io -u <your-github-username>` , and enter the PAT you just created.
+If you are already logged in to ghcr.io with Docker, you can skip this step. If not, or if you get an _unauthorized_ exception during the next step, you most likely need to do follow the [github-authentication.md](../readme/github-authentication.md "mention") instructions.
 
 #### Start interacting with your PACE instance
 
@@ -117,7 +114,7 @@ pace list catalogs -o table
 ```
 {% endtab %}
 
-{% tab title="Curl" %}
+{% tab title="curl" %}
 ```sh
 curl --silent http://localhost:9090/catalogs | jq
 {

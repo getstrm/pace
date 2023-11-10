@@ -6,9 +6,9 @@ description: Complete walkthrough of creating a Data Policy
 
 ## Introduction
 
-For this section, we assume you have either created a connection to a [`Processing Platform`](../reference/processing-platform-integrations/) or a [`Data Catalog`](../reference/data-catalog-integrations/) or you are familiar with the structure of your source data. You will, naturally, also need to have an instance of `PACE` running. We give a step-by-step walkthrough on how to create a `Data Policy`.&#x20;
+For this section, we assume you have either created a connection to a [`Processing Platform`](../reference/processing-platform-integrations/) or a [`Data Catalog`](../reference/data-catalog-integrations/) or you are familiar with the structure of your source data. You will, naturally, also need to have an instance of `PACE` running. We give a step-by-step walkthrough on how to create a `Data Policy`.
 
-Please refer to the [schema.md](../data-policy/schema.md "mention"), [principals.md](../data-policy/principals.md "mention") and [rule-set](../data-policy/rule-set/ "mention") sections for additional explanations.&#x20;
+Please refer to the [schema.md](../data-policy/schema.md "mention"), [principals.md](../data-policy/principals.md "mention") and [rule-set](../data-policy/rule-set/ "mention") sections for additional explanations.
 
 ## Source Data
 
@@ -18,7 +18,7 @@ For this example we will use a very small sample data set:
 
 ## Get bare policy
 
-Let the id of your connected `Processing Platform` be `pace-pp` and the source reference be `pace-db.pace-schema.pace-table`. Getting a bare policy yields a nearly empty `Data Policy` with populated source fields, thus defining the structure of your source data. In this example we will use both the [`pace cli`](https://github.com/getstrm/cli) and call the [REST API](../reference/api-reference.md#processing-platforms-platformid-tables-table\_id-bare-policy) using `curl`. The request has two variables, `platform-id` and `table-id`. The CLI makes use of gRPC.  We assume here that the instance is running on localhost, the gRPC port is 50051 and the envoy proxy is listening on port 9090 as per the defaults.  For the CLI holds, that if you specify the processing platform and the reference to the table, the corresponding bare policy is returned. Requesting a bare policy then yields:
+Let the id of your connected `Processing Platform` be `pace-pp` and the source reference be `pace-db.pace-schema.pace-table`. Getting a bare policy yields a nearly empty `Data Policy` with populated source fields, thus defining the structure of your source data. In this example we will use both the [`pace cli`](https://github.com/getstrm/cli) and call the [REST API](../reference/api-reference.md#processing-platforms-platformid-tables-table\_id-bare-policy) using `curl`. The request has two variables, `platform-id` and `table-id`. The CLI makes use of gRPC. We assume here that the instance is running on localhost, the gRPC port is 50051 and the envoy proxy is listening on port 9090 as per the defaults. For the CLI holds, that if you specify the processing platform and the reference to the table, the corresponding bare policy is returned. Requesting a bare policy then yields:
 
 {% tabs %}
 {% tab title="CLI" %}
@@ -121,13 +121,13 @@ data_policy:
 {% endtab %}
 {% endtabs %}
 
-As you can see, the [`Rule Sets`](../data-policy/rule-set/) are empty and only the refs and `source.fields` have been populated. This dataset consists of 2 columns: `email`, `age`. Now that we know our data's structure, the next step is populating the yaml with a `Rule Set`.&#x20;
+As you can see, the [`Rule Sets`](../data-policy/rule-set/) are empty and only the refs and `source.fields` have been populated. This dataset consists of 2 columns: `email`, `age`. Now that we know our data's structure, the next step is populating the yaml with a `Rule Set`.
 
 If you do not have a `Processing Platform` or `Data Catalog` connected yet, use the bare policy from above to define the structure of your data by hand.
 
 ## Define Rule Sets
 
-In this example we will show one `Rule Set`, with one `Field Transform` and one `Filter`. If you define multiple `Rule Sets` in your data policy, multiple views will be created. For a more extensive explanation on `Rule Sets`, we provide more in-depth documentation on [`Principals`](../data-policy/principals.md), [`Field Transforms`](../data-policy/rule-set/field-transform.md) and [`Filters`](../data-policy/rule-set/filter.md).&#x20;
+In this example we will show one `Rule Set`, with one `Field Transform` and one `Filter`. If you define multiple `Rule Sets` in your data policy, multiple views will be created. For a more extensive explanation on `Rule Sets`, we provide more in-depth documentation on [`Principals`](../data-policy/principals.md), [`Field Transforms`](../data-policy/rule-set/field-transform.md) and [`Filters`](../data-policy/rule-set/filter.md).
 
 ### Target
 
@@ -600,7 +600,7 @@ curl -X POST -H "Content-Type: application/json" -d @./data_policy.json localhos
 
 ## View data
 
-Depending on what `Principal` groups you are in, you will find that the actual data you have access to via the newly created view differs. Below you will find again the raw data and the views applied for several `Principals`.&#x20;
+Depending on what `Principal` groups you are in, you will find that the actual data you have access to via the newly created view differs. Below you will find again the raw data and the views applied for several `Principals`.
 
 {% tabs %}
 {% tab title="RAW Data" %}
@@ -622,4 +622,4 @@ Depending on what `Principal` groups you are in, you will find that the actual d
 {% endtab %}
 {% endtabs %}
 
-For more examples and explaination visit the [`Rule Set` Documentation](../data-policy/rule-set/).
+For more examples and explanation visit the [`Rule Set` Documentation](../data-policy/rule-set/).
