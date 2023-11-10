@@ -1,4 +1,5 @@
-.PHONY: clean-common-protos, buf-create-descriptor-binpb, run-rest-proxy, run-docker-local
+.PHONY: clean-common-protos, buf-create-descriptor-binpb, run-rest-proxy, run-docker-local \
+    json-schema
 
 SHELL := /bin/bash
 
@@ -26,3 +27,6 @@ run-rest-proxy: buf-create-descriptor-binpb
 
 run-rest-proxy-localhost: buf-create-descriptor-binpb /tmp/envoy.yaml
 	docker run --net=host -p 9090:9090 -p 9000:9000 -v /tmp/envoy.yaml:/etc/envoy/envoy.yaml -v $$(pwd)/${descriptor_file}:/tmp/envoy/descriptor.binpb envoyproxy/envoy:v1.28-latest
+
+json-schema:
+	(cd protos; buf generate)

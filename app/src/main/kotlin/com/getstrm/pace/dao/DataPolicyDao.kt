@@ -4,7 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.jooq.generated.tables.DataPolicies.Companion.DATA_POLICIES
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.util.toJsonb
+import com.getstrm.pace.util.toJsonbWithDefaults
 import com.getstrm.pace.util.toOffsetDateTime
 import com.getstrm.pace.util.toTimestamp
 import com.google.protobuf.util.JsonFormat
@@ -42,7 +42,7 @@ class DataPolicyDao(
             ).build()
 
         jooq.newRecord(DATA_POLICIES).apply {
-            this.policy = updatedPolicy.toJsonb()
+            this.policy = updatedPolicy.toJsonbWithDefaults()
             this.id = updatedPolicy.id
             this.platformId = updatedPolicy.platform.id
             this.updatedAt = updateTimestamp

@@ -12,6 +12,7 @@ import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jooq.DSLContext
+import org.jooq.Field
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
@@ -95,6 +96,7 @@ class PostgresTable(
                             DataPolicy.Field.newBuilder()
                                 .addNameParts(field.name)
                                 .setType(field.dataType.typeName)
+                                .addAllTags(field.toTags())
                                 .setRequired(!field.dataType.nullable())
                                 .build().normalizeType()
                         },
@@ -102,5 +104,15 @@ class PostgresTable(
                     .build(),
             )
             .build()
+    }
+
+    companion object {
+        private val regex = """(?:pace)\:\:((?:\"[\w\s\-\_]+\"|[\w\-\_]+))""".toRegex()
+        private fun <T> Field<T>.toTags(): List<String> {
+            val match = regex.findAll(comment)
+            return match.map {
+                it.groupValues[1].trim('"')
+            }.toList()
+        }
     }
 }

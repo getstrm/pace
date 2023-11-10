@@ -7,5 +7,12 @@ insert_final_newline = true
 max_line_length = 120
 tab_width = 4
 
-[*.yaml]
+[*.{json,yaml,yml}]
 indent_size = 2
+
+[*.proto]
+indent_size = 2
+
+[Makefile]
+indent_size = 4
+indent_style = tab

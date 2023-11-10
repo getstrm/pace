@@ -12,15 +12,8 @@ import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.toFullName
 import com.getstrm.pace.util.toTimestamp
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.bigquery.Acl
-import com.google.cloud.bigquery.BigQuery
-import com.google.cloud.bigquery.BigQueryException
-import com.google.cloud.bigquery.BigQueryOptions
-import com.google.cloud.bigquery.Field
-import com.google.cloud.bigquery.JobException
-import com.google.cloud.bigquery.QueryJobConfiguration
-import com.google.cloud.bigquery.TableDefinition
-import com.google.cloud.bigquery.TableId
+import com.google.cloud.bigquery.*
+import com.google.cloud.datacatalog.v1.PolicyTagManagerClient
 import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
 import com.google.cloud.bigquery.Table as BQTable
@@ -28,7 +21,7 @@ import com.google.cloud.bigquery.Table as BQTable
 class BigQueryClient(
     override val id: String,
     serviceAccountKeyJson: String,
-    projectId: String,
+    private val projectId: String,
     private val userGroupsTable: String,
 ) : ProcessingPlatform {
     constructor(config: BigQueryConfig) : this(
@@ -41,6 +34,7 @@ class BigQueryClient(
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
     private val credentials: GoogleCredentials
     private val bigQuery: BigQuery
+    private val polClient: PolicyTagManagerClient
 
     init {
         // Create a service account credential.
@@ -51,6 +45,7 @@ class BigQueryClient(
             .setProjectId(projectId)
             .build()
             .service
+        polClient = PolicyTagManagerClient.create()
     }
 
     override suspend fun listTables(): List<Table> {
@@ -58,7 +53,7 @@ class BigQueryClient(
         return dataSets.flatMap { dataSet ->
             bigQuery.listTables(dataSet.datasetId).iterateAll().toList()
         }.map { table ->
-            BigQueryTable(table.tableId.toFullName(), table)
+            BigQueryTable(table.tableId.toFullName(), table, polClient)
         }
     }
 
@@ -154,15 +149,27 @@ class BigQueryClient(
 
 class BigQueryTable(
     override val fullName: String,
-    private val table: BQTable,
+    private val table: com.google.cloud.bigquery.Table,
+    private val polClient: PolicyTagManagerClient,
 ) : Table() {
 
     override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy =
         table.toDataPolicy(platform)
 
+
     private fun BQTable.toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
         // The reload ensures all metadata is fetched, including the schema
         val table = reload()
+        // typical tag value =
+        // projects/stream-machine-development/locations/europe-west4/taxonomies/5886429027103247004/policyTags/5980433277276442728
+        var tags = table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map {
+            it.name to (it.policyTags?.names ?: emptyList())
+        }.toMap()
+        val nameLookup = tags.values.flatten().toSet().associateWith { tag: String ->
+            polClient.getPolicyTag(tag).displayName
+        }
+        tags = tags.mapValues { (_, v) -> v.map { nameLookup[it] } }
+
         return DataPolicy.newBuilder()
             .setMetadata(
                 DataPolicy.Metadata.newBuilder()
@@ -180,6 +187,7 @@ class BigQueryTable(
                             // Todo: add support for nested fields using getSubFields()
                             DataPolicy.Field.newBuilder()
                                 .addNameParts(field.name)
+                                .addAllTags(tags[field.name])
                                 .setType(field.type.name())
                                 // Todo: correctly handle repeated fields (defined by mode REPEATED)
                                 .setRequired(field.mode != Field.Mode.NULLABLE)

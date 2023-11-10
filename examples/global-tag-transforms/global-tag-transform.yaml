@@ -1,0 +1,17 @@
+ref: "pii-email"
+description: "This is a global transform that nullifies all fields tagged with the value 'pii-email' for all other users, except the administrator and the fraud_and_risk members. In this example, this is a comment on the column of the 'email' field in the test dataset. Please see the 'data.sql' file for the comment on the field."
+tag_transform:
+  tag_content: "pii-email"
+  transforms:
+    # The administrator group can see all data
+    - principals: [ { group: administrator } ]
+      identity: { }
+    # The fraud_and_risk group should see a part of the email
+    - principals: [ { group: fraud_and_risk } ]
+      regexp:
+        regexp: "^.*(@.*)$"
+        replacement: "****\\1"
+    # All other users should not see the email
+    - principals: [ ]
+      nullify: { }
+

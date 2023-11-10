@@ -18,8 +18,11 @@ import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.toTimestamp
 import com.google.rpc.DebugInfo
+import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
 import com.databricks.sdk.core.DatabricksConfig as DatabricksClientConfig
+
+private val log = LoggerFactory.getLogger(DatabricksClient::javaClass.name)
 
 class DatabricksClient(
     override val id: String,
@@ -27,8 +30,6 @@ class DatabricksClient(
 ) : ProcessingPlatform {
 
     constructor(config: DatabricksConfig) : this(config.id, config)
-
-    private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
     private val workspaceClient = DatabricksClientConfig()
         .setHost(config.workspaceHost)
@@ -52,7 +53,7 @@ class DatabricksClient(
             Group(id = group.id, name = group.displayName)
         }
 
-    override suspend fun listTables(): List<Table> = listAllTables().map { DatabricksTable(it.fullName, it) }
+    override suspend fun listTables(): List<Table> = listAllTables().map { DatabricksTable(it.fullName, it, this) }
 
     /**
      * Lists all tables (or views) in all schemas in all catalogs that the service principal has access to.
@@ -92,23 +93,7 @@ class DatabricksClient(
         val response = executeStatement(statement)
         when (response.status.state) {
             StatementState.SUCCEEDED -> return
-            else ->
-                if (response.status.error.errorCode != null) {
-                    log.warn("SQL statement\n{}", statement)
-                    val errorMessage =
-                        "Databricks response %s: %s".format(response.status.error, response.status.error.message)
-                    log.warn("Caused error {}", errorMessage)
-
-                    throw InternalException(
-                        InternalException.Code.INTERNAL,
-                        DebugInfo.newBuilder()
-                            .setDetail(
-                                "Error while executing Databricks query (error code: ${response.status.error.errorCode.name}), please check the logs of your PACE deployment. $BUG_REPORT"
-                            )
-                            .addAllStackEntries(listOf(errorMessage))
-                            .build()
-                    )
-                }
+            else -> handleDatabricksError(statement, response)
         }
     }
 }
@@ -116,12 +101,43 @@ class DatabricksClient(
 class DatabricksTable(
     override val fullName: String,
     private val tableInfo: TableInfo,
+    private val databricksClient: DatabricksClient,
 ) : Table() {
+    private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
     override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy =
-        tableInfo.toDataPolicy(platform)
+        tableInfo.toDataPolicy(platform, getTags(tableInfo))
 
-    private fun TableInfo.toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy =
+    /* TODO the current databricks api does not expose column tags! :-(
+    The hack we use is to execute a sql query
+     */
+    private fun getTags(tableInfo: TableInfo): Map<String, List<String>> {
+
+        @Language(value="Sql")
+        val statement = """
+            SELECT column_name field, tag_name tag, tag_value val
+            from system.information_schema.column_tags
+            WHERE catalog_name = '${tableInfo.catalogName}'
+            AND schema_name = '${tableInfo.schemaName}'
+            AND table_name = '${tableInfo.name}'
+        """.trimIndent()
+        val response = databricksClient.executeStatement(statement)
+        return when (response.status.state) {
+            StatementState.SUCCEEDED -> {
+                return response.result.dataArray.map { it.toList()}
+                    .groupBy {it[0]}
+                    .mapValues { tags -> tags.value.map {it[1]} }
+            }
+            else -> {
+                if (response.status.error.errorCode != null) {
+                    handleDatabricksError(statement, response)
+                }
+                emptyMap()
+            }
+        }
+    }
+
+    private fun TableInfo.toDataPolicy(platform: DataPolicy.ProcessingPlatform, tags: Map<String, List<String>>): DataPolicy =
         DataPolicy.newBuilder()
             .setMetadata(
                 DataPolicy.Metadata.newBuilder()
@@ -138,6 +154,7 @@ class DatabricksTable(
                         columns.map { column ->
                             DataPolicy.Field.newBuilder()
                                 .addAllNameParts(listOf(column.name))
+                                .addAllTags( tags[column.name]?: emptyList())
                                 .setType(column.typeText)
                                 .setRequired(!(column.nullable ?: false))
                                 .build().normalizeType()
@@ -146,5 +163,21 @@ class DatabricksTable(
                     .build(),
             )
             .build()
+}
 
+private fun handleDatabricksError(statement: String, response: ExecuteStatementResponse) {
+    log.warn("SQL statement\n{}", statement)
+    val errorMessage =
+        "Databricks response %s: %s".format(response.status.error, response.status.error.message)
+    log.warn("Caused error {}", errorMessage)
+
+    throw InternalException(
+        InternalException.Code.INTERNAL,
+        DebugInfo.newBuilder()
+            .setDetail(
+                "Error while executing Databricks query (error code: ${response.status.error.errorCode.name}), please check the logs of your PACE deployment. $BUG_REPORT"
+            )
+            .addAllStackEntries(listOf(errorMessage))
+            .build()
+    )
 }

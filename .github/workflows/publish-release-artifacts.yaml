@@ -35,6 +35,7 @@ jobs:
         # Due to this issue (https://github.com/bufbuild/buf/issues/1621) in buf, no tag is created if the proto files are not changed
         # To keep the BSR tags in sync with our git repo, we manually add every tag
         # Furthermore, the buf_dependency_version needs to be constructed from the latest commit that is tagged, as that's how the BSR SDK dependency versions are constructed
+        # FIXME The buf alpha package command is going to be renamed to buf alpha sdk (see https://github.com/bufbuild/buf/pull/2535)
         run: |
           cd protos
           buf_commit_hash_or_empty=$(buf push)
@@ -77,6 +78,8 @@ jobs:
         with:
           images: "ghcr.io/getstrm/pace"
           tags: |
+            type=raw,value=latest
+            type=raw,value=latest-alpha
             type=semver,pattern={{major}}.{{minor}}.{{patch}},value=${{ env.TAG }}
             type=semver,pattern={{major}}.{{minor}},value=${{ env.TAG }}
             type=semver,pattern={{major}},value=${{ env.TAG }}

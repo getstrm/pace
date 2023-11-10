@@ -23,4 +23,5 @@ Insert or Update an entity
 
 * [pace](pace.md)	 - Pace CLI dev
 * [pace upsert data-policy](pace_upsert_data-policy.md)	 - Upsert a data policy
+* [pace upsert global-transform](pace_upsert_global-transform.md)	 - Upsert a global transform
 

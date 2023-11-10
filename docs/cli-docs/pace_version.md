@@ -1,11 +1,15 @@
-## pace get
+## pace version
 
-Get a single entity
+Get the cli version
+
+```
+pace version [flags]
+```
 
 ### Options
 
 ```
-  -h, --help   help for get
+  -h, --help   help for version
 ```
 
 ### Options inherited from parent commands
@@ -18,6 +22,4 @@ Get a single entity
 ### SEE ALSO
 
 * [pace](pace.md)	 - Pace CLI dev
-* [pace get data-policy](pace_get_data-policy.md)	 - Get a data policy
-* [pace get global-transform](pace_get_global-transform.md)	 - Get a global transform
 

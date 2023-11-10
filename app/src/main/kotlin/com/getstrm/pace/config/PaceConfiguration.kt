@@ -7,8 +7,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@EnableConfigurationProperties(ProcessingPlatformConfiguration::class, CatalogsConfiguration::class)
-class AppConfig {
+@EnableConfigurationProperties(ProcessingPlatformConfiguration::class, AppConfiguration::class)
+class PaceConfiguration {
     @GrpcGlobalServerInterceptor
     fun exceptionInterceptor() = ExceptionHandlerInterceptor(false)
 

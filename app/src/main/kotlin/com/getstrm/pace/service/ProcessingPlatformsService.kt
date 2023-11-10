@@ -18,6 +18,8 @@ import org.springframework.stereotype.Component
 @Component
 class ProcessingPlatformsService(
     config: ProcessingPlatformConfiguration,
+    private val globalTransformsService: GlobalTransformsService,
+    private val dataPolicyValidatorService: DataPolicyValidatorService,
 ) {
     final val platforms: Map<String, ProcessingPlatform>
 
@@ -31,6 +33,9 @@ class ProcessingPlatformsService(
 
     suspend fun listGroups(platformId: String): List<Group> =
         platforms[platformId]?.listGroups() ?: throw processingPlatformNotFound(platformId)
+
+    suspend fun listGroupNames(platformId: String): Set<String> =
+        listGroups(platformId).map { it.name }.toSet()
 
     fun getProcessingPlatform(dataPolicy: DataPolicy): ProcessingPlatform {
         val processingPlatform = platforms[dataPolicy.platform.id] ?: throw processingPlatformNotFound(
@@ -62,14 +67,17 @@ class ProcessingPlatformsService(
     suspend fun listProcessingPlatformGroups(platformId: String): List<Group> =
         (platforms[platformId] ?: throw processingPlatformNotFound(platformId)).listGroups()
 
-    suspend fun createBarePolicy(platformId: String, tableName: String): DataPolicy {
-        val processingPlatformInterface =
-            platforms[platformId] ?: throw processingPlatformNotFound(platformId)
+    suspend fun getBarePolicy(platformId: String, tableName: String): DataPolicy {
+        val processingPlatformInterface = platforms[platformId] ?: throw processingPlatformNotFound(platformId)
         val table = processingPlatformInterface.getTable(tableName)
-        return table.toDataPolicy(
+        val baseDataPolicy = table.toDataPolicy(
             DataPolicy.ProcessingPlatform.newBuilder().setId(platformId)
                 .setPlatformType(processingPlatformInterface.type).build()
         )
+
+        return globalTransformsService.addRuleSet(baseDataPolicy).also {
+            dataPolicyValidatorService.validate(it, listGroupNames(platformId))
+        }
     }
 
     private fun processingPlatformNotFound(platformId: String, owner: String? = null) = ResourceException(

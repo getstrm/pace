@@ -13,7 +13,9 @@ Pace CLI dev
 ### SEE ALSO
 
 * [pace completion](pace_completion.md)	 - Generate the autocompletion script for the specified shell
+* [pace delete](pace_delete.md)	 - Delete entities
 * [pace get](pace_get.md)	 - Get a single entity
 * [pace list](pace_list.md)	 - List entities
 * [pace upsert](pace_upsert.md)	 - Upsert entities
+* [pace version](pace_version.md)	 - Get the cli version
 

@@ -1,13 +1,18 @@
 package com.getstrm.pace.util
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.RefAndType
+import build.buf.gen.getstrm.pace.api.global_transforms.v1alpha.ListGlobalTransformsResponse
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.pace.exceptions.PaceStatusException
 import com.google.cloud.bigquery.Table
 import com.google.cloud.bigquery.TableId
 import com.google.protobuf.GeneratedMessageV3
+import com.google.protobuf.Message
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.JsonFormat
 import com.google.protobuf.util.Timestamps
@@ -20,8 +25,6 @@ import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform as ApiFieldTransform
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform as ApiTransform
 
 private val log by lazy { LoggerFactory.getLogger("Util") }
 
@@ -41,17 +44,29 @@ private fun getFirstPaceStatusException(throwable: Throwable): PaceStatusExcepti
     return throwable.cause?.let { getFirstPaceStatusException(it) }
 }
 
-fun GeneratedMessageV3.toJsonb(): JSONB {
-    return JSONB.valueOf(toJson())
+fun <T : Message.Builder> T.merge(jsonb: JSONB): T =
+    this.also {
+        JsonFormat.parser()
+            .ignoringUnknownFields()
+            .merge(
+                jsonb.data(),
+                this,
+            )
+    }
+
+fun GeneratedMessageV3.toJsonbWithDefaults(): JSONB {
+    return JSONB.valueOf(toJsonWithDefaults())
 }
 
 fun GeneratedMessageV3.toJson(): String = JsonFormat.printer()
     .omittingInsignificantWhitespace()
+    .preservingProtoFieldNames()
     .print(this)
 
 fun GeneratedMessageV3.toJsonWithDefaults(): String = JsonFormat.printer()
     .omittingInsignificantWhitespace()
     .includingDefaultValueFields()
+    .preservingProtoFieldNames()
     .print(this)
 
 fun String.yaml2json(): String {
@@ -74,10 +89,16 @@ fun String.parseDataPolicy(): DataPolicy = let {
     builder.build()
 }
 
-fun String.parseTransforms(): List<ApiTransform> = let {
-    val builder = ApiFieldTransform.newBuilder()
+fun String.parseTransforms(): List<GlobalTransform> = let {
+    val builder = ListGlobalTransformsResponse.newBuilder()
     JsonFormat.parser().merge(this.yaml2json(), builder)
-    builder.build().transformsList
+    builder.build().globalTransformsList
+}
+
+fun String.parseTransform(): GlobalTransform = let {
+    val builder = GlobalTransform.newBuilder()
+    JsonFormat.parser().ignoringUnknownFields().merge(this, builder)
+    builder.build()
 }
 
 fun Long.toTimestamp(): Timestamp {
@@ -102,6 +123,16 @@ fun Table.toFullName() = tableId.toFullName()
 fun TableId.toFullName() = "$project.$dataset.$table"
 
 fun DataPolicy.Field.pathString() = this.namePartsList.joinToString(separator = ".")
+
+fun GlobalTransform.refAndType() = GlobalTransform.RefAndType
+    .newBuilder()
+    .setRef(this.ref)
+    .setType(this.transformCase.name)
+    .build()
+
+fun GlobalTransformsRecord.toGlobalTransform() = GlobalTransform.newBuilder().merge(this.transform!!).build()
+
+fun RefAndType.name() = "${this.type}/${this.ref}"
 
 /**
  * Apply different operations on the head, tail and body of a collection. The head and tail contain a single element,
