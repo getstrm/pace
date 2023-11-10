@@ -36,4 +36,8 @@ A [`Processing Platform`](../reference/processing-platform-integrations/) is com
 
 **Data Catalog**
 
-A [`Data Catalog`](../cli-docs/pace\_list\_catalogs.md) is your data shopping experience. For PACE, it's the source of the schema and global policies.&#x20;
+A [`Data Catalog`](../cli-docs/pace\_list\_catalogs.md) is your data shopping experience. For PACE, it's the source of the schema and global policies.
+
+**Global Transform**
+
+A global transform allows end-users to define field transforms once, and reuse them. An example is a tag based global transform, which allows to use tags that are set on specific fields in the respective processing platform, and translate them into default field transformations. An example could be personal identifiable information (PII) in specific columns of a table, that should be nullified when presenting data to arbitrary data consumers.

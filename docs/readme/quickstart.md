@@ -50,7 +50,7 @@ standalone
 └── data-policy.yaml
 ```
 
-Grab the contents of the files from the [GitHub repository](https://github.com/getstrm/pace/tree/standalone/examples/standalone).
+Grab the contents of the files from the [GitHub repository](https://github.com/getstrm/pace/tree/alpha/examples/standalone).
 {% endtab %}
 {% endtabs %}
 
@@ -247,10 +247,10 @@ tables:
 
 #### Create a bare policy
 
-To start with a skeleton Data Policy file, based on a table's data schema, the `--bare` is helpful. Let's start our Data Policy file with that.
+We start with a bare policy (without any rule sets) by reading the description of a table on the processing platform.
 
 ```bash
-pace get data-policy --bare --processing-platform standalone-sample-connection public.demo
+pace get data-policy --processing-platform standalone-sample-connection public.demo
 ```
 
 This results in the following YAML.
