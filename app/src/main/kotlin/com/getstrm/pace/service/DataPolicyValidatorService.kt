@@ -136,18 +136,9 @@ class DataPolicyValidatorService {
             }
         }
         if (tokenSources.toSet().size != tokenSources.size) {
-            throw BadRequestException(
-                BadRequestException.Code.INVALID_ARGUMENT,
-                BadRequest.newBuilder()
-                    .addAllFieldViolations(
-                        listOf(
-                            FieldViolation.newBuilder()
-                                .setField("ruleSet")
-                                .setDescription("RuleSet has duplicate token sources: $tokenSources. Each Detokenize transform must have a unique token source.")
-                                .build()
-                        )
-                    )
-                    .build()
+            throw invalidArgumentException(
+                "ruleSet",
+                "RuleSet has duplicate token sources: $tokenSources. Each Detokenize transform must have a unique token source."
             )
         }
     }
