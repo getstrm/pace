@@ -175,7 +175,6 @@ class SnowflakeTable(
                     .addAllFields(
                         // Todo: make this more type-safe
                         data.orEmpty().map { (name, type, _, nullable) ->
-                            // select * from table( PACE.INFORMATION_SCHEMA.TAG_REFERENCES('ALPHA_TEST.GDDEMO.EMAIL', 'COLUMN'));
                             val snowflakeResponse = retrieveColumnTags(name)
                             val tags = snowflakeResponse.body.data?.map{it[0]}?: emptyList()
 

@@ -3,13 +3,20 @@ package com.getstrm.pace.processing_platforms.databricks
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.databricks.sdk.service.catalog.ColumnInfo
 import com.databricks.sdk.service.catalog.TableInfo
+import com.databricks.sdk.service.sql.ExecuteStatementResponse
+import com.databricks.sdk.service.sql.ResultData
+import com.databricks.sdk.service.sql.StatementState
+import com.databricks.sdk.service.sql.StatementStatus
 import com.google.protobuf.Timestamp
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
 class DatabricksClientTest {
 
+    val client = mockk<DatabricksClient>()
     @Test
     fun `convert full table info`() {
         // Given
@@ -37,7 +44,15 @@ class DatabricksClientTest {
                         .setTypeText("bigint")
                 )
             )
-        val table = DatabricksTable(tableInfo.name, tableInfo, this)
+
+        every { client.executeStatement(any()) } returns ExecuteStatementResponse()
+            .setStatus(StatementStatus().setState(StatementState.SUCCEEDED))
+            .setResult(ResultData().setDataArray(listOf(
+                listOf("test_string_column", "pii"),
+                listOf("test_bigint_column", "tag1"),
+                listOf("test_string_column", "email")
+                )))
+        val table = DatabricksTable(tableInfo.name, tableInfo, client)
 
         val platform = DataPolicy.ProcessingPlatform.newBuilder().setId("test-platform").build()
 
@@ -69,11 +84,13 @@ class DatabricksClientTest {
                         listOf(
                             DataPolicy.Field.newBuilder()
                                 .addAllNameParts(listOf("test_string_column"))
+                                .addAllTags(listOf("pii", "email"))
                                 .setType("varchar")
                                 .setRequired(false)
                                 .build(),
                             DataPolicy.Field.newBuilder()
                                 .addAllNameParts(listOf("test_bigint_column"))
+                                .addAllTags(listOf("tag1"))
                                 .setType("bigint")
                                 .setRequired(true)
                                 .build(),
