@@ -18,9 +18,9 @@ In order to be able to change the on-view results for different users with diffe
 
 We define 7 types of transforms.
 
-1.  **Regex**
+### 1. Regex
 
-    Replace a value from a field using regular expressions. Beware that you need to match the syntax for regular expressions of your processing platform as defined in the `Target`. To perform a regex extract, the replacement can either be an empty string or null. Below you will find an example using Snowflake as the processing platform, where we mask (`****`) the local-part of an email address.
+Replace a value from a field using regular expressions. Beware that you need to match the syntax for regular expressions of your processing platform as defined in the `Target`. To perform a regex extract, the replacement can either be an empty string or null. Below you will find an example using Snowflake as the processing platform, where we mask (`****`) the local-part of an email address.
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -51,9 +51,9 @@ regexp:
 | ----------------------- | ----------------- |
 | `local-part@domain.com` | `****@domain.com` |
 
-2.  **Identity**
+### **2. Identity**
 
-    Return the original value.&#x20;
+Return the original value.&#x20;
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -79,9 +79,9 @@ identity: {}
 | ----------------------- | ----------------------- |
 | `local-part@domain.com` | `local-part@domain.com` |
 
-3.  **Fixed Value**
+### **3. Fixed Value**
 
-    Replace a field with a fixed value
+Replace a field with a fixed value
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -110,9 +110,9 @@ fixed:
 | ----------------------- | ------ |
 | `local-part@domain.com` | `****` |
 
-4.  **Hash**
+### **4. Hash**
 
-    Hash a field using an optional seed. The hashing algorithm depends on the processing platform of your choice.
+Hash a field using an optional seed. The hashing algorithm depends on the processing platform of your choice.
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -141,9 +141,9 @@ hash:
 | ----------------------- | ---------------------- |
 | `local-part@domain.com` | `-1230500920091472191` |
 
-5.  **SQL Statement**
+### **5. SQL Statement**
 
-    Execute a SQL statement to transform the field value. The exact syntax is platform-specific.
+Execute a SQL statement to transform the field value. The exact syntax is platform-specific.
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -175,9 +175,9 @@ sql_statement:
 | `HP`      | `Other` |
 | `Acer`    | `Other` |
 
-6.  **Nullify**
+### **6. Nullify**
 
-    Make the field value null.
+Make the field value null.
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -203,9 +203,9 @@ nullify: {}
 | ----------------------- | ------ |
 | `local-part@domain.com` | `null` |
 
-7.  **Detokenize**
+### **7. Detokenize**
 
-    If you have tokenized data and the processing platform principal can query the token table, you can detokenize the data.&#x20;
+If you have tokenized data and the processing platform principal can query the token table, you can detokenize the data.&#x20;
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -247,7 +247,7 @@ detokenize:
 | `TOKEN-123` | `5425233430109903` |
 
 {% hint style="warning" %}
-While multiple detokenize transforms are allowed,  there is a limit of _one_ detokenize transform per token table.
+While multiple detokenize transforms are allowed in a single rule set, each must use a different token source.
 {% endhint %}
 
 ## Example Field Transform
