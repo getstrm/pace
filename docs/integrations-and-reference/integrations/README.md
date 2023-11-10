@@ -9,11 +9,11 @@ description: PACE currently supports integrations to the following external plat
 * Data Hub
 * Collibra
 * Open Data Discovery
-* **Yours**? Reach out to _pace \[a] getstrm.com_
+* **Yours**? Reach out to [_pace@getstrm.com_](mailto:pace@getstrm.com)
 
 **Processing platforms**
 
 * [Snowflake](../../reference/processing-platform-integrations/snowflake.md)
 * [Databricks](../../reference/processing-platform-integrations/databricks.md)
 * [BigQuery](../../reference/processing-platform-integrations/bigquery.md)
-* **Yours**? Reach out to _pace \[a] getstrm.com_
+* **Yours**? Reach out to [_pace@getstrm.com_](mailto:pace@getstrm.com)

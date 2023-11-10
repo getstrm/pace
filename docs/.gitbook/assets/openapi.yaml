@@ -213,6 +213,12 @@ components:
       type: object
     FieldTransform_Transform:
       properties:
+        detokenize:
+          allOf:
+          - $ref: '#/components/schemas/Transform_Detokenize'
+          description: Replaces a tokenized field value with its original value, looked
+            up in a token source. If no value is found, the tokenized value is left
+            as-is.
         fixed:
           allOf:
           - $ref: '#/components/schemas/Transform_Fixed'
@@ -374,6 +380,23 @@ components:
             field, or localized by the client.
           type: string
       type: object
+    Transform_Detokenize:
+      properties:
+        tokenField:
+          allOf:
+          - $ref: '#/components/schemas/DataPolicy_Field'
+          description: The field in the token source that contains the token. Only
+            the name parts are required.
+        tokenSourceRef:
+          description: Full reference to the token source, e.g. a fully qualified
+            table name.
+          type: string
+        valueField:
+          allOf:
+          - $ref: '#/components/schemas/DataPolicy_Field'
+          description: The field in the token source that contains the value. Only
+            the name parts are required.
+      type: object
     Transform_Fixed:
       properties:
         value:
@@ -416,7 +439,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.11
+  version: 1.0.0-alpha.12
 openapi: 3.0.3
 paths:
   /catalogs:

@@ -1,3 +1,10 @@
+# [1.0.0-alpha.12](https://github.com/getstrm/pace/compare/v1.0.0-alpha.11...v1.0.0-alpha.12) (2023-11-09)
+
+
+### Features
+
+* **pace-24:** implement basic detokonization transform ([#35](https://github.com/getstrm/pace/issues/35)) ([1bdc088](https://github.com/getstrm/pace/commit/1bdc0889eb5600e57307fed03979b5cf821a6d6f))
+
 # [1.0.0-alpha.11](https://github.com/getstrm/pace/compare/v1.0.0-alpha.10...v1.0.0-alpha.11) (2023-11-07)
 
 

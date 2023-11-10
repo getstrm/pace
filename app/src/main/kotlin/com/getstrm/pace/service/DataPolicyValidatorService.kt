@@ -48,6 +48,7 @@ class DataPolicyValidatorService {
         }
 
         dataPolicy.ruleSetsList.forEach { ruleSet ->
+            checkUniqueTokenSources(ruleSet)
             ruleSet.fieldTransformsList.forEach { fieldTransform ->
                 checkField(fieldTransform.field)
                 if (fieldTransform.transformsList.isEmpty()) {
@@ -121,6 +122,33 @@ class DataPolicyValidatorService {
                     alreadySeen + it
                 }
             }
+        }
+    }
+
+    private fun checkUniqueTokenSources(ruleSet: DataPolicy.RuleSet) {
+        val tokenSources = ruleSet.fieldTransformsList.flatMap { fieldTransform ->
+            fieldTransform.transformsList.mapNotNull { transform ->
+                if (transform.hasDetokenize()) {
+                    transform.detokenize.tokenSourceRef
+                } else {
+                    null
+                }
+            }
+        }
+        if (tokenSources.toSet().size != tokenSources.size) {
+            throw BadRequestException(
+                BadRequestException.Code.INVALID_ARGUMENT,
+                BadRequest.newBuilder()
+                    .addAllFieldViolations(
+                        listOf(
+                            FieldViolation.newBuilder()
+                                .setField("ruleSet")
+                                .setDescription("RuleSet has duplicate token sources: $tokenSources. Each Detokenize transform must have a unique token source.")
+                                .build()
+                        )
+                    )
+                    .build()
+            )
         }
     }
 

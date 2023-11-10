@@ -18,9 +18,9 @@ services:
     container_name: postgres_processing_platform
     image: postgres
     environment:
-      POSTGRES_USER: global_transforms_user
-      POSTGRES_PASSWORD: global_transforms
-      POSTGRES_DB: global_transforms
+      POSTGRES_USER: detokenization_user
+      POSTGRES_PASSWORD: detokenization
+      POSTGRES_DB: detokenization
       PGDATA: /data/postgres
     volumes:
       - ./data.sql:/docker-entrypoint-initdb.d/data.sql

@@ -4,7 +4,7 @@ plugins:
   - plugin: buf.build/community/google-gnostic-openapi:v0.7.0
     out: .
     opt:
-      - version=1.0.0-alpha.11
+      - version=1.0.0-alpha.12
       - title=PACE API
       - enum_type=string
   - plugin: buf.build/community/chrusty-jsonschema:v1.4.1

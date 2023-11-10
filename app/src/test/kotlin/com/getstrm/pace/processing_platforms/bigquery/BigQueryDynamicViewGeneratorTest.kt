@@ -2,27 +2,30 @@ package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
-import com.getstrm.pace.processing_platforms.bigquery.BigQueryDynamicViewGenerator
+import com.getstrm.pace.processing_platforms.postgres.PostgresDynamicViewGenerator
+import com.getstrm.pace.processing_platforms.postgres.PostgresDynamicViewGeneratorTest
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
+import com.getstrm.pace.toSql
+import com.getstrm.pace.util.parseDataPolicy
+import com.getstrm.pace.util.yaml2json
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
+import org.intellij.lang.annotations.Language
 import org.jooq.impl.DSL
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import com.getstrm.pace.util.parseDataPolicy
-import com.getstrm.pace.toSql
-import com.getstrm.pace.util.yaml2json
-import org.intellij.lang.annotations.Language
 
 class BigQueryDynamicViewGeneratorTest {
 
     private lateinit var underTest: BigQueryDynamicViewGenerator
-    private val defaultUserGroupsTable = "`my_project.my_dataset.my_user_groups`"
+    private val defaultUserGroupsTable = "my_project.my_dataset.my_user_groups"
 
     @BeforeEach
     fun setUp() {
-        underTest = BigQueryDynamicViewGenerator(DataPolicy.getDefaultInstance(), defaultUserGroupsTable)
+        val basicPolicy =
+            DataPolicy.newBuilder().apply { sourceBuilder.setRef("my-project.my_dataset.my_source_table") }.build()
+        underTest = BigQueryDynamicViewGenerator(basicPolicy, defaultUserGroupsTable)
     }
 
     @Test
@@ -73,6 +76,28 @@ class BigQueryDynamicViewGeneratorTest {
         // Then
         condition.shouldBeNull()
         field shouldBe DSL.`val`("****")
+    }
+
+    @Test
+    fun `test detokenize condition`() {
+        // Given
+        val field = DataPolicy.Field.newBuilder().addNameParts("user_id_token").setType("string").build()
+        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+            .setDetokenize(
+                DataPolicy.RuleSet.FieldTransform.Transform.Detokenize.newBuilder()
+                    .setTokenSourceRef("google-project-id.users_dataset.user_id_tokens")
+                    .setTokenField(DataPolicy.Field.newBuilder().addNameParts("token"))
+                    .setValueField(DataPolicy.Field.newBuilder().addNameParts("user_id"))
+            )
+            .addPrincipals("analytics".toPrincipal())
+            .build()
+
+        // When
+        val (condition, jooqField) = underTest.toCase(transform, field)
+
+        // Then
+        condition!!.toSql() shouldBe "('analytics' IN ( SELECT userGroup FROM user_groups ))"
+        jooqField.toSql() shouldBe "coalesce(`google-project-id.users_dataset.user_id_tokens`.user_id, `my-project.my_dataset.my_source_table`.user_id_token)"
     }
 
     @Test
@@ -132,7 +157,70 @@ class BigQueryDynamicViewGeneratorTest {
     }
 
     @Test
-    fun `transform test all transforms`() {
+    fun `full SQL view statement with a single detokenize join`() {
+        // Given
+        val viewGenerator = BigQueryDynamicViewGenerator(singleDetokenizePolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
+        viewGenerator.toDynamicViewSQL() shouldBe
+            """create or replace view `my-project.my_dataset.my_target_view`
+as
+with
+  user_groups as (
+    select userGroup
+    from `my_project.my_dataset.my_user_groups`
+    where userEmail = SESSION_USER()
+  )
+select
+  transactionid,
+  case
+    when ('fraud_and_risk' IN ( SELECT userGroup FROM user_groups )) then coalesce(`my-project.tokens.userid_tokens`.userid, `my-project.my_dataset.my_source_table`.userid)
+    else userid
+  end userid,
+  transactionamount
+from `my-project.my_dataset.my_source_table`
+  left outer join `my-project.tokens.userid_tokens`
+    on (`my-project.my_dataset.my_source_table`.userid = `my-project.tokens.userid_tokens`.token)
+where case
+  when ('fraud_and_risk' IN ( SELECT userGroup FROM user_groups )) then true
+  else transactionamount < 10
+end;"""
+    }
+
+    @Test
+    fun `full SQL view statement with multiple detokenize joins on two tables`() {
+        // Given
+        val viewGenerator = BigQueryDynamicViewGenerator(multiDetokenizePolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
+        viewGenerator.toDynamicViewSQL() shouldBe
+            """create or replace view `my-project.my_dataset.my_target_view`
+as
+with
+  user_groups as (
+    select userGroup
+    from `my_project.my_dataset.my_user_groups`
+    where userEmail = SESSION_USER()
+  )
+select
+  case
+    when ('fraud_and_risk' IN ( SELECT userGroup FROM user_groups )) then coalesce(`my-project.tokens.transactionid_tokens`.transactionid, `my-project.my_dataset.my_source_table`.transactionid)
+    else transactionid
+  end transactionid,
+  case
+    when ('fraud_and_risk' IN ( SELECT userGroup FROM user_groups )) then coalesce(`my-project.tokens.userid_tokens`.userid, `my-project.my_dataset.my_source_table`.userid)
+    else userid
+  end userid,
+  transactionamount
+from `my-project.my_dataset.my_source_table`
+  left outer join `my-project.tokens.userid_tokens`
+    on (`my-project.my_dataset.my_source_table`.userid = `my-project.tokens.userid_tokens`.token)
+  left outer join `my-project.tokens.transactionid_tokens`
+    on (`my-project.my_dataset.my_source_table`.transactionid = `my-project.tokens.transactionid_tokens`.token)
+where case
+  when ('fraud_and_risk' IN ( SELECT userGroup FROM user_groups )) then true
+  else transactionamount < 10
+end;"""
+    }
+
+    @Test
+    fun `transform test multiple transforms`() {
         // Given
         underTest = BigQueryDynamicViewGenerator(dataPolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
         underTest.toDynamicViewSQL()
@@ -293,5 +381,114 @@ info:
   create_time: "2023-09-26T16:33:51.150Z"
   update_time: "2023-09-26T16:33:51.150Z"
           """.yaml2json().parseDataPolicy()
+
+        @Language("yaml")
+        val singleDetokenizePolicy = """
+            metadata:
+              description: ""
+              version: 1
+              title: public.demo
+            platform:
+              id: platform-id
+              platform_type: POSTGRES
+            source:
+              fields:
+                - name_parts:
+                    - transactionid
+                  required: true
+                  type: integer
+                - name_parts:
+                    - userid
+                  required: true
+                  type: integer
+                - name_parts:
+                    - transactionamount
+                  required: true
+                  type: integer
+              ref: my-project.my_dataset.my_source_table
+            rule_sets:
+              - target:
+                  fullname: my-project.my_dataset.my_target_view
+                filters:
+                  - conditions:
+                      - principals: [ {group: fraud_and_risk} ]
+                        condition: "true"
+                      - principals : []
+                        condition: "transactionamount < 10"
+                field_transforms:
+                  - field:
+                      name_parts: [ userid ]
+                    transforms:
+                      - principals: [ {group: fraud_and_risk} ]
+                        detokenize:
+                          token_source_ref: my-project.tokens.userid_tokens
+                          token_field:
+                            name_parts: [ token ]
+                          value_field:
+                            name_parts: [ userid ]
+                      - principals: []
+                        identity: {}
+        """.trimIndent().yaml2json().parseDataPolicy()
+
+        @Language("yaml")
+        val multiDetokenizePolicy = """
+            metadata:
+              description: ""
+              version: 1
+              title: public.demo
+            platform:
+              id: platform-id
+              platform_type: POSTGRES
+            source:
+              fields:
+                - name_parts:
+                    - transactionid
+                  required: true
+                  type: integer
+                - name_parts:
+                    - userid
+                  required: true
+                  type: integer
+                - name_parts:
+                    - transactionamount
+                  required: true
+                  type: integer
+              ref: my-project.my_dataset.my_source_table
+            rule_sets:
+              - target:
+                  fullname: my-project.my_dataset.my_target_view
+                filters:
+                  - conditions:
+                      - principals: [ {group: fraud_and_risk} ]
+                        condition: "true"
+                      - principals : []
+                        condition: "transactionamount < 10"
+                field_transforms:
+                  - field:
+                      name_parts: [ userid ]
+                    transforms:
+                      - principals: [ {group: fraud_and_risk} ]
+                        detokenize:
+                          token_source_ref: my-project.tokens.userid_tokens
+                          token_field:
+                            name_parts: [ token ]
+                          value_field:
+                            name_parts: [ userid ]
+                      - principals: []
+                        identity: {}
+                  - field:
+                      name_parts: [ transactionid ]
+                    transforms:
+                      - principals: [ {group: fraud_and_risk} ]
+                        detokenize:
+                          token_source_ref: my-project.tokens.transactionid_tokens
+                          token_field:
+                            name_parts: [ token ]
+                          value_field:
+                            name_parts: [ transactionid ]
+                      - principals: []
+                        identity: {}
+
+        """.trimIndent().yaml2json().parseDataPolicy()
     }
 }

@@ -8,6 +8,7 @@ import com.google.rpc.BadRequest
 import io.grpc.Status
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -426,6 +427,81 @@ rule_sets:
             .setField("ruleSet")
             .setDescription("RuleSet has overlapping fields, email is already present")
             .build()
+    }
+
+    @Test
+    fun `validate duplicate token source refs`() {
+        @Language("yaml")
+        val dataPolicy = """
+            metadata:
+              description: ""
+              version: 1
+              title: public.demo
+            platform:
+              id: platform-id
+              platform_type: POSTGRES
+            source:
+              fields:
+                - name_parts:
+                    - transactionid
+                  required: true
+                  type: integer
+                - name_parts:
+                    - userid
+                  required: true
+                  type: integer
+                - name_parts:
+                    - transactionamount
+                  required: true
+                  type: integer
+              ref: public.demo_tokenized
+            rule_sets:
+              - target:
+                  fullname: public.demo_view
+                filters:
+                  - conditions:
+                      - principals: [ {group: fraud_and_risk} ]
+                        condition: "true"
+                      - principals : []
+                        condition: "transactionamount < 10"
+                field_transforms:
+                  - field:
+                      name_parts: [ userid ]
+                    transforms:
+                      - principals: [ {group: fraud_and_risk} ]
+                        detokenize:
+                          token_source_ref: tokens.all_tokens
+                          token_field:
+                            name_parts: [ token ]
+                          value_field:
+                            name_parts: [ value ]
+                      - principals: []
+                        identity: {}
+                  - field:
+                      name_parts: [ transactionid ]
+                    transforms:
+                      - principals: [ {group: fraud_and_risk} ]
+                        detokenize:
+                          token_source_ref: tokens.all_tokens
+                          token_field:
+                            name_parts: [ token ]
+                          value_field:
+                            name_parts: [ value ]
+                      - principals: []
+                        identity: {}
+
+        """.trimIndent().yaml2json().parseDataPolicy()
+        runBlocking {
+            val exception = shouldThrow<BadRequestException> {
+                underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
+            }
+            exception.code.status shouldBe Status.INVALID_ARGUMENT
+            exception.badRequest.fieldViolationsCount shouldBe 1
+            exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
+                .setField("ruleSet")
+                .setDescription("RuleSet has duplicate token sources: [tokens.all_tokens, tokens.all_tokens]. Each Detokenize transform must have a unique token source.")
+                .build()
+        }
     }
 }
 

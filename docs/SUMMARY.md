@@ -19,6 +19,11 @@
   * [Field Transform](data-policy/rule-set/field-transform.md)
   * [Filter](data-policy/rule-set/filter.md)
 
+## Tutorials
+
+* [Detokenization](tutorials/detokenization.md)
+* [Global Tag Transforms](tutorials/global-tag-transforms.md)
+
 ## Integrations & Reference
 
 * [API Reference](reference/api-reference.md)

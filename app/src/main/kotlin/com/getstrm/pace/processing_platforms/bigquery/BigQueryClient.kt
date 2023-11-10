@@ -103,8 +103,20 @@ class BigQueryClient(
     private fun authorizeViews(dataPolicy: DataPolicy) {
         val sourceDataSet = bigQuery.getDataset(dataPolicy.source.ref.toTableId().dataset)
         val sourceAcl = sourceDataSet.acl
-        val viewsAcl = dataPolicy.ruleSetsList.map {
-            Acl.of(Acl.View(it.target.fullname.toTableId()))
+        val viewsAcl = dataPolicy.ruleSetsList.flatMap { ruleSet ->
+            // Allow the target view to view the source table
+            val targetAcl = Acl.of(Acl.View(ruleSet.target.fullname.toTableId()))
+            // Allow the target view to view any applicable token source tables
+            val tokenSourceAcls = ruleSet.fieldTransformsList.flatMap { fieldTransform ->
+                fieldTransform.transformsList.mapNotNull { transform ->
+                    if (transform.hasDetokenize()) {
+                        Acl.of(Acl.View(transform.detokenize.tokenSourceRef.toTableId()))
+                    } else {
+                        null
+                    }
+                }
+            }
+            tokenSourceAcls + targetAcl
         }
         sourceDataSet.toBuilder().setAcl(sourceAcl + viewsAcl).build().update()
     }
@@ -156,7 +168,7 @@ class BigQueryTable(
         val nameLookup = tags.values.flatten().toSet().associateWith { tag: String ->
             polClient.getPolicyTag(tag).displayName
         }
-        tags = tags.mapValues { (_,v) -> v.map{ nameLookup[it]} }
+        tags = tags.mapValues { (_, v) -> v.map { nameLookup[it] } }
 
         return DataPolicy.newBuilder()
             .setMetadata(
@@ -175,7 +187,7 @@ class BigQueryTable(
                             // Todo: add support for nested fields using getSubFields()
                             DataPolicy.Field.newBuilder()
                                 .addNameParts(field.name)
-                                .addAllTags( tags[field.name] )
+                                .addAllTags(tags[field.name])
                                 .setType(field.type.name())
                                 // Todo: correctly handle repeated fields (defined by mode REPEATED)
                                 .setRequired(field.mode != Field.Mode.NULLABLE)

@@ -1,0 +1,81 @@
+metadata:
+  description: ""
+  title: public.demo
+platform:
+  id: detokenization-example-connection
+  platform_type: POSTGRES
+source:
+  fields:
+    - name_parts:
+      - card_holder_name
+      required: true
+      type: varchar
+    - name_parts:
+      - card_number
+      required: true
+      type: varchar
+    - name_parts:
+      - transaction_id
+      required: true
+      type: varchar
+    - name_parts:
+      - transaction_amount
+      required: true
+      type: integer
+    - name_parts:
+      - transaction_type
+      required: true
+      type: varchar
+    - name_parts:
+      - region
+      required: true
+      type: varchar
+    - name_parts:
+      - date
+      required: true
+      type: varchar
+  ref: public.demo
+rule_sets:
+  - target:
+      fullname: public.demo_view
+    filters:
+      - conditions:
+        - principals:
+          - group: fraud_and_risk
+          - group: fraud_investigation
+          condition: "true"
+        - principals: []
+          condition: "region <> 'Europe'"
+    field_transforms:
+      - field:
+          name_parts: [ card_holder_name ]
+        transforms:
+          - principals:
+            - group: fraud_investigation
+            identity: {}
+          - principals: []
+            nullify: {}
+      - field:
+          name_parts: [ card_number ]
+        transforms:
+          - principals:
+              - group: fraud_investigation
+            detokenize:
+              token_source_ref: public.tokens
+              token_field:
+                name_parts: [ token ]
+              value_field:
+                name_parts: [ value ]
+          - principals: []
+            identity: {}
+      - field:
+          name_parts: [ transaction_id ]
+        transforms:
+          - principals:
+              - group: fraud_investigation
+              - group: fraud_and_risk
+            identity: {}
+          - principals: []
+            regexp:
+              regexp: "^\\d+(\\d{3})$"
+              replacement: "******\\1"

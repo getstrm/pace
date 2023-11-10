@@ -16,11 +16,11 @@ In order to be able to change the on-view results for different users with diffe
 
 ## Transforms
 
-We define 6 types of transforms.
+We define 7 types of transforms.
 
-1.  **Regex**
+### 1. Regex
 
-    Replace a value from a field using regular expressions. Beware that you need to match the syntax for regular expressions of your processing platform as defined in the `Target`. To perform a regex extract, the replacement can either be an empty string or null. Below you will find an example using Snowflake as the processing platform, where we mask (`****`) the local-part of an email address.
+Replace a value from a field using regular expressions. Beware that you need to match the syntax for regular expressions of your processing platform as defined in the `Target`. To perform a regex extract, the replacement can either be an empty string or null. Below you will find an example using Snowflake as the processing platform, where we mask (`****`) the local-part of an email address.
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -51,9 +51,9 @@ regexp:
 | ----------------------- | ----------------- |
 | `local-part@domain.com` | `****@domain.com` |
 
-2.  **Identity**
+### **2. Identity**
 
-    Return the original value.&#x20;
+Return the original value.&#x20;
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -79,9 +79,9 @@ identity: {}
 | ----------------------- | ----------------------- |
 | `local-part@domain.com` | `local-part@domain.com` |
 
-3.  **Fixed Value**
+### **3. Fixed Value**
 
-    Replace a field with a fixed value
+Replace a field with a fixed value
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -110,9 +110,9 @@ fixed:
 | ----------------------- | ------ |
 | `local-part@domain.com` | `****` |
 
-4.  **Hash**
+### **4. Hash**
 
-    Hash a field using an optional seed. The hashing algorithm depends on the processing platform of your choice.
+Hash a field using an optional seed. The hashing algorithm depends on the processing platform of your choice.
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -141,9 +141,9 @@ hash:
 | ----------------------- | ---------------------- |
 | `local-part@domain.com` | `-1230500920091472191` |
 
-5.  **SQL Statement**
+### **5. SQL Statement**
 
-    Execute a SQL statement to transform the field value. The exact syntax is platform-specific.
+Execute a SQL statement to transform the field value. The exact syntax is platform-specific.
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -175,9 +175,9 @@ sql_statement:
 | `HP`      | `Other` |
 | `Acer`    | `Other` |
 
-6.  **Nullify**
+### **6. Nullify**
 
-    Make the field value null.
+Make the field value null.
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -203,6 +203,53 @@ nullify: {}
 | ----------------------- | ------ |
 | `local-part@domain.com` | `null` |
 
+### **7. Detokenize**
+
+If you have tokenized data and the processing platform principal can query the token table, you can detokenize the data.&#x20;
+
+{% tabs %}
+{% tab title="YAML" %}
+```yaml
+detokenize:
+  token_source_ref: my_schema.token_table
+  token_field:
+    name_parts:
+      - token
+  value_field:
+    name_parts:
+      - value
+```
+{% endtab %}
+
+{% tab title="JSON" %}
+```json
+{
+  "detokenize": {
+    "token_source_ref": "my-schema.token-table",
+    "token_field": {
+      "name_parts": [
+        "token"
+      ]
+    },
+    "value_field": {
+      "name_parts": [
+        "value"
+      ]
+    }
+  }
+}
+```
+{% endtab %}
+{% endtabs %}
+
+| before      | after              |
+| ----------- | ------------------ |
+| `TOKEN-123` | `5425233430109903` |
+
+{% hint style="warning" %}
+While multiple detokenize transforms are allowed in a single rule set, each must use a different token source.
+{% endhint %}
+
 ## Example Field Transform
 
 Below you will find an example of a set of `Field Transforms`. Note that for each set of `Transforms` the last one always is without defined principals.
@@ -211,7 +258,7 @@ Below you will find an example of a set of `Field Transforms`. Note that for eac
 Note that the order of the `Field Transform` in the policy matters. That is, if you are a member of multiple `Principal` groups, for each `Field Transform`, the transform with the first intersection with your `Principal` groups will be applied.
 {% endhint %}
 
-In this example, we want to transform the userID for three groups: _Marketing_, _Fraud and Risk_, everyone else. For _Marketing_, we nullify the the ID. For _Fraud and Risk_, we need to retain IDs and do not touch them. For everyone else, we hash the email so they can still be used as keys, but remain unidentified.
+In this example, we want to transform the userID for three groups: _Marketing_, _Fraud and Risk_, everyone else. For _Marketing_, we nullify the the ID. For _Fraud and Risk_, we need to retain IDs and do not touch them. For everyone else, we hash the email so they can still be used as keys, but remain unidentified. By default, card numbers are tokenized, but for _Fraud and Risk_ they are detokenized, i.e. replaced with their actual values.
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -232,6 +279,23 @@ field_transforms:
       - principals: []
         hash:
           seed: "1234"
+  - field:
+      name_parts: [ card_number ]
+      type: "string"
+      required: true
+    transforms:
+      - principals:
+        - group: "F&R"
+      detokenize:
+        token_source_ref: my_schema.token_table
+        token_field:
+          name_parts:
+            - token
+        value_field:
+          name_parts:
+            - value
+      - principals: []
+        identity: {}
   - field:
       name_parts: [ email ]
       type: "string"
@@ -369,47 +433,55 @@ Below you will find raw data and sample outputs for different (sets of) principa
 
 {% tabs %}
 {% tab title="RAW Data" %}
-| userId | email            | brand   |
-| ------ | ---------------- | ------- |
-| 123    | alice@store.com  | Macbook |
-| 456    | bob@company.com  | Lenovo  |
-| 789    | carol@domain.com | HP      |
+| userId | card\_number | email            | brand   |
+| ------ | ------------ | ---------------- | ------- |
+| 123    | TOKEN\_123   | alice@store.com  | Macbook |
+| 456    | TOKEN\_456   | bob@company.com  | Lenovo  |
+| 789    | TOKEN\_789   | carol@domain.com | HP      |
+{% endtab %}
+
+{% tab title="my_schema.token_table" %}
+| token      | value            |
+| ---------- | ---------------- |
+| TOKEN\_123 | 5425233430109903 |
+| TOKEN\_456 | 2223000048410010 |
+| TOKEN\_789 | 2222420000001113 |
 {% endtab %}
 {% endtabs %}
 
 {% tabs %}
 {% tab title="[ F&R ]" %}
-| userId | email            | brand |
-| ------ | ---------------- | ----- |
-| 123    | alice@store.com  | Apple |
-| 456    | bob@company.com  | Other |
-| 789    | carol@domain.com | Other |
+| userId | card\_number     | email            | brand |
+| ------ | ---------------- | ---------------- | ----- |
+| 123    | 5425233430109903 | alice@store.com  | Apple |
+| 456    | 2223000048410010 | bob@company.com  | Other |
+| 789    | 2222420000001113 | carol@domain.com | Other |
 {% endtab %}
 
 {% tab title="[ MKTNG ]" %}
-| userId | email                | brand |
-| ------ | -------------------- | ----- |
-| `null` | \*\*\*\*@store.com   | Apple |
-| `null` | \*\*\*\*@company.com | Other |
-| `null` | \*\*\*\*@domain.com  | Other |
+| userId | card\_number | email                | brand |
+| ------ | ------------ | -------------------- | ----- |
+| `null` | TOKEN\_123   | \*\*\*\*@store.com   | Apple |
+| `null` | TOKEN\_456   | \*\*\*\*@company.com | Other |
+| `null` | TOKEN\_789   | \*\*\*\*@domain.com  | Other |
 {% endtab %}
 
 {% tab title="[ COMP, F&R ]" %}
-| userId | email                | brand |
-| ------ | -------------------- | ----- |
-| 123    | \*\*\*\*@store.com   | Apple |
-| 456    | \*\*\*\*@company.com | Other |
-| 789    | \*\*\*\*@domain.com  | Other |
+| userId | card\_number | email                | brand |
+| ------ | ------------ | -------------------- | ----- |
+| 123    | TOKEN\_123   | \*\*\*\*@store.com   | Apple |
+| 456    | TOKEN\_456   | \*\*\*\*@company.com | Other |
+| 789    | TOKEN\_789   | \*\*\*\*@domain.com  | Other |
 
 
 {% endtab %}
 
 {% tab title="[ ANALYSIS ]" %}
-| userId              | email    | brand |
-| ------------------- | -------- | ----- |
-| 23459023894857195   | \*\*\*\* | Apple |
-| -903845745009147219 | \*\*\*\* | Other |
-| -872050645009147732 | \*\*\*\* | Other |
+| userId              | card\_number | email    | brand |
+| ------------------- | ------------ | -------- | ----- |
+| 23459023894857195   | TOKEN\_123   | \*\*\*\* | Apple |
+| -903845745009147219 | TOKEN\_456   | \*\*\*\* | Other |
+| -872050645009147732 | TOKEN\_789   | \*\*\*\* | Other |
 
 
 {% endtab %}
