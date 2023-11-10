@@ -275,6 +275,30 @@ components:
         dataPolicy:
           $ref: '#/components/schemas/DataPolicy'
       type: object
+    GlobalTransform:
+      description: "If the specified transform is incompatible with the field data\
+        \ type to which this global transform is connected with,\n then the end user\
+        \ will get an invalid argument, and the bare policy with the global transforms\
+        \ applied won't be returned."
+      properties:
+        description:
+          type: string
+        ref:
+          description: "unique identifier for a certain Global Transform. When empty\n\
+            \ the identifier of the transform will be used (for TagTransform tag_content)"
+          type: string
+        tagTransform:
+          $ref: '#/components/schemas/GlobalTransform_TagTransform'
+      type: object
+    GlobalTransform_TagTransform:
+      properties:
+        tagContent:
+          type: string
+        transforms:
+          items:
+            $ref: '#/components/schemas/FieldTransform_Transform'
+          type: array
+      type: object
     GoogleProtobufAny:
       additionalProperties: true
       description: Contains an arbitrary serialized message along with a @type that
@@ -303,6 +327,13 @@ components:
         databases:
           items:
             $ref: '#/components/schemas/DataCatalog_Database'
+          type: array
+      type: object
+    ListGlobalTransformsResponse:
+      properties:
+        globalTransforms:
+          items:
+            $ref: '#/components/schemas/GlobalTransform'
           type: array
       type: object
     ListGroupsResponse:
@@ -439,7 +470,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.12
+  version: 1.0.0-alpha.13
 openapi: 3.0.3
 paths:
   /catalogs:
@@ -668,6 +699,32 @@ paths:
       summary: ListDataPolicies
       tags:
       - DataPoliciesService
+  /global-transforms:
+    get:
+      operationId: GlobalTransformsService_ListGlobalTransforms
+      parameters:
+      - in: query
+        name: types
+        schema:
+          items:
+            type: string
+          type: array
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListGlobalTransformsResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: ListGlobalTransforms
+      tags:
+      - GlobalTransformsService
   /processing-platforms:
     get:
       description: Lists all configured processing platforms.
@@ -777,4 +834,6 @@ paths:
 tags:
 - name: DataCatalogsService
 - name: DataPoliciesService
+- description: "TODO HTTP paths should be defined\n TODO add validations"
+  name: GlobalTransformsService
 - name: ProcessingPlatformsService

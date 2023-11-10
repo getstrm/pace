@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.12
+    version: 1.0.0-alpha.13
 paths:
     /catalogs:
         get:
@@ -217,6 +217,31 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListDataPoliciesResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /global-transforms:
+        get:
+            tags:
+                - GlobalTransformsService
+            operationId: GlobalTransformsService_ListGlobalTransforms
+            parameters:
+                - name: types
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListGlobalTransformsResponse'
                 default:
                     description: Default error response
                     content:
@@ -585,6 +610,30 @@ components:
             properties:
                 dataPolicy:
                     $ref: '#/components/schemas/DataPolicy'
+        GlobalTransform:
+            type: object
+            properties:
+                ref:
+                    type: string
+                    description: |-
+                        unique identifier for a certain Global Transform. When empty
+                         the identifier of the transform will be used (for TagTransform tag_content)
+                description:
+                    type: string
+                tagTransform:
+                    $ref: '#/components/schemas/GlobalTransform_TagTransform'
+            description: |-
+                If the specified transform is incompatible with the field data type to which this global transform is connected with,
+                 then the end user will get an invalid argument, and the bare policy with the global transforms applied won't be returned.
+        GlobalTransform_TagTransform:
+            type: object
+            properties:
+                tagContent:
+                    type: string
+                transforms:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/FieldTransform_Transform'
         GoogleProtobufAny:
             type: object
             properties:
@@ -614,6 +663,13 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/DataCatalog_Database'
+        ListGlobalTransformsResponse:
+            type: object
+            properties:
+                globalTransforms:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GlobalTransform'
         ListGroupsResponse:
             type: object
             properties:
@@ -737,4 +793,8 @@ components:
 tags:
     - name: DataCatalogsService
     - name: DataPoliciesService
+    - name: GlobalTransformsService
+      description: |-
+        TODO HTTP paths should be defined
+         TODO add validations
     - name: ProcessingPlatformsService
