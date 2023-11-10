@@ -95,7 +95,7 @@ tables:
 We can retrieve a bare policy from a catalog as follows.
 
 ```
-pace get data-policy --bare --catalog datahub-on-dev --database ...\
+pace get data-policy --catalog datahub-on-dev --database ...\
   --schema .. .. 
 metadata:
   description: snowflake
