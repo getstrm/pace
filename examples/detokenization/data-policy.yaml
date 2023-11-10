@@ -1,6 +1,6 @@
 metadata:
   description: ""
-  title: public.demo
+  title: public.transactions
 platform:
   id: detokenization-example-connection
   platform_type: POSTGRES
@@ -37,7 +37,7 @@ source:
   ref: public.demo
 rule_sets:
   - target:
-      fullname: public.demo_view
+      fullname: public.transactions_view
     filters:
       - conditions:
         - principals:
