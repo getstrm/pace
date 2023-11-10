@@ -1,3 +1,10 @@
+# [1.0.0-alpha.13](https://github.com/getstrm/pace/compare/v1.0.0-alpha.12...v1.0.0-alpha.13) (2023-11-10)
+
+
+### Features
+
+* **pace-17:** Global Tag Transforms ([#36](https://github.com/getstrm/pace/issues/36)) ([a95b9f5](https://github.com/getstrm/pace/commit/a95b9f562041ecaa0d293e037d1fd67605a6cb07))
+
 # [1.0.0-alpha.12](https://github.com/getstrm/pace/compare/v1.0.0-alpha.11...v1.0.0-alpha.12) (2023-11-09)
 
 
