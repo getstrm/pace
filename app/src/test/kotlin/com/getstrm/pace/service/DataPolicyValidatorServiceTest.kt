@@ -505,9 +505,6 @@ rule_sets:
     }
 }
 
-// convenience for tests
-fun groups(vararg group: String) = group.map { Group(it, it, it) }
-
 /*
  * base yaml of policy with happy flow attributes
  */

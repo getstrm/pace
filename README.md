@@ -3,6 +3,8 @@
 
 [//]: # (TODO add shields from shields.io for build status, app version, Maven artifact [if we're going to publish to Sonatype], and Docker Image version)
 
+![orange-filled](./assets/svg/pace-logo-orange-filled.svg)  
+![black](./assets/svg/pace-logo-black.svg)  
 ![outline](./assets/svg/pace-logo-orange-outline.svg)
 
 > PACE is the _Policy and Contract Engine_. It helps you to programatically create and apply a data policy to a processing platform (like Databricks, Snowflake or BigQuery). Through a data contract, you can apply filters, field transforms, tag-based conditions and access settings to create a view inside a data platform. With Pace, you can enforce policies to data to ensure that data is only used by those allowed and in the way it was intended to be used.
