@@ -34,7 +34,7 @@ source:
       - date
       required: true
       type: varchar
-  ref: public.demo
+  ref: public.transactions
 rule_sets:
   - target:
       fullname: public.transactions_view
