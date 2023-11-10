@@ -11,18 +11,15 @@ import org.springframework.transaction.annotation.Transactional
 class DataPolicyService(
     private val dataPolicyDao: DataPolicyDao,
     private val processingPlatforms: ProcessingPlatformsService,
-    private val dataPolicyValidatorService: DataPolicyValidatorService,
-    private val globalTransformsService: GlobalTransformsService,
+    private val dataPolicyValidatorService: DataPolicyValidatorService
 ) {
     suspend fun listDataPolicies(): List<DataPolicy> = dataPolicyDao.listDataPolicies()
 
     @Transactional
     suspend fun upsertDataPolicy(dataPolicy: DataPolicy): DataPolicy {
-        val completeDataPolicy = globalTransformsService.addRuleSet(dataPolicy).also {
-            dataPolicyValidatorService.validate(it, processingPlatforms.listGroupNames(dataPolicy.platform.id))
-        }
-        val newDataPolicy = dataPolicyDao.upsertDataPolicy(completeDataPolicy)
-        enforceStatement(newDataPolicy)
+        dataPolicyValidatorService.validate(dataPolicy, processingPlatforms.listGroupNames(dataPolicy.platform.id))
+        val newDataPolicy = dataPolicyDao.upsertDataPolicy(dataPolicy)
+        processingPlatforms.getProcessingPlatform(newDataPolicy).applyPolicy(newDataPolicy)
         return newDataPolicy
     }
 
@@ -35,8 +32,4 @@ class DataPolicyService(
                 .setDescription("DataPolicy $id not found")
                 .build()
         )
-
-    private suspend fun enforceStatement(dataPolicy: DataPolicy) {
-        processingPlatforms.getProcessingPlatform(dataPolicy).applyPolicy(dataPolicy)
-    }
 }
