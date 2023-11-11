@@ -6,13 +6,13 @@ description: Create Data Policies with blueprint transforms
 
 This tutorial assumes that you have completed the [quickstart](../readme/quickstart.md) section of the docs. The prerequisites for this tutorial are the same as mentioned there.
 
-The goal of this tutorial, is to be able to fetch a Data Policy with a ruleset included, based on tags that are attached to a field on the respective processing platform. This enables the end-user to define transforms once, and reuse them without leaving the data processing platform or data catalog.
+The goal of this tutorial is to be able to fetch a Data Policy with a ruleset included, based on tags that are attached to a field on the respective processing platform. This enables the end-user to define transforms once, and reuse them without leaving the data processing platform or data catalog.
 
 ## File and directory setup
 
 {% tabs %}
 {% tab title="Clone Repository" %}
-Clone the repository from GitHub. This command assumes you're not using SSH, but feel free to do so.
+Clone the repository from GitHub, if you haven't already done so. This command assumes you're not using SSH, but feel free to do so.
 
 ```sh
 git clone https://github.com/getstrm/pace.git
@@ -35,7 +35,7 @@ Grab the contents of the files from the [GitHub repository](https://github.com/g
 {% endtab %}
 {% endtabs %}
 
-Now navigate  to the `global-tag-transforms` directory inside the newly create `pace` folder:
+Now navigate to the `global-tag-transforms` directory inside the `pace` repo:
 
 ```bash
 cd pace/examples/global-tag-transforms
@@ -62,15 +62,15 @@ Keep in mind that tags are currently prefixed with the fixed string `pace::`
 
 <summary><code>docker-compose.yaml</code></summary>
 
-The compose file contains three services, matching the introduction section of this document:
+The compose file defines three services:
 
-* **pace\_app** with all [ports](https://github.com/getstrm/pace/blob/standalone/examples/standalone/docker-compose.yaml#L42) exposed to the host for all different interfaces (REST, gRPC, and directly to the [Spring Boot app](#user-content-fn-1)[^1]):
-  * `8080` -> Spring Boot Actuator
-  * `9090` -> Envoy JSON / gRPC Transcoding proxy
-  * `50051` -> gRPC
-* **postgres\_pace** acts as the persistent layer for PACE to store its Data Policies
+* **pace\_app** with [ports](https://github.com/getstrm/pace/blob/standalone/examples/standalone/docker-compose.yaml#L42) for all different interfaces exposed to the host:
+  * `8080` -> Spring Boot Actuator.
+  * `9090` -> Envoy JSON / gRPC REST Transcoding proxy.
+  * `50051` -> gRPC.
+* **postgres\_pace** acts as the persistent layer for PACE to store its Data Policies.
   * Available under `localhost:5432` on your machine.
-* **postgres\_processing\_platform** is the pre-populated database
+* **postgres\_processing\_platform** is the pre-populated database.
   * Available under `localhost:5431` on your machine.
 
 </details>
@@ -79,7 +79,7 @@ The compose file contains three services, matching the introduction section of t
 
 <summary><code>data.sql</code></summary>
 
-The PostgreSQL initialization SQL script that is ran on startup for the `postgres_processing_platform` container. The database is configured to use the `public` schema (the default), with the following data:
+The PostgreSQL initialization SQL script that is run on startup for the `postgres_processing_platform` container. The database is configured to use the `public` schema (the default), with the following data:
 
 * A table called `public.demo`, for the data schema, please see the [file contents](https://github.com/getstrm/pace/blob/standalone/examples/standalone/data.sql).
 * A comment on the `email` field of the `public.demo` table, that includes the tag `pace::pii-email`.
@@ -90,7 +90,7 @@ The PostgreSQL initialization SQL script that is ran on startup for the `postgre
 
 <summary><code>config/application.yaml</code></summary>
 
-This is the Spring Boot application configuration, which allows for configuring the PACE database, and for configuring Data Catalog and Processing Platform connections.
+This is the Spring Boot application configuration, which specifies the PACE database connection, and Processing Platform.
 
 ```yaml
 spring:
@@ -355,7 +355,7 @@ In this data policy, a `rule_sets` section is present, and it has been populated
 
 ## Cleanup
 
-That wraps up the global transforms example. To clean up all resources, run the following commands (first stop the current running process with `ctrl+C`).
+That wraps up the global transforms example. To clean up all resources, run the following command after stopping the currently running process with `ctrl+C`.
 
 ```bash
 docker compose down
@@ -364,5 +364,3 @@ docker compose down
 
 
 Any questions or comments? Please ask them on [GitHub discussions](https://github.com/getstrm/pace/discussions).
-
-[^1]: Configuration should be mounted under the container path `/app/config`, which will be automatically included by the Spring Boot application.
