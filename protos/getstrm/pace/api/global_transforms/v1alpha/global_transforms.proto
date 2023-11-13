@@ -47,7 +47,7 @@ message GetGlobalTransformResponse {
 message ListGlobalTransformsRequest {
   repeated string types = 1 [(buf.validate.field).cel = {
     id: "global-transform-ref-and-type",
-    expression: "!(this.all(t, t in ['TAG_TRANSFORM'])) ? 'all values must be in list %s'.format(['TAG_TRANSFORM']) : ''"
+    expression: "!(this.all(t, t in ['TAG_TRANSFORM']) || this.size() == 0) ? 'all values must be in list %s'.format(['TAG_TRANSFORM']) : ''"
   }];
 }
 
