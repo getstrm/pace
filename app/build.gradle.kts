@@ -7,8 +7,12 @@ import org.flywaydb.gradle.task.FlywayMigrateTask
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import java.net.InetAddress
 import java.net.Socket
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.system.exitProcess
+
+val buildTimestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
 
 val generatedBufDependencyVersion: String by rootProject.extra
 val jooqGenerationPath = layout.buildDirectory.dir("generated/source/jooq/pace").get()
@@ -17,7 +21,11 @@ val jooqSchema = rootProject.extra["schema"] as String
 val jooqMigrationDir = "$projectDir/src/main/resources/db/migration/postgresql"
 val jooqVersion = rootProject.ext["jooqVersion"] as String
 val openDataDiscoveryOpenApiDir = layout.buildDirectory.dir("generated/source/odd").get()
-
+project.version = if (gradle.startParameter.taskNames.any { it.lowercase() == "builddocker" }) {
+    "${project.version}-SNAPSHOT"
+} else {
+    "${project.version}"
+}
 
 plugins {
     id("org.springframework.boot")
@@ -119,9 +127,15 @@ kotlin {
 
 tasks.named<BootJar>("bootJar") {
     mainClass = "com.getstrm.pace.PaceApplicationKt"
+    archiveFileName = "app.jar"
     manifest {
         attributes["Implementation-Title"] = "Policy and Contract Engine"
-        attributes["Implementation-Version"] = version
+
+        attributes["Implementation-Version"] = if (project.version.toString().endsWith("-SNAPSHOT")) {
+            "${project.version} (built at $buildTimestamp)"
+        } else {
+            project.version
+        }
     }
 }
 
@@ -296,10 +310,7 @@ val copyJarIntoDockerDir =
         group = "docker"
         dependsOn("bootJar")
 
-        val bootJar: BootJar by tasks
-
-        from("build/libs/${bootJar.archiveFileName.get()}")
-        rename(".*.jar", "app.jar")
+        from("build/libs/app.jar")
         into("build/docker")
     }
 
