@@ -153,7 +153,7 @@ message DataPolicy {
 }
 
 // If the specified transform is incompatible with the field data type to which this global transform is connected with,
-// then the end user will get an invalid argument, and the bare policy with the global transforms applied won't be returned.
+// then the end user will get an invalid argument, and the blueprint policy with the global transforms applied won't be returned.
 message GlobalTransform {
   // unique identifier for a certain Global Transform. When empty
   // the identifier of the transform will be used (for TagTransform tag_content)

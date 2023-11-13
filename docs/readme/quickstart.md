@@ -245,9 +245,10 @@ tables:
 
 ### The Data Policy file
 
-#### Create a bare policy
+#### Create a blueprint policy
 
-We start with a bare policy (without any rule sets) by reading the description of a table on the processing platform.
+We start with a blueprint policy (without any rule sets) by reading the description of a table on the processing 
+platform.
 
 ```bash
 pace get data-policy --processing-platform standalone-sample-connection public.demo

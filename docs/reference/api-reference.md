@@ -4,7 +4,8 @@
 [openapi.yaml](../.gitbook/assets/openapi.yaml)
 {% endswagger %}
 
-{% swagger src="../.gitbook/assets/openapi.yaml" path="/catalogs/{catalogId}/bare-policy" method="get" expanded="true" %}
+{% swagger src="../.gitbook/assets/openapi.yaml" path="/catalogs/{catalogId}/blueprint-policy" method="get" 
+expanded="true" %}
 [openapi.yaml](../.gitbook/assets/openapi.yaml)
 {% endswagger %}
 
@@ -48,6 +49,7 @@
 [openapi.yaml](../.gitbook/assets/openapi.yaml)
 {% endswagger %}
 
-{% swagger src="../.gitbook/assets/openapi.yaml" path="/processing-platforms/{platformId}/tables/{tableId}/bare-policy" method="get" expanded="true" %}
+{% swagger src="../.gitbook/assets/openapi.yaml" path="/processing-platforms/{platformId}/tables/{tableId}
+/blueprint-policy" method="get" expanded="true" %}
 [openapi.yaml](../.gitbook/assets/openapi.yaml)
 {% endswagger %}

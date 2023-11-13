@@ -36,11 +36,11 @@ class DataCatalogsApi(
             .build()
     }
 
-    override suspend fun getBarePolicy(request: GetBarePolicyRequest): GetBarePolicyResponse {
-        val dataPolicy: DataPolicy = dataCatalogsService.getBarePolicy(
+    override suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest): GetBlueprintPolicyResponse {
+        val dataPolicy: DataPolicy = dataCatalogsService.getBlueprintPolicy(
             request.catalogId, request.databaseId, request.schemaId, request.tableId
         )
-        return GetBarePolicyResponse.newBuilder()
+        return GetBlueprintPolicyResponse.newBuilder()
             .setDataPolicy(dataPolicy)
             .build()
     }

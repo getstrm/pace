@@ -142,12 +142,12 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /processing-platforms/{platform}/tables/{table}/bare-policy:
+    /processing-platforms/{platform}/tables/{table}/blueprint-policy:
         get:
             tags:
                 - DataPolicyService
             description: return a data-policy without rules sets as built from the table description on the platform
-            operationId: DataPolicyService_GetProcessingPlatformBarePolicy
+            operationId: DataPolicyService_GetProcessingPlatformBlueprintPolicy
             parameters:
                 - name: platform
                   in: path
@@ -165,7 +165,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/GetProcessingPlatformBarePolicyResponse'
+                                $ref: '#/components/schemas/GetProcessingPlatformBlueprintPolicyResponse'
                 default:
                     description: Default error response
                     content:
@@ -315,7 +315,7 @@ components:
             properties:
                 dataPolicy:
                     $ref: '#/components/schemas/DataPolicy'
-        GetProcessingPlatformBarePolicyResponse:
+        GetProcessingPlatformBlueprintPolicyResponse:
             type: object
             properties:
                 dataPolicy:
