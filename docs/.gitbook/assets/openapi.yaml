@@ -468,7 +468,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.14
+  version: 1.0.0-alpha.15
 openapi: 3.0.3
 paths:
   /catalogs:
@@ -494,9 +494,9 @@ paths:
   /catalogs/{catalogId}/blueprint-policy:
     get:
       description: "Returns a data policy without any rule sets, based on the given\
-        \ table's data structure in the catalog.\n Extend this blueprint policy with field\
-        \ transforms and/or rule sets to create a complete data policy.\n Use the\
-        \ UpsertDataPolicy endpoint to save and enforce the policy."
+        \ table's data structure in the catalog.\n Extend this blueprint policy with\
+        \ field transforms and/or rule sets to create a complete data policy.\n Use\
+        \ the UpsertDataPolicy endpoint to save and enforce the policy."
       operationId: DataCatalogsService_GetBlueprintPolicy
       parameters:
       - in: path
@@ -798,9 +798,9 @@ paths:
   /processing-platforms/{platformId}/tables/{tableId}/blueprint-policy:
     get:
       description: "Returns a data policy without any rule sets, based on the given\
-        \ table's data structure in the platform.\n Extend this blueprint policy with field\
-        \ transforms and/or rule sets to create a complete data policy.\n Use the\
-        \ UpsertDataPolicy endpoint to save and enforce the policy."
+        \ table's data structure in the platform.\n Extend this blueprint policy with\
+        \ field transforms and/or rule sets to create a complete data policy.\n Use\
+        \ the UpsertDataPolicy endpoint to save and enforce the policy."
       operationId: ProcessingPlatformsService_GetBlueprintPolicy
       parameters:
       - in: path
