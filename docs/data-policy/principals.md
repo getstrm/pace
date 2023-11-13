@@ -13,3 +13,4 @@ In the table below, you will find the concept names per processing platform.
 | BigQuery            | role                   |
 | Databricks          | Service principals     |
 | Snowflake           | role                   |
+| Postgres            | role                   |

@@ -87,7 +87,7 @@ The compose file contains three services, matching the introduction section of t
 
 <summary><code>data.sql</code></summary>
 
-The PostgreSQL initialization SQL script that is ran on startup for the `postgres_processing_platform` container. The database is configured to use the `public` schema (the default), with the following data:
+The PostgreSQL initialization SQL script that is run on startup for the `postgres_processing_platform` container. The database is configured to use the `public` schema (the default), with the following data:
 
 * A table called `public.demo`, for the data schema, please see the [file contents](https://github.com/getstrm/pace/blob/standalone/examples/standalone/data.sql).
 * Several users:
@@ -473,7 +473,7 @@ As you can see, all transforms with an empty principals list (i.e. all other use
 
 ## Cleanup
 
-That wraps up the standalone example. To clean up all resources, run the following commands (first stop the current running process with `ctrl+C`).
+That wraps up the standalone example. To clean up all resources, run the following command after stopping the currently running process with `ctrl+C`.
 
 ```bash
 docker compose down
@@ -482,7 +482,5 @@ docker compose down
 
 
 Any questions or comments? Please ask them on [GitHub discussions](https://github.com/getstrm/pace/discussions).
-
-####
 
 [^1]: Configuration should be mounted under the container path `/app/config`, which will be automatically included by the Spring Boot application.
