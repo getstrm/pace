@@ -164,16 +164,20 @@ message GlobalTransform {
   string ref = 1;
   string description = 2;
   oneof transform {
+    option (buf.validate.oneof).required = true;
     TagTransform tag_transform = 3;
   }
   message TagTransform {
-    string tag_content = 1;
+    string tag_content = 1 [(buf.validate.field).string.min_len = 1];
     repeated DataPolicy.RuleSet.FieldTransform.Transform transforms = 2;
   }
 
   message RefAndType {
     string ref = 1;
-    string type = 2; // TODO PACE-17 add validation that checks whether the types are allowed (oneof enum is not available in proto3, only in the Java generated code)
+    string type = 2 [(buf.validate.field).cel = {
+      id: "global-transform-ref-and-type",
+      expression: "!(this in ['TAG_TRANSFORM']) ? 'value must be in list %s'.format(['TAG_TRANSFORM']) : ''"
+    }];
   }
 }
 
@@ -223,6 +227,7 @@ message DataCatalog {
       string: {min_len: 1}
     }];
     // The parent database to which this schema belongs.
+
     Database database = 3;
     // The tables in this schema.
     repeated Table tables = 4;

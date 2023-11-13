@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.13
+    version: 1.0.0-alpha.14
 paths:
     /catalogs:
         get:
@@ -407,9 +407,7 @@ components:
                 name:
                     type: string
                 database:
-                    allOf:
-                        - $ref: '#/components/schemas/DataCatalog_Database'
-                    description: The parent database to which this schema belongs.
+                    $ref: '#/components/schemas/DataCatalog_Database'
                 tables:
                     type: array
                     items:
