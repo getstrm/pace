@@ -67,7 +67,7 @@ class ProcessingPlatformsService(
     suspend fun listProcessingPlatformGroups(platformId: String): List<Group> =
         (platforms[platformId] ?: throw processingPlatformNotFound(platformId)).listGroups()
 
-    suspend fun getBarePolicy(platformId: String, tableName: String): DataPolicy {
+    suspend fun getBlueprintPolicy(platformId: String, tableName: String): DataPolicy {
         val processingPlatformInterface = platforms[platformId] ?: throw processingPlatformNotFound(platformId)
         val table = processingPlatformInterface.getTable(tableName)
         val baseDataPolicy = table.toDataPolicy(

@@ -92,7 +92,7 @@ tables:
 ```
 {% endcode %}
 
-We can retrieve a bare policy from a catalog as follows.
+We can retrieve a blueprint policy from a catalog as follows.
 
 ```
 pace get data-policy --catalog datahub-on-dev --database ...\
@@ -153,4 +153,5 @@ source:
 
 ```
 
-We would typically redirect the output of this command into a file `> bare.yaml`, and add a rule set to the file. See [create-a-data-policy.md](../../getting-started/create-a-data-policy.md "mention")for details on how to do this.
+We would typically redirect the output of this command into a file `> blueprint.yaml`, and add a rule set to the file. 
+See [create-a-data-policy.md](../../getting-started/create-a-data-policy.md "mention")for details on how to do this.

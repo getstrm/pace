@@ -25,15 +25,15 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /catalogs/{catalogId}/bare-policy:
+    /catalogs/{catalogId}/blueprint-policy:
         get:
             tags:
                 - DataCatalogsService
             description: |-
                 Returns a data policy without any rule sets, based on the given table's data structure in the catalog.
-                 Extend this bare policy with field transforms and/or rule sets to create a complete data policy.
+                 Extend this blueprint policy with field transforms and/or rule sets to create a complete data policy.
                  Use the UpsertDataPolicy endpoint to save and enforce the policy.
-            operationId: DataCatalogsService_GetBarePolicy
+            operationId: DataCatalogsService_GetBlueprintPolicy
             parameters:
                 - name: catalogId
                   in: path
@@ -58,7 +58,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/GetBarePolicyResponse'
+                                $ref: '#/components/schemas/GetBlueprintPolicyResponse'
                 default:
                     description: Default error response
                     content:
@@ -317,15 +317,15 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /processing-platforms/{platformId}/tables/{tableId}/bare-policy:
+    /processing-platforms/{platformId}/tables/{tableId}/blueprint-policy:
         get:
             tags:
                 - ProcessingPlatformsService
             description: |-
                 Returns a data policy without any rule sets, based on the given table's data structure in the platform.
-                 Extend this bare policy with field transforms and/or rule sets to create a complete data policy.
+                 Extend this blueprint policy with field transforms and/or rule sets to create a complete data policy.
                  Use the UpsertDataPolicy endpoint to save and enforce the policy.
-            operationId: ProcessingPlatformsService_GetBarePolicy
+            operationId: ProcessingPlatformsService_GetBlueprintPolicy
             parameters:
                 - name: platformId
                   in: path
@@ -343,7 +343,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/GetBarePolicyResponse'
+                                $ref: '#/components/schemas/GetBlueprintPolicyResponse'
                 default:
                     description: Default error response
                     content:
@@ -598,7 +598,7 @@ components:
                 condition:
                     type: string
                     description: A (platform-specific) SQL expression. If it evaluates to true, the principals are allowed to access the data.
-        GetBarePolicyResponse:
+        GetBlueprintPolicyResponse:
             type: object
             properties:
                 dataPolicy:
@@ -622,7 +622,7 @@ components:
                     $ref: '#/components/schemas/GlobalTransform_TagTransform'
             description: |-
                 If the specified transform is incompatible with the field data type to which this global transform is connected with,
-                 then the end user will get an invalid argument, and the bare policy with the global transforms applied won't be returned.
+                 then the end user will get an invalid argument, and the blueprint policy with the global transforms applied won't be returned.
         GlobalTransform_TagTransform:
             type: object
             properties:

@@ -36,4 +36,4 @@ query=$( jq -n -r \
 
 echo $query | evans -r cli \
     --package getstrm.api.data_policies.v1alpha --service DataPolicyService \
-    call GetCatalogBarePolicy
+    call GetCatalogBlueprintPolicy

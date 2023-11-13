@@ -227,9 +227,9 @@ psql postgresql://detokenization_user:detokenization@localhost:5431/detokenizati
 
 </details>
 
-### Fetching a bare Data Policy
+### Fetching a blueprint Data Policy
 
-We can use the PACE CLI to retrieve a bare policy for the `transactions` table as follows:
+We can use the PACE CLI to retrieve a blueprint policy for the `transactions` table as follows:
 
 {% code fullWidth="false" %}
 ```

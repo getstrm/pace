@@ -17,4 +17,4 @@ query=$( jq -n -r --arg id $platform --arg table $table \
 
 echo $query | evans -r cli \
     --package getstrm.api.data_policies.v1alpha --service DataPolicyService \
-    call GetProcessingPlatformBarePolicy
+    call GetProcessingPlatformBlueprintPolicy

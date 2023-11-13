@@ -29,11 +29,11 @@ service ProcessingPlatformsService {
         };
     };
     // Returns a data policy without any rule sets, based on the given table's data structure in the platform.
-    // Extend this bare policy with field transforms and/or rule sets to create a complete data policy.
+    // Extend this blueprint policy with field transforms and/or rule sets to create a complete data policy.
     // Use the UpsertDataPolicy endpoint to save and enforce the policy.
-    rpc GetBarePolicy (GetBarePolicyRequest) returns (GetBarePolicyResponse) {
+    rpc GetBlueprintPolicy (GetBlueprintPolicyRequest) returns (GetBlueprintPolicyResponse) {
         option (google.api.http) = {
-            get: "/processing-platforms/{platform_id}/tables/{table_id}/bare-policy"
+            get: "/processing-platforms/{platform_id}/tables/{table_id}/blueprint-policy"
         };
     };
 }
@@ -61,11 +61,11 @@ message ListGroupsResponse {
     repeated string groups = 1;
 }
 
-message GetBarePolicyRequest {
+message GetBlueprintPolicyRequest {
     string platform_id = 1 [(buf.validate.field).string = {min_len: 1}];
     string table_id = 2 [(buf.validate.field).string = {min_len: 1}];
 }
 
-message GetBarePolicyResponse {
+message GetBlueprintPolicyResponse {
     entities.v1alpha.DataPolicy data_policy = 1;
 }
