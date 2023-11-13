@@ -50,9 +50,7 @@ components:
     DataCatalog_Schema:
       properties:
         database:
-          allOf:
-          - $ref: '#/components/schemas/DataCatalog_Database'
-          description: The parent database to which this schema belongs.
+          $ref: '#/components/schemas/DataCatalog_Database'
         id:
           description: The id used by the catalog.
           type: string
@@ -470,7 +468,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.13
+  version: 1.0.0-alpha.14
 openapi: 3.0.3
 paths:
   /catalogs:

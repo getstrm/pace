@@ -1,3 +1,10 @@
+# [1.0.0-alpha.14](https://github.com/getstrm/pace/compare/v1.0.0-alpha.13...v1.0.0-alpha.14) (2023-11-13)
+
+
+### Features
+
+* **pace-17-2:** add validation to check whether GlobalTransform.RefA… ([#39](https://github.com/getstrm/pace/issues/39)) ([9c1aeaa](https://github.com/getstrm/pace/commit/9c1aeaad3d26270851b632d7efb4e7096b861af6))
+
 # [1.0.0-alpha.13](https://github.com/getstrm/pace/compare/v1.0.0-alpha.12...v1.0.0-alpha.13) (2023-11-10)
 
 
