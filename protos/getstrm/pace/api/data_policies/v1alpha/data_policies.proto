@@ -13,7 +13,7 @@ service DataPoliciesService {
     // Lists all DataPolicies for all platforms.
     rpc ListDataPolicies (ListDataPoliciesRequest) returns (ListDataPoliciesResponse) {
         option (google.api.http) = {
-            get: "/data-policies/list"
+            get: "/data-policies"
         };
     };
     // Creates or updates a DataPolicy in PACE and applies it to the processing platform.
@@ -26,7 +26,7 @@ service DataPoliciesService {
     // Returns the latest policy for a given id and platform.
     rpc GetDataPolicy (GetDataPolicyRequest) returns (GetDataPolicyResponse) {
         option (google.api.http) = {
-            get: "/data-policies"
+            get: "/data-policies/{data_policy_id}/platform/{platform_id}"
         };
     };
 }

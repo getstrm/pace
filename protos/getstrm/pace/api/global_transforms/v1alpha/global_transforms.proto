@@ -13,12 +13,27 @@ option java_package = "com.getstrm.pace.api.global_transforms.v1alpha";
 // TODO HTTP paths should be defined
 // TODO add validations
 service GlobalTransformsService {
-  rpc GetGlobalTransform(GetGlobalTransformRequest) returns (GetGlobalTransformResponse);
+  rpc GetGlobalTransform(GetGlobalTransformRequest) returns (GetGlobalTransformResponse) {
+    option (google.api.http) = {
+      post: "/global-transform"
+      body: "*"
+    };
+  }
   rpc ListGlobalTransforms(ListGlobalTransformsRequest) returns (ListGlobalTransformsResponse) {
     option (google.api.http) = {get: "/global-transforms"};
   }
-  rpc UpsertGlobalTransform(UpsertGlobalTransformRequest) returns (UpsertGlobalTransformResponse);
-  rpc DeleteGlobalTransform(DeleteGlobalTransformRequest) returns (DeleteGlobalTransformResponse);
+  rpc UpsertGlobalTransform(UpsertGlobalTransformRequest) returns (UpsertGlobalTransformResponse) {
+    option (google.api.http) = {
+      post: "/global-transforms"
+      body: "*"
+    };
+  }
+  rpc DeleteGlobalTransform(DeleteGlobalTransformRequest) returns (DeleteGlobalTransformResponse) {
+    option (google.api.http) = {
+      delete: "/global-transforms"
+      body: "*"
+    };
+  }
 }
 
 message GetGlobalTransformRequest {
@@ -30,7 +45,10 @@ message GetGlobalTransformResponse {
 }
 
 message ListGlobalTransformsRequest {
-  repeated string types = 1; // TODO PACE-17 add validation to check whether the types are allows oneof transform enum types
+  repeated string types = 1 [(buf.validate.field).cel = {
+    id: "global-transform-ref-and-type",
+    expression: "!(this.all(t, t in ['TAG_TRANSFORM'])) ? 'all values must be in list %s'.format(['TAG_TRANSFORM']) : ''"
+  }];
 }
 
 message ListGlobalTransformsResponse {
