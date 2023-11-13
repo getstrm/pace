@@ -4,7 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.POSTGRES
 import com.getstrm.pace.config.PostgresConfig
 import com.getstrm.pace.processing_platforms.Group
-import com.getstrm.pace.processing_platforms.ProcessingPlatform
+import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.util.normalizeType
 import com.zaxxer.hikari.HikariConfig
@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory
 class PostgresClient(
     override val id: String,
     private val jooq: DSLContext,
-) : ProcessingPlatform {
+) : ProcessingPlatformClient {
     // To match the behavior of the other ProcessingPlatform implementations, we connect to a
     // single database. If we want to add support for a single client to connect to mulitple
     // databases, more info can be found here:

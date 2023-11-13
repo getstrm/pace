@@ -1,13 +1,9 @@
 package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.DETOKENIZE
-import com.getstrm.pace.exceptions.BadRequestException
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.*
+import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
-import com.getstrm.pace.util.sqlDataType
-import com.github.drapostolos.typeparser.TypeParser
-import com.github.drapostolos.typeparser.TypeParserException
-import com.google.rpc.BadRequest
 import org.jooq.*
 import org.jooq.conf.ParseNameCase
 import org.jooq.conf.ParseUnknownFunctions
@@ -15,13 +11,14 @@ import org.jooq.conf.RenderQuotedNames
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.*
-import org.jooq.impl.ParserException
 import org.jooq.Field as JooqField
 
 abstract class AbstractDynamicViewGenerator(
     protected val dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {},
 ) {
+    protected val transformFactory: ProcessingPlatformTransformFactory = ProcessingPlatformTransformFactory()
+
     protected abstract fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition?
 
     protected open fun selectWithAdditionalHeaderStatements(fields: List<JooqField<*>>): SelectSelectStep<Record> =
@@ -33,7 +30,6 @@ abstract class AbstractDynamicViewGenerator(
 
     protected val jooq = DSL.using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
     private val parser = jooq.parser()
-    private val typeParser: TypeParser = TypeParser.newBuilder().build()
 
     fun toDynamicViewSQL(): String {
         val queries = dataPolicy.ruleSetsList.map { ruleSet ->
@@ -156,106 +152,22 @@ abstract class AbstractDynamicViewGenerator(
         val memberCheck = transform?.principalsList?.toPrincipalCondition()
 
         val statement = when (transform?.transformCase) {
-            DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.REGEXP -> {
-                if (transform.regexp.replacement.isNullOrEmpty()) {
-                    field(
-                        "regexp_extract({0}, {1})",
-                        String::class.java,
-                        unquotedName(field.fullName()),
-                        `val`(transform.regexp.regexp),
-                    )
-                } else
-                    regexpReplaceAll(
-                        field(field.fullName(), String::class.java),
-                        transform.regexp.regexp,
-                        transform.regexp.replacement,
-                    )
-            }
-
-            DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.FIXED -> {
-                fixedDataTypeMatchesFieldType(transform.fixed.value, field)
-                inline(transform.fixed.value, field.sqlDataType())
-            }
-
-            DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.HASH -> {
-                field(
-                    "hash({0}, {1})",
-                    Any::class.java,
-                    `val`(transform.hash.seed),
-                    unquotedName(field.fullName()),
-                )
-            }
-
-            DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.SQL_STATEMENT -> {
-                try {
-                    parser.parseField(transform.sqlStatement.statement)
-                } catch (e: ParserException) {
-                    throw invalidSqlStatementException(e)
-                }
-                // Todo: for now we use the parser just to detect errors, since the resulting sql may be incompatible with the target platform -> I've asked a question on SO: https://stackoverflow.com/q/77300702
-                // (For example, the BigQuery string datatype gets parsed as varchar)
-                // Doing this may reduce (sql injection) safety
-                field(transform.sqlStatement.statement)
-            }
-
-            DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.NULLIFY -> inline<Any>(null)
-
-            DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.TRANSFORM_NOT_SET, DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.IDENTITY, null -> {
-                field(field.fullName())
-            }
-
-            DETOKENIZE -> {
-                field(
-                    "coalesce({0}, {1})",
-                    String::class.java,
-                    unquotedName("${renderName(transform.detokenize.tokenSourceRef)}.${transform.detokenize.valueField.fullName()}"),
-                    unquotedName("${renderName(dataPolicy.source.ref)}.${field.fullName()}"),
-                )
-            }
+            REGEXP -> transformFactory.regexpReplaceTransform(field, transform.regexp)
+            FIXED -> transformFactory.fixedTransform(field, transform.fixed)
+            HASH -> transformFactory.hashTransform(field, transform.hash)
+            SQL_STATEMENT -> transformFactory.sqlStatementTransform(parser, transform.sqlStatement)
+            NULLIFY -> transformFactory.nullifyTransform()
+            DETOKENIZE -> transformFactory.detokenizeTransform(
+                renderName(transform.detokenize.tokenSourceRef),
+                renderName(dataPolicy.source.ref),
+                transform.detokenize,
+                field
+            )
+            NUMERIC_ROUNDING -> transformFactory.numericRoundingTransform()
+            TRANSFORM_NOT_SET, IDENTITY, null -> transformFactory.identityTransform(field)
         }
         return memberCheck to (statement as JooqField<Any>)
     }
-
-    private fun fixedDataTypeMatchesFieldType(
-        fixedValue: String,
-        field: DataPolicy.Field
-    ) {
-        try {
-            typeParser.parse(fixedValue, field.sqlDataType().type)
-        } catch (e: TypeParserException) {
-            throw BadRequestException(
-                BadRequestException.Code.INVALID_ARGUMENT,
-                BadRequest.newBuilder()
-                    .addAllFieldViolations(
-                        listOf(
-                            BadRequest.FieldViolation.newBuilder()
-                                .setField("dataPolicy.ruleSetsList.fieldTransformsList.fixed")
-                                .setDescription("Data type of fixed value provided for field ${field.fullName()} does not match the data type of the field")
-                                .build()
-                        )
-                    )
-                    .build(),
-                e
-            )
-        }
-    }
-
-    private fun invalidSqlStatementException(e: ParserException) = BadRequestException(
-        BadRequestException.Code.INVALID_ARGUMENT,
-        BadRequest.newBuilder()
-            .addAllFieldViolations(
-                listOf(
-                    BadRequest.FieldViolation.newBuilder()
-                        .setField("dataPolicy.ruleSetsList.fieldTransformsList.sqlStatement")
-                        .setDescription("Error parsing SQL statement: ${e.message}")
-                        .build()
-                )
-            )
-            .build(),
-        e
-    )
-
-    private fun DataPolicy.Field.fullName(): String = this.namePartsList.joinToString(".")
 
     companion object {
         protected val defaultJooqSettings = Settings()

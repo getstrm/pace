@@ -4,9 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.ResourceException
 import com.google.rpc.ResourceInfo
 
-interface ProcessingPlatform {
-
-    // platform id
+interface ProcessingPlatformClient {
     val id: String
     val type: DataPolicy.ProcessingPlatform.PlatformType
     suspend fun listGroups(): List<Group>

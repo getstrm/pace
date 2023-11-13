@@ -6,7 +6,7 @@ import com.getstrm.pace.config.BigQueryConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.processing_platforms.Group
-import com.getstrm.pace.processing_platforms.ProcessingPlatform
+import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.toFullName
@@ -23,7 +23,7 @@ class BigQueryClient(
     serviceAccountKeyJson: String,
     private val projectId: String,
     private val userGroupsTable: String,
-) : ProcessingPlatform {
+) : ProcessingPlatformClient {
     constructor(config: BigQueryConfig) : this(
         config.id,
         config.serviceAccountJsonKey,
