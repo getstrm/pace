@@ -6,8 +6,8 @@ Get a data policy
 
 retrieves a DataPolicy from Pace.
 
-A blueprint policy is a policy without a rule set that can be retrieved from a data catalog or a
-processing platform. This means we use the table information in the platform to
+A blueprint policy is a policy that can be retrieved from a data catalog or a
+processing platform with 0 or more `Rule Sets`. This means we use the table information in the platform to
 build the `source` part of a data policy. We must either provide a platform or a catalog
 id to make the call succeed.
 
