@@ -50,12 +50,16 @@ message DataPolicy {
       Field field = 1;
       // The last condition in the list must have 0 principals, as this acts as the default / else condition.
       // Transforms should have mutually exclusive sets of principals.
-      repeated Transform transforms = 2;
+      repeated Transform transforms = 2 [(buf.validate.field).cel = {
+        id: "last-field-transform-principals",
+        expression: "!this[this.size()].principals.size() == 0 ? 'last transform must have 0 principals' : ''"
+      }];
 
       message Transform {
         // The principals (e.g. groups) for which this transform will be applied.
         repeated Principal principals = 1;
         oneof transform {
+          option (buf.validate.oneof).required = true;
           // Extract and optionally replace a value in a field using a regular expression. Use the syntax matching the processing platform.
           Regexp regexp = 3;
           // Use the identity transform to copy a field value as-is.
