@@ -99,6 +99,7 @@ message DataPolicy {
         }
         message NumericRounding {
           oneof rounding {
+            option (buf.validate.oneof).required = true;
             // Round the value to the nearest integer (e.g. 1.5 becomes 2), respecting the divisor.
             Ceil ceil = 3;
             // Round the value down to the nearest integer (e.g. 1.5 becomes 1), respecting the divisor.
@@ -117,7 +118,7 @@ message DataPolicy {
           }
           message Round {
             // The precision to use for rounding. When positive, the value is rounded to the nearest decimal place. When negative, the value is rounded to the nearest power of 10.
-            float precision = 1;
+            int32 precision = 1;
           }
         }
       }

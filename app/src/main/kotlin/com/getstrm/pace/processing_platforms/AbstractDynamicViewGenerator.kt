@@ -158,12 +158,12 @@ abstract class AbstractDynamicViewGenerator(
             SQL_STATEMENT -> transformFactory.sqlStatementTransform(parser, transform.sqlStatement)
             NULLIFY -> transformFactory.nullifyTransform()
             DETOKENIZE -> transformFactory.detokenizeTransform(
-                renderName(transform.detokenize.tokenSourceRef),
-                renderName(dataPolicy.source.ref),
+                field,
                 transform.detokenize,
-                field
+                renderName(transform.detokenize.tokenSourceRef),
+                renderName(dataPolicy.source.ref)
             )
-            NUMERIC_ROUNDING -> transformFactory.numericRoundingTransform()
+            NUMERIC_ROUNDING -> transformFactory.numericRoundingTransform(field, transform.numericRounding)
             TRANSFORM_NOT_SET, IDENTITY, null -> transformFactory.identityTransform(field)
         }
         return memberCheck to (statement as JooqField<Any>)

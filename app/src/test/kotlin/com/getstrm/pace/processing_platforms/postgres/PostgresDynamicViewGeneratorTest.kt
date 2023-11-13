@@ -192,6 +192,26 @@ class PostgresDynamicViewGeneratorTest {
     }
 
     @Test
+    fun `numeric rounding - ceil`() {
+        // Given
+        val field = DataPolicy.Field.newBuilder().addNameParts("transactionamount").setType("integer").build()
+        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+            .setNumericRounding(
+                DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.newBuilder()
+                    .setCeil(
+                        DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Ceil.newBuilder().setDivisor(10f)
+                    )
+            )
+            .build()
+
+        // When
+        val (_, jooqField) = underTest.toCase(transform, field)
+
+        // Then
+        jooqField.toSql() shouldBe "ceil(transactionamount / 10.0) * 10.0"
+    }
+
+    @Test
     fun `full SQL view statement with a single detokenize join`() {
         // Given
         val viewGenerator = PostgresDynamicViewGenerator(singleDetokenizePolicy) { withRenderFormatted(true) }
