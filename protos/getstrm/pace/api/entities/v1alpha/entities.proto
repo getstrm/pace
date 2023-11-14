@@ -40,6 +40,7 @@ message DataPolicy {
     message Retention {
       // The field of type SQL date with timestamp.
       Field field = 1;
+      // The last condition in the list must have 0 principals, as this acts as the default / else condition.
       repeated Condition conditions = 2;
       message Condition {
         // The principals (e.g. groups) that apply to this condition.
