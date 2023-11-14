@@ -18,15 +18,13 @@ abstract class ProcessingPlatformViewGenerator(
     protected val dataPolicy: DataPolicy,
     private val transformer: ProcessingPlatformTransformer = DefaultProcessingPlatformTransformer,
     customJooqSettings: Settings.() -> Unit = {},
-) {
+): ProcessingPlatformRenderer {
     protected abstract fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition?
 
     protected open fun selectWithAdditionalHeaderStatements(fields: List<JooqField<*>>): SelectSelectStep<Record> =
         jooq.select(fields)
 
     protected open fun additionalFooterStatements(): Queries = DSL.queries()
-
-    protected open fun renderName(name: String): String = jooq.renderNamedParams(name(name))
 
     protected open val jooq: DSLContext = DSL.using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
 
