@@ -13,7 +13,10 @@ import org.jooq.impl.DSL
 import org.jooq.impl.DSL.*
 import org.jooq.Field as JooqField
 
-abstract class ProcessingPlatformViewGenerator(protected val dataPolicy: DataPolicy) {
+abstract class ProcessingPlatformViewGenerator(
+    protected val dataPolicy: DataPolicy,
+    customJooqSettings: Settings.() -> Unit = {},
+) {
     protected val transformer: ProcessingPlatformTransformer = ProcessingPlatformTransformer()
 
     protected abstract fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition?
@@ -25,7 +28,7 @@ abstract class ProcessingPlatformViewGenerator(protected val dataPolicy: DataPol
 
     protected open fun renderName(name: String): String = jooq.renderNamedParams(name(name))
 
-    protected abstract val jooq: DSLContext
+    protected open val jooq: DSLContext = DSL.using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
 
     fun toDynamicViewSQL(): String {
         val queries = dataPolicy.ruleSetsList.map { ruleSet ->
@@ -159,7 +162,6 @@ abstract class ProcessingPlatformViewGenerator(protected val dataPolicy: DataPol
                 renderName(transform.detokenize.tokenSourceRef),
                 renderName(dataPolicy.source.ref)
             )
-            NUMERIC_ROUNDING -> transformer.numericRounding(field, transform.numericRounding)
             TRANSFORM_NOT_SET, IDENTITY, null -> transformer.identity(field)
         }
         return memberCheck to (statement as JooqField<Any>)

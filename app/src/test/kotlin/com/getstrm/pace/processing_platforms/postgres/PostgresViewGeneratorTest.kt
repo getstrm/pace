@@ -192,26 +192,6 @@ class PostgresViewGeneratorTest {
     }
 
     @Test
-    fun `numeric rounding - ceil`() {
-        // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("transactionamount").setType("integer").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setNumericRounding(
-                DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.newBuilder()
-                    .setCeil(
-                        DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Ceil.newBuilder().setDivisor(10f)
-                    )
-            )
-            .build()
-
-        // When
-        val (_, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        jooqField.toSql() shouldBe "ceil(transactionamount / 10.0) * 10.0"
-    }
-
-    @Test
     fun `full SQL view statement with a single detokenize join`() {
         // Given
         val viewGenerator = PostgresViewGenerator(singleDetokenizePolicy) { withRenderFormatted(true) }
@@ -236,7 +216,7 @@ select
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce(tokens.userid_tokens.userid, public.demo_tokenized.userid)
     else userid
-  end userid,
+  end as userid,
   transactionamount
 from public.demo_tokenized
   left outer join tokens.userid_tokens
@@ -272,11 +252,11 @@ select
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce(tokens.transactionid_tokens.transactionid, public.demo_tokenized.transactionid)
     else transactionid
-  end transactionid,
+  end as transactionid,
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce(tokens.userid_tokens.userid, public.demo_tokenized.userid)
     else userid
-  end userid,
+  end as userid,
   transactionamount
 from public.demo_tokenized
   left outer join tokens.userid_tokens
@@ -316,14 +296,14 @@ select
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then userid
     else 123
-  end userid,
+  end as userid,
   case
-    when ('marketing' IN ( SELECT rolname FROM user_groups )) then regexp_replace(email, '^.*(@.*)${'$'}', '****\1')
+    when ('marketing' IN ( SELECT rolname FROM user_groups )) then regexp_replace(email, '^.*(@.*)${'$'}', '****\1', 'g')
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then email
     else '****'
-  end email,
+  end as email,
   age,
-  CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END brand,
+  CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END as brand,
   transactionamount
 from public.demo
 where (

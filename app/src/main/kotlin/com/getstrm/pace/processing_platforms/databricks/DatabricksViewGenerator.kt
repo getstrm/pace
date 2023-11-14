@@ -14,11 +14,7 @@ import org.jooq.impl.DSL
 class DatabricksViewGenerator(
     dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {}
-) : ProcessingPlatformViewGenerator(
-    dataPolicy
-) {
-    override val jooq: DSLContext = DSL.using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
-
+) : ProcessingPlatformViewGenerator(dataPolicy, customJooqSettings) {
     override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
         return if (isEmpty()) {
             null

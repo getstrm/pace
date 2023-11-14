@@ -20,6 +20,8 @@ import javax.sql.DataSource
 fun Field<*>.toSql(): String = DSL.select(this).getSQL(ParamType.INLINED).removePrefix("select ")
 
 class TestDynamicViewGenerator(dataPolicy: DataPolicy) : ProcessingPlatformViewGenerator(dataPolicy) {
+    override val jooq: DSLContext = DSL.using(SQLDialect.DEFAULT)
+
     override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
         return null
     }

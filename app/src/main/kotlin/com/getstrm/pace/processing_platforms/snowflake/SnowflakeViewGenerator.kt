@@ -6,9 +6,7 @@ import com.getstrm.pace.exceptions.PaceStatusException.Companion.UNIMPLEMENTED
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
 import com.google.rpc.DebugInfo
 import org.jooq.Condition
-import org.jooq.DSLContext
 import org.jooq.Queries
-import org.jooq.SQLDialect
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 
@@ -16,10 +14,7 @@ import org.jooq.impl.DSL
 class SnowflakeViewGenerator(
     dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {},
-) : ProcessingPlatformViewGenerator(dataPolicy) {
-
-    override val jooq: DSLContext = DSL.using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
-
+) : ProcessingPlatformViewGenerator(dataPolicy, customJooqSettings) {
     override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
         return if (isEmpty()) {
             null

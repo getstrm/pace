@@ -12,7 +12,7 @@ import org.jooq.impl.DSL
 class PostgresViewGenerator(
     dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {},
-) : ProcessingPlatformViewGenerator(dataPolicy) {
+) : ProcessingPlatformViewGenerator(dataPolicy, customJooqSettings) {
     override val jooq: DSLContext = DSL.using(SQLDialect.POSTGRES, defaultJooqSettings.apply(customJooqSettings))
     override fun additionalFooterStatements(): Queries {
         val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->
@@ -25,7 +25,7 @@ class PostgresViewGenerator(
             principals.map {
                 DSL.query(
                     jooq.grant(DSL.privilege("SELECT")).on(DSL.table(DSL.unquotedName(viewName)))
-                        .to(DSL.role(it.group)).sql
+                        .to(DSL.role(DSL.quotedName(it.group))).sql
                 )
             }
         }
