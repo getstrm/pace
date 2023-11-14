@@ -5,6 +5,8 @@ import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintP
 import build.buf.gen.google.rpc.BadRequest.FieldViolation
 import com.getstrm.pace.config.ProcessingPlatformConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.exceptions.InternalException
+import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatform
@@ -14,7 +16,9 @@ import com.getstrm.pace.processing_platforms.databricks.DatabricksClient
 import com.getstrm.pace.processing_platforms.postgres.PostgresClient
 import com.getstrm.pace.processing_platforms.snowflake.SnowflakeClient
 import com.google.rpc.BadRequest
+import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -24,6 +28,8 @@ class ProcessingPlatformsService(
     private val dataPolicyValidatorService: DataPolicyValidatorService,
 ) {
     final val platforms: Map<String, ProcessingPlatform>
+
+    private val log = LoggerFactory.getLogger(DatabricksClient::javaClass.name)
 
     init {
         val databricks = config.databricks.map { DatabricksClient(it) }
@@ -83,9 +89,17 @@ class ProcessingPlatformsService(
                 dataPolicyValidatorService.validate(blueprint, listGroupNames(platformId))
                 builder.build()
             } catch (e: BadRequestException) {
+                e.status.description?.let {
                     builder.setViolation(
-                        FieldViolation.newBuilder().setDescription(e.status.description?:e.javaClass.name))
+                        FieldViolation.newBuilder().setDescription(e.status.description))
+                        .build()
+
+                } ?: throw InternalException(InternalException.Code.INTERNAL, DebugInfo.newBuilder()
+                    .setDetail("DataPolicyValidatorService.validate threw an exception without a description. ${BUG_REPORT}" )
+                    .addAllStackEntries(e.stackTrace.map { it.toString()})
                     .build()
+                )
+
             }
         }
     }
