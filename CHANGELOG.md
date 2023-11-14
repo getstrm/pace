@@ -1,3 +1,10 @@
+# [1.0.0-alpha.16](https://github.com/getstrm/pace/compare/v1.0.0-alpha.15...v1.0.0-alpha.16) (2023-11-14)
+
+
+### Features
+
+* **pace-17-3:** add http paths for global transforms ([#43](https://github.com/getstrm/pace/issues/43)) ([16e5898](https://github.com/getstrm/pace/commit/16e58987a6c2fe5e81fbbd74f4fd6e109ed37b7a))
+
 # [1.0.0-alpha.15](https://github.com/getstrm/pace/compare/v1.0.0-alpha.14...v1.0.0-alpha.15) (2023-11-13)
 
 
