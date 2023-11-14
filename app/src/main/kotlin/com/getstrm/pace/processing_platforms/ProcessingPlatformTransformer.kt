@@ -1,22 +1,24 @@
 package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.*
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Detokenize
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Fixed
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Hash
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Regexp
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.SqlStatement
 import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.exceptions.InternalException
-import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
-import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.sqlDataType
 import com.github.drapostolos.typeparser.TypeParser
 import com.github.drapostolos.typeparser.TypeParserException
 import com.google.rpc.BadRequest
-import com.google.rpc.DebugInfo
 import org.jooq.Parser
-import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.jooq.impl.ParserException
 import org.jooq.Field as JooqField
+
+val CAPTURING_GROUP_REGEX = Regex("""\$(\d+)""")
+
 
 /**
  * Factory for creating jOOQ fields from [DataPolicy.Field]s and [DataPolicy.RuleSet.FieldTransform.Transform]s.
