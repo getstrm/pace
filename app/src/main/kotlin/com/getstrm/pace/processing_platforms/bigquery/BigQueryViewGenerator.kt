@@ -64,4 +64,8 @@ class BigQueryViewGenerator(
             )
         return DSL.with(userGroupSelect).select(fields)
     }
+
+    override fun DataPolicy.RuleSet.Retention.Condition.toRetentionCondition(field: DataPolicy.Field): String {
+        TODO("Not yet implemented")
+    }
 }

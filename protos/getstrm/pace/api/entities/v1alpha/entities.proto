@@ -45,7 +45,7 @@ message DataPolicy {
       message Condition {
         // The principals (e.g. groups) that apply to this condition.
         repeated Principal principals = 1 [(buf.validate.field).repeated.min_items = 0];
-        // The retention period for the data measured in days after creation.
+        // The retention period for the data measured in days after creation. If empty or null, defaults to infinite retention period.
         Period period = 2;
       }
       message Period {

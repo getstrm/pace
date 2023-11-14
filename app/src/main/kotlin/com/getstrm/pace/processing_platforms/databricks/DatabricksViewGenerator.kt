@@ -34,4 +34,8 @@ class DatabricksViewGenerator(
             )
         }
     }
+
+    override fun DataPolicy.RuleSet.Retention.Condition.toRetentionCondition(field: DataPolicy.Field): String {
+        TODO("Not yet implemented")
+    }
 }

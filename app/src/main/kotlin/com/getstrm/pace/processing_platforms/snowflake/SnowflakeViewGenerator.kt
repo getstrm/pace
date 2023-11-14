@@ -53,4 +53,8 @@ class SnowflakeViewGenerator(
 
         return jooq.queries(grants)
     }
+
+    override fun DataPolicy.RuleSet.Retention.Condition.toRetentionCondition(field: DataPolicy.Field): String {
+        TODO("Not yet implemented")
+    }
 }

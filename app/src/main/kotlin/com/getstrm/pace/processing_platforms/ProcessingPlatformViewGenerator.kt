@@ -6,9 +6,6 @@ import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
 import org.jooq.*
-import org.jooq.conf.ParseNameCase
-import org.jooq.conf.ParseUnknownFunctions
-import org.jooq.conf.RenderQuotedNames
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.*
@@ -18,13 +15,15 @@ abstract class ProcessingPlatformViewGenerator(
     protected val dataPolicy: DataPolicy,
     private val transformer: ProcessingPlatformTransformer = DefaultProcessingPlatformTransformer,
     customJooqSettings: Settings.() -> Unit = {},
-): ProcessingPlatformRenderer {
+) : ProcessingPlatformRenderer {
     protected abstract fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition?
 
     protected open fun selectWithAdditionalHeaderStatements(fields: List<JooqField<*>>): SelectSelectStep<Record> =
         jooq.select(fields)
 
     protected open fun additionalFooterStatements(): Queries = DSL.queries()
+
+    protected abstract fun DataPolicy.RuleSet.Retention.Condition.toRetentionCondition(field: DataPolicy.Field): String
 
     protected open val jooq: DSLContext = DSL.using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
 
@@ -49,7 +48,9 @@ abstract class ProcessingPlatformViewGenerator(
                     .where(
                         ruleSet.filtersList.map { filter ->
                             toCondition(filter)
-                        },
+                        } + ruleSet.retentionList.map { retention ->
+                            toCondition(retention)
+                        }
                     ),
             )
         }
@@ -110,6 +111,33 @@ abstract class ProcessingPlatformViewGenerator(
         return DSL.condition(whereCondition)
     }
 
+    fun toCondition(retention: DataPolicy.RuleSet.Retention): Condition {
+        if (retention.conditionsList.size == 1) {
+            // If there is only one filter it should be the only option
+            // create retention sql
+        }
+
+        val whereCondition = retention.conditionsList.headTailFold(
+            headOperation = { condition ->
+                DSL.`when`(
+                    condition.principalsList.toPrincipalCondition(),
+                    field(condition.toRetentionCondition(retention.field), Boolean::class.java),
+                )
+            },
+            bodyOperation = { conditionStep, condition ->
+                conditionStep.`when`(
+                    condition.principalsList.toPrincipalCondition(),
+                    field(condition.toRetentionCondition(retention.field), Boolean::class.java),
+                )
+            },
+            tailOperation = { conditionStep, condition ->
+                conditionStep.otherwise(field(condition.toRetentionCondition(retention.field), Boolean::class.java))
+            },
+        )
+        return DSL.condition(whereCondition)
+    }
+
+
     fun toJooqField(
         field: DataPolicy.Field,
         fieldTransform: DataPolicy.RuleSet.FieldTransform?,
@@ -159,6 +187,7 @@ abstract class ProcessingPlatformViewGenerator(
                 transform.detokenize,
                 dataPolicy.source.ref,
             )
+
             TRANSFORM_NOT_SET, IDENTITY, null -> transformer.identity(field)
         }
         return memberCheck to (statement as JooqField<Any>)

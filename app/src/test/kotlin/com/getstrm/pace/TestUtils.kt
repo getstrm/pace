@@ -25,6 +25,10 @@ class TestDynamicViewGenerator(dataPolicy: DataPolicy) : ProcessingPlatformViewG
     override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
         return null
     }
+
+    override fun DataPolicy.RuleSet.Retention.Condition.toRetentionCondition(field: DataPolicy.Field): String {
+        return ""
+    }
 }
 
 fun String.toPrincipal() = DataPolicy.Principal.newBuilder().setGroup(this).build()

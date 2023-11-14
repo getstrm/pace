@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
@@ -9,6 +10,7 @@ import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.util.yaml2json
 import com.google.rpc.BadRequest
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
@@ -192,11 +194,81 @@ class PostgresViewGeneratorTest {
     }
 
     @Test
+    fun `retention filtering test`() {
+        // Given
+        val retention = RuleSet.Retention.newBuilder()
+            .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
+            .addAllConditions(
+                listOf(
+                    RuleSet.Retention.Condition.newBuilder()
+                        .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("marketing"))
+                        .setPeriod(RuleSet.Retention.Period.newBuilder().setDays(5))
+                        .build(),
+                    RuleSet.Retention.Condition.newBuilder()
+                        .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("fraud_and_risk"))
+                        .build(),
+                    RuleSet.Retention.Condition.newBuilder()
+                        .addPrincipals(DataPolicy.Principal.getDefaultInstance())
+                        .setPeriod(RuleSet.Retention.Period.newBuilder().setDays(10))
+                        .build()
+                )
+            ).build()
+
+        // When
+        val condition = underTest.toCondition(retention)
+
+        // Then
+        condition.toSql() shouldBe """
+            case when ('marketing' IN ( SELECT rolname FROM user_groups )) then timestamp + INTERVAL '5 days' < current_timestamp when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true else timestamp + INTERVAL '10 days' < current_timestamp end""".trimIndent() }
+
+    @Test
+    fun `full sql view statement with retention`() {
+        // Given
+        val viewGenerator = PostgresViewGenerator(retentionPolicy) { withRenderFormatted(true)}
+        // When
+
+        // Then
+        viewGenerator.toDynamicViewSQL() shouldBe """create or replace view public.demo_view
+as
+with
+  user_groups as (
+    select rolname
+    from pg_roles
+    where (
+      rolcanlogin = false
+      and pg_has_role(
+        session_user,
+        oid,
+        'member'
+      )
+    )
+  )
+select
+  ts,
+  userid,
+  transactionamount
+from public.demo_tokenized
+where (
+  case
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
+    else transactionamount < 10
+  end
+  and case
+    when ('marketing' IN ( SELECT rolname FROM user_groups )) then ts + INTERVAL '5 days' < current_timestamp
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
+    else ts + INTERVAL '10 days' < current_timestamp
+  end
+);
+grant SELECT on public.demo_view to "fraud_and_risk";
+grant SELECT on public.demo_view to "marketing";"""
+    }
+
+    @Test
     fun `full SQL view statement with a single detokenize join`() {
         // Given
         val viewGenerator = PostgresViewGenerator(singleDetokenizePolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL() shouldBe
-            """create or replace view public.demo_view
+                """create or replace view public.demo_view
 as
 with
   user_groups as (
@@ -233,7 +305,7 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
         // Given
         val viewGenerator = PostgresViewGenerator(multiDetokenizePolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL() shouldBe
-            """create or replace view public.demo_view
+                """create or replace view public.demo_view
 as
 with
   user_groups as (
@@ -502,7 +574,56 @@ grant SELECT on public.demo_view to "marketing";"""
                             name_parts: [ transactionid ]
                       - principals: []
                         identity: {}
-
         """.trimIndent().yaml2json().parseDataPolicy()
+
+        @Language("yaml")
+        val retentionPolicy = """
+            metadata:
+              description: ""
+              version: 1
+              title: public.demo
+            platform:
+              id: platform-id
+              platform_type: POSTGRES
+            source:
+              fields:
+                - name_parts:
+                    - ts
+                  required: true
+                  type: timestamp
+                - name_parts:
+                    - userid
+                  required: true
+                  type: integer
+                - name_parts:
+                    - transactionamount
+                  required: true
+                  type: integer
+              ref: public.demo_tokenized
+            rule_sets:
+              - target:
+                  fullname: public.demo_view
+                retention:
+                  - field:
+                      name_parts:
+                        - ts
+                      required: true
+                      type: timestamp
+                    conditions:
+                      - principals: [ {group: marketing} ]
+                        period:
+                          days: 5
+                      - principals: [ {group: fraud_and_risk} ]
+                      - principals: [] 
+                        period:
+                          days: 10
+                filters:
+                  - conditions:
+                      - principals: [ {group: fraud_and_risk} ]
+                        condition: "true"
+                      - principals : []
+                        condition: "transactionamount < 10"
+        """.trimIndent().yaml2json().parseDataPolicy()
+
     }
 }
