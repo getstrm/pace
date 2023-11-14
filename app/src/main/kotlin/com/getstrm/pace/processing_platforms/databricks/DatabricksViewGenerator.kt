@@ -14,7 +14,7 @@ import org.jooq.impl.DSL
 class DatabricksViewGenerator(
     dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {}
-) : ProcessingPlatformViewGenerator(dataPolicy, customJooqSettings) {
+) : ProcessingPlatformViewGenerator(dataPolicy, customJooqSettings = customJooqSettings) {
     override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
         return if (isEmpty()) {
             null

@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
+import com.getstrm.pace.util.defaultJooqSettings
 import com.google.rpc.DebugInfo
 import org.jooq.*
 import org.jooq.conf.Settings
@@ -14,12 +15,16 @@ class BigQueryViewGenerator(
     dataPolicy: DataPolicy,
     private val userGroupsTable: String,
     customJooqSettings: Settings.() -> Unit = {},
-) : ProcessingPlatformViewGenerator(dataPolicy, customJooqSettings) {
+) : ProcessingPlatformViewGenerator(
+    dataPolicy,
+    transformer = BigQueryTransformer(),
+    customJooqSettings = customJooqSettings
+) {
 
     /**
      * BigQuery requires backticked names for certain names, and MySQL dialect uses backticks, so we abuse this here.
      */
-    private val bigQueryDsl: DSLContext = DSL.using(SQLDialect.MYSQL, defaultJooqSettings.apply(customJooqSettings))
+    private val bigQueryDsl: DSLContext = DSL.using(SQLDialect.MYSQL)
 
     override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
         return if (isEmpty()) {

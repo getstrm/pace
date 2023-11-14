@@ -20,7 +20,7 @@ import org.jooq.Field as JooqField
  * Factory for creating jOOQ fields from [DataPolicy.Field]s and [DataPolicy.RuleSet.FieldTransform.Transform]s.
  * Functions can be overridden to support platform specific implementations of transforms.
  */
-class ProcessingPlatformTransformer {
+interface ProcessingPlatformTransformer {
     fun regexpReplace(
         field: DataPolicy.Field,
         regexp: Regexp
@@ -79,13 +79,12 @@ class ProcessingPlatformTransformer {
     fun detokenize(
         field: DataPolicy.Field,
         detokenize: Detokenize,
-        renderedTokenSourceRefName: String,
-        renderedSourceRefName: String
+        sourceRef: String,
     ) = DSL.field(
         "coalesce({0}, {1})",
         String::class.java,
-        DSL.unquotedName("$renderedTokenSourceRefName.${detokenize.valueField.fullName()}"),
-        DSL.unquotedName("$renderedSourceRefName.${field.fullName()}"),
+        DSL.unquotedName("${detokenize.tokenSourceRef}.${detokenize.valueField.fullName()}"),
+        DSL.unquotedName("$sourceRef.${field.fullName()}"),
     )
 
     fun numericRounding(field: DataPolicy.Field, numericRounding: NumericRounding): JooqField<*> =
@@ -153,3 +152,5 @@ class ProcessingPlatformTransformer {
         )
     }
 }
+
+object DefaultProcessingPlatformTransformer : ProcessingPlatformTransformer

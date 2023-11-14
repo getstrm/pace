@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
+import com.getstrm.pace.util.defaultJooqSettings
 import com.google.rpc.DebugInfo
 import org.jooq.*
 import org.jooq.conf.Settings
@@ -12,7 +13,7 @@ import org.jooq.impl.DSL
 class PostgresViewGenerator(
     dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {},
-) : ProcessingPlatformViewGenerator(dataPolicy, customJooqSettings) {
+) : ProcessingPlatformViewGenerator(dataPolicy, customJooqSettings = customJooqSettings) {
     override val jooq: DSLContext = DSL.using(SQLDialect.POSTGRES, defaultJooqSettings.apply(customJooqSettings))
     override fun additionalFooterStatements(): Queries {
         val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->

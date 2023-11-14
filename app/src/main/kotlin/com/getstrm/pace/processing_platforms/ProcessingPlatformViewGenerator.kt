@@ -2,6 +2,7 @@ package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.*
+import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
 import org.jooq.*
@@ -15,10 +16,9 @@ import org.jooq.Field as JooqField
 
 abstract class ProcessingPlatformViewGenerator(
     protected val dataPolicy: DataPolicy,
+    private val transformer: ProcessingPlatformTransformer = DefaultProcessingPlatformTransformer,
     customJooqSettings: Settings.() -> Unit = {},
 ) {
-    protected val transformer: ProcessingPlatformTransformer = ProcessingPlatformTransformer()
-
     protected abstract fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition?
 
     protected open fun selectWithAdditionalHeaderStatements(fields: List<JooqField<*>>): SelectSelectStep<Record> =
@@ -159,8 +159,7 @@ abstract class ProcessingPlatformViewGenerator(
             DETOKENIZE -> transformer.detokenize(
                 field,
                 transform.detokenize,
-                renderName(transform.detokenize.tokenSourceRef),
-                renderName(dataPolicy.source.ref)
+                dataPolicy.source.ref,
             )
             NUMERIC_ROUNDING -> transformer.numericRounding(field, transform.numericRounding)
             TRANSFORM_NOT_SET, IDENTITY, null -> transformer.identity(field)
@@ -169,15 +168,4 @@ abstract class ProcessingPlatformViewGenerator(
     }
 
     private fun getParser() = jooq.parser()
-
-    companion object {
-        @JvmStatic
-        protected val defaultJooqSettings: Settings = Settings()
-            // This makes sure we can use platform-specific functions (or UDFs)
-            .withParseUnknownFunctions(ParseUnknownFunctions.IGNORE)
-            // This follows the exact naming from the data policy's field names
-            .withParseNameCase(ParseNameCase.AS_IS)
-            // This ensures that we explicitly need to quote names
-            .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
-    }
 }
