@@ -1,5 +1,6 @@
 package com.getstrm.pace.api
 
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.global_transforms.v1alpha.*
 import com.getstrm.pace.service.GlobalTransformsService
 import net.devh.boot.grpc.server.service.GrpcService
@@ -10,7 +11,14 @@ class GlobalTransformsApi(
 ) : GlobalTransformsServiceGrpcKt.GlobalTransformsServiceCoroutineImplBase() {
     override suspend fun getGlobalTransform(request: GetGlobalTransformRequest): GetGlobalTransformResponse =
         GetGlobalTransformResponse.newBuilder()
-            .setTransform(globalTransformsService.getTransform(request.refAndType))
+            .setTransform(
+                globalTransformsService.getTransform(
+                    GlobalTransform.RefAndType.newBuilder()
+                        .setRef(request.ref)
+                        .setType(request.type)
+                        .build()
+                )
+            )
             .build()
 
     override suspend fun listGlobalTransforms(request: ListGlobalTransformsRequest): ListGlobalTransformsResponse =

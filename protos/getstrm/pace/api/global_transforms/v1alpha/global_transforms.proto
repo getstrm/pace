@@ -15,8 +15,7 @@ option java_package = "com.getstrm.pace.api.global_transforms.v1alpha";
 service GlobalTransformsService {
   rpc GetGlobalTransform(GetGlobalTransformRequest) returns (GetGlobalTransformResponse) {
     option (google.api.http) = {
-      post: "/global-transform"
-      body: "*"
+      get: "/global-transforms/{ref}/{type}"
     };
   }
   rpc ListGlobalTransforms(ListGlobalTransformsRequest) returns (ListGlobalTransformsResponse) {
@@ -36,8 +35,13 @@ service GlobalTransformsService {
   }
 }
 
+// As we also want to support a REST API and gRPC->JSON cannot map to messages, we cannot reuse RefAndType here.
 message GetGlobalTransformRequest {
-  entities.v1alpha.GlobalTransform.RefAndType ref_and_type = 1;
+  string ref = 1;
+  string type = 2 [(buf.validate.field).cel = {
+    id: "global-transform-ref-and-type",
+    expression: "!(this in ['TAG_TRANSFORM']) ? 'value must be in list %s'.format(['TAG_TRANSFORM']) : ''"
+  }];
 }
 
 message GetGlobalTransformResponse {
@@ -47,7 +51,7 @@ message GetGlobalTransformResponse {
 message ListGlobalTransformsRequest {
   repeated string types = 1 [(buf.validate.field).cel = {
     id: "global-transform-ref-and-type",
-    expression: "!(this.all(t, t in ['TAG_TRANSFORM']) || this.size() == 0) ? 'all values must be in list %s'.format(['TAG_TRANSFORM']) : ''"
+    expression: "!(this in ['TAG_TRANSFORM'] || this.size() == 0) ? 'all values must be in list %s'.format(['TAG_TRANSFORM']) : ''"
   }];
 }
 

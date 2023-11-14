@@ -26,7 +26,7 @@ service DataPoliciesService {
     // Returns the latest policy for a given id and platform.
     rpc GetDataPolicy (GetDataPolicyRequest) returns (GetDataPolicyResponse) {
         option (google.api.http) = {
-            get: "/data-policies/{data_policy_id}/platform/{platform_id}"
+            get: "/data-policies/{data_policy_id}/{platform_id}"
         };
     };
 }
