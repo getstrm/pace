@@ -10,7 +10,7 @@ The first step to defining a `Data Policy` is knowing what your source data look
 
 ### Blueprint Policy
 
-Below we will talk about getting a _blueprint policy_. A _blueprint policy_ is a `Data Policy` where only the source ref and fields, and potentially a ruleset are populated. This serves as a starting point for defining the rest of the `Data Policy`. A ruleset _can_ be present in the bare policy, but this depends on whether [global transforms are defined](../global-policies/global-transforms/). A bare policy is retrieved from either a Data Catalog or a Processing Platform
+Below we will talk about getting a _blueprint policy_. A _blueprint policy_ is a `Data Policy` where only the source ref and fields, and potentially a ruleset are populated. This serves as a starting point for defining the rest of the `Data Policy`. A ruleset _can_ be present in the blueprint policy, but this depends on whether [global transforms are defined](../global-policies/global-transforms/). A blueprint policy is retrieved from either a Data Catalog or a Processing Platform
 
 ### Sample Blueprint Policy
 

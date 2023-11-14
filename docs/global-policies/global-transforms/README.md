@@ -12,7 +12,7 @@ Currently, we support one type of global transforms, which are tag based.
 
 ### Tag based global transforms
 
-A tag based global transform, means that the transform will be included in the blueprint Data Policy whenever the tag of the global transform is present on the data field. As we are talking about the [retrieval of a bare Data Policy](../../data-policy/schema.md#bare-policy), it is retrieved from a Data Catalog or a Processing Platform. Tags are also retrieved from the respective connection, as many catalogs and processing platforms allow defining tags (only value based or key-value based) on field level of a table.
+A tag based global transform, means that the transform will be included in the blueprint Data Policy whenever the tag of the global transform is present on the data field. As we are talking about the [retrieval of a blueprint Data Policy](../../data-policy/schema.md#blueprint-policy), it is retrieved from a Data Catalog or a Processing Platform. Tags are also retrieved from the respective connection, as many catalogs and processing platforms allow defining tags (only value based or key-value based) on field level of a table.
 
 How tags can be added to data fields for each data catalog and processing platform is described in [sub sections of this document](processing-platform-tags/).
 
@@ -37,7 +37,7 @@ tag_transform:
 
 The global transform reads as follows:
 
-> When creating a bare Data Policy, and when a field is tagged with `pii-email`, add the following transform to a ruleset:
+> When creating a blueprint Data Policy, and when a field is tagged with `pii-email`, add the following transform to a ruleset:
 >
 > * Users in the `administrator` group should see the data as is.
 > * Users not in the `administrator` group, should see a `null` value.
@@ -50,15 +50,15 @@ pace upsert global-transform example-global-transform.yaml
 
 ## Using global transforms
 
-If no tags have been set on any of the fields in the Data Catalog or Processing platform, or if no global transforms have been created, then only the source ref and the fields will be included in the bare data policy.&#x20;
+If no tags have been set on any of the fields in the Data Catalog or Processing platform, or if no global transforms have been created, then only the source ref and the fields will be included in the blueprint data policy.&#x20;
 
 {% hint style="info" %}
-The `tag_content` of the global transform must match that of a tag on the field in order for the global transform to be included in the bare data policy.
+The `tag_content` of the global transform must match that of a tag on the field in order for the global transform to be included in the blueprint data policy.
 {% endhint %}
 
-However, if a tag that is set on a field and the tag matches that of an existing tag transform, it will be included in the bare data policy. For the example below, consider a table named `my_table` exists on the platform Databricks, with a tag set on the field email.
+However, if a tag that is set on a field and the tag matches that of an existing tag transform, it will be included in the blueprint data policy. For the example below, consider a table named `my_table` exists on the platform Databricks, with a tag set on the field email.
 
-{% code title="bare-data-policy-with-global-transforms.yaml" %}
+{% code title="blueprint-data-policy-with-global-transforms.yaml" %}
 ```yaml
 metadata:
   title: global-transforms
@@ -97,4 +97,4 @@ rule_sets:
 ```
 {% endcode %}
 
-As can be seen, the bare Data Policy includes a ruleset with the transforms [defined in the previous section](./#creating-global-transforms).
+As can be seen, the blueprint Data Policy includes a ruleset with the transforms [defined in the previous section](./#creating-global-transforms).
