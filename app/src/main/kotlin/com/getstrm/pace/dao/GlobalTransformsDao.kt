@@ -10,6 +10,7 @@ import com.getstrm.pace.util.toJsonbWithDefaults
 import com.getstrm.pace.util.toOffsetDateTime
 import com.google.rpc.DebugInfo
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.jooq.impl.DSL.row
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -18,14 +19,22 @@ import java.time.Instant
 class GlobalTransformsDao(
     private val jooq: DSLContext
 ) {
-    fun getTransform(refAndType: RefAndType): GlobalTransformsRecord? =
+
+    fun getTransform(refAndType: RefAndType): GlobalTransformsRecord? = let {
+        // TODO handle non-loose case
         jooq.select()
             .from(GLOBAL_TRANSFORMS)
             .where(
-                GLOBAL_TRANSFORMS.REF.eq(refAndType.ref),
-                GLOBAL_TRANSFORMS.TRANSFORM_TYPE.eq(refAndType.type)
+                GLOBAL_TRANSFORMS.TRANSFORM_TYPE.eq(refAndType.type).and(
+                    GLOBAL_TRANSFORMS.REF.likeIgnoreCase(refAndType.toLooseMatch())
+                )
             )
-            .fetchOneInto(GLOBAL_TRANSFORMS)
+            .orderBy(GLOBAL_TRANSFORMS.TRANSFORM_TYPE, GLOBAL_TRANSFORMS.REF)
+            .fetchInto(GLOBAL_TRANSFORMS)
+            .firstOrNull()
+    }
+
+
 
     fun listTransforms(transformType: GlobalTransform.TransformCase? = null): List<GlobalTransformsRecord> =
         jooq.select()
@@ -63,3 +72,8 @@ class GlobalTransformsDao(
             ).execute()
     }
 }
+
+/**
+ * returns SQL like style loose match. Underscore is any character.
+ */
+private fun RefAndType.toLooseMatch() = this.ref.replace(" ", "_").replace("-", "_")
