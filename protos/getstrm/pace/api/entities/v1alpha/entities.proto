@@ -49,7 +49,7 @@ message DataPolicy {
         Period period = 2;
       }
       message Period {
-        // Number of days since
+        // Number of days since the creation date.
         int64 days = 1;
       }
     }
