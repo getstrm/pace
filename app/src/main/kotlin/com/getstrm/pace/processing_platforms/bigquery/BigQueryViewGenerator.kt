@@ -24,7 +24,7 @@ class BigQueryViewGenerator(
     /**
      * BigQuery requires backticked names for certain names, and MySQL dialect uses backticks, so we abuse this here.
      */
-    private val bigQueryDsl: DSLContext = DSL.using(SQLDialect.MYSQL, defaultJooqSettings.apply(customJooqSettings))
+    private val bigQueryDsl: DSLContext = DSL.using(SQLDialect.MYSQL)
 
     override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
         return if (isEmpty()) {
