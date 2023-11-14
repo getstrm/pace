@@ -19,6 +19,16 @@
   * [Field Transform](data-policy/rule-set/field-transform.md)
   * [Filter](data-policy/rule-set/filter.md)
 
+## Global Policies
+
+* [Global Transforms](global-policies/global-transforms/README.md)
+  * [Processing Platform Tags](global-policies/global-transforms/processing-platform-tags/README.md)
+    * [BigQuery](global-policies/global-transforms/processing-platform-tags/bigquery.md)
+    * [Databricks](global-policies/global-transforms/processing-platform-tags/databricks.md)
+    * [Snowflake](global-policies/global-transforms/processing-platform-tags/snowflake.md)
+    * [PostgreSQL](global-policies/global-transforms/processing-platform-tags/postgresql.md)
+  * [Data Catalog Tags](global-policies/global-transforms/data-catalog-tags.md)
+
 ## Tutorials
 
 * [Detokenization](tutorials/detokenization.md)
