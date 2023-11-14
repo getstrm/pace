@@ -129,6 +129,36 @@ class SnowflakeViewGeneratorTest {
     }
 
     @Test
+    fun `retention to condition`() {
+        // Given
+        val retention = DataPolicy.RuleSet.Retention.newBuilder()
+            .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
+            .addAllConditions(
+                listOf(
+                    DataPolicy.RuleSet.Retention.Condition.newBuilder()
+                        .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("MARKETING"))
+                        .setPeriod(DataPolicy.RuleSet.Retention.Period.newBuilder().setDays(5))
+                        .build(),
+                    DataPolicy.RuleSet.Retention.Condition.newBuilder()
+                        .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("FRAUD_AND_RISK"))
+                        .build(),
+                    DataPolicy.RuleSet.Retention.Condition.newBuilder()
+                        .addPrincipals(DataPolicy.Principal.getDefaultInstance())
+                        .setPeriod(DataPolicy.RuleSet.Retention.Period.newBuilder().setDays(10))
+                        .build()
+                )
+            ).build()
+
+        // When
+        val condition = underTest.toCondition(retention)
+
+        // Then
+        condition.toSql() shouldBe """
+            case when (IS_ROLE_IN_SESSION('MARKETING')) then timestamp + INTERVAL '5 days' < current_timestamp when (IS_ROLE_IN_SESSION('FRAUD_AND_RISK')) then true else timestamp + INTERVAL '10 days' < current_timestamp end
+        """.trimIndent()
+    }
+
+    @Test
     fun `transform test all transforms`() {
         // Given
         underTest = SnowflakeViewGenerator(dataPolicy) { withRenderFormatted(true) }

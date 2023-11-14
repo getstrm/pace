@@ -10,7 +10,6 @@ import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.util.yaml2json
 import com.google.rpc.BadRequest
 import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
@@ -194,7 +193,7 @@ class PostgresViewGeneratorTest {
     }
 
     @Test
-    fun `retention filtering test`() {
+    fun `single retention to condition`() {
         // Given
         val retention = RuleSet.Retention.newBuilder()
             .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
@@ -222,9 +221,56 @@ class PostgresViewGeneratorTest {
             case when ('marketing' IN ( SELECT rolname FROM user_groups )) then timestamp + INTERVAL '5 days' < current_timestamp when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true else timestamp + INTERVAL '10 days' < current_timestamp end""".trimIndent() }
 
     @Test
-    fun `full sql view statement with retention`() {
+    fun `full sql view statement with multiple retentions`() {
         // Given
-        val viewGenerator = PostgresViewGenerator(retentionPolicy) { withRenderFormatted(true)}
+        val viewGenerator = PostgresViewGenerator(multipleRetentionPolicy) { withRenderFormatted(true)}
+        // When
+
+        // Then
+        viewGenerator.toDynamicViewSQL() shouldBe """create or replace view public.demo_view
+as
+with
+  user_groups as (
+    select rolname
+    from pg_roles
+    where (
+      rolcanlogin = false
+      and pg_has_role(
+        session_user,
+        oid,
+        'member'
+      )
+    )
+  )
+select
+  ts,
+  validThrough,
+  userid,
+  transactionamount
+from public.demo_tokenized
+where (
+  case
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
+    else transactionamount < 10
+  end
+  and case
+    when ('marketing' IN ( SELECT rolname FROM user_groups )) then ts + INTERVAL '5 days' < current_timestamp
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
+    else ts + INTERVAL '10 days' < current_timestamp
+  end
+  and case
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then validThrough + INTERVAL '365 days' < current_timestamp
+    else validThrough + INTERVAL '0 days' < current_timestamp
+  end
+);
+grant SELECT on public.demo_view to "fraud_and_risk";
+grant SELECT on public.demo_view to "marketing";"""
+    }
+
+    @Test
+    fun `full sql view statement with single retention`() {
+        // Given
+        val viewGenerator = PostgresViewGenerator(singleRetentionPolicy) { withRenderFormatted(true)}
         // When
 
         // Then
@@ -577,7 +623,7 @@ grant SELECT on public.demo_view to "marketing";"""
         """.trimIndent().yaml2json().parseDataPolicy()
 
         @Language("yaml")
-        val retentionPolicy = """
+        val singleRetentionPolicy = """
             metadata:
               description: ""
               version: 1
@@ -625,5 +671,69 @@ grant SELECT on public.demo_view to "marketing";"""
                         condition: "transactionamount < 10"
         """.trimIndent().yaml2json().parseDataPolicy()
 
+        @Language("yaml")
+        val multipleRetentionPolicy = """
+            metadata:
+              description: ""
+              version: 1
+              title: public.demo
+            platform:
+              id: platform-id
+              platform_type: POSTGRES
+            source:
+              fields:
+                - name_parts:
+                    - ts
+                  required: true
+                  type: timestamp
+                - name_parts:
+                    - validThrough
+                  required: true
+                  type: timestamp
+                - name_parts:
+                    - userid
+                  required: true
+                  type: integer
+                - name_parts:
+                    - transactionamount
+                  required: true
+                  type: integer
+              ref: public.demo_tokenized
+            rule_sets:
+              - target:
+                  fullname: public.demo_view
+                retentions:
+                  - field:
+                      name_parts:
+                        - ts
+                      required: true
+                      type: timestamp
+                    conditions:
+                      - principals: [ {group: marketing} ]
+                        period:
+                          days: 5
+                      - principals: [ {group: fraud_and_risk} ]
+                      - principals: [] 
+                        period:
+                          days: 10
+                  - field:
+                      name_parts:
+                        - validThrough
+                      required: true
+                      type: timestamp
+                    conditions:
+                      - principals: [ {group: fraud_and_risk} ]
+                        period:
+                          days: 365
+                      - principals: [] 
+                        period:
+                          days: 0
+                filters:
+                  - conditions:
+                      - principals: [ {group: fraud_and_risk} ]
+                        condition: "true"
+                      - principals : []
+                        condition: "transactionamount < 10"
+        """.trimIndent().yaml2json().parseDataPolicy()
     }
 }

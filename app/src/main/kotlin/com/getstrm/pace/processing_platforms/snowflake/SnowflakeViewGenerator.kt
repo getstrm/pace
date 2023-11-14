@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.UNIMPLEMENTED
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
+import com.getstrm.pace.util.fullName
 import com.google.rpc.DebugInfo
 import org.jooq.Condition
 import org.jooq.Queries
@@ -39,7 +40,8 @@ class SnowflakeViewGenerator(
         val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->
             val principals =
                 ruleSet.fieldTransformsList.flatMap { it.transformsList }.flatMap { it.principalsList }.toSet() +
-                    ruleSet.filtersList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet()
+                        ruleSet.filtersList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet() +
+                        ruleSet.retentionsList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet()
 
             val viewName = ruleSet.target.fullname
 
@@ -55,6 +57,10 @@ class SnowflakeViewGenerator(
     }
 
     override fun DataPolicy.RuleSet.Retention.Condition.toRetentionCondition(field: DataPolicy.Field): String {
-        TODO("Not yet implemented")
+        return if (this.hasPeriod()) {
+            "${field.fullName()} + INTERVAL '${this.period.days} days' < current_timestamp"
+        } else {
+            "true"
+        }
     }
 }
