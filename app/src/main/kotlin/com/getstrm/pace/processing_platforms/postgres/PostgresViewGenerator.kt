@@ -21,7 +21,7 @@ class PostgresViewGenerator(
             val principals =
                 ruleSet.fieldTransformsList.flatMap { it.transformsList }.flatMap { it.principalsList }.toSet() +
                         ruleSet.filtersList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet() +
-                        ruleSet.retentionList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet()
+                        ruleSet.retentionsList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet()
 
             val viewName = ruleSet.target.fullname
 

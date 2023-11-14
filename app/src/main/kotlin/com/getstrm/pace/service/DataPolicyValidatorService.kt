@@ -96,7 +96,7 @@ class DataPolicyValidatorService {
                     }
                 }
             }
-            ruleSet.retentionList.forEach { retention ->
+            ruleSet.retentionsList.forEach { retention ->
                 checkField(retention.field)
                 if (retention.conditionsList.isEmpty()) {
                     throw invalidArgumentException(
@@ -171,7 +171,7 @@ class DataPolicyValidatorService {
             }
 
             // check non-overlapping fields in the retention filters within one ruleset
-            ruleSet.retentionList.map { it.field }.fold(
+            ruleSet.retentionsList.map { it.field }.fold(
                 emptySet<String>(),
             ) { alreadySeen, field ->
                 field.pathString().let {

@@ -35,7 +35,7 @@ message DataPolicy {
     // When no filters are defined, all records are always included.
     repeated Filter filters = 3;
 
-    repeated Retention retention = 4;
+    repeated Retention retentions = 4;
 
     message Retention {
       // The field of type SQL date with timestamp.

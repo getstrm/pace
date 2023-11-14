@@ -603,7 +603,7 @@ grant SELECT on public.demo_view to "marketing";"""
             rule_sets:
               - target:
                   fullname: public.demo_view
-                retention:
+                retentions:
                   - field:
                       name_parts:
                         - ts

@@ -48,7 +48,7 @@ abstract class ProcessingPlatformViewGenerator(
                     .where(
                         ruleSet.filtersList.map { filter ->
                             toCondition(filter)
-                        } + ruleSet.retentionList.map { retention ->
+                        } + ruleSet.retentionsList.map { retention ->
                             toCondition(retention)
                         }
                     ),
