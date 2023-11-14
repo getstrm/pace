@@ -1,3 +1,10 @@
+# [1.0.0-alpha.17](https://github.com/getstrm/pace/compare/v1.0.0-alpha.16...v1.0.0-alpha.17) (2023-11-14)
+
+
+### Bug Fixes
+
+* **pace-17-4:** cel validation for list global transforms ([#44](https://github.com/getstrm/pace/issues/44)) ([2df9d8d](https://github.com/getstrm/pace/commit/2df9d8dda6ba74814538a0a89710b2eacdd096df))
+
 # [1.0.0-alpha.16](https://github.com/getstrm/pace/compare/v1.0.0-alpha.15...v1.0.0-alpha.16) (2023-11-14)
 
 

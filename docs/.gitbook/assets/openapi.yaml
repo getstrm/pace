@@ -503,7 +503,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.16
+  version: 1.0.0-alpha.17
 openapi: 3.0.3
 paths:
   /catalogs:
