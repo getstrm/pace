@@ -36,7 +36,9 @@
 
 ## Integrations & Reference
 
-* [API Reference](reference/api-reference.md)
+* API Reference
+  * [gRPC API](reference/api-reference/grpc.md) 
+  * [REST API](reference/api-reference/rest.md)
 * [CLI Reference](reference/cli-reference/README.md)
   * [pace](cli-docs/pace.md)
     * [completion](cli-docs/pace\_completion.md)
