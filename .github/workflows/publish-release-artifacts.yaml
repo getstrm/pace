@@ -35,14 +35,12 @@ jobs:
         # Due to this issue (https://github.com/bufbuild/buf/issues/1621) in buf, no tag is created if the proto files are not changed
         # To keep the BSR tags in sync with our git repo, we manually add every tag
         # Furthermore, the buf_dependency_version needs to be constructed from the latest commit that is tagged, as that's how the BSR SDK dependency versions are constructed
-        # FIXME The buf alpha package command is going to be renamed to buf alpha sdk (see https://github.com/bufbuild/buf/pull/2535)
         run: |
           cd protos
           buf_commit_hash_or_empty=$(buf push)
           buf_commit_hash=$([[ ${buf_commit_hash_or_empty} = "" ]] && buf beta registry commit list --page-size 1 --reverse --format json buf.build/getstrm/pace:main | jq -r '.results[0].commit' || echo "$buf_commit_hash_or_empty")
           buf beta registry tag create "buf.build/getstrm/pace:${buf_commit_hash}" ${{ env.TAG }}
-          
-          buf_dependency_version=$(buf alpha package maven-version --module=buf.build/getstrm/pace:${{ env.TAG }} --plugin=buf.build/protocolbuffers/java:v24.4 | sed "s/24.4.0.1.//")
+          buf_dependency_version=$(buf alpha sdk maven-version --module=buf.build/getstrm/pace:${{ env.TAG }} --plugin=buf.build/protocolbuffers/java:v24.4 | sed "s/24.4.0.1.//")
           echo "BUF_DEPENDENCY_VERSION=${buf_dependency_version}" >> "$GITHUB_ENV"
 
       # JVM artifact
