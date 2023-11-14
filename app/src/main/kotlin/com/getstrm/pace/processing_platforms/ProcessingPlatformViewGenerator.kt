@@ -13,11 +13,8 @@ import org.jooq.impl.DSL
 import org.jooq.impl.DSL.*
 import org.jooq.Field as JooqField
 
-abstract class AbstractDynamicViewGenerator(
-    protected val dataPolicy: DataPolicy,
-    customJooqSettings: Settings.() -> Unit = {},
-) {
-    protected val transformFactory: ProcessingPlatformTransformFactory = ProcessingPlatformTransformFactory()
+abstract class ProcessingPlatformViewGenerator(protected val dataPolicy: DataPolicy) {
+    protected val transformer: ProcessingPlatformTransformer = ProcessingPlatformTransformer()
 
     protected abstract fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition?
 
@@ -28,8 +25,7 @@ abstract class AbstractDynamicViewGenerator(
 
     protected open fun renderName(name: String): String = jooq.renderNamedParams(name(name))
 
-    protected val jooq = DSL.using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
-    private val parser = jooq.parser()
+    protected abstract val jooq: DSLContext
 
     fun toDynamicViewSQL(): String {
         val queries = dataPolicy.ruleSetsList.map { ruleSet ->
@@ -87,26 +83,26 @@ abstract class AbstractDynamicViewGenerator(
     fun toCondition(filter: DataPolicy.RuleSet.Filter): Condition {
         if (filter.conditionsList.size == 1) {
             // If there is only one filter it should be the only option
-            return parser.parseCondition(filter.conditionsList.first().condition)
+            return getParser().parseCondition(filter.conditionsList.first().condition)
         }
 
         val whereCondition = filter.conditionsList.headTailFold(
             headOperation = { condition ->
-                parser.parseCondition(condition.condition)
+                getParser().parseCondition(condition.condition)
                 DSL.`when`(
                     condition.principalsList.toPrincipalCondition(),
                     field(condition.condition, Boolean::class.java),
                 )
             },
             bodyOperation = { conditionStep, condition ->
-                parser.parseCondition(condition.condition)
+                getParser().parseCondition(condition.condition)
                 conditionStep.`when`(
                     condition.principalsList.toPrincipalCondition(),
                     field(condition.condition, Boolean::class.java),
                 )
             },
             tailOperation = { conditionStep, condition ->
-                parser.parseCondition(condition.condition)
+                getParser().parseCondition(condition.condition)
                 conditionStep.otherwise(field(condition.condition, Boolean::class.java))
             },
         )
@@ -152,25 +148,28 @@ abstract class AbstractDynamicViewGenerator(
         val memberCheck = transform?.principalsList?.toPrincipalCondition()
 
         val statement = when (transform?.transformCase) {
-            REGEXP -> transformFactory.regexpReplaceTransform(field, transform.regexp)
-            FIXED -> transformFactory.fixedTransform(field, transform.fixed)
-            HASH -> transformFactory.hashTransform(field, transform.hash)
-            SQL_STATEMENT -> transformFactory.sqlStatementTransform(parser, transform.sqlStatement)
-            NULLIFY -> transformFactory.nullifyTransform()
-            DETOKENIZE -> transformFactory.detokenizeTransform(
+            REGEXP -> transformer.regexpReplace(field, transform.regexp)
+            FIXED -> transformer.fixed(field, transform.fixed)
+            HASH -> transformer.hash(field, transform.hash)
+            SQL_STATEMENT -> transformer.sqlStatement(getParser(), transform.sqlStatement)
+            NULLIFY -> transformer.nullify()
+            DETOKENIZE -> transformer.detokenize(
                 field,
                 transform.detokenize,
                 renderName(transform.detokenize.tokenSourceRef),
                 renderName(dataPolicy.source.ref)
             )
-            NUMERIC_ROUNDING -> transformFactory.numericRoundingTransform(field, transform.numericRounding)
-            TRANSFORM_NOT_SET, IDENTITY, null -> transformFactory.identityTransform(field)
+            NUMERIC_ROUNDING -> transformer.numericRounding(field, transform.numericRounding)
+            TRANSFORM_NOT_SET, IDENTITY, null -> transformer.identity(field)
         }
         return memberCheck to (statement as JooqField<Any>)
     }
 
+    private fun getParser() = jooq.parser()
+
     companion object {
-        protected val defaultJooqSettings = Settings()
+        @JvmStatic
+        protected val defaultJooqSettings: Settings = Settings()
             // This makes sure we can use platform-specific functions (or UDFs)
             .withParseUnknownFunctions(ParseUnknownFunctions.IGNORE)
             // This follows the exact naming from the data policy's field names

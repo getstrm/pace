@@ -3,23 +3,23 @@ package com.getstrm.pace.processing_platforms.bigquery
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException
-import com.getstrm.pace.processing_platforms.AbstractDynamicViewGenerator
+import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
 import com.google.rpc.DebugInfo
 import org.jooq.*
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.select
 
-class BigQueryDynamicViewGenerator(
+class BigQueryViewGenerator(
     dataPolicy: DataPolicy,
     private val userGroupsTable: String,
     customJooqSettings: Settings.() -> Unit = {},
-) : AbstractDynamicViewGenerator(dataPolicy, customJooqSettings) {
+) : ProcessingPlatformViewGenerator(dataPolicy) {
 
     /**
      * BigQuery requires backticked names for certain names, and MySQL dialect uses backticks, so we abuse this here.
      */
-    private val bigQueryDsl = DSL.using(SQLDialect.MYSQL)
+    override val jooq: DSLContext = DSL.using(SQLDialect.MYSQL, defaultJooqSettings.apply(customJooqSettings))
 
     override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
         return if (isEmpty()) {
@@ -44,7 +44,7 @@ class BigQueryDynamicViewGenerator(
         }
     }
 
-    override fun renderName(name: String): String = bigQueryDsl.renderNamedParams(DSL.name(name))
+    override fun renderName(name: String): String = jooq.renderNamedParams(DSL.name(name))
 
     override fun selectWithAdditionalHeaderStatements(fields: List<Field<*>>): SelectSelectStep<Record> {
         val userGroupSelect = DSL.unquotedName("user_groups")

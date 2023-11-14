@@ -14,8 +14,8 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-class PostgresDynamicViewGeneratorTest {
-    private val underTest = PostgresDynamicViewGenerator(dataPolicy)
+class PostgresViewGeneratorTest {
+    private val underTest = PostgresViewGenerator(dataPolicy)
 
     @Test
     fun `fixed value transform with multiple principals`() {
@@ -214,7 +214,7 @@ class PostgresDynamicViewGeneratorTest {
     @Test
     fun `full SQL view statement with a single detokenize join`() {
         // Given
-        val viewGenerator = PostgresDynamicViewGenerator(singleDetokenizePolicy) { withRenderFormatted(true) }
+        val viewGenerator = PostgresViewGenerator(singleDetokenizePolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL() shouldBe
             """create or replace view public.demo_view
 as
@@ -251,7 +251,7 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
     @Test
     fun `full SQL view statement with multiple detokenize joins on two tables`() {
         // Given
-        val viewGenerator = PostgresDynamicViewGenerator(multiDetokenizePolicy) { withRenderFormatted(true) }
+        val viewGenerator = PostgresViewGenerator(multiDetokenizePolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL() shouldBe
             """create or replace view public.demo_view
 as
@@ -293,7 +293,7 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
     @Test
     fun `full SQL view statement with multiple transforms`() {
         // Given
-        val viewGenerator = PostgresDynamicViewGenerator(dataPolicy) { withRenderFormatted(true) }
+        val viewGenerator = PostgresViewGenerator(dataPolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL()
             .shouldBe(
                 """create or replace view public.demo_view

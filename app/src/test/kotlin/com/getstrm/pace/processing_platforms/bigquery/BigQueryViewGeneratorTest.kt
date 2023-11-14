@@ -2,8 +2,6 @@ package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
-import com.getstrm.pace.processing_platforms.postgres.PostgresDynamicViewGenerator
-import com.getstrm.pace.processing_platforms.postgres.PostgresDynamicViewGeneratorTest
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
@@ -16,16 +14,16 @@ import org.jooq.impl.DSL
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class BigQueryDynamicViewGeneratorTest {
+class BigQueryViewGeneratorTest {
 
-    private lateinit var underTest: BigQueryDynamicViewGenerator
+    private lateinit var underTest: BigQueryViewGenerator
     private val defaultUserGroupsTable = "my_project.my_dataset.my_user_groups"
 
     @BeforeEach
     fun setUp() {
         val basicPolicy =
             DataPolicy.newBuilder().apply { sourceBuilder.setRef("my-project.my_dataset.my_source_table") }.build()
-        underTest = BigQueryDynamicViewGenerator(basicPolicy, defaultUserGroupsTable)
+        underTest = BigQueryViewGenerator(basicPolicy, defaultUserGroupsTable)
     }
 
     @Test
@@ -159,7 +157,7 @@ class BigQueryDynamicViewGeneratorTest {
     @Test
     fun `full SQL view statement with a single detokenize join`() {
         // Given
-        val viewGenerator = BigQueryDynamicViewGenerator(singleDetokenizePolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
+        val viewGenerator = BigQueryViewGenerator(singleDetokenizePolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL() shouldBe
             """create or replace view `my-project.my_dataset.my_target_view`
 as
@@ -188,7 +186,7 @@ end;"""
     @Test
     fun `full SQL view statement with multiple detokenize joins on two tables`() {
         // Given
-        val viewGenerator = BigQueryDynamicViewGenerator(multiDetokenizePolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
+        val viewGenerator = BigQueryViewGenerator(multiDetokenizePolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL() shouldBe
             """create or replace view `my-project.my_dataset.my_target_view`
 as
@@ -222,7 +220,7 @@ end;"""
     @Test
     fun `transform test multiple transforms`() {
         // Given
-        underTest = BigQueryDynamicViewGenerator(dataPolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
+        underTest = BigQueryViewGenerator(dataPolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
         underTest.toDynamicViewSQL()
             .shouldBe(
                 """create or replace view `my_target_project.my_target_dataset.my_target_view`

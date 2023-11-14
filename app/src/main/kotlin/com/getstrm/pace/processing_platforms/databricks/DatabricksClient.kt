@@ -89,7 +89,7 @@ class DatabricksClient(
     }
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
-        val statement = DatabricksDynamicViewGenerator(dataPolicy).toDynamicViewSQL()
+        val statement = DatabricksViewGenerator(dataPolicy).toDynamicViewSQL()
         val response = executeStatement(statement)
         when (response.status.state) {
             StatementState.SUCCEEDED -> return

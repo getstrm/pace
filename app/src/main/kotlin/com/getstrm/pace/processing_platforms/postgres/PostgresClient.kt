@@ -47,7 +47,7 @@ class PostgresClient(
         .map { PostgresTable(it) }
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
-        val viewGenerator = PostgresDynamicViewGenerator(dataPolicy)
+        val viewGenerator = PostgresViewGenerator(dataPolicy)
         val query = viewGenerator.toDynamicViewSQL()
 
         withContext(Dispatchers.IO) {

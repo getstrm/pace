@@ -20,9 +20,10 @@ import org.jooq.Field as JooqField
  * Factory for creating jOOQ fields from [DataPolicy.Field]s and [DataPolicy.RuleSet.FieldTransform.Transform]s.
  * Functions can be overridden to support platform specific implementations of transforms.
  */
-open class ProcessingPlatformTransformFactory {
+class ProcessingPlatformTransformer {
 
-    open fun regexpReplaceTransform(
+
+    fun regexpReplace(
         field: DataPolicy.Field,
         regexp: Regexp
     ): JooqField<*> =
@@ -41,14 +42,14 @@ open class ProcessingPlatformTransformFactory {
             )
         }
 
-    open fun fixedTransform(
+    fun fixed(
         field: DataPolicy.Field,
         fixed: Fixed
     ): JooqField<*> = DSL.inline(fixed.value, field.sqlDataType()).also {
         fixedDataTypeMatchesFieldType(fixed.value, field)
     }
 
-    open fun hashTransform(
+    fun hash(
         field: DataPolicy.Field,
         hash: Hash
     ): JooqField<*> = DSL.field(
@@ -58,7 +59,7 @@ open class ProcessingPlatformTransformFactory {
         DSL.unquotedName(field.fullName()),
     )
 
-    open fun sqlStatementTransform(
+    fun sqlStatement(
         parser: Parser,
         sqlStatement: SqlStatement
     ): JooqField<*> {
@@ -73,11 +74,11 @@ open class ProcessingPlatformTransformFactory {
         return DSL.field(sqlStatement.statement)
     }
 
-    open fun nullifyTransform(): JooqField<*> = DSL.inline<Any>(null)
+    fun nullify(): JooqField<*> = DSL.inline<Any>(null)
 
-    open fun identityTransform(field: DataPolicy.Field): JooqField<*> = DSL.field(field.fullName())
+    fun identity(field: DataPolicy.Field): JooqField<*> = DSL.field(field.fullName())
 
-    open fun detokenizeTransform(
+    fun detokenize(
         field: DataPolicy.Field,
         detokenize: Detokenize,
         renderedTokenSourceRefName: String,
@@ -89,7 +90,7 @@ open class ProcessingPlatformTransformFactory {
         DSL.unquotedName("$renderedSourceRefName.${field.fullName()}"),
     )
 
-    open fun numericRoundingTransform(field: DataPolicy.Field, numericRounding: NumericRounding): JooqField<*> =
+    fun numericRounding(field: DataPolicy.Field, numericRounding: NumericRounding): JooqField<*> =
         when (numericRounding.roundingCase) {
             NumericRounding.RoundingCase.CEIL -> DSL.ceil(
                 DSL.field(field.fullName(), Float::class.java).div(numericRounding.ceil.divisor)

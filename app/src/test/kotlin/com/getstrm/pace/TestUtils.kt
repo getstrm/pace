@@ -1,7 +1,7 @@
 package com.getstrm.pace
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import com.getstrm.pace.processing_platforms.AbstractDynamicViewGenerator
+import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
@@ -19,7 +19,7 @@ import javax.sql.DataSource
 // We wrap the field in a select to get a sql with bound values
 fun Field<*>.toSql(): String = DSL.select(this).getSQL(ParamType.INLINED).removePrefix("select ")
 
-class TestDynamicViewGenerator(dataPolicy: DataPolicy) : AbstractDynamicViewGenerator(dataPolicy) {
+class TestDynamicViewGenerator(dataPolicy: DataPolicy) : ProcessingPlatformViewGenerator(dataPolicy) {
     override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
         return null
     }
