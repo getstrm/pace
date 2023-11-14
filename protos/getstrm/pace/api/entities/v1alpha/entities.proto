@@ -35,6 +35,24 @@ message DataPolicy {
     // When no filters are defined, all records are always included.
     repeated Filter filters = 3;
 
+    repeated Retention retention = 4;
+
+    message Retention {
+      // The field of type SQL date with timestamp.
+      Field field = 1;
+      repeated Condition conditions = 2;
+      message Condition {
+        // The principals (e.g. groups) that apply to this condition.
+        repeated Principal principals = 1 [(buf.validate.field).repeated.min_items = 0];
+        // The retention period for the data measured in days after creation.
+        Period period = 2;
+      }
+      message Period {
+        // Number of days since
+        int64 days = 1;
+      }
+    }
+
     message Filter {
       // The last condition in the list must have 0 principals, as this acts as the default / else condition.
       repeated Condition conditions = 1;
@@ -179,8 +197,7 @@ message GlobalTransform {
 
 message DataCatalog {
   // An arbitrary but unique identifier for the catalog. This matches the id from the PACE app configuration.
-  string id =
-1 [(buf.validate.field) = {
+  string id = 1 [(buf.validate.field) = {
     ignore_empty: false,
     string: {min_len: 1}
   }];
@@ -216,7 +233,8 @@ message DataCatalog {
   message Schema {
     // The id used by the catalog.
     string id = 1 [(buf.validate.field) = {
-      ignore_empty: false,
+      ignore_empty: f
+alse,
       string: {min_len: 1}
     }];
     string name = 2 [(buf.validate.field) = {
