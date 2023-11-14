@@ -1,6 +1,8 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyResponse
+import build.buf.gen.google.rpc.BadRequest.FieldViolation
 import com.getstrm.pace.config.ProcessingPlatformConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.ResourceException
@@ -67,7 +69,7 @@ class ProcessingPlatformsService(
     suspend fun listProcessingPlatformGroups(platformId: String): List<Group> =
         (platforms[platformId] ?: throw processingPlatformNotFound(platformId)).listGroups()
 
-    suspend fun getBlueprintPolicy(platformId: String, tableName: String): DataPolicy {
+    suspend fun getBlueprintPolicy(platformId: String, tableName: String): GetBlueprintPolicyResponse {
         val processingPlatformInterface = platforms[platformId] ?: throw processingPlatformNotFound(platformId)
         val table = processingPlatformInterface.getTable(tableName)
         val baseDataPolicy = table.toDataPolicy(
@@ -75,8 +77,16 @@ class ProcessingPlatformsService(
                 .setPlatformType(processingPlatformInterface.type).build()
         )
 
-        return globalTransformsService.addRuleSet(baseDataPolicy).also {
-            dataPolicyValidatorService.validate(it, listGroupNames(platformId))
+        return globalTransformsService.addRuleSet(baseDataPolicy).let { blueprint ->
+            val builder = GetBlueprintPolicyResponse.newBuilder().setDataPolicy(blueprint)
+            try {
+                dataPolicyValidatorService.validate(blueprint, listGroupNames(platformId))
+                builder.build()
+            } catch (e: BadRequestException) {
+                    builder.setViolation(
+                        FieldViolation.newBuilder().setDescription(e.status.description?:e.javaClass.name))
+                    .build()
+            }
         }
     }
 
