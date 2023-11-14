@@ -233,8 +233,7 @@ message DataCatalog {
   message Schema {
     // The id used by the catalog.
     string id = 1 [(buf.validate.field) = {
-      ignore_empty: f
-alse,
+      ignore_empty: false,
       string: {min_len: 1}
     }];
     string name = 2 [(buf.validate.field) = {
