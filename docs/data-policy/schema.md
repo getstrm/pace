@@ -10,14 +10,11 @@ The first step to defining a `Data Policy` is knowing what your source data look
 
 ### Blueprint Policy
 
-Below we will talk about getting a _blueprint policy_. A _blueprint policy_ is a `Data Policy` where only the source 
-ref and 
-fields are populated. This serves as a starting point for defining the rest of the `Data Policy`.&#x20;
+Below we will talk about getting a _blueprint policy_. A _blueprint policy_ is a `Data Policy` where only the source ref and fields, and potentially a ruleset are populated. This serves as a starting point for defining the rest of the `Data Policy`. A ruleset _can_ be present in the bare policy, but this depends on whether [global transforms are defined](../global-policies/global-transforms/). A bare policy is retrieved from either a Data Catalog or a Processing Platform
 
 ### Sample Blueprint Policy
 
-A blueprint policy consists of metadata such as a _title_, _version_, _create time_ and _last updated time_ as well as 
-user defined _tags_. It has information about the processing platform, being its type and the configured id. But most importantly it contains the fields, or schema, of the source data. Each field consists of an array of `name_parts`, which is the path to field and typically contains only one entry for columnar/flat data. Furthermore, it contains the type, whether or not it is a required field and user defined tags. Lastly the source section contains a reference to the source table and again user defined tags for the source.
+A blueprint policy consists of metadata such as a _title_, _version_, _create time_ and _last updated time_ as well as user defined _tags_. It has information about the processing platform, being its type and the configured id. But most importantly it contains the fields, or schema, of the source data. Each field consists of an array of `name_parts`, which is the path to field and typically contains only one entry for columnar/flat data. Furthermore, it contains the type, whether or not it is a required field and user defined tags. Lastly the source section contains a reference to the source table and again user defined tags for the source.
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -154,16 +151,8 @@ data_policy:
 
 ## Data Platform
 
-If your `Data Platform` (or [`Processing Platform`](../reference/processing-platform-integrations/)) has knowledge 
-of the source's data structure, we provide both a [REST API](../reference/api-reference.
-md#processing-platforms-platformid-tables-table\_id-blueprint-policy) and a CLI to receive a _blueprint policy_. Find 
-out 
-what the minimum required permissions are per `Processing Platform` in our [processing platform integration pages](../reference/processing-platform-integrations/).&#x20;
+If your `Data Platform` (or [`Processing Platform`](../reference/processing-platform-integrations/)) has knowledge of the source's data structure, we provide both a \[REST API]\(../reference/api-reference. md#processing-platforms-platformid-tables-table\_id-blueprint-policy) and a CLI to receive a _blueprint policy_. Find out what the minimum required permissions are per `Processing Platform` in our [processing platform integration pages](../reference/processing-platform-integrations/).
 
 ## Data Catalog
 
-The source's data structure can also be retrieved from a [`Data Catalog`](../reference/data-catalog-integrations/). 
-Here too we provide both a [REST API](../reference/api-reference.
-md#catalogs-catalogid-databases-databaseid-schemas-schemaid-tables-tableid-blueprint-policy) and a CLI to receive the 
-_blueprint policy_. Find out what the minimum required permissions are per `Data Catalog` in our [data catalog 
-integration pages](../reference/data-catalog-integrations/).&#x20;
+The source's data structure can also be retrieved from a [`Data Catalog`](../reference/data-catalog-integrations/). Here too we provide both a \[REST API]\(../reference/api-reference. md#catalogs-catalogid-databases-databaseid-schemas-schemaid-tables-tableid-blueprint-policy) and a CLI to receive the _blueprint policy_. Find out what the minimum required permissions are per `Data Catalog` in our [data catalog integration pages](../reference/data-catalog-integrations/).

@@ -48,14 +48,7 @@ The compose file is set up without any persistence of data across different star
 {% endhint %}
 
 {% hint style="info" %}
-Since PostgreSQL has no "native" support for tags on columns, we've come up with a syntax to allow specifying tags in comments on columns. The syntax allows specifying tags in any position of the comment string, in the following formats:
-
-* `pace::my_tag`
-* `pace::my-tag`
-* `pace::mytag`
-* `pace::"my tag"`
-
-Keep in mind that tags are currently prefixed with the fixed string `pace::`
+Since PostgreSQL has no "native" support for tags on columns, we've come up with a syntax [to allow specifying tags in comments on columns](../global-policies/global-transforms/processing-platform-tags/postgresql.md).
 {% endhint %}
 
 <details>
@@ -272,8 +265,7 @@ Feel free to list the global transforms to see whether it has been correctly cre
 
 ### Fetching a Data Policy with a rule set based on global transforms
 
-When we fetch the Data Policy now, the global transform should be added to the `rule_sets` section of the data 
-policy. Run the command to get a blueprint data policy for our table again.
+When we fetch the Data Policy now, the global transform should be added to the `rule_sets` section of the data policy. Run the command to get a blueprint data policy for our table again.
 
 ```bash
 pace get data-policy --processing-platform global_transforms-sample-connection public.demo
@@ -361,7 +353,5 @@ That wraps up the global transforms example. To clean up all resources, run the 
 ```bash
 docker compose down
 ```
-
-
 
 Any questions or comments? Please ask them on [GitHub discussions](https://github.com/getstrm/pace/discussions).
