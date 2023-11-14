@@ -88,6 +88,28 @@ class ProcessingPlatformTransformer {
         DSL.unquotedName("$renderedSourceRefName.${field.fullName()}"),
     )
 
+    fun numericRounding(field: DataPolicy.Field, numericRounding: NumericRounding): JooqField<*> =
+        when (numericRounding.roundingCase) {
+            NumericRounding.RoundingCase.CEIL -> DSL.ceil(
+                DSL.field(field.fullName(), Float::class.java).div(numericRounding.ceil.divisor)
+            ).multiply(numericRounding.ceil.divisor)
+
+            NumericRounding.RoundingCase.FLOOR -> DSL.floor(
+                DSL.field(field.fullName(), Float::class.java).div(numericRounding.floor.divisor)
+            ).multiply(numericRounding.floor.divisor)
+
+            NumericRounding.RoundingCase.ROUND -> DSL.round(
+                DSL.field(field.fullName(), Float::class.java), numericRounding.round.precision
+            )
+
+            NumericRounding.RoundingCase.ROUNDING_NOT_SET, null -> throw InternalException(
+                InternalException.Code.INTERNAL,
+                DebugInfo.newBuilder()
+                    .setDetail("Rounding type ${numericRounding.roundingCase} is not supported or not set. $BUG_REPORT")
+                    .build()
+            )
+        }
+
     companion object {
         private val typeParser: TypeParser = TypeParser.newBuilder().build()
 

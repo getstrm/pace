@@ -70,6 +70,8 @@ message DataPolicy {
           Nullify nullify = 8;
           // Replaces a tokenized field value with its original value, looked up in a token source. If no value is found, the tokenized value is left as-is.
           Detokenize detokenize = 9;
+          // Round a numeric value with the specified rounding.
+          NumericRounding numeric_rounding = 10;
         }
         message SqlStatement {
           string statement = 1;
@@ -94,6 +96,30 @@ message DataPolicy {
           Field token_field = 2;
           // The field in the token source that contains the value. Only the name parts are required.
           Field value_field = 3;
+        }
+        message NumericRounding {
+          oneof rounding {
+            option (buf.validate.oneof).required = true;
+            // Round the value to the nearest integer (e.g. 1.5 becomes 2), respecting the divisor.
+            Ceil ceil = 3;
+            // Round the value down to the nearest integer (e.g. 1.5 becomes 1), respecting the divisor.
+            Floor floor = 4;
+            // Use regular natural rounding (e.g. 1.5 becomes 2, 1.4 becomes 1), respecting the precision.
+            Round round = 5;
+          }
+
+          message Ceil {
+            // The divisor to use when applying integer division. Values < 1 allow for rounding to decimal places.
+            float divisor = 1;
+          }
+          message Floor {
+            // The divisor to use when applying integer division. Values < 1 allow for rounding to decimal places.
+            float divisor = 1;
+          }
+          message Round {
+            // The precision to use for rounding. When positive, the value is rounded to the nearest decimal place. When negative, the value is rounded to the nearest power of 10.
+            int32 precision = 1;
+          }
         }
       }
     }
