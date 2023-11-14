@@ -17,6 +17,10 @@ import com.google.protobuf.Timestamp
 import com.google.protobuf.util.JsonFormat
 import com.google.protobuf.util.Timestamps
 import org.jooq.*
+import org.jooq.conf.ParseNameCase
+import org.jooq.conf.ParseUnknownFunctions
+import org.jooq.conf.RenderQuotedNames
+import org.jooq.conf.Settings
 import org.jooq.exception.DataAccessException
 import org.jooq.impl.DSL
 import org.jooq.impl.SQLDataType
@@ -133,6 +137,16 @@ fun GlobalTransform.refAndType() = GlobalTransform.RefAndType
 fun GlobalTransformsRecord.toGlobalTransform() = GlobalTransform.newBuilder().merge(this.transform!!).build()
 
 fun RefAndType.name() = "${this.type}/${this.ref}"
+
+fun DataPolicy.Field.fullName(): String = this.namePartsList.joinToString(".")
+
+val defaultJooqSettings: Settings = Settings()
+    // This makes sure we can use platform-specific functions (or UDFs)
+    .withParseUnknownFunctions(ParseUnknownFunctions.IGNORE)
+    // This follows the exact naming from the data policy's field names
+    .withParseNameCase(ParseNameCase.AS_IS)
+    // This ensures that we explicitly need to quote names
+    .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
 
 /**
  * Apply different operations on the head, tail and body of a collection. The head and tail contain a single element,

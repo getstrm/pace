@@ -3,7 +3,7 @@ package com.getstrm.pace.processing_platforms.snowflake
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.UNIMPLEMENTED
-import com.getstrm.pace.processing_platforms.AbstractDynamicViewGenerator
+import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
 import com.google.rpc.DebugInfo
 import org.jooq.Condition
 import org.jooq.Queries
@@ -11,11 +11,10 @@ import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 
 
-class SnowflakeDynamicViewGenerator(
+class SnowflakeViewGenerator(
     dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {},
-) : AbstractDynamicViewGenerator(dataPolicy, customJooqSettings) {
-
+) : ProcessingPlatformViewGenerator(dataPolicy, customJooqSettings = customJooqSettings) {
     override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
         return if (isEmpty()) {
             null

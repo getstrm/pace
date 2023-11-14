@@ -6,7 +6,7 @@ import com.getstrm.pace.config.SnowflakeConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.processing_platforms.Group
-import com.getstrm.pace.processing_platforms.ProcessingPlatform
+import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.util.normalizeType
 import com.google.rpc.DebugInfo
@@ -23,7 +23,7 @@ import org.springframework.web.client.postForEntity
 class SnowflakeClient(
     override val id: String,
     private val config: SnowflakeConfig
-) : ProcessingPlatform {
+) : ProcessingPlatformClient {
     constructor(config: SnowflakeConfig) : this(config.id, config)
 
     private val snowflakeJwtIssuer = SnowflakeJwtIssuer.fromOrganizationAndAccountName(
@@ -60,7 +60,7 @@ class SnowflakeClient(
     }
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
-        val statement = SnowflakeDynamicViewGenerator(dataPolicy).toDynamicViewSQL()
+        val statement = SnowflakeViewGenerator(dataPolicy).toDynamicViewSQL()
             .replace("\\n".toRegex(), "\\\\n")
             .replace("""(\\\d)""".toRegex(), """\\\\""" + "\$1")
         val statementCount = statement.mapNotNull { element -> element.takeIf { it == ';' } }.size.toString()

@@ -179,7 +179,8 @@ message GlobalTransform {
 
 message DataCatalog {
   // An arbitrary but unique identifier for the catalog. This matches the id from the PACE app configuration.
-  string id = 1 [(buf.validate.field) = {
+  string id =
+1 [(buf.validate.field) = {
     ignore_empty: false,
     string: {min_len: 1}
   }];

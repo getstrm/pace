@@ -1,7 +1,6 @@
 package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import com.getstrm.pace.processing_platforms.snowflake.SnowflakeDynamicViewGenerator
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import io.kotest.matchers.nulls.shouldBeNull
@@ -13,13 +12,13 @@ import com.getstrm.pace.toSql
 import com.getstrm.pace.util.yaml2json
 import org.intellij.lang.annotations.Language
 
-class SnowflakeDynamicViewGeneratorTest {
+class SnowflakeViewGeneratorTest {
 
-    private lateinit var underTest: SnowflakeDynamicViewGenerator
+    private lateinit var underTest: SnowflakeViewGenerator
 
     @BeforeEach
     fun setUp() {
-        underTest = SnowflakeDynamicViewGenerator(DataPolicy.getDefaultInstance())
+        underTest = SnowflakeViewGenerator(DataPolicy.getDefaultInstance())
     }
 
     @Test
@@ -132,7 +131,7 @@ class SnowflakeDynamicViewGeneratorTest {
     @Test
     fun `transform test all transforms`() {
         // Given
-        underTest = SnowflakeDynamicViewGenerator(dataPolicy) { withRenderFormatted(true) }
+        underTest = SnowflakeViewGenerator(dataPolicy) { withRenderFormatted(true) }
         underTest.toDynamicViewSQL()
             .shouldBe(
                 """create or replace view my_database.my_schema.gddemo_public

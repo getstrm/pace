@@ -14,8 +14,8 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-class PostgresDynamicViewGeneratorTest {
-    private val underTest = PostgresDynamicViewGenerator(dataPolicy)
+class PostgresViewGeneratorTest {
+    private val underTest = PostgresViewGenerator(dataPolicy)
 
     @Test
     fun `fixed value transform with multiple principals`() {
@@ -194,7 +194,7 @@ class PostgresDynamicViewGeneratorTest {
     @Test
     fun `full SQL view statement with a single detokenize join`() {
         // Given
-        val viewGenerator = PostgresDynamicViewGenerator(singleDetokenizePolicy) { withRenderFormatted(true) }
+        val viewGenerator = PostgresViewGenerator(singleDetokenizePolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL() shouldBe
             """create or replace view public.demo_view
 as
@@ -216,7 +216,7 @@ select
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce(tokens.userid_tokens.userid, public.demo_tokenized.userid)
     else userid
-  end userid,
+  end as userid,
   transactionamount
 from public.demo_tokenized
   left outer join tokens.userid_tokens
@@ -231,7 +231,7 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
     @Test
     fun `full SQL view statement with multiple detokenize joins on two tables`() {
         // Given
-        val viewGenerator = PostgresDynamicViewGenerator(multiDetokenizePolicy) { withRenderFormatted(true) }
+        val viewGenerator = PostgresViewGenerator(multiDetokenizePolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL() shouldBe
             """create or replace view public.demo_view
 as
@@ -252,11 +252,11 @@ select
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce(tokens.transactionid_tokens.transactionid, public.demo_tokenized.transactionid)
     else transactionid
-  end transactionid,
+  end as transactionid,
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce(tokens.userid_tokens.userid, public.demo_tokenized.userid)
     else userid
-  end userid,
+  end as userid,
   transactionamount
 from public.demo_tokenized
   left outer join tokens.userid_tokens
@@ -273,7 +273,7 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
     @Test
     fun `full SQL view statement with multiple transforms`() {
         // Given
-        val viewGenerator = PostgresDynamicViewGenerator(dataPolicy) { withRenderFormatted(true) }
+        val viewGenerator = PostgresViewGenerator(dataPolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL()
             .shouldBe(
                 """create or replace view public.demo_view
@@ -296,14 +296,14 @@ select
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then userid
     else 123
-  end userid,
+  end as userid,
   case
-    when ('marketing' IN ( SELECT rolname FROM user_groups )) then regexp_replace(email, '^.*(@.*)${'$'}', '****\1')
+    when ('marketing' IN ( SELECT rolname FROM user_groups )) then regexp_replace(email, '^.*(@.*)${'$'}', '****\1', 'g')
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then email
     else '****'
-  end email,
+  end as email,
   age,
-  CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END brand,
+  CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END as brand,
   transactionamount
 from public.demo
 where (

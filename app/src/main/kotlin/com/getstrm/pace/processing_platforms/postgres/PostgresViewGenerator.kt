@@ -3,35 +3,35 @@ package com.getstrm.pace.processing_platforms.postgres
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException
-import com.getstrm.pace.processing_platforms.AbstractDynamicViewGenerator
+import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
+import com.getstrm.pace.util.defaultJooqSettings
 import com.google.rpc.DebugInfo
 import org.jooq.*
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 
-class PostgresDynamicViewGenerator(
+class PostgresViewGenerator(
     dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {},
-) : AbstractDynamicViewGenerator(dataPolicy, customJooqSettings) {
-
-    private val postgresDsl = DSL.using(SQLDialect.POSTGRES)
+) : ProcessingPlatformViewGenerator(dataPolicy, customJooqSettings = customJooqSettings) {
+    override val jooq: DSLContext = DSL.using(SQLDialect.POSTGRES, defaultJooqSettings.apply(customJooqSettings))
     override fun additionalFooterStatements(): Queries {
         val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->
             val principals =
                 ruleSet.fieldTransformsList.flatMap { it.transformsList }.flatMap { it.principalsList }.toSet() +
-                        ruleSet.filtersList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet()
+                    ruleSet.filtersList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet()
 
             val viewName = ruleSet.target.fullname
 
             principals.map {
                 DSL.query(
-                    postgresDsl.grant(DSL.privilege("SELECT")).on(DSL.table(DSL.unquotedName(viewName)))
-                        .to(DSL.role(it.group)).sql
+                    jooq.grant(DSL.privilege("SELECT")).on(DSL.table(DSL.unquotedName(viewName)))
+                        .to(DSL.role(DSL.quotedName(it.group))).sql
                 )
             }
         }
 
-        return postgresDsl.queries(grants)
+        return jooq.queries(grants)
     }
 
     override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
@@ -57,7 +57,7 @@ class PostgresDynamicViewGenerator(
         }
     }
 
-    override fun renderName(name: String): String = postgresDsl.renderNamedParams(DSL.unquotedName(name))
+    override fun renderName(name: String): String = jooq.renderNamedParams(DSL.unquotedName(name))
 
     override fun selectWithAdditionalHeaderStatements(fields: List<Field<*>>): SelectSelectStep<Record> {
         val userGroupSelect = DSL.unquotedName("user_groups")
