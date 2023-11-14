@@ -35,23 +35,23 @@ service DataCatalogsService {
         };
     };
     // Returns a data policy without any rule sets, based on the given table's data structure in the catalog.
-    // Extend this bare policy with field transforms and/or rule sets to create a complete data policy.
+    // Extend this blueprint policy with field transforms and/or rule sets to create a complete data policy.
     // Use the UpsertDataPolicy endpoint to save and enforce the policy.
-    rpc GetBarePolicy (GetBarePolicyRequest) returns (GetBarePolicyResponse) {
+    rpc GetBlueprintPolicy (GetBlueprintPolicyRequest) returns (GetBlueprintPolicyResponse) {
         option (google.api.http) = {
-            get: "/catalogs/{catalog_id}/bare-policy"
+            get: "/catalogs/{catalog_id}/blueprint-policy"
         };
     };
 }
 
-message GetBarePolicyRequest {
+message GetBlueprintPolicyRequest {
     string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
     optional string database_id = 2;
     optional string schema_id = 3;
     string table_id = 4 [(buf.validate.field).string = {min_len: 1}];
 }
 
-message GetBarePolicyResponse {
+message GetBlueprintPolicyResponse {
     entities.v1alpha.DataPolicy data_policy = 1;
 }
 

@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.14
+    version: 1.0.0-alpha.16
 paths:
     /catalogs:
         get:
@@ -25,15 +25,15 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /catalogs/{catalogId}/bare-policy:
+    /catalogs/{catalogId}/blueprint-policy:
         get:
             tags:
                 - DataCatalogsService
             description: |-
                 Returns a data policy without any rule sets, based on the given table's data structure in the catalog.
-                 Extend this bare policy with field transforms and/or rule sets to create a complete data policy.
+                 Extend this blueprint policy with field transforms and/or rule sets to create a complete data policy.
                  Use the UpsertDataPolicy endpoint to save and enforce the policy.
-            operationId: DataCatalogsService_GetBarePolicy
+            operationId: DataCatalogsService_GetBlueprintPolicy
             parameters:
                 - name: catalogId
                   in: path
@@ -58,7 +58,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/GetBarePolicyResponse'
+                                $ref: '#/components/schemas/GetBlueprintPolicyResponse'
                 default:
                     description: Default error response
                     content:
@@ -156,24 +156,15 @@ paths:
         get:
             tags:
                 - DataPoliciesService
-            description: Returns the latest policy for a given id and platform.
-            operationId: DataPoliciesService_GetDataPolicy
-            parameters:
-                - name: dataPolicyId
-                  in: query
-                  schema:
-                    type: string
-                - name: platformId
-                  in: query
-                  schema:
-                    type: string
+            description: Lists all DataPolicies for all platforms.
+            operationId: DataPoliciesService_ListDataPolicies
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/GetDataPolicyResponse'
+                                $ref: '#/components/schemas/ListDataPoliciesResponse'
                 default:
                     description: Default error response
                     content:
@@ -204,19 +195,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /data-policies/list:
+    /data-policies/{dataPolicyId}/{platformId}:
         get:
             tags:
                 - DataPoliciesService
-            description: Lists all DataPolicies for all platforms.
-            operationId: DataPoliciesService_ListDataPolicies
+            description: Returns the latest policy for a given id and platform.
+            operationId: DataPoliciesService_GetDataPolicy
+            parameters:
+                - name: dataPolicyId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: platformId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/ListDataPoliciesResponse'
+                                $ref: '#/components/schemas/GetDataPolicyResponse'
                 default:
                     description: Default error response
                     content:
@@ -242,6 +244,81 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ListGlobalTransformsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        post:
+            tags:
+                - GlobalTransformsService
+            operationId: GlobalTransformsService_UpsertGlobalTransform
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpsertGlobalTransformRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpsertGlobalTransformResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        delete:
+            tags:
+                - GlobalTransformsService
+            operationId: GlobalTransformsService_DeleteGlobalTransform
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/DeleteGlobalTransformRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteGlobalTransformResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /global-transforms/{ref}/{type}:
+        get:
+            tags:
+                - GlobalTransformsService
+            operationId: GlobalTransformsService_GetGlobalTransform
+            parameters:
+                - name: ref
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: type
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetGlobalTransformResponse'
                 default:
                     description: Default error response
                     content:
@@ -317,15 +394,15 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /processing-platforms/{platformId}/tables/{tableId}/bare-policy:
+    /processing-platforms/{platformId}/tables/{tableId}/blueprint-policy:
         get:
             tags:
                 - ProcessingPlatformsService
             description: |-
                 Returns a data policy without any rule sets, based on the given table's data structure in the platform.
-                 Extend this bare policy with field transforms and/or rule sets to create a complete data policy.
+                 Extend this blueprint policy with field transforms and/or rule sets to create a complete data policy.
                  Use the UpsertDataPolicy endpoint to save and enforce the policy.
-            operationId: ProcessingPlatformsService_GetBarePolicy
+            operationId: ProcessingPlatformsService_GetBlueprintPolicy
             parameters:
                 - name: platformId
                   in: path
@@ -343,7 +420,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/GetBarePolicyResponse'
+                                $ref: '#/components/schemas/GetBlueprintPolicyResponse'
                 default:
                     description: Default error response
                     content:
@@ -551,6 +628,19 @@ components:
                 fullname:
                     type: string
                     description: The full and unique name to be used in the target platform. E.g. the view name.
+        DeleteGlobalTransformRequest:
+            type: object
+            properties:
+                refAndTypes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GlobalTransform_RefAndType'
+        DeleteGlobalTransformResponse:
+            type: object
+            properties:
+                deletedCount:
+                    type: integer
+                    format: uint32
         FieldTransform_Transform:
             type: object
             properties:
@@ -598,7 +688,7 @@ components:
                 condition:
                     type: string
                     description: A (platform-specific) SQL expression. If it evaluates to true, the principals are allowed to access the data.
-        GetBarePolicyResponse:
+        GetBlueprintPolicyResponse:
             type: object
             properties:
                 dataPolicy:
@@ -608,6 +698,11 @@ components:
             properties:
                 dataPolicy:
                     $ref: '#/components/schemas/DataPolicy'
+        GetGlobalTransformResponse:
+            type: object
+            properties:
+                transform:
+                    $ref: '#/components/schemas/GlobalTransform'
         GlobalTransform:
             type: object
             properties:
@@ -622,7 +717,14 @@ components:
                     $ref: '#/components/schemas/GlobalTransform_TagTransform'
             description: |-
                 If the specified transform is incompatible with the field data type to which this global transform is connected with,
-                 then the end user will get an invalid argument, and the bare policy with the global transforms applied won't be returned.
+                 then the end user will get an invalid argument, and the blueprint policy with the global transforms applied won't be returned.
+        GlobalTransform_RefAndType:
+            type: object
+            properties:
+                ref:
+                    type: string
+                type:
+                    type: string
         GlobalTransform_TagTransform:
             type: object
             properties:
@@ -788,6 +890,16 @@ components:
             properties:
                 dataPolicy:
                     $ref: '#/components/schemas/DataPolicy'
+        UpsertGlobalTransformRequest:
+            type: object
+            properties:
+                transform:
+                    $ref: '#/components/schemas/GlobalTransform'
+        UpsertGlobalTransformResponse:
+            type: object
+            properties:
+                transform:
+                    $ref: '#/components/schemas/GlobalTransform'
 tags:
     - name: DataCatalogsService
     - name: DataPoliciesService

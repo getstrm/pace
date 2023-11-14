@@ -69,7 +69,7 @@ class DataCatalogsService(
     ): List<ApiTable> =
         getTablesInfo(catalogId, databaseId, schemaId).map { it.apiTable }
 
-    suspend fun getBarePolicy(
+    suspend fun getBlueprintPolicy(
         catalogId: String,
         databaseId: String,
         schemaId: String,

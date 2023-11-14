@@ -48,7 +48,7 @@ class GlobalTransformsService(
     /**
      * add a rule set to a data policy based on tags.
      *
-     * @param dataPolicy bare DataPolicy
+     * @param dataPolicy blueprint DataPolicy
      * @return policy with embedded ruleset.
      */
     suspend fun addRuleSet(dataPolicy: DataPolicy): DataPolicy {

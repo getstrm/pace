@@ -171,7 +171,7 @@ This results in the following representation of the demo table. As you can see, 
 (9 rows)
 ```
 
-### Fetching a bare Data Policy without global transforms
+### Fetching a blueprint Data Policy without global transforms
 
 Before we create the global transform, first, let's see what is returned when we fetch the Data Policy created from the table when there are no global transforms defined.
 
@@ -272,7 +272,8 @@ Feel free to list the global transforms to see whether it has been correctly cre
 
 ### Fetching a Data Policy with a rule set based on global transforms
 
-When we fetch the Data Policy now, the global transform should be added to the `rule_sets` section of the data policy. Run the command to get a bare data policy for our table again.
+When we fetch the Data Policy now, the global transform should be added to the `rule_sets` section of the data 
+policy. Run the command to get a blueprint data policy for our table again.
 
 ```bash
 pace get data-policy --processing-platform global_transforms-sample-connection public.demo
