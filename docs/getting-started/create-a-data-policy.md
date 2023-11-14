@@ -16,9 +16,17 @@ For this example we will use a very small sample data set:
 
 <table><thead><tr><th>email</th><th data-type="number">age</th></tr></thead><tbody><tr><td>alice@domain.com</td><td>16</td></tr><tr><td>bob@company.org</td><td>18</td></tr><tr><td>charlie@store.io</td><td>20</td></tr></tbody></table>
 
-## Get bare policy
+## Get blueprint policy
 
-Let the id of your connected `Processing Platform` be `pace-pp` and the source reference be `pace-db.pace-schema.pace-table`. Getting a bare policy yields a nearly empty `Data Policy` with populated source fields, thus defining the structure of your source data. In this example we will use both the [`pace cli`](https://github.com/getstrm/cli) and call the [REST API](../reference/api-reference.md#processing-platforms-platformid-tables-table\_id-bare-policy) using `curl`. The request has two variables, `platform-id` and `table-id`. The CLI makes use of gRPC. We assume here that the instance is running on localhost, the gRPC port is 50051 and the envoy proxy is listening on port 9090 as per the defaults. For the CLI holds, that if you specify the processing platform and the reference to the table, the corresponding bare policy is returned. Requesting a bare policy then yields:
+Let the id of your connected `Processing Platform` be `pace-pp` and the source reference be `pace-db.pace-schema.
+pace-table`. Getting a blueprint policy yields a nearly empty `Data Policy` with populated source fields, thus defining 
+the structure of your source data. In this example we will use both the [`pace cli`](https://github.com/getstrm/cli) 
+and call the [REST API](../reference/api-reference.
+md#processing-platforms-platformid-tables-table\_id-blueprint-policy) using `curl`. The request has two variables, 
+`platform-id` and `table-id`. The CLI makes use of gRPC. We assume here that the instance is running on localhost, 
+the gRPC port is 50051 and the envoy proxy is listening on port 9090 as per the defaults. For the CLI holds, that if 
+you specify the processing platform and the reference to the table, the corresponding blueprint policy is returned. 
+Requesting a blueprint policy then yields:
 
 {% tabs %}
 {% tab title="CLI" %}
@@ -30,13 +38,13 @@ pace get data-policy -p pace-pp pace-db.pace-schema.pace-table
 {% tab title="curl" %}
 {% code overflow="wrap" %}
 ```bash
-curl localhost:9090/processing-platforms/pace-pp/tables/pace-db.pace-schema.pace-table/bare-policy
+curl localhost:9090/processing-platforms/pace-pp/tables/pace-db.pace-schema.pace-table/blueprint-policy
 ```
 {% endcode %}
 {% endtab %}
 {% endtabs %}
 
-The resulting bare policy:
+The resulting blueprint policy:
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -123,7 +131,8 @@ data_policy:
 
 As you can see, the [`Rule Sets`](../data-policy/rule-set/) are empty and only the refs and `source.fields` have been populated. This dataset consists of 2 columns: `email`, `age`. Now that we know our data's structure, the next step is populating the yaml with a `Rule Set`.
 
-If you do not have a `Processing Platform` or `Data Catalog` connected yet, use the bare policy from above to define the structure of your data by hand.
+If you do not have a `Processing Platform` or `Data Catalog` connected yet, use the blueprint policy from above to 
+define the structure of your data by hand.
 
 ## Define Rule Sets
 

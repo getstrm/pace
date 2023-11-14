@@ -263,7 +263,7 @@ components:
             $ref: '#/components/schemas/DataPolicy_Principal'
           type: array
       type: object
-    GetBarePolicyResponse:
+    GetBlueprintPolicyResponse:
       properties:
         dataPolicy:
           $ref: '#/components/schemas/DataPolicy'
@@ -276,7 +276,7 @@ components:
     GlobalTransform:
       description: "If the specified transform is incompatible with the field data\
         \ type to which this global transform is connected with,\n then the end user\
-        \ will get an invalid argument, and the bare policy with the global transforms\
+        \ will get an invalid argument, and the blueprint policy with the global transforms\
         \ applied won't be returned."
       properties:
         description:
@@ -468,7 +468,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.14
+  version: 1.0.0-alpha.15
 openapi: 3.0.3
 paths:
   /catalogs:
@@ -491,13 +491,13 @@ paths:
       summary: ListCatalogs
       tags:
       - DataCatalogsService
-  /catalogs/{catalogId}/bare-policy:
+  /catalogs/{catalogId}/blueprint-policy:
     get:
       description: "Returns a data policy without any rule sets, based on the given\
-        \ table's data structure in the catalog.\n Extend this bare policy with field\
-        \ transforms and/or rule sets to create a complete data policy.\n Use the\
-        \ UpsertDataPolicy endpoint to save and enforce the policy."
-      operationId: DataCatalogsService_GetBarePolicy
+        \ table's data structure in the catalog.\n Extend this blueprint policy with\
+        \ field transforms and/or rule sets to create a complete data policy.\n Use\
+        \ the UpsertDataPolicy endpoint to save and enforce the policy."
+      operationId: DataCatalogsService_GetBlueprintPolicy
       parameters:
       - in: path
         name: catalogId
@@ -521,7 +521,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetBarePolicyResponse'
+                $ref: '#/components/schemas/GetBlueprintPolicyResponse'
           description: OK
         default:
           content:
@@ -529,7 +529,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Status'
           description: Default error response
-      summary: GetBarePolicy
+      summary: GetBlueprintPolicy
       tags:
       - DataCatalogsService
   /catalogs/{catalogId}/databases:
@@ -795,13 +795,13 @@ paths:
       summary: ListTables
       tags:
       - ProcessingPlatformsService
-  /processing-platforms/{platformId}/tables/{tableId}/bare-policy:
+  /processing-platforms/{platformId}/tables/{tableId}/blueprint-policy:
     get:
       description: "Returns a data policy without any rule sets, based on the given\
-        \ table's data structure in the platform.\n Extend this bare policy with field\
-        \ transforms and/or rule sets to create a complete data policy.\n Use the\
-        \ UpsertDataPolicy endpoint to save and enforce the policy."
-      operationId: ProcessingPlatformsService_GetBarePolicy
+        \ table's data structure in the platform.\n Extend this blueprint policy with\
+        \ field transforms and/or rule sets to create a complete data policy.\n Use\
+        \ the UpsertDataPolicy endpoint to save and enforce the policy."
+      operationId: ProcessingPlatformsService_GetBlueprintPolicy
       parameters:
       - in: path
         name: platformId
@@ -818,7 +818,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetBarePolicyResponse'
+                $ref: '#/components/schemas/GetBlueprintPolicyResponse'
           description: OK
         default:
           content:
@@ -826,7 +826,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Status'
           description: Default error response
-      summary: GetBarePolicy
+      summary: GetBlueprintPolicy
       tags:
       - ProcessingPlatformsService
 tags:

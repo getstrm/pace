@@ -1,3 +1,11 @@
+# [1.0.0-alpha.15](https://github.com/getstrm/pace/compare/v1.0.0-alpha.14...v1.0.0-alpha.15) (2023-11-13)
+
+
+### Bug Fixes
+
+* generate protos ([82f895f](https://github.com/getstrm/pace/commit/82f895f0b8b5c6207c5a16a1fdb77bfb0245de91))
+* remove duplicate openapi spec ([2ef1e64](https://github.com/getstrm/pace/commit/2ef1e644505df1fa2480ec21c8dd64fb370b92bd))
+
 # [1.0.0-alpha.14](https://github.com/getstrm/pace/compare/v1.0.0-alpha.13...v1.0.0-alpha.14) (2023-11-13)
 
 
