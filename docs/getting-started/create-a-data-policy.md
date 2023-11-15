@@ -189,7 +189,7 @@ We define one `Field Transform` and add it to the `Rule Set`. Our transform conc
         - group: "MKTNG"
       regexp:
         regexp: "^.*(@.*)$"
-        replacement: "****\\\\1"
+        replacement: "****$1"
     - principals:
       - group: "F&R"
       identity: {}
@@ -222,7 +222,7 @@ We define one `Field Transform` and add it to the `Rule Set`. Our transform conc
         ],
         "regexp": {
           "regexp": "^.*(@.*)$",
-          "replacement": "****\\\\1"
+          "replacement": "****$1"
         }
       },
       {
@@ -317,7 +317,7 @@ rule_sets:
             - group: "MKTING"
             regexp:
               regexp: "^.*(@.*)$"
-              replacement: "****\\\\1"
+              replacement: "****$1"
           - principals:
             - group: "F&R"
             identity: {}
@@ -363,7 +363,7 @@ rule_sets:
               ],
               "regexp": {
                 "regexp": "^.*(@.*)$",
-                "replacement": "****\\\\1"
+                "replacement": "****$1"
               }
             },
             {
@@ -458,7 +458,7 @@ data_policy:
               - group: "MKTING"
               regexp:
                 regexp: "^.*(@.*)$"
-                replacement: "****\\\\1"
+                replacement: "****$1"
             - principals:
               - group: "F&R"
               identity: {}
@@ -543,7 +543,7 @@ data_policy:
                 ],
                 "regexp": {
                   "regexp": "^.*(@.*)$",
-                  "replacement": "****\\\\1"
+                  "replacement": "****$1"
                 }
               },
               {

@@ -109,7 +109,7 @@ spring:
   datasource:
     url: jdbc:postgresql://postgres_pace:5432/pace
     hikari:
-      username: pace_user
+      username: pace
       password: pace
       schema: public
 
@@ -119,7 +119,7 @@ app:
       - id: "detokenization-example-connection"
         host-name: "postgres_processing_platform"
         port: 5432
-        user-name: "detokenization_user"
+        user-name: "detokenization"
         password: "detokenization"
         database: "detokenization"
 ```
@@ -174,7 +174,7 @@ Before we dive into the data policy definition, let's have a look at the user gr
 * `fraud_investigation` is a role to be used when the fraud and risk team _does_ have a _reasonable suspicion_ of fraud. A DB user named `fin` with password `fin` has been assigned this role.
 * A DB user named `other` with password `other` is also available and hasn't been assigned either of the roles.
 
-We can connect with the sample database on port `5431` on `localhost`, with `detokenization` as database name, with either of the above users. None of these users will be able to read data from the `public.transactions` or `public.tokens` tables. Feel free to connect with the database using your favourite SQL client. If you _do_ want to see the data in these tables, you can connect with the user `detokenization_user` using the password `detokenization`.
+We can connect with the sample database on port `5431` on `localhost`, with `detokenization` as database name, with either of the above users. None of these users will be able to read data from the `public.transactions` or `public.tokens` tables. Feel free to connect with the database using your favourite SQL client. If you _do_ want to see the data in these tables, you can connect with the user `detokenization` using the password `detokenization`.
 
 <details>
 
@@ -192,10 +192,10 @@ Which results in the following output:
 ERROR:  permission denied for table transactions
 ```
 
-And using `detokenization_user` instead:
+And using `detokenization` instead:
 
 ```bash
-psql postgresql://detokenization_user:detokenization@localhost:5431/detokenization -c "select * from public.transactions limit 5"
+psql postgresql://detokenization:detokenization@localhost:5431/detokenization -c "select * from public.transactions limit 5"
 ```
 
 Which results in the following output:
@@ -214,7 +214,7 @@ Which results in the following output:
 With this user, we can also retrieve the tokens:
 
 ```
-psql postgresql://detokenization_user:detokenization@localhost:5431/detokenization -c "select * from public.tokens limit 5"
+psql postgresql://detokenization:detokenization@localhost:5431/detokenization -c "select * from public.tokens limit 5"
                 token                 |    value     
 --------------------------------------+--------------
  f431ec17-f1d8-498a-8773-41a2c689d527 | 676249732592
@@ -368,7 +368,7 @@ rule_sets:
           - principals: []
             regexp:
               regexp: "^\\d+(\\d{3})$"
-              replacement: "******\\1"
+              replacement: "******$1"
 ```
 {% endcode %}
 

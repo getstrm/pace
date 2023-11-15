@@ -1,3 +1,10 @@
+# [1.0.0-alpha.19](https://github.com/getstrm/pace/compare/v1.0.0-alpha.18...v1.0.0-alpha.19) (2023-11-15)
+
+
+### Features
+
+* **pace-28:** add numeric rounding transform ([#38](https://github.com/getstrm/pace/issues/38)) ([693ebe5](https://github.com/getstrm/pace/commit/693ebe5a4ff56961fac3ecb052b09b2d3092e965))
+
 # [1.0.0-alpha.18](https://github.com/getstrm/pace/compare/v1.0.0-alpha.17...v1.0.0-alpha.18) (2023-11-15)
 
 

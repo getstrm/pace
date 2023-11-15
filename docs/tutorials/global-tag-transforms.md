@@ -90,7 +90,7 @@ spring:
   datasource:
     url: jdbc:postgresql://postgres_pace:5432/pace
     hikari:
-      username: pace_user
+      username: pace
       password: pace
       schema: public
 
@@ -100,7 +100,7 @@ app:
       - id: "global_transforms-sample-connection"
         host-name: "postgres_processing_platform"
         port: 5432
-        user-name: "global_transforms_user"
+        user-name: "global_transforms"
         password: "global_transforms"
         database: "global_transforms"
 ```
@@ -136,7 +136,7 @@ There should be quite a bit of logging, ending in the banner of the PACE app boo
 Connect to the PostgreSQL database.
 
 ```bash
-psql postgresql://global_transforms_user:global_transforms@localhost:5431/global_transforms
+psql postgresql://global_transforms:global_transforms@localhost:5431/global_transforms
 ```
 
 Next, view the table and the comments.
@@ -248,7 +248,7 @@ tag_transform:
     - principals: [ { group: fraud_and_risk } ]
       regexp:
         regexp: "^.*(@.*)$"
-        replacement: "****\\1"
+        replacement: "****$1"
     # All other users should not see the email
     - principals: [ ]
       nullify: { }
@@ -297,7 +297,7 @@ rule_sets:
       - group: fraud_and_risk
       regexp:
         regexp: ^.*(@.*)$
-        replacement: '****\1'
+        replacement: '****$1'
     - nullify: {}
   target:
     fullname: public.demo_pace_view

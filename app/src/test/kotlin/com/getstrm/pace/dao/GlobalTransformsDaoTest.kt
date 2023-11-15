@@ -59,7 +59,7 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
 
         // Then
         actual shouldHaveSize 2
-        actual.withoutTimestamps() shouldContainExactlyInAnyOrder listOf(emailTransform, nameTransform).toRecords()
+       actual.withoutTimestamps() shouldContainExactlyInAnyOrder listOf(emailTransform, nameTransform).toRecords()
     }
 
     @Test

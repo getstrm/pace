@@ -54,7 +54,7 @@ Grab the contents of the files from the [GitHub repository](https://github.com/g
 {% endtab %}
 {% endtabs %}
 
-Now navigate  to the `standalone` directory inside the newly create `pace` folder:
+Now navigate to the `standalone` directory inside the newly create `pace` folder:
 
 ```bash
 cd pace/examples/standalone
@@ -91,16 +91,16 @@ The PostgreSQL initialization SQL script that is run on startup for the `postgre
 
 * A table called `public.demo`, for the data schema, please see the [file contents](https://github.com/getstrm/pace/blob/standalone/examples/standalone/data.sql).
 * Several users:
-  * `standalone_user` (password = `standalone`) - this is the user we're using to connect PACE to PostgreSQL as a Processing Platform
+  * `standalone` (password = `standalone`) - this is the user we're using to connect PACE to PostgreSQL as a Processing Platform
   * `mark` (password = `mark`)
   * `far` (password = `far`)
   * `other` (password = `other`)
 * Several groups (and their users):
-  * `administrator`: `standalone_user`
+  * `administrator`: `standalone`
   * `marketing`: `mark`
   * `fraud_and_risk`: `far`
 
-The idea here is that `standalone_user` is the super user that should be able to see all data in its raw form, and that users `mark` and `far` should only see the view that is created when creating a Data Policy in PACE.
+The idea here is that `standalone` is the super user that should be able to see all data in its raw form, and that users `mark` and `far` should only see the view that is created when creating a Data Policy in PACE.
 
 </details>
 
@@ -130,7 +130,7 @@ spring:
   datasource:
     url: jdbc:postgresql://postgres_pace:5432/pace
     hikari:
-      username: pace_user
+      username: pace
       password: pace
       schema: public
 
@@ -140,7 +140,7 @@ app:
       - id: "standalone-sample-connection"
         host-name: "postgres_processing_platform"
         port: 5432
-        user-name: "standalone_user"
+        user-name: "standalone"
         password: "standalone"
         database: "standalone"
 ```
@@ -163,10 +163,10 @@ There should be quite a bit of logging, ending in the banner of the PACE app boo
 
 ### Viewing the sample data
 
-#### As `standalone_user`
+#### As `standalone`
 
 ```bash
-psql postgresql://standalone_user:standalone@localhost:5431/standalone
+psql postgresql://standalone:standalone@localhost:5431/standalone
 ```
 
 List the available tables.
@@ -176,7 +176,7 @@ standalone=# \dt
             List of relations
  Schema | Name | Type  |      Owner
 --------+------+-------+-----------------
- public | demo | table | standalone_user
+ public | demo | table | standalone
 (1 row)
 ```
 
@@ -192,7 +192,7 @@ standalone=# select * from public.demo limit 3;
 (3 rows)
 ```
 
-This is the raw data, which we're able to see, as we're connected to the PostgreSQL database as the `standalone_user`.
+This is the raw data, which we're able to see, as we're connected to the PostgreSQL database as the `standalone`.
 
 #### As a different user
 
@@ -247,8 +247,7 @@ tables:
 
 #### Create a blueprint policy
 
-We start with a blueprint policy (without any rule sets) by reading the description of a table on the processing 
-platform.
+We start with a blueprint policy (without any rule sets) by reading the description of a table on the processing platform.
 
 ```bash
 pace get data-policy --processing-platform standalone-sample-connection public.demo
@@ -338,7 +337,7 @@ field_transforms:
     - principals: [ { group: marketing } ]
       regexp:
         regexp: "^.*(@.*)$"
-        replacement: "****\1"
+        replacement: "****$1"
     - principals: [ { group: fraud_and_risk } ]
       identity: { }
     - principals: [ ]
@@ -371,11 +370,11 @@ This will create a view with the name `public.demo_view` in the **postgres\_proc
 Click through the tabs below to see the data as the different users created in this quickstart.
 
 {% tabs %}
-{% tab title="standalone_user" %}
-Connect to the database as `standalone_user`.
+{% tab title="standalone" %}
+Connect to the database as `standalone`.
 
 ```bash
-psql postgresql://standalone_user:standalone@localhost:5431/standalone
+psql postgresql://standalone:standalone@localhost:5431/standalone
 ```
 
 Query the view:
@@ -479,8 +478,6 @@ That wraps up the standalone example. To clean up all resources, run the followi
 ```bash
 docker compose down
 ```
-
-
 
 Any questions or comments? Please ask them on [GitHub discussions](https://github.com/getstrm/pace/discussions).
 

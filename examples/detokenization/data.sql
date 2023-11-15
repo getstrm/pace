@@ -25,7 +25,7 @@ create role fraud_and_risk;
 create role fraud_investigation;
 grant fraud_and_risk to far;
 grant fraud_investigation to fin;
-grant administrator to detokenization_user;
+grant administrator to detokenization;
 -- Grant select access to user 'other' on all (including future) tables
 alter default privileges in schema public grant all on tables to other;
 

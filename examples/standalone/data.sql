@@ -16,7 +16,7 @@ create role marketing;
 create role fraud_and_risk;
 grant marketing to mark;
 grant fraud_and_risk to far;
-grant administrator to standalone_user;
+grant administrator to standalone;
 -- Grant select access to user 'other' on all (including future) tables
 alter default privileges in schema public grant all on tables to other;
 

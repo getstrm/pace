@@ -1,17 +1,16 @@
 package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Detokenize
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Fixed
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Hash
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Regexp
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.SqlStatement
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.*
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.exceptions.InternalException
+import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.sqlDataType
 import com.github.drapostolos.typeparser.TypeParser
 import com.github.drapostolos.typeparser.TypeParserException
 import com.google.rpc.BadRequest
+import com.google.rpc.DebugInfo
 import org.jooq.Parser
 import org.jooq.impl.DSL
 import org.jooq.impl.ParserException
@@ -90,6 +89,28 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
         DSL.unquotedName("${renderName(detokenize.tokenSourceRef)}.${detokenize.valueField.fullName()}"),
         DSL.unquotedName("${renderName(sourceRef)}.${field.fullName()}"),
     )
+
+    fun numericRounding(field: DataPolicy.Field, numericRounding: NumericRounding): JooqField<*> =
+        when (numericRounding.roundingCase) {
+            NumericRounding.RoundingCase.CEIL -> DSL.ceil(
+                DSL.field(field.fullName(), Float::class.java).div(numericRounding.ceil.divisor)
+            ).multiply(numericRounding.ceil.divisor)
+
+            NumericRounding.RoundingCase.FLOOR -> DSL.floor(
+                DSL.field(field.fullName(), Float::class.java).div(numericRounding.floor.divisor)
+            ).multiply(numericRounding.floor.divisor)
+
+            NumericRounding.RoundingCase.ROUND -> DSL.round(
+                DSL.field(field.fullName(), Float::class.java), numericRounding.round.precision
+            )
+
+            NumericRounding.RoundingCase.ROUNDING_NOT_SET, null -> throw InternalException(
+                InternalException.Code.INTERNAL,
+                DebugInfo.newBuilder()
+                    .setDetail("Rounding type ${numericRounding.roundingCase} is not supported or not set. $BUG_REPORT")
+                    .build()
+            )
+        }
 
     companion object {
         private val typeParser: TypeParser = TypeParser.newBuilder().build()

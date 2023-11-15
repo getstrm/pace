@@ -206,5 +206,14 @@ fun String.toTransformCase(): TransformCase = let {
 
 fun GlobalTransform.refAndType(): Pair<String, TransformCase> = Pair(when(transformCase){
     TransformCase.TAG_TRANSFORM -> tagTransform.tagContent
-    TransformCase.TRANSFORM_NOT_SET -> TODO()
+    TransformCase.TRANSFORM_NOT_SET -> throw BadRequestException(
+                code = BadRequestException.Code.INVALID_ARGUMENT,
+                badRequest = BadRequest.newBuilder()
+                    .addFieldViolations(
+                        BadRequest.FieldViolation.newBuilder()
+                            .setDescription( "TRANSFORM_NOT_SET")
+                            .build()
+                    )
+                    .build()
+            )
 }, transformCase)
