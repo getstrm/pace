@@ -2,6 +2,8 @@ package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
@@ -123,43 +125,77 @@ class BigQueryViewGeneratorTest {
 
         // Then
         jooqField.toSql() shouldBe "case when (('ANALYTICS' IN ( SELECT userGroup FROM user_groups )) or ('MARKETING' IN ( SELECT userGroup FROM user_groups ))) then '****' when ('FRAUD_DETECTION' " +
-            "IN ( SELECT userGroup FROM user_groups )) then 'REDACTED EMAIL' else 'fixed-value' end \"email\""
+                "IN ( SELECT userGroup FROM user_groups )) then 'REDACTED EMAIL' else 'fixed-value' end \"email\""
     }
 
     @Test
     fun `row filters to condition`() {
         // Given
         val filter = DataPolicy.RuleSet.Filter.newBuilder()
-            .addAllConditions(
-                listOf(
-                    DataPolicy.RuleSet.Filter.Condition.newBuilder()
-                        .addAllPrincipals(listOf("fraud-and-risk").toPrincipals())
-                        .setCondition("true")
-                        .build(),
-                    DataPolicy.RuleSet.Filter.Condition.newBuilder()
-                        .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
-                        .setCondition("age > 18")
-                        .build(),
-                    DataPolicy.RuleSet.Filter.Condition.newBuilder()
-                        .setCondition("false")
-                        .build()
-                )
+            .setGenericFilter(
+                GenericFilter.newBuilder()
+                    .addAllConditions(
+                        listOf(
+                            GenericFilter.Condition.newBuilder()
+                                .addAllPrincipals(listOf("fraud-and-risk").toPrincipals())
+                                .setCondition("true")
+                                .build(),
+                            GenericFilter.Condition.newBuilder()
+                                .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
+                                .setCondition("age > 18")
+                                .build(),
+                            GenericFilter.Condition.newBuilder()
+                                .setCondition("false")
+                                .build()
+                        )
+                    )
             )
             .build()
 
         // When
-        val condition = underTest.toCondition(filter)
+        val condition = underTest.toCondition(filter.genericFilter)
 
         // Then
         condition.toSql() shouldBe "case when ('fraud-and-risk' IN ( SELECT userGroup FROM user_groups )) then true when (('analytics' IN ( SELECT userGroup FROM user_groups )) or ('marketing' IN ( SELECT userGroup FROM user_groups ))) then age > 18 else false end"
     }
 
     @Test
+    fun `retention to condition`() {
+        // Given
+        val retention = RetentionFilter.newBuilder()
+            .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
+            .addAllConditions(
+                listOf(
+                    RetentionFilter.Condition.newBuilder()
+                        .addPrincipals(Principal.newBuilder().setGroup("marketing"))
+                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(5))
+                        .build(),
+                    RetentionFilter.Condition.newBuilder()
+                        .addPrincipals(Principal.newBuilder().setGroup("fraud-and-risk"))
+                        .build(),
+                    RetentionFilter.Condition.newBuilder()
+                        .addPrincipals(Principal.getDefaultInstance())
+                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
+                        .build()
+                )
+            ).build()
+
+        // When
+        val condition = underTest.toCondition(retention)
+
+        // Then
+        condition.toSql() shouldBe """
+            case when ('marketing' IN ( SELECT userGroup FROM user_groups )) then TIMESTAMP_ADD(timestamp, INTERVAL 5 DAY) < CURRENT_TIMESTAMP() when ('fraud-and-risk' IN ( SELECT userGroup FROM user_groups )) then true else TIMESTAMP_ADD(timestamp, INTERVAL 10 DAY) < CURRENT_TIMESTAMP() end
+        """.trimIndent()
+    }
+
+    @Test
     fun `full SQL view statement with a single detokenize join`() {
         // Given
-        val viewGenerator = BigQueryViewGenerator(singleDetokenizePolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
+        val viewGenerator =
+            BigQueryViewGenerator(singleDetokenizePolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL() shouldBe
-            """create or replace view `my-project.my_dataset.my_target_view`
+                """create or replace view `my-project.my_dataset.my_target_view`
 as
 with
   user_groups as (
@@ -186,9 +222,10 @@ end;"""
     @Test
     fun `full SQL view statement with multiple detokenize joins on two tables`() {
         // Given
-        val viewGenerator = BigQueryViewGenerator(multiDetokenizePolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
+        val viewGenerator =
+            BigQueryViewGenerator(multiDetokenizePolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL() shouldBe
-            """create or replace view `my-project.my_dataset.my_target_view`
+                """create or replace view `my-project.my_dataset.my_target_view`
 as
 with
   user_groups as (
@@ -348,30 +385,33 @@ rule_sets:
           sql_statement:
             statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
   filters:
-    - field:
-        name_parts:
-          - age
-      conditions:
-        - principals:
-            - group: FRAUD_DETECTION
-          condition: "true"
-        - principals: []
-          condition: "age > 18"
-    - field:
-        name_parts:
-          - userId
-      conditions:
-        - principals:
-            - group: MARKETING
-          condition: "userId in ('1', '2', '3', '4')"
-        - principals: []
-          condition: "true"
-    - field:
-        name_parts:
-          - transactionAmount
-      conditions:
-        - principals: []
-          condition: "transactionAmount < 10"
+    - generic_filter:
+        field:
+          name_parts:
+            - age
+        conditions:
+          - principals:
+              - group: FRAUD_DETECTION
+            condition: "true"
+          - principals: []
+            condition: "age > 18"
+    - generic_filter:
+        field:
+          name_parts:
+            - userId
+        conditions:
+          - principals:
+              - group: MARKETING
+            condition: "userId in ('1', '2', '3', '4')"
+          - principals: []
+            condition: "true"
+    - generic_filter:
+        field:
+          name_parts:
+            - transactionAmount
+        conditions:
+          - principals: []
+            condition: "transactionAmount < 10"
 info:
   title: "Data Policy for Pace BigQuery Demo Dataset"
   description: "Pace Demo Dataset"
@@ -408,11 +448,12 @@ info:
               - target:
                   fullname: my-project.my_dataset.my_target_view
                 filters:
-                  - conditions:
-                      - principals: [ {group: fraud_and_risk} ]
-                        condition: "true"
-                      - principals : []
-                        condition: "transactionamount < 10"
+                  - generic_filter:
+                      conditions:
+                        - principals: [ {group: fraud_and_risk} ]
+                          condition: "true"
+                        - principals : []
+                          condition: "transactionamount < 10"
                 field_transforms:
                   - field:
                       name_parts: [ userid ]
@@ -456,11 +497,12 @@ info:
               - target:
                   fullname: my-project.my_dataset.my_target_view
                 filters:
-                  - conditions:
-                      - principals: [ {group: fraud_and_risk} ]
-                        condition: "true"
-                      - principals : []
-                        condition: "transactionamount < 10"
+                  - generic_filter:
+                      conditions:
+                        - principals: [ {group: fraud_and_risk} ]
+                          condition: "true"
+                        - principals : []
+                          condition: "transactionamount < 10"
                 field_transforms:
                   - field:
                       name_parts: [ userid ]

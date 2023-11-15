@@ -20,8 +20,13 @@ class PostgresViewGenerator(
         val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->
             val principals =
                 ruleSet.fieldTransformsList.flatMap { it.transformsList }.flatMap { it.principalsList }.toSet() +
-                        ruleSet.filtersList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet() +
-                        ruleSet.retentionsList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet()
+                        ruleSet.filtersList.flatMap { filter ->
+                            when (filter.filterCase) {
+                                DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER -> filter.retentionFilter.conditionsList.flatMap { it.principalsList }
+                                DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER -> filter.genericFilter.conditionsList.flatMap { it.principalsList }
+                                else -> throw IllegalArgumentException("Unsupported filter: ${filter.filterCase.name}")
+                            }
+                        }.toSet()
 
             val viewName = ruleSet.target.fullname
 
@@ -84,13 +89,5 @@ class PostgresViewGenerator(
             )
 
         return DSL.with(userGroupSelect).select(fields)
-    }
-
-    override fun DataPolicy.RuleSet.Retention.Condition.toRetentionCondition(field: DataPolicy.Field): String {
-        return if (this.hasPeriod()) {
-            "${field.fullName()} + INTERVAL '${this.period.days} days' < current_timestamp"
-        } else {
-            "true"
-        }
     }
 }

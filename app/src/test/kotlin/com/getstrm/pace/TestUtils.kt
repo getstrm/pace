@@ -26,7 +26,7 @@ class TestDynamicViewGenerator(dataPolicy: DataPolicy) : ProcessingPlatformViewG
         return null
     }
 
-    override fun DataPolicy.RuleSet.Retention.Condition.toRetentionCondition(field: DataPolicy.Field): String {
+    override fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): String {
         return ""
     }
 }

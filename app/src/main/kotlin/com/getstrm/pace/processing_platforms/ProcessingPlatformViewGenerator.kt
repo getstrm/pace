@@ -2,6 +2,8 @@ package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.*
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER
 import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
@@ -23,7 +25,12 @@ abstract class ProcessingPlatformViewGenerator(
 
     protected open fun additionalFooterStatements(): Queries = DSL.queries()
 
-    protected abstract fun DataPolicy.RuleSet.Retention.Condition.toRetentionCondition(field: DataPolicy.Field): String
+    protected open fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): String =
+        if (this.hasPeriod()) {
+            "${field.fullName()} + INTERVAL '${this.period.days} days' < current_timestamp"
+        } else {
+            "true"
+        }
 
     protected open val jooq: DSLContext = DSL.using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
 
@@ -47,9 +54,11 @@ abstract class ProcessingPlatformViewGenerator(
                     }
                     .where(
                         ruleSet.filtersList.map { filter ->
-                            toCondition(filter)
-                        } + ruleSet.retentionsList.map { retention ->
-                            toCondition(retention)
+                            when (filter.filterCase) {
+                                RETENTION_FILTER -> toCondition(filter.retentionFilter)
+                                GENERIC_FILTER -> toCondition(filter.genericFilter)
+                                else -> throw IllegalArgumentException("Unsupported filter: ${filter.filterCase.name}")
+                            }
                         }
                     ),
             )
@@ -82,7 +91,7 @@ abstract class ProcessingPlatformViewGenerator(
         return result
     }
 
-    fun toCondition(filter: DataPolicy.RuleSet.Filter): Condition {
+    fun toCondition(filter: DataPolicy.RuleSet.Filter.GenericFilter): Condition {
         if (filter.conditionsList.size == 1) {
             // If there is only one filter it should be the only option
             return getParser().parseCondition(filter.conditionsList.first().condition)
@@ -111,7 +120,7 @@ abstract class ProcessingPlatformViewGenerator(
         return DSL.condition(whereCondition)
     }
 
-    fun toCondition(retention: DataPolicy.RuleSet.Retention): Condition {
+    fun toCondition(retention: DataPolicy.RuleSet.Filter.RetentionFilter): Condition {
         if (retention.conditionsList.size == 1) {
             // If there is only one filter it should be the only option
             // create retention sql

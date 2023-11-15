@@ -2,6 +2,8 @@ package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
@@ -140,28 +142,31 @@ class PostgresViewGeneratorTest {
     }
 
     @Test
-    fun `row filter to condition`() {
+    fun `generic row filter to condition`() {
         // Given
         val filter = DataPolicy.RuleSet.Filter.newBuilder()
-            .addAllConditions(
-                listOf(
-                    DataPolicy.RuleSet.Filter.Condition.newBuilder()
-                        .addAllPrincipals(listOf("fraud_and_risk").toPrincipals())
-                        .setCondition("true")
-                        .build(),
-                    DataPolicy.RuleSet.Filter.Condition.newBuilder()
-                        .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
-                        .setCondition("age > 18")
-                        .build(),
-                    DataPolicy.RuleSet.Filter.Condition.newBuilder()
-                        .setCondition("false")
-                        .build()
-                )
+            .setGenericFilter(
+                GenericFilter.newBuilder()
+                    .addAllConditions(
+                        listOf(
+                            GenericFilter.Condition.newBuilder()
+                                .addAllPrincipals(listOf("fraud_and_risk").toPrincipals())
+                                .setCondition("true")
+                                .build(),
+                            GenericFilter.Condition.newBuilder()
+                                .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
+                                .setCondition("age > 18")
+                                .build(),
+                            GenericFilter.Condition.newBuilder()
+                                .setCondition("false")
+                                .build()
+                        )
+                    )
             )
             .build()
 
         // When
-        val condition = underTest.toCondition(filter)
+        val condition = underTest.toCondition(filter.genericFilter)
 
         // Then
         condition.toSql() shouldBe "case when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then age > 18 else false end"
@@ -195,20 +200,20 @@ class PostgresViewGeneratorTest {
     @Test
     fun `single retention to condition`() {
         // Given
-        val retention = RuleSet.Retention.newBuilder()
+        val retention = RetentionFilter.newBuilder()
             .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
             .addAllConditions(
                 listOf(
-                    RuleSet.Retention.Condition.newBuilder()
+                    RetentionFilter.Condition.newBuilder()
                         .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("marketing"))
-                        .setPeriod(RuleSet.Retention.Period.newBuilder().setDays(5))
+                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(5))
                         .build(),
-                    RuleSet.Retention.Condition.newBuilder()
+                    RetentionFilter.Condition.newBuilder()
                         .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("fraud_and_risk"))
                         .build(),
-                    RuleSet.Retention.Condition.newBuilder()
+                    RetentionFilter.Condition.newBuilder()
                         .addPrincipals(DataPolicy.Principal.getDefaultInstance())
-                        .setPeriod(RuleSet.Retention.Period.newBuilder().setDays(10))
+                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
                         .build()
                 )
             ).build()
@@ -218,12 +223,13 @@ class PostgresViewGeneratorTest {
 
         // Then
         condition.toSql() shouldBe """
-            case when ('marketing' IN ( SELECT rolname FROM user_groups )) then timestamp + INTERVAL '5 days' < current_timestamp when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true else timestamp + INTERVAL '10 days' < current_timestamp end""".trimIndent() }
+            case when ('marketing' IN ( SELECT rolname FROM user_groups )) then timestamp + INTERVAL '5 days' < current_timestamp when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true else timestamp + INTERVAL '10 days' < current_timestamp end""".trimIndent()
+    }
 
     @Test
     fun `full sql view statement with multiple retentions`() {
         // Given
-        val viewGenerator = PostgresViewGenerator(multipleRetentionPolicy) { withRenderFormatted(true)}
+        val viewGenerator = PostgresViewGenerator(multipleRetentionPolicy) { withRenderFormatted(true) }
         // When
 
         // Then
@@ -270,7 +276,7 @@ grant SELECT on public.demo_view to "marketing";"""
     @Test
     fun `full sql view statement with single retention`() {
         // Given
-        val viewGenerator = PostgresViewGenerator(singleRetentionPolicy) { withRenderFormatted(true)}
+        val viewGenerator = PostgresViewGenerator(singleRetentionPolicy) { withRenderFormatted(true) }
         // When
 
         // Then
@@ -477,14 +483,16 @@ grant SELECT on public.demo_view to "marketing";"""
               - target:
                   fullname: public.demo_view
                 filters:
-                  - conditions:
-                      - principals: [ {group: fraud_and_risk} ]
-                        condition: "true"
-                      - principals: []
-                        condition: "age > 8"
-                  - conditions:
-                      - principals : []
-                        condition: "transactionamount < 10"
+                  - generic_filter:
+                      conditions:
+                        - principals: [ {group: fraud_and_risk} ]
+                          condition: "true"
+                        - principals: []
+                          condition: "age > 8"
+                  - generic_filter:
+                      conditions:
+                        - principals : []
+                          condition: "transactionamount < 10"
                 field_transforms:
                   - field:
                       name_parts: [ userid ]
@@ -542,11 +550,12 @@ grant SELECT on public.demo_view to "marketing";"""
               - target:
                   fullname: public.demo_view
                 filters:
-                  - conditions:
-                      - principals: [ {group: fraud_and_risk} ]
-                        condition: "true"
-                      - principals : []
-                        condition: "transactionamount < 10"
+                  - generic_filter:
+                      conditions:
+                        - principals: [ {group: fraud_and_risk} ]
+                          condition: "true"
+                        - principals : []
+                          condition: "transactionamount < 10"
                 field_transforms:
                   - field:
                       name_parts: [ userid ]
@@ -590,11 +599,12 @@ grant SELECT on public.demo_view to "marketing";"""
               - target:
                   fullname: public.demo_view
                 filters:
-                  - conditions:
-                      - principals: [ {group: fraud_and_risk} ]
-                        condition: "true"
-                      - principals : []
-                        condition: "transactionamount < 10"
+                  - generic_filter:
+                      conditions:
+                        - principals: [ {group: fraud_and_risk} ]
+                          condition: "true"
+                        - principals : []
+                          condition: "transactionamount < 10"
                 field_transforms:
                   - field:
                       name_parts: [ userid ]
@@ -649,26 +659,27 @@ grant SELECT on public.demo_view to "marketing";"""
             rule_sets:
               - target:
                   fullname: public.demo_view
-                retentions:
-                  - field:
-                      name_parts:
-                        - ts
-                      required: true
-                      type: timestamp
-                    conditions:
-                      - principals: [ {group: marketing} ]
-                        period:
-                          days: 5
-                      - principals: [ {group: fraud_and_risk} ]
-                      - principals: [] 
-                        period:
-                          days: 10
                 filters:
-                  - conditions:
-                      - principals: [ {group: fraud_and_risk} ]
-                        condition: "true"
-                      - principals : []
-                        condition: "transactionamount < 10"
+                  - generic_filter:
+                      conditions:
+                        - principals: [ {group: fraud_and_risk} ]
+                          condition: "true"
+                        - principals : []
+                          condition: "transactionamount < 10"
+                  - retention_filter:
+                      field:
+                        name_parts:
+                          - ts
+                        required: true
+                        type: timestamp
+                      conditions:
+                        - principals: [ {group: marketing} ]
+                          period:
+                            days: 5
+                        - principals: [ {group: fraud_and_risk} ]
+                        - principals: [] 
+                          period:
+                            days: 10
         """.trimIndent().yaml2json().parseDataPolicy()
 
         @Language("yaml")
@@ -702,38 +713,40 @@ grant SELECT on public.demo_view to "marketing";"""
             rule_sets:
               - target:
                   fullname: public.demo_view
-                retentions:
-                  - field:
-                      name_parts:
-                        - ts
-                      required: true
-                      type: timestamp
-                    conditions:
-                      - principals: [ {group: marketing} ]
-                        period:
-                          days: 5
-                      - principals: [ {group: fraud_and_risk} ]
-                      - principals: [] 
-                        period:
-                          days: 10
-                  - field:
-                      name_parts:
-                        - validThrough
-                      required: true
-                      type: timestamp
-                    conditions:
-                      - principals: [ {group: fraud_and_risk} ]
-                        period:
-                          days: 365
-                      - principals: [] 
-                        period:
-                          days: 0
                 filters:
-                  - conditions:
-                      - principals: [ {group: fraud_and_risk} ]
-                        condition: "true"
-                      - principals : []
-                        condition: "transactionamount < 10"
+                  - generic_filter:
+                      conditions:
+                        - principals: [ {group: fraud_and_risk} ]
+                          condition: "true"
+                        - principals : []
+                          condition: "transactionamount < 10"
+                  - retention_filter:
+                      field:
+                        name_parts:
+                          - ts
+                        required: true
+                        type: timestamp
+                      conditions:
+                        - principals: [ {group: marketing} ]
+                          period:
+                            days: 5
+                        - principals: [ {group: fraud_and_risk} ]
+                        - principals: [] 
+                          period:
+                            days: 10
+                  - retention_filter:
+                      field:
+                        name_parts:
+                          - validThrough
+                        required: true
+                        type: timestamp
+                      conditions:
+                        - principals: [ {group: fraud_and_risk} ]
+                          period:
+                            days: 365
+                        - principals: [] 
+                          period:
+                            days: 0
         """.trimIndent().yaml2json().parseDataPolicy()
     }
 }

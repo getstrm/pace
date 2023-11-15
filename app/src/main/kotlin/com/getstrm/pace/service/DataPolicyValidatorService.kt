@@ -96,58 +96,16 @@ class DataPolicyValidatorService {
                     }
                 }
             }
-            ruleSet.retentionsList.forEach { retention ->
-                checkField(retention.field)
-                if (retention.conditionsList.isEmpty()) {
-                    throw invalidArgumentException(
-                        "retention",
-                        "Retention ${retention.field.pathString()} has no condition"
-                    )
-                }
 
-                retention.conditionsList.forEach { condition ->
-                    checkPrincipals(condition.principalsList)
-                }
-
-                retention.conditionsList.last().let { condition ->
-                    if (condition.principalsList.isNotEmpty()) {
-                        throw invalidArgumentException(
-                            "retention",
-                            "Retention ${retention.field.pathString()} does not have an empty principals list as last field"
-                        )
-                    }
-                }
-
-                retention.conditionsList.filter { it.principalsCount == 0 }.let {
-                    if (it.size > 1) {
-                        throw invalidArgumentException(
-                            "retention",
-                            "Retention ${retention.field.pathString()} has more than one empty principals list"
-                        )
-                    }
-                }
-
-                // check non-overlapping principals within one Retention
-                retention.conditionsList.fold(
-                    emptySet<String>(),
-                ) { alreadySeen, transform ->
-                    transform.principalsList.map { it.group }.toSet().let {
-                        if (alreadySeen.intersect(it).isNotEmpty()) {
-                            throw invalidArgumentException(
-                                "retention",
-                                "Retention ${retention.field.pathString()} has overlapping principals"
-                            )
-                        }
-
-                        alreadySeen + it
-                    }
-                }
-            }
             // check for every row filter that the principals overlap with groups in the processing platform
             // and that the fields exist in the DataPolicy
             ruleSet.filtersList.forEach { filter ->
-                filter.conditionsList.forEach { condition ->
-                    checkPrincipals(condition.principalsList)
+                when (filter.filterCase) {
+                    DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER -> filter.retentionFilter.conditionsList.map { it.principalsList }
+                    DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER -> filter.genericFilter.conditionsList.map { it.principalsList }
+                    else -> throw IllegalArgumentException("Unsupported filter: ${filter.filterCase.name}")
+                }.forEach {
+                    checkPrincipals(it)
                 }
             }
             // check non-overlapping fields within one ruleset
@@ -171,7 +129,7 @@ class DataPolicyValidatorService {
             }
 
             // check non-overlapping fields in the retention filters within one ruleset
-            ruleSet.retentionsList.map { it.field }.fold(
+            ruleSet.filtersList.filter{ it.hasRetentionFilter()}.map { it.retentionFilter.field }.fold(
                 emptySet<String>(),
             ) { alreadySeen, field ->
                 field.pathString().let {

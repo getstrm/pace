@@ -5,6 +5,7 @@ import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
 import com.getstrm.pace.util.defaultJooqSettings
+import com.getstrm.pace.util.fullName
 import com.google.rpc.DebugInfo
 import org.jooq.*
 import org.jooq.conf.Settings
@@ -65,7 +66,10 @@ class BigQueryViewGenerator(
         return DSL.with(userGroupSelect).select(fields)
     }
 
-    override fun DataPolicy.RuleSet.Retention.Condition.toRetentionCondition(field: DataPolicy.Field): String {
-        TODO("Not yet implemented")
-    }
+    override fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): String =
+        if (this.hasPeriod()) {
+            "TIMESTAMP_ADD(${field.fullName()}, INTERVAL ${this.period.days} DAY) < CURRENT_TIMESTAMP()"
+        } else {
+            "true"
+        }
 }

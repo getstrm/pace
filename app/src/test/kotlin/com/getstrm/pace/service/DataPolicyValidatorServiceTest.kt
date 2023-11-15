@@ -64,28 +64,31 @@ rule_sets:
           sql_statement:
             statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
   filters:
-    - field:
-        name_parts: [ age ]
-      conditions:
-        - principals:
-            - group: fraud-and-risk
-          condition: "true"
-        - principals: []
-          condition: "age > 18"
-    - field:
-        name_parts: [ userId ]
-      conditions:
-        - principals:
-            - group: marketing
-          condition: "userId in ('1', '2', '3', '4')"
-        - principals: []
-          condition: "true"
-    - field:
-        name_parts: [ transactionAmount ]
-      conditions:
-        - principals: []
-          condition: "transactionAmount < 10"
-          """.yaml2json().parseDataPolicy()
+    - generic_filter:
+        field:
+          name_parts: [ age ]
+        conditions:
+          - principals:
+              - group: fraud-and-risk
+            condition: "true"
+          - principals: []
+            condition: "age > 18"
+    - generic_filter:
+        field:
+          name_parts: [ userId ]
+        conditions:
+          - principals:
+              - group: marketing
+            condition: "userId in ('1', '2', '3', '4')"
+          - principals: []
+            condition: "true"
+    - generic_filter:
+        field:
+          name_parts: [ transactionAmount ]
+        conditions:
+          - principals: []
+            condition: "transactionAmount < 10"
+        """.yaml2json().parseDataPolicy()
 
         assertDoesNotThrow {
             underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
@@ -395,27 +398,30 @@ rule_sets:
           sql_statement:
             statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
   filters:
-    - field:
-        name_parts: [ age ]
-      conditions:
-        - principals:
-            - group: fraud-and-risk
-          condition: "true"
-        - principals: []
-          condition: "age > 18"
-    - field:
-        name_parts: [ userId ]
-      conditions:
-        - principals:
-            - group: marketing
-          condition: "userId in ('1', '2', '3', '4')"
-        - principals: []
-          condition: "true"
-    - field:
-        name_parts: [ transactionAmount ]
-      conditions:
-        - principals: []
-          condition: "transactionAmount < 10"
+    - generic_filter:
+        field:
+          name_parts: [ age ]
+        conditions:
+          - principals:
+              - group: fraud-and-risk
+            condition: "true"
+          - principals: []
+            condition: "age > 18"
+    - generic_filter:
+        field:
+          name_parts: [ userId ]
+        conditions:
+          - principals:
+              - group: marketing
+            condition: "userId in ('1', '2', '3', '4')"
+          - principals: []
+            condition: "true"
+    - generic_filter:
+        field:
+          name_parts: [ transactionAmount ]
+        conditions:
+          - principals: []
+            condition: "transactionAmount < 10"
           """.yaml2json().parseDataPolicy()
 
         val exception = shouldThrow<BadRequestException> {
