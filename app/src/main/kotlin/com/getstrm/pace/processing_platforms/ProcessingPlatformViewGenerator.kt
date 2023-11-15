@@ -11,7 +11,7 @@ import org.jooq.*
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.*
-import org.jooq.Field
+import org.jooq.Field as JooqField
 
 abstract class ProcessingPlatformViewGenerator(
     protected val dataPolicy: DataPolicy,
@@ -20,12 +20,12 @@ abstract class ProcessingPlatformViewGenerator(
 ) : ProcessingPlatformRenderer {
     protected abstract fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition?
 
-    protected open fun selectWithAdditionalHeaderStatements(fields: List<Field<*>>): SelectSelectStep<Record> =
+    protected open fun selectWithAdditionalHeaderStatements(fields: List<JooqField<*>>): SelectSelectStep<Record> =
         jooq.select(fields)
 
     protected open fun additionalFooterStatements(): Queries = DSL.queries()
 ;
-    protected open fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): Field<Boolean> =
+    protected open fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): JooqField<Boolean> =
         if (this.hasPeriod()) {
             DSL.field("{0} + INTERVAL {1} < current_timestamp", Boolean::class.java, DSL.unquotedName(field.fullName()), inline("${this.period.days} days"))
         } else {
@@ -150,7 +150,7 @@ abstract class ProcessingPlatformViewGenerator(
     fun toJooqField(
         field: DataPolicy.Field,
         fieldTransform: DataPolicy.RuleSet.FieldTransform?,
-    ): Field<*> {
+    ): JooqField<*> {
         if (fieldTransform == null) {
             // If there is no transform, we return just the field path (joined by a dot for now)
             return field(field.fullName())
@@ -182,7 +182,7 @@ abstract class ProcessingPlatformViewGenerator(
     fun toCase(
         transform: DataPolicy.RuleSet.FieldTransform.Transform?,
         field: DataPolicy.Field,
-    ): Pair<Condition?, Field<Any>> {
+    ): Pair<Condition?, JooqField<Any>> {
         val memberCheck = transform?.principalsList?.toPrincipalCondition()
 
         val statement = when (transform?.transformCase) {
@@ -199,7 +199,7 @@ abstract class ProcessingPlatformViewGenerator(
 
             TRANSFORM_NOT_SET, IDENTITY, null -> transformer.identity(field)
         }
-        return memberCheck to (statement as Field<Any>)
+        return memberCheck to (statement as JooqField<Any>)
     }
 
     private fun getParser() = jooq.parser()
