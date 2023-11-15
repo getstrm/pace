@@ -1,3 +1,10 @@
+# [1.0.0-alpha.21](https://github.com/getstrm/pace/compare/v1.0.0-alpha.20...v1.0.0-alpha.21) (2023-11-15)
+
+
+### Features
+
+* **pace-19:** add retention to rulesets for filtering rows ([#50](https://github.com/getstrm/pace/issues/50)) ([6e77039](https://github.com/getstrm/pace/commit/6e770396dc41e743adf01a6e22a4aec464276dfe))
+
 # [1.0.0-alpha.20](https://github.com/getstrm/pace/compare/v1.0.0-alpha.19...v1.0.0-alpha.20) (2023-11-15)
 
 
