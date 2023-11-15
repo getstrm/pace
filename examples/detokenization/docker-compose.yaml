@@ -5,10 +5,15 @@ services:
     container_name: postgres_pace
     image: postgres
     environment:
-      POSTGRES_USER: pace_user
+      POSTGRES_USER: pace
       POSTGRES_PASSWORD: pace
-      POSTGRES_DB: pace
       PGDATA: /data/postgres
+      PGUSER: pace # Required for health check
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
     ports:
       - "5432:5432"
     networks:
@@ -18,10 +23,15 @@ services:
     container_name: postgres_processing_platform
     image: postgres
     environment:
-      POSTGRES_USER: detokenization_user
+      POSTGRES_USER: detokenization
       POSTGRES_PASSWORD: detokenization
-      POSTGRES_DB: detokenization
       PGDATA: /data/postgres
+      PGUSER: detokenization # Required for health check
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 2s
+      timeout: 2s
+      retries: 10
     volumes:
       - ./data.sql:/docker-entrypoint-initdb.d/data.sql
     ports:
@@ -31,8 +41,10 @@ services:
 
   pace_app:
     depends_on:
-      - postgres_pace
-      - postgres_processing_platform
+      postgres_pace:
+        condition: service_healthy
+      postgres_processing_platform:
+        condition: service_healthy
     container_name: pace
     image: ${IMAGE:-ghcr.io/getstrm/pace:latest-alpha}
     volumes:
