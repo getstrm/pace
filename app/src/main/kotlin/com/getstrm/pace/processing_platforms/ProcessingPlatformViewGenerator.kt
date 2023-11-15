@@ -2,31 +2,44 @@ package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.*
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER
 import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
 import org.jooq.*
-import org.jooq.conf.ParseNameCase
-import org.jooq.conf.ParseUnknownFunctions
-import org.jooq.conf.RenderQuotedNames
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.*
+import java.sql.Timestamp
 import org.jooq.Field as JooqField
 
 abstract class ProcessingPlatformViewGenerator(
     protected val dataPolicy: DataPolicy,
     private val transformer: ProcessingPlatformTransformer = DefaultProcessingPlatformTransformer,
     customJooqSettings: Settings.() -> Unit = {},
-): ProcessingPlatformRenderer {
+) : ProcessingPlatformRenderer {
     protected abstract fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition?
 
     protected open fun selectWithAdditionalHeaderStatements(fields: List<JooqField<*>>): SelectSelectStep<Record> =
         jooq.select(fields)
 
     protected open fun additionalFooterStatements(): Queries = DSL.queries()
+            ;
 
-    protected open val jooq: DSLContext = DSL.using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
+    protected open fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): JooqField<Boolean> =
+        if (this.hasPeriod()) {
+            field(
+                "{0} > {1}",
+                Boolean::class.java,
+                timestampAdd(field(unquotedName(field.fullName()), Timestamp::class.java), this.period.days, DatePart.DAY),
+                currentTimestamp()
+            )
+        } else {
+            field(trueCondition())
+        }
+
+    protected open val jooq: DSLContext = using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
 
     fun toDynamicViewSQL(): String {
         val queries = dataPolicy.ruleSetsList.map { ruleSet ->
@@ -48,8 +61,12 @@ abstract class ProcessingPlatformViewGenerator(
                     }
                     .where(
                         ruleSet.filtersList.map { filter ->
-                            toCondition(filter)
-                        },
+                            when (filter.filterCase) {
+                                RETENTION_FILTER -> toCondition(filter.retentionFilter)
+                                GENERIC_FILTER -> toCondition(filter.genericFilter)
+                                else -> throw IllegalArgumentException("Unsupported filter: ${filter.filterCase.name}")
+                            }
+                        }
                     ),
             )
         }
@@ -81,7 +98,7 @@ abstract class ProcessingPlatformViewGenerator(
         return result
     }
 
-    fun toCondition(filter: DataPolicy.RuleSet.Filter): Condition {
+    fun toCondition(filter: DataPolicy.RuleSet.Filter.GenericFilter): Condition {
         if (filter.conditionsList.size == 1) {
             // If there is only one filter it should be the only option
             return getParser().parseCondition(filter.conditionsList.first().condition)
@@ -109,6 +126,33 @@ abstract class ProcessingPlatformViewGenerator(
         )
         return DSL.condition(whereCondition)
     }
+
+    fun toCondition(retention: DataPolicy.RuleSet.Filter.RetentionFilter): Condition {
+        if (retention.conditionsList.size == 1) {
+            // If there is only one filter it should be the only option
+            // create retention sql
+        }
+
+        val whereCondition = retention.conditionsList.headTailFold(
+            headOperation = { condition ->
+                DSL.`when`(
+                    condition.principalsList.toPrincipalCondition(),
+                    condition.toRetentionCondition(retention.field),
+                )
+            },
+            bodyOperation = { conditionStep, condition ->
+                conditionStep.`when`(
+                    condition.principalsList.toPrincipalCondition(),
+                    condition.toRetentionCondition(retention.field),
+                )
+            },
+            tailOperation = { conditionStep, condition ->
+                conditionStep.otherwise(condition.toRetentionCondition(retention.field))
+            },
+        )
+        return DSL.condition(whereCondition)
+    }
+
 
     fun toJooqField(
         field: DataPolicy.Field,

@@ -178,6 +178,12 @@ fun DataPolicy.Field.sqlDataType(): DataType<*> =
 fun DataPolicy.Field.normalizeType(): DataPolicy.Field =
     toBuilder().setType(sqlDataType().typeName).build()
 
+fun DataPolicy.RuleSet.Filter.listPrincipals() = when (this.filterCase) {
+    DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER -> this.retentionFilter.conditionsList.flatMap { it.principalsList }
+    DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER -> this.genericFilter.conditionsList.flatMap { it.principalsList }
+    else -> throw IllegalArgumentException("Unsupported filter: ${this.filterCase.name}")
+}
+
 val sqlParser = DSL.using(SQLDialect.DEFAULT).parser()
 
 /** force case type string to TransformCase
