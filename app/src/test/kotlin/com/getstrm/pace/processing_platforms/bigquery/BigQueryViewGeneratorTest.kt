@@ -185,7 +185,7 @@ class BigQueryViewGeneratorTest {
 
         // Then
         condition.toSql() shouldBe """
-            case when ('marketing' IN ( SELECT userGroup FROM user_groups )) then TIMESTAMP_ADD(timestamp, INTERVAL 5 DAY) < current_timestamp when ('fraud-and-risk' IN ( SELECT userGroup FROM user_groups )) then true else TIMESTAMP_ADD(timestamp, INTERVAL 10 DAY) < current_timestamp end
+            case when ('marketing' IN ( SELECT userGroup FROM user_groups )) then TIMESTAMP_ADD(timestamp, INTERVAL 5 DAY) > current_timestamp when ('fraud-and-risk' IN ( SELECT userGroup FROM user_groups )) then true else TIMESTAMP_ADD(timestamp, INTERVAL 10 DAY) > current_timestamp end
         """.trimIndent()
     }
 

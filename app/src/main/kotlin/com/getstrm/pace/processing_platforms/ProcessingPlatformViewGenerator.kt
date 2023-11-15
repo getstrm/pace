@@ -30,7 +30,7 @@ abstract class ProcessingPlatformViewGenerator(
     protected open fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): JooqField<Boolean> =
         if (this.hasPeriod()) {
             field(
-                "{0} < {1}",
+                "{0} > {1}",
                 Boolean::class.java,
                 timestampAdd(field(unquotedName(field.fullName()), Timestamp::class.java), this.period.days, DatePart.DAY),
                 currentTimestamp()
