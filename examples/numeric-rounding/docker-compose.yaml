@@ -23,13 +23,12 @@ services:
     container_name: postgres_processing_platform
     image: postgres
     environment:
-      POSTGRES_USER: global_transforms
-      POSTGRES_PASSWORD: global_transforms
-      POSTGRES_DB: global_transforms
+      POSTGRES_USER: numeric_rounding
+      POSTGRES_PASSWORD: numeric_rounding
       PGDATA: /data/postgres
-      PGUSER: global_transforms # Required for health check
+      PGUSER: numeric_rounding # Required for health check
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready" ]
+      test: ["CMD-SHELL", "pg_isready"]
       interval: 2s
       timeout: 2s
       retries: 10
@@ -50,7 +49,6 @@ services:
     image: ${IMAGE:-ghcr.io/getstrm/pace:latest-alpha}
     volumes:
       - ./config/:/app/config/
-
     ports:
       - "8080:8080" # Spring Boot
       - "9090:9090" # Envoy JSON / gRPC Proxy

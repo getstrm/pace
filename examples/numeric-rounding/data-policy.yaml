@@ -1,0 +1,52 @@
+metadata:
+  description: ""
+  version: 1
+  title: public.demo
+platform:
+  id: numeric-rounding-connection
+  platform_type: POSTGRES
+source:
+  fields:
+    - name_parts:
+        - transactionid
+      required: true
+      type: integer
+    - name_parts:
+        - userid
+      required: true
+      type: integer
+    - name_parts:
+        - email
+      required: true
+      type: varchar
+    - name_parts:
+        - age
+      required: true
+      type: integer
+    - name_parts:
+        - brand
+      required: true
+      type: varchar
+    - name_parts:
+        - transactionamount
+      required: true
+      type: integer
+  ref: public.demo
+rule_sets:
+  - target:
+      fullname: public.demo_view
+    field_transforms:
+      - field:
+          name_parts:
+            - age
+        transforms:
+          - principals: [ { group: administrator } ]
+            identity: { }
+          - principals: [ { group: fraud_and_risk } ]
+            numeric_rounding:
+              floor:
+                divisor: 20
+          - principals: [ ]
+            numeric_rounding:
+              round:
+                precision: -1
