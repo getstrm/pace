@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class AppConfiguration(
     val defaultViewSuffix: String = "",
     val catalogs: List<CatalogConfiguration> = emptyList(),
+    val looseTagMatch: Boolean = true,
 )
 
 data class CatalogConfiguration(

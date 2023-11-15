@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.RefAndType
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.jooq.generated.tables.references.GLOBAL_TRANSFORMS
+import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.util.refAndType
 import com.getstrm.pace.util.toJsonbWithDefaults
@@ -17,7 +18,8 @@ import java.time.Instant
 
 @Component
 class GlobalTransformsDao(
-    private val jooq: DSLContext
+    private val jooq: DSLContext,
+        private val appConfiguration: AppConfiguration
 ) {
 
     fun getTransform(refAndType: RefAndType): GlobalTransformsRecord? = let {
@@ -26,7 +28,11 @@ class GlobalTransformsDao(
             .from(GLOBAL_TRANSFORMS)
             .where(
                 GLOBAL_TRANSFORMS.TRANSFORM_TYPE.eq(refAndType.type).and(
-                    GLOBAL_TRANSFORMS.REF.likeIgnoreCase(refAndType.toLooseMatch())
+                        if(appConfiguration.looseTagMatch) {
+                            GLOBAL_TRANSFORMS.REF.likeIgnoreCase(refAndType.toLooseMatch())
+                        } else {
+                            GLOBAL_TRANSFORMS.REF.eq(refAndType.ref)
+                        }
                 )
             )
             .orderBy(GLOBAL_TRANSFORMS.TRANSFORM_TYPE, GLOBAL_TRANSFORMS.REF)

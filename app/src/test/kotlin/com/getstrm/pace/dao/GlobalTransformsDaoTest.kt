@@ -1,22 +1,25 @@
 package com.getstrm.pace.dao
 
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Nullify.*
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.TagTransform
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.pace.AbstractDatabaseTest
+import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.util.*
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class GlobalTransformsDaoTest : AbstractDatabaseTest() {
-    private val underTest = GlobalTransformsDao(jooq)
+    private val underTest = GlobalTransformsDao(jooq, AppConfiguration())
 
     @BeforeEach
     fun setupDatabase() {
@@ -37,7 +40,7 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
         // Then
         actual.shouldNotBeNull()
 
-        GlobalTransform.newBuilder().merge(actual.transform!!).build() shouldBe emailTransform
+        actual.toGlobalTransform() shouldBe emailTransform
     }
 
     @Test
@@ -74,7 +77,7 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
         val updateToEmailTransform = emailTransform.toBuilder().apply {
             tagTransform = tagTransform.toBuilder().apply {
                 addAllTransforms(transformsList.map {
-                    it.toBuilder().setNullify(DataPolicy.RuleSet.FieldTransform.Transform.Nullify.getDefaultInstance())
+                    it.toBuilder().setNullify(getDefaultInstance())
                         .build()
                 })
             }.build()
@@ -92,26 +95,82 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
     fun `upsert transform - create new`() {
         // Given
         val refAndType = GlobalTransform.RefAndType.newBuilder()
-            .setRef("email")
-            .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
-            .build()
+                .setRef("email")
+                .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
+                .build()
 
         val newRef = "pipo"
         // When
         val changed =
-            GlobalTransform.newBuilder().merge(underTest.getTransform(refAndType)!!.transform!!).build().toBuilder()
-                .setRef(newRef)
-                .setTagTransform(
-                    TagTransform.newBuilder()
-                        .setTagContent(newRef)
-                ).build()
+                underTest.getTransform(refAndType)!!.toGlobalTransform().toBuilder()
+                        .setRef(newRef)
+                        .setTagTransform(
+                                TagTransform.newBuilder()
+                                        .setTagContent(newRef)
+                        ).build()
         underTest.getTransform(changed.refAndType()).shouldBeNull()
         underTest.upsertTransform(changed)
         val readback = underTest.getTransform(changed.refAndType())
         readback.shouldNotBeNull()
-        val readbackApi = GlobalTransform.newBuilder().merge(readback.transform!!).build()
-        readbackApi shouldBe changed
+        readback.toGlobalTransform() shouldBe changed
     }
+
+    @Test
+    fun `upsert transform - check loose tag match`() {
+        val s = "This tests-all_loose ends"
+        val transform = GlobalTransform.newBuilder()
+                .setRef(s)
+                .setTagTransform(TagTransform.newBuilder()
+                        .setTagContent(s)
+                        .addTransforms(FieldTransform.Transform.newBuilder().setNullify(getDefaultInstance()))
+                )
+                .build()
+
+        underTest.upsertTransform(transform).toGlobalTransform() shouldBe transform
+        underTest.listTransforms().size shouldBe 3
+        run {
+            // with loose tag matching, this is considered equal to s1 above.
+            // this is the default AppConfiguration
+            val s2 = "this_tests ALL-loose-ends"
+            val readback = underTest.getTransform(GlobalTransform.RefAndType.newBuilder()
+                    .setRef(s2)
+                    .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
+                    .build()
+            )?.toGlobalTransform()
+            readback shouldNotBe null
+            readback!!.tagTransform.transformsList.first().transformCase shouldBe  FieldTransform.Transform.TransformCase.NULLIFY
+            // just changed the instance, did not add a new one!
+            underTest.listTransforms().size shouldBe 3
+        }
+    }
+
+    @Test
+    fun `upsert transform - check strict tag match`() {
+        val strictDao = GlobalTransformsDao(jooq, AppConfiguration(looseTagMatch = false))
+        val s = "This tests-all_loose ends"
+        val transform = GlobalTransform.newBuilder()
+                .setRef(s)
+                .setTagTransform(TagTransform.newBuilder()
+                        .setTagContent(s)
+                        .addTransforms(FieldTransform.Transform.newBuilder().setNullify(getDefaultInstance()))
+                )
+                .build()
+
+        strictDao.upsertTransform(transform).toGlobalTransform() shouldBe transform
+        strictDao.listTransforms().size shouldBe 3
+        run {
+            val s2 = "this_tests ALL-loose-ends"
+            val readback = strictDao.getTransform(GlobalTransform.RefAndType.newBuilder()
+                    .setRef(s2)
+                    .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
+                    .build()
+            )?.toGlobalTransform()
+            readback shouldBe  null
+            // just changed the instance
+            strictDao.listTransforms().size shouldBe 3
+        }
+    }
+
 
     @Test
     fun `delete transform`() {
