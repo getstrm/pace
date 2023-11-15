@@ -7,6 +7,8 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.TagTransf
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.pace.AbstractDatabaseTest
 import com.getstrm.pace.config.AppConfiguration
+import com.getstrm.pace.config.GlobalTransformsConfiguration
+import com.getstrm.pace.config.TagTransforms
 import com.getstrm.pace.util.*
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -19,7 +21,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class GlobalTransformsDaoTest : AbstractDatabaseTest() {
-    private val underTest = GlobalTransformsDao(jooq, AppConfiguration())
+    private val underTest = GlobalTransformsDao(jooq, GlobalTransformsConfiguration())
 
     @BeforeEach
     fun setupDatabase() {
@@ -117,58 +119,62 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
 
     @Test
     fun `upsert transform - check loose tag match`() {
+        // Given
         val s = "This tests-all_loose ends"
         val transform = GlobalTransform.newBuilder()
-                .setRef(s)
-                .setTagTransform(TagTransform.newBuilder()
-                        .setTagContent(s)
-                        .addTransforms(FieldTransform.Transform.newBuilder().setNullify(getDefaultInstance()))
-                )
-                .build()
+            .setRef(s)
+            .setTagTransform(TagTransform.newBuilder()
+                .setTagContent(s)
+                .addTransforms(FieldTransform.Transform.newBuilder().setNullify(getDefaultInstance()))
+            )
+            .build()
 
+        // When
         underTest.upsertTransform(transform).toGlobalTransform() shouldBe transform
         underTest.listTransforms().size shouldBe 3
-        run {
-            // with loose tag matching, this is considered equal to s1 above.
-            // this is the default AppConfiguration
-            val s2 = "this_tests ALL-loose-ends"
-            val readback = underTest.getTransform(GlobalTransform.RefAndType.newBuilder()
-                    .setRef(s2)
-                    .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
-                    .build()
-            )?.toGlobalTransform()
-            readback shouldNotBe null
-            readback!!.tagTransform.transformsList.first().transformCase shouldBe  FieldTransform.Transform.TransformCase.NULLIFY
-            // just changed the instance, did not add a new one!
-            underTest.listTransforms().size shouldBe 3
-        }
+        // Then
+        // with loose tag matching, this is considered equal to s1 above.
+        // this is the default AppConfiguration
+        val s2 = "this_tests ALL-loose-ends"
+        val readback = underTest.getTransform(GlobalTransform.RefAndType.newBuilder()
+            .setRef(s2)
+            .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
+            .build()
+        )?.toGlobalTransform()
+        readback shouldNotBe null
+        readback!!.tagTransform.transformsList.first().transformCase shouldBe  FieldTransform.Transform.TransformCase.NULLIFY
+        // just changed the instance, did not add a new one!
+        underTest.listTransforms().size shouldBe 3
+
     }
 
     @Test
     fun `upsert transform - check strict tag match`() {
-        val strictDao = GlobalTransformsDao(jooq, AppConfiguration(looseTagMatch = false))
+        val strictDao = GlobalTransformsDao(jooq, GlobalTransformsConfiguration(TagTransforms(looseTagMatch = false)))
+        // Given
         val s = "This tests-all_loose ends"
         val transform = GlobalTransform.newBuilder()
-                .setRef(s)
-                .setTagTransform(TagTransform.newBuilder()
-                        .setTagContent(s)
-                        .addTransforms(FieldTransform.Transform.newBuilder().setNullify(getDefaultInstance()))
-                )
-                .build()
+            .setRef(s)
+            .setTagTransform(TagTransform.newBuilder()
+                .setTagContent(s)
+                .addTransforms(FieldTransform.Transform.newBuilder().setNullify(getDefaultInstance()))
+            )
+            .build()
 
+        // When
         strictDao.upsertTransform(transform).toGlobalTransform() shouldBe transform
         strictDao.listTransforms().size shouldBe 3
-        run {
-            val s2 = "this_tests ALL-loose-ends"
-            val readback = strictDao.getTransform(GlobalTransform.RefAndType.newBuilder()
-                    .setRef(s2)
-                    .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
-                    .build()
-            )?.toGlobalTransform()
-            readback shouldBe  null
-            // just changed the instance
-            strictDao.listTransforms().size shouldBe 3
-        }
+        // Then
+        val s2 = "this_tests ALL-loose-ends"
+        val readback = strictDao.getTransform(GlobalTransform.RefAndType.newBuilder()
+            .setRef(s2)
+            .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
+            .build()
+        )?.toGlobalTransform()
+        readback shouldBe  null
+        // just changed the instance
+        strictDao.listTransforms().size shouldBe 3
+
     }
 
 

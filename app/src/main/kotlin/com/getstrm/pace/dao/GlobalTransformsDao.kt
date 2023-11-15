@@ -5,13 +5,13 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.RefAndTyp
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.jooq.generated.tables.references.GLOBAL_TRANSFORMS
 import com.getstrm.pace.config.AppConfiguration
+import com.getstrm.pace.config.GlobalTransformsConfiguration
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.util.refAndType
 import com.getstrm.pace.util.toJsonbWithDefaults
 import com.getstrm.pace.util.toOffsetDateTime
 import com.google.rpc.DebugInfo
 import org.jooq.DSLContext
-import org.jooq.impl.DSL
 import org.jooq.impl.DSL.row
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -19,16 +19,15 @@ import java.time.Instant
 @Component
 class GlobalTransformsDao(
     private val jooq: DSLContext,
-        private val appConfiguration: AppConfiguration
+    private val globalTransformsConfiguration: GlobalTransformsConfiguration
 ) {
 
     fun getTransform(refAndType: RefAndType): GlobalTransformsRecord? = let {
-        // TODO handle non-loose case
         jooq.select()
             .from(GLOBAL_TRANSFORMS)
             .where(
                 GLOBAL_TRANSFORMS.TRANSFORM_TYPE.eq(refAndType.type).and(
-                        if(appConfiguration.looseTagMatch) {
+                        if(globalTransformsConfiguration.tagTransforms.looseTagMatch) {
                             GLOBAL_TRANSFORMS.REF.likeIgnoreCase(refAndType.toLooseMatch())
                         } else {
                             GLOBAL_TRANSFORMS.REF.eq(refAndType.ref)
