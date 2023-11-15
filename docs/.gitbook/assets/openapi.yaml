@@ -247,6 +247,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/Transform_Nullify'
           description: Make the field value null.
+        numericRounding:
+          allOf:
+          - $ref: '#/components/schemas/Transform_NumericRounding'
+          description: Round a numeric value with the specified rounding.
         principals:
           description: The principals (e.g. groups) for which this transform will
             be applied.
@@ -389,6 +393,31 @@ components:
             $ref: '#/components/schemas/DataCatalog_Table'
           type: array
       type: object
+    NumericRounding_Ceil:
+      properties:
+        divisor:
+          description: The divisor to use when applying integer division. Values <
+            1 allow for rounding to decimal places.
+          format: float
+          type: number
+      type: object
+    NumericRounding_Floor:
+      properties:
+        divisor:
+          description: The divisor to use when applying integer division. Values <
+            1 allow for rounding to decimal places.
+          format: float
+          type: number
+      type: object
+    NumericRounding_Round:
+      properties:
+        precision:
+          description: The precision to use for rounding. When positive, the value
+            is rounded to the nearest decimal place. When negative, the value is rounded
+            to the nearest power of 10.
+          format: int32
+          type: integer
+      type: object
     RuleSet_FieldTransform:
       properties:
         field:
@@ -467,6 +496,24 @@ components:
     Transform_Nullify:
       properties: {}
       type: object
+    Transform_NumericRounding:
+      properties:
+        ceil:
+          allOf:
+          - $ref: '#/components/schemas/NumericRounding_Ceil'
+          description: Round the value to the nearest integer (e.g. 1.5 becomes 2),
+            respecting the divisor.
+        floor:
+          allOf:
+          - $ref: '#/components/schemas/NumericRounding_Floor'
+          description: Round the value down to the nearest integer (e.g. 1.5 becomes
+            1), respecting the divisor.
+        round:
+          allOf:
+          - $ref: '#/components/schemas/NumericRounding_Round'
+          description: Use regular natural rounding (e.g. 1.5 becomes 2, 1.4 becomes
+            1), respecting the precision.
+      type: object
     Transform_Regexp:
       properties:
         regexp:
@@ -504,7 +551,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.18
+  version: 1.0.0-alpha.19
 openapi: 3.0.3
 paths:
   /catalogs:
