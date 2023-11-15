@@ -14,7 +14,11 @@ import org.jooq.impl.DSL
 class PostgresViewGenerator(
     dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {},
-) : ProcessingPlatformViewGenerator(dataPolicy, customJooqSettings = customJooqSettings) {
+) : ProcessingPlatformViewGenerator(
+    dataPolicy,
+    transformer = PostgresTransformer(),
+    customJooqSettings = customJooqSettings
+) {
     override val jooq: DSLContext = DSL.using(SQLDialect.POSTGRES, defaultJooqSettings.apply(customJooqSettings))
     override fun additionalFooterStatements(): Queries {
         val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->

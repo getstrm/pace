@@ -508,7 +508,7 @@ grant SELECT on public.demo_view to "marketing";"""
                       - principals: [ {group: marketing} ]
                         regexp:
                           regexp: "^.*(@.*)${'$'}"
-                          replacement: "****\\1"
+                          replacement: '****$1'
                       - principals: [ {group: fraud_and_risk} ]
                         identity: {}
                       - principals: []

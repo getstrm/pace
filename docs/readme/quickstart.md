@@ -54,7 +54,7 @@ Grab the contents of the files from the [GitHub repository](https://github.com/g
 {% endtab %}
 {% endtabs %}
 
-Now navigate  to the `standalone` directory inside the newly create `pace` folder:
+Now navigate to the `standalone` directory inside the newly create `pace` folder:
 
 ```bash
 cd pace/examples/standalone
@@ -247,8 +247,7 @@ tables:
 
 #### Create a blueprint policy
 
-We start with a blueprint policy (without any rule sets) by reading the description of a table on the processing 
-platform.
+We start with a blueprint policy (without any rule sets) by reading the description of a table on the processing platform.
 
 ```bash
 pace get data-policy --processing-platform standalone-sample-connection public.demo
@@ -338,7 +337,7 @@ field_transforms:
     - principals: [ { group: marketing } ]
       regexp:
         regexp: "^.*(@.*)$"
-        replacement: "****\1"
+        replacement: "****$1"
     - principals: [ { group: fraud_and_risk } ]
       identity: { }
     - principals: [ ]
@@ -479,8 +478,6 @@ That wraps up the standalone example. To clean up all resources, run the followi
 ```bash
 docker compose down
 ```
-
-
 
 Any questions or comments? Please ask them on [GitHub discussions](https://github.com/getstrm/pace/discussions).
 

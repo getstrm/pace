@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.17
+    version: 1.0.0-alpha.18
 paths:
     /catalogs:
         get:
@@ -652,7 +652,7 @@ components:
                 regexp:
                     allOf:
                         - $ref: '#/components/schemas/Transform_Regexp'
-                    description: Extract and optionally replace a value in a field using a regular expression. Use the syntax matching the processing platform.
+                    description: Extract and optionally replace a value in a field using a regular expression.
                 identity:
                     allOf:
                         - $ref: '#/components/schemas/Transform_Identity'
@@ -874,7 +874,9 @@ components:
                     type: string
                 replacement:
                     type: string
-                    description: If the replacement is left empty, the regexp match result (full match or first capturing group) is used.
+                    description: |-
+                        Use dollar signs to reference capturing groups in the replacement, e.g. "my-replacement-$1-$2".
+                         If the replacement is left empty, the regexp match result (full match or first capturing group) is used.
         Transform_SqlStatement:
             type: object
             properties:
