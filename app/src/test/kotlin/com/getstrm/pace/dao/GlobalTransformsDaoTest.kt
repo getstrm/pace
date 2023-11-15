@@ -4,9 +4,9 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldT
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Nullify.*
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.TagTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.TransformCase.TAG_TRANSFORM
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.pace.AbstractDatabaseTest
-import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.config.GlobalTransformsConfiguration
 import com.getstrm.pace.config.TagTransforms
 import com.getstrm.pace.util.*
@@ -31,30 +31,19 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
     @Test
     fun `get transform - exists`() {
         // Given some transforms in the database
-        val refAndType = GlobalTransform.RefAndType.newBuilder()
-            .setRef("email")
-            .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
-            .build()
-
         // When
-        val actual = underTest.getTransform(refAndType)
+        val actual = underTest.getTagTransform("email")
 
         // Then
         actual.shouldNotBeNull()
-
         actual.toGlobalTransform() shouldBe emailTransform
     }
 
     @Test
     fun `get transform - does not exist`() {
         // Given a transform that does not exist
-        val refAndType = GlobalTransform.RefAndType.newBuilder()
-            .setRef("does-not-exist")
-            .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
-            .build()
-
         // When
-        val actual = underTest.getTransform(refAndType)
+        val actual = underTest.getTagTransform("does not exist")
 
         // Then
         actual.shouldBeNull()
@@ -63,7 +52,7 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
     @Test
     fun `list transforms`() {
         // Given a transform type
-        val transformType = GlobalTransform.TransformCase.TAG_TRANSFORM
+        val transformType = TAG_TRANSFORM
 
         // When all transforms are listed
         val actual = underTest.listTransforms(transformType)
@@ -96,16 +85,11 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
     @Test
     fun `upsert transform - create new`() {
         // Given
-        val refAndType = GlobalTransform.RefAndType.newBuilder()
-                .setRef("email")
-                .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
-                .build()
 
         val newRef = "pipo"
         // When
         val changed =
-                underTest.getTransform(refAndType)!!.toGlobalTransform().toBuilder()
-                        .setRef(newRef)
+                underTest.getTagTransform("email")!!.toGlobalTransform().toBuilder()
                         .setTagTransform(
                                 TagTransform.newBuilder()
                                         .setTagContent(newRef)
@@ -120,11 +104,10 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
     @Test
     fun `upsert transform - check loose tag match`() {
         // Given
-        val s = "This tests-all_loose ends"
+        val refOriginal = "This tests-all_loose ends"
         val transform = GlobalTransform.newBuilder()
-            .setRef(s)
             .setTagTransform(TagTransform.newBuilder()
-                .setTagContent(s)
+                .setTagContent(refOriginal)
                 .addTransforms(FieldTransform.Transform.newBuilder().setNullify(getDefaultInstance()))
             )
             .build()
@@ -135,17 +118,22 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
         // Then
         // with loose tag matching, this is considered equal to s1 above.
         // this is the default AppConfiguration
-        val s2 = "this_tests ALL-loose-ends"
-        val readback = underTest.getTransform(GlobalTransform.RefAndType.newBuilder()
-            .setRef(s2)
-            .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
-            .build()
-        )?.toGlobalTransform()
+        val refUpdated = "this_tests ALL-loose-ends"
+        val readback = underTest.getTagTransform(refUpdated)?.toGlobalTransform()
         readback shouldNotBe null
         readback!!.tagTransform.transformsList.first().transformCase shouldBe  FieldTransform.Transform.TransformCase.NULLIFY
         // just changed the instance, did not add a new one!
+        // so we get the original ref
+        readback.refAndType().first shouldBe refOriginal
+        readback.tagTransform.tagContent shouldBe refOriginal
         underTest.listTransforms().size shouldBe 3
 
+        val updatedTransform = with (transform.toBuilder()) {
+            tagTransformBuilder.tagContent = refUpdated
+            build()
+        }
+        underTest.upsertTransform(updatedTransform).toGlobalTransform() shouldBe updatedTransform
+        underTest.listTransforms().size shouldBe 3
     }
 
     @Test
@@ -154,7 +142,6 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
         // Given
         val s = "This tests-all_loose ends"
         val transform = GlobalTransform.newBuilder()
-            .setRef(s)
             .setTagTransform(TagTransform.newBuilder()
                 .setTagContent(s)
                 .addTransforms(FieldTransform.Transform.newBuilder().setNullify(getDefaultInstance()))
@@ -166,11 +153,7 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
         strictDao.listTransforms().size shouldBe 3
         // Then
         val s2 = "this_tests ALL-loose-ends"
-        val readback = strictDao.getTransform(GlobalTransform.RefAndType.newBuilder()
-            .setRef(s2)
-            .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
-            .build()
-        )?.toGlobalTransform()
+        val readback = strictDao.getTagTransform(s2)?.toGlobalTransform()
         readback shouldBe  null
         // just changed the instance
         strictDao.listTransforms().size shouldBe 3
@@ -181,26 +164,20 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
     @Test
     fun `delete transform`() {
         // Given
-        val refAndType = GlobalTransform.RefAndType.newBuilder()
-            .setRef("email")
-            .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
-            .build()
-
         // When
-        val actual = underTest.getTransform(refAndType)
+        val actual = underTest.getTagTransform("email")
 
         // Then
         actual.shouldNotBeNull()
 
-        underTest.deleteTransform(listOf(refAndType)) shouldBe 1
-        underTest.deleteTransform(listOf(refAndType)) shouldBe 0
-        underTest.getTransform(refAndType).shouldBeNull()
+        underTest.deleteTransform("email", TAG_TRANSFORM) shouldBe 1
+        underTest.deleteTransform("email", TAG_TRANSFORM) shouldBe 0
+        underTest.getTagTransform("email").shouldBeNull()
     }
 
     companion object {
         @Language("yaml")
         private val emailTransform = """
-            ref: email
             description: "A default transform that should be applied to fields tagged with 'email'."
             tag_transform:
               tag_content: email
@@ -212,7 +189,6 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
 
         @Language("yaml")
         private val nameTransform = """
-            ref: name
             description: "A default transform that should be applied to fields tagged with 'name'."
             tag_transform:
               tag_content: name
@@ -223,7 +199,7 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
 
         private fun GlobalTransform.toRecord(): GlobalTransformsRecord {
             val record = GlobalTransformsRecord()
-            record.ref = this.ref
+            record.ref = this.refAndType().first
             record.transformType = this.transformCase.name
             record.transform = this.toJsonbWithDefaults()
             record.active = true

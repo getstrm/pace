@@ -1,14 +1,11 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.RefAndType
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.TransformCase.TAG_TRANSFORM
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.dao.GlobalTransformsDao
-import com.getstrm.pace.util.parseDataPolicy
-import com.getstrm.pace.util.parseTransforms
-import com.getstrm.pace.util.toJsonbWithDefaults
-import com.getstrm.pace.util.yaml2json
+import com.getstrm.pace.util.*
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -259,8 +256,7 @@ class GlobalTransformsServiceTest {
         @Language("yaml")
         val businessRules = """
             global_transforms:
-              - ref: irrelevant
-                description: email
+              - description: email
                 tag_transform:
                   tag_content: email
                   transforms:
@@ -272,8 +268,7 @@ class GlobalTransformsServiceTest {
                       identity: {}
                     # everyone else gets 4 stars
                     - fixed: {value: "****"}
-              - ref: also irrelevant
-                description: pii
+              - description: pii
                 tag_transform:
                   tag_content: pii
                   # transforms to be applied to fields classified as PII
@@ -283,8 +278,7 @@ class GlobalTransformsServiceTest {
                       identity: {}
                     # everyone else gets a hashed value
                     - hash: {seed: "1234"}
-              - ref: overlap
-                description: overlap
+              - description: overlap
                 tag_transform:
                   tag_content: overlap
                   # a business policy that is deliberately overlapping with both others
@@ -300,24 +294,26 @@ class GlobalTransformsServiceTest {
                     # everyone else gets 'fixed-value'
                     - fixed: {value: fixed-value}  
     """.trimIndent().parseTransforms().associate {
-            RefAndType.newBuilder()
-                .setRef(it.tagTransform.tagContent)
-                .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
-                .build() to it.toRecord()
+                it.tagTransform.tagContent to it.toRecord()
         }
 
-        val tagSlot = slot<RefAndType>()
+        val refSlot = slot<String>()
         coEvery {
-            globalTransformsDao.getTransform(capture(tagSlot))
+            globalTransformsDao.getTransform(capture(refSlot), TAG_TRANSFORM)
         } answers { // ktlint-disable max-line-length
-            businessRules[tagSlot.captured] ?: GlobalTransform.getDefaultInstance().toRecord()
+            businessRules[refSlot.captured] ?: GlobalTransform.newBuilder()
+                .setTagTransform(GlobalTransform.TagTransform.newBuilder()
+                    .setTagContent(refSlot.captured)
+                )
+                .build()
+                .toRecord()
         }
     }
 
     companion object {
         private fun GlobalTransform.toRecord(): GlobalTransformsRecord {
             val record = GlobalTransformsRecord()
-            record.ref = this.ref
+            record.ref = this.refAndType().first
             record.transformType = this.transformCase.name
             record.transform = this.toJsonbWithDefaults()
             return record

@@ -35,7 +35,6 @@ service GlobalTransformsService {
   }
 }
 
-// As we also want to support a REST API and gRPC->JSON cannot map to messages, we cannot reuse RefAndType here.
 message GetGlobalTransformRequest {
   string ref = 1;
   string type = 2 [(buf.validate.field).cel = {
@@ -68,7 +67,11 @@ message UpsertGlobalTransformResponse {
 }
 
 message DeleteGlobalTransformRequest {
-  repeated entities.v1alpha.GlobalTransform.RefAndType ref_and_types = 1;
+  string ref = 1;
+  string type = 2 [(buf.validate.field).cel = {
+    id: "global-transform-ref-and-type",
+    expression: "!(this in ['TAG_TRANSFORM']) ? 'value must be in list %s'.format(['TAG_TRANSFORM']) : ''"
+  }];
 }
 
 message DeleteGlobalTransformResponse {
