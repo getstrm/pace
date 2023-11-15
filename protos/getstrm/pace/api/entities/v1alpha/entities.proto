@@ -210,8 +210,7 @@ message DataCatalog {
   Type type = 2;
   // A top-most level of the catalog. This is typically a database.
   repeated Database databases = 3;
-  repeated
-string tags = 4;
+  repeated string tags = 4;
   enum Type {
     TYPE_UNSPECIFIED = 0;
     COLLIBRA = 1;

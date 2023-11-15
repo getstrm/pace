@@ -10,6 +10,7 @@ import org.jooq.*
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.select
+import org.jooq.impl.DSL.trueCondition
 
 class BigQueryViewGenerator(
     dataPolicy: DataPolicy,
@@ -69,6 +70,6 @@ class BigQueryViewGenerator(
         if (this.hasPeriod()) {
             DSL.field("TIMESTAMP_ADD({0}, INTERVAL {1} DAY) < CURRENT_TIMESTAMP()", Boolean::class.java,  DSL.unquotedName(field.fullName()), this.period.days)
         } else {
-            DSL.field("true", Boolean::class.java)
+            DSL.field(trueCondition())
         }
 }

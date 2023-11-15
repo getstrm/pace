@@ -5,7 +5,7 @@ import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
 import com.getstrm.pace.util.defaultJooqSettings
-import com.getstrm.pace.util.fullName
+import com.getstrm.pace.util.listPrincipals
 import com.google.rpc.DebugInfo
 import org.jooq.*
 import org.jooq.conf.Settings
@@ -20,13 +20,7 @@ class PostgresViewGenerator(
         val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->
             val principals =
                 ruleSet.fieldTransformsList.flatMap { it.transformsList }.flatMap { it.principalsList }.toSet() +
-                        ruleSet.filtersList.flatMap { filter ->
-                            when (filter.filterCase) {
-                                DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER -> filter.retentionFilter.conditionsList.flatMap { it.principalsList }
-                                DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER -> filter.genericFilter.conditionsList.flatMap { it.principalsList }
-                                else -> throw IllegalArgumentException("Unsupported filter: ${filter.filterCase.name}")
-                            }
-                        }.toSet()
+                        ruleSet.filtersList.flatMap { it.listPrincipals() }.toSet()
 
             val viewName = ruleSet.target.fullname
 

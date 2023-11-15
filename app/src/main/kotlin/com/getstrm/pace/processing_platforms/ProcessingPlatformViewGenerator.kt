@@ -27,12 +27,12 @@ abstract class ProcessingPlatformViewGenerator(
 ;
     protected open fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): JooqField<Boolean> =
         if (this.hasPeriod()) {
-            DSL.field("{0} + INTERVAL {1} < current_timestamp", Boolean::class.java, DSL.unquotedName(field.fullName()), inline("${this.period.days} days"))
+            field("{0} + INTERVAL {1} < current_timestamp", Boolean::class.java, DSL.unquotedName(field.fullName()), inline("${this.period.days} days"))
         } else {
-            field("true", Boolean::class.java)
+            field(trueCondition())
         }
 
-    protected open val jooq: DSLContext = DSL.using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
+    protected open val jooq: DSLContext = using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
 
     fun toDynamicViewSQL(): String {
         val queries = dataPolicy.ruleSetsList.map { ruleSet ->
