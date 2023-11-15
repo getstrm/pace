@@ -40,11 +40,11 @@
 [openapi.yaml](../.gitbook/assets/openapi.yaml)
 {% endswagger %}
 
-{% swagger src="../.gitbook/assets/openapi.yaml" path="/global-transforms" method="delete" expanded="true" %}
+{% swagger src="../.gitbook/assets/openapi.yaml" path="/global-transforms/{ref}/{type}" method="get" expanded="true" %}
 [openapi.yaml](../.gitbook/assets/openapi.yaml)
 {% endswagger %}
 
-{% swagger src="../.gitbook/assets/openapi.yaml" path="/global-transforms/{ref}/{type}" method="get" expanded="true" %}
+{% swagger src="../.gitbook/assets/openapi.yaml" path="/global-transforms/{ref}/{type}" method="delete" expanded="true" %}
 [openapi.yaml](../.gitbook/assets/openapi.yaml)
 {% endswagger %}
 
