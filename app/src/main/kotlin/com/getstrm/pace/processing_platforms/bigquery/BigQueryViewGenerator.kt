@@ -4,7 +4,6 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
-import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
 import com.google.rpc.DebugInfo
 import org.jooq.*
@@ -66,10 +65,10 @@ class BigQueryViewGenerator(
         return DSL.with(userGroupSelect).select(fields)
     }
 
-    override fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): String =
+    override fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): Field<Boolean> =
         if (this.hasPeriod()) {
-            "TIMESTAMP_ADD(${field.fullName()}, INTERVAL ${this.period.days} DAY) < CURRENT_TIMESTAMP()"
+            DSL.field("TIMESTAMP_ADD({0}, INTERVAL {1} DAY) < CURRENT_TIMESTAMP()", Boolean::class.java,  DSL.unquotedName(field.fullName()), this.period.days)
         } else {
-            "true"
+            DSL.field("true", Boolean::class.java)
         }
 }
