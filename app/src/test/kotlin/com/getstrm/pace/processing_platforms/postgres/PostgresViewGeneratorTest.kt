@@ -316,6 +316,66 @@ grant SELECT on public.demo_view to "marketing";"""
     }
 
     @Test
+    fun `numeric rounding - ceil`() {
+        // Given
+        val field = DataPolicy.Field.newBuilder().addNameParts("transactionamount").setType("integer").build()
+        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+            .setNumericRounding(
+                DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.newBuilder()
+                    .setCeil(
+                        DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Ceil.newBuilder().setDivisor(200f)
+                    )
+            )
+            .build()
+
+        // When
+        val (_, jooqField) = underTest.toCase(transform, field)
+
+        // Then
+        jooqField.toSql() shouldBe "(ceil((transactionamount / 2E2)) * 2E2)"
+    }
+
+    @Test
+    fun `numeric rounding - floor`() {
+        // Given
+        val field = DataPolicy.Field.newBuilder().addNameParts("transactionamount").setType("float").build()
+        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+            .setNumericRounding(
+                DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.newBuilder()
+                    .setFloor(
+                        DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Floor.newBuilder().setDivisor(-200f)
+                    )
+            )
+            .build()
+
+        // When
+        val (_, jooqField) = underTest.toCase(transform, field)
+
+        // Then
+        jooqField.toSql() shouldBe "(floor((transactionamount / -2E2)) * -2E2)"
+    }
+
+    @Test
+    fun `numeric rounding - round`() {
+        // Given
+        val field = DataPolicy.Field.newBuilder().addNameParts("transactionamount").setType("float").build()
+        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+            .setNumericRounding(
+                DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.newBuilder()
+                    .setRound(
+                        DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Round.newBuilder().setPrecision(-1)
+                    )
+            )
+            .build()
+
+        // When
+        val (_, jooqField) = underTest.toCase(transform, field)
+
+        // Then
+        jooqField.toSql() shouldBe "round(transactionamount, -1)"
+    }
+
+    @Test
     fun `full SQL view statement with a single detokenize join`() {
         // Given
         val viewGenerator = PostgresViewGenerator(singleDetokenizePolicy) { withRenderFormatted(true) }

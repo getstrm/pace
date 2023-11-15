@@ -16,11 +16,7 @@ In order to be able to change the on-view results for different users with diffe
 
 ## Transforms
 
-We define 7 types of transforms.
-
-### 1. Regexp
-
-Extract or replace a value from a string field using regular expressions. To perform a regular expression extraction, set the replacement to an empty string or null. The original value will be replaced by the first matching substring. The pattern to match follows the syntax of the target platform, please refer to the respective documentation for more detail.
+### 1. Regex
 
 The syntax for the replacement string also follows the target platform's syntax, with **one important difference:** capturing group backreferences always use the **dollar notation**. In other words, you can use dollar-escaped digits (e.g. `$1` or `$2`) within the `replacement` string to insert text matching the corresponding parenthesized group in the `regexp` pattern. Use `$0` to refer to the entire matching text. It is quite common for platforms to limit this to 9 subgroups (i.e. `$1`-`$9`).
 
@@ -254,6 +250,76 @@ detokenize:
 While multiple detokenize transforms are allowed in a single rule set, each must use a different token source.
 {% endhint %}
 
+### **8. Numeric rounding**
+
+For numeric fields, the option exists to round the data. The following rounding options exist:
+
+1. **Ceil**: Apply the ceiling function to the data.
+2. **Floor**: Apply the floor function to the data.
+3. **Round**: Apply logical rounding to the data.
+
+{% tabs %}
+{% tab title="YAML" %}
+```yaml
+numeric_rounding:
+  floor:
+    divisor: 20
+```
+
+```yaml
+numeric_rounding:
+  ceil:
+    divisor: 20
+```
+
+```yaml
+numeric_rounding:
+  round:
+    precision: 0
+```
+{% endtab %}
+
+{% tab title="JSON" %}
+```json
+{
+  "numeric_rounding": {
+    "floor": {
+      "divisor": 20
+    }
+  }
+}
+```
+
+```json
+{
+  "numeric_rounding": {
+    "ceil": {
+      "divisor": 20
+    }
+  }
+}
+```
+
+```json
+{
+  "numeric_rounding": {
+    "round": {
+      "precision": 20
+    }
+  }
+}
+```
+{% endtab %}
+{% endtabs %}
+
+Examples of rounding:
+
+<table><thead><tr><th>Rounding type</th><th>Parameters</th><th>Input</th><th>Output</th></tr></thead><tbody><tr><td>Ceil</td><td>Divisor = 10</td><td>33</td><td>40</td></tr><tr><td>Ceil</td><td>Divisor = 0.1</td><td>33.3</td><td>34</td></tr><tr><td>Ceil</td><td>Divisor = -10</td><td>33</td><td><a data-footnote-ref href="#user-content-fn-1">30</a></td></tr><tr><td>Floor</td><td>Divisor = 10</td><td>33</td><td>30</td></tr><tr><td>Floor</td><td>Divisor = 0.1</td><td>33.3</td><td>33</td></tr><tr><td>Floor</td><td>Divisor = -10</td><td>33</td><td><a data-footnote-ref href="#user-content-fn-2">40</a></td></tr><tr><td>Round</td><td>Precision = 1</td><td>33.345</td><td>33.3</td></tr><tr><td>Round</td><td>Precision = 0</td><td>33.345</td><td>33</td></tr><tr><td>Round</td><td>Precision = <a data-footnote-ref href="#user-content-fn-3">-1</a></td><td>33.345</td><td>30</td></tr><tr><td>Round</td><td>Precision = <a data-footnote-ref href="#user-content-fn-4">-2</a></td><td>33.345</td><td>0</td></tr></tbody></table>
+
+{% hint style="warning" %}
+Note that ceiling and floor functions with negative numbers may behave differently based on the processing platform.
+{% endhint %}
+
 ## Example Field Transform
 
 Below you will find an example of a set of `Field Transforms`. Note that for each set of `Transforms` the last one always is without defined principals.
@@ -317,6 +383,22 @@ field_transforms:
       - principals: []
         fixed:
           value: "****"
+  - field:
+      name_parts:
+        - age
+    transforms:
+      - principals:
+        - group: "MKTNG"
+        identity: { }
+      - principals:
+        - group: "COMP"
+        numeric_rounding:
+          floor:
+            divisor: 20
+      - principals: [ ]
+        numeric_rounding:
+          round:
+            precision: -1
   - field:
       name_parts: [ brand ]
       type: "string"
@@ -437,11 +519,7 @@ Below you will find raw data and sample outputs for different (sets of) principa
 
 {% tabs %}
 {% tab title="RAW Data" %}
-| userId | card\_number | email            | brand   |
-| ------ | ------------ | ---------------- | ------- |
-| 123    | TOKEN\_123   | alice@store.com  | Macbook |
-| 456    | TOKEN\_456   | bob@company.com  | Lenovo  |
-| 789    | TOKEN\_789   | carol@domain.com | HP      |
+<table data-full-width="true"><thead><tr><th>userId</th><th>card_number</th><th>email</th><th data-type="number">age</th><th>brand</th></tr></thead><tbody><tr><td>123</td><td>TOKEN_123</td><td>alice@store.com</td><td>33</td><td>Macbook</td></tr><tr><td>456</td><td>TOKEN_456</td><td>bob@company.com</td><td>26</td><td>Lenovo</td></tr><tr><td>789</td><td>TOKEN_789</td><td>carol@domain.com</td><td>11</td><td>HP</td></tr></tbody></table>
 {% endtab %}
 
 {% tab title="my_schema.token_table" %}
@@ -455,38 +533,30 @@ Below you will find raw data and sample outputs for different (sets of) principa
 
 {% tabs %}
 {% tab title="[ F&R ]" %}
-| userId | card\_number     | email            | brand |
-| ------ | ---------------- | ---------------- | ----- |
-| 123    | 5425233430109903 | alice@store.com  | Apple |
-| 456    | 2223000048410010 | bob@company.com  | Other |
-| 789    | 2222420000001113 | carol@domain.com | Other |
+<table><thead><tr><th>userId</th><th>card_number</th><th>email</th><th data-type="number">age</th><th>brand</th></tr></thead><tbody><tr><td>123</td><td>5425233430109903</td><td>alice@store.com</td><td>30</td><td>Apple</td></tr><tr><td>456</td><td>2223000048410010</td><td>bob@company.com</td><td>30</td><td>Other</td></tr><tr><td>789</td><td>2222420000001113</td><td>carol@domain.com</td><td>10</td><td>Other</td></tr></tbody></table>
 {% endtab %}
 
 {% tab title="[ MKTNG ]" %}
-| userId | card\_number | email                | brand |
-| ------ | ------------ | -------------------- | ----- |
-| `null` | TOKEN\_123   | \*\*\*\*@store.com   | Apple |
-| `null` | TOKEN\_456   | \*\*\*\*@company.com | Other |
-| `null` | TOKEN\_789   | \*\*\*\*@domain.com  | Other |
+<table><thead><tr><th>userId</th><th>card_number</th><th>email</th><th data-type="number">age</th><th>brand</th></tr></thead><tbody><tr><td><code>null</code></td><td>TOKEN_123</td><td>****@store.com</td><td>33</td><td>Apple</td></tr><tr><td><code>null</code></td><td>TOKEN_456</td><td>****@company.com</td><td>26</td><td>Other</td></tr><tr><td><code>null</code></td><td>TOKEN_789</td><td>****@domain.com</td><td>11</td><td>Other</td></tr></tbody></table>
 {% endtab %}
 
 {% tab title="[ COMP, F&R ]" %}
-| userId | card\_number | email                | brand |
-| ------ | ------------ | -------------------- | ----- |
-| 123    | TOKEN\_123   | \*\*\*\*@store.com   | Apple |
-| 456    | TOKEN\_456   | \*\*\*\*@company.com | Other |
-| 789    | TOKEN\_789   | \*\*\*\*@domain.com  | Other |
+<table><thead><tr><th>userId</th><th>card_number</th><th>email</th><th data-type="number">age</th><th>brand</th></tr></thead><tbody><tr><td>123</td><td>TOKEN_123</td><td>****@store.com</td><td>20</td><td>Apple</td></tr><tr><td>456</td><td>TOKEN_456</td><td>****@company.com</td><td>20</td><td>Other</td></tr><tr><td>789</td><td>TOKEN_789</td><td>****@domain.com</td><td>0</td><td>Other</td></tr></tbody></table>
 
 
 {% endtab %}
 
 {% tab title="[ ANALYSIS ]" %}
-| userId              | card\_number | email    | brand |
-| ------------------- | ------------ | -------- | ----- |
-| 23459023894857195   | TOKEN\_123   | \*\*\*\* | Apple |
-| -903845745009147219 | TOKEN\_456   | \*\*\*\* | Other |
-| -872050645009147732 | TOKEN\_789   | \*\*\*\* | Other |
+<table><thead><tr><th>userId</th><th>card_number</th><th>email</th><th data-type="number">age</th><th>brand</th></tr></thead><tbody><tr><td>23459023894857195</td><td>TOKEN_123</td><td>****</td><td>30</td><td>Apple</td></tr><tr><td>-903845745009147219</td><td>TOKEN_456</td><td>****</td><td>30</td><td>Other</td></tr><tr><td>-872050645009147732</td><td>TOKEN_789</td><td>****</td><td>10</td><td>Other</td></tr></tbody></table>
 
 
 {% endtab %}
 {% endtabs %}
+
+[^1]: See remark below, this depends on the platform specific implementation.
+
+[^2]: See remark below, this depends on the platform specific implementation.
+
+[^3]: This might not be supported on all processing platforms.
+
+[^4]: This might not be supported on all processing platforms.
