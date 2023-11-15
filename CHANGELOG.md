@@ -1,3 +1,10 @@
+# [1.0.0-alpha.18](https://github.com/getstrm/pace/compare/v1.0.0-alpha.17...v1.0.0-alpha.18) (2023-11-15)
+
+
+### Features
+
+* **pace-13:** use dollar signs to reference capturing groups in regexp transforms ([2a484f4](https://github.com/getstrm/pace/commit/2a484f45ea1bbc6f319c3c3be256540dec898581))
+
 # [1.0.0-alpha.17](https://github.com/getstrm/pace/compare/v1.0.0-alpha.16...v1.0.0-alpha.17) (2023-11-14)
 
 
