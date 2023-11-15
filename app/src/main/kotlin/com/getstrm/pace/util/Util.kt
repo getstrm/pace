@@ -206,12 +206,12 @@ fun String.toTransformCase(): TransformCase = let {
 
 fun GlobalTransform.refAndType(): Pair<String, TransformCase> = Pair(when(transformCase){
     TransformCase.TAG_TRANSFORM -> tagTransform.tagContent
-    TransformCase.TRANSFORM_NOT_SET -> throw BadRequestException(
+    null, TransformCase.TRANSFORM_NOT_SET -> throw BadRequestException(
                 code = BadRequestException.Code.INVALID_ARGUMENT,
                 badRequest = BadRequest.newBuilder()
                     .addFieldViolations(
                         BadRequest.FieldViolation.newBuilder()
-                            .setDescription( "TRANSFORM_NOT_SET")
+                            .setDescription( "A GlobalTransform was seen with no `transform`. The GlobalTransform was: " + this.toJson())
                             .build()
                     )
                     .build()

@@ -29,13 +29,18 @@ service GlobalTransformsService {
   }
   rpc DeleteGlobalTransform(DeleteGlobalTransformRequest) returns (DeleteGlobalTransformResponse) {
     option (google.api.http) = {
-      delete: "/global-transforms"
+      delete: "/global-transforms/{ref}/{type}"
       body: "*"
     };
   }
 }
 
 message GetGlobalTransformRequest {
+  /* this ref refers to the primary key in the oneof transform, so its use depends
+     on which one it is.
+     TAG_TRANSFORM -> TagTransform.tag_content
+      no others defined (yet).
+   */
   string ref = 1;
   string type = 2 [(buf.validate.field).cel = {
     id: "global-transform-ref-and-type",

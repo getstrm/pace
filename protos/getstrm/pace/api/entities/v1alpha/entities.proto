@@ -193,11 +193,7 @@ message GlobalTransform {
     TagTransform tag_transform = 2;
   }
   message TagTransform {
-    /* 'tag_content' is the primary key of TagTransform's. It uses loose matching: dash, underscore
-    and space are considered equal, and character case is ignored.
-
-    Loose matching is enabled by default, but can be disabled via the application configuration.
-    */
+    /* 'tag_content' is the primary key of TagTransforms. */
     string tag_content = 1 [(buf.validate.field).string.min_len = 1];
     repeated DataPolicy.RuleSet.FieldTransform.Transform transforms = 2;
   }
