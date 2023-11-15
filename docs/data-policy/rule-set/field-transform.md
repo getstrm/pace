@@ -310,7 +310,7 @@ field_transforms:
         - group: "COMP"
         regexp:
           regexp: "^.*(@.*)$"
-          replacement: "****\\\\1"
+          replacement: "****$1"
       - principals:
         - group: "F&R"
         identity: {}
@@ -387,7 +387,7 @@ field_transforms:
           ],
           "regexp": {
             "regexp": "^.*(@.*)$",
-            "replacement": "****\\\\1"
+            "replacement": "****$1"
           }
         },
         {
