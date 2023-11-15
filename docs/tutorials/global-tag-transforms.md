@@ -48,14 +48,7 @@ The compose file is set up without any persistence of data across different star
 {% endhint %}
 
 {% hint style="info" %}
-Since PostgreSQL has no "native" support for tags on columns, we've come up with a syntax to allow specifying tags in comments on columns. The syntax allows specifying tags in any position of the comment string, in the following formats:
-
-* `pace::my_tag`
-* `pace::my-tag`
-* `pace::mytag`
-* `pace::"my tag"`
-
-Keep in mind that tags are currently prefixed with the fixed string `pace::`
+Since PostgreSQL has no "native" support for tags on columns, we've come up with a syntax [to allow specifying tags in comments on columns](../global-policies/global-transforms/processing-platform-tags/postgresql.md).
 {% endhint %}
 
 <details>
@@ -97,7 +90,7 @@ spring:
   datasource:
     url: jdbc:postgresql://postgres_pace:5432/pace
     hikari:
-      username: pace_user
+      username: pace
       password: pace
       schema: public
 
@@ -107,7 +100,7 @@ app:
       - id: "global_transforms-sample-connection"
         host-name: "postgres_processing_platform"
         port: 5432
-        user-name: "global_transforms_user"
+        user-name: "global_transforms"
         password: "global_transforms"
         database: "global_transforms"
 ```
@@ -143,7 +136,7 @@ There should be quite a bit of logging, ending in the banner of the PACE app boo
 Connect to the PostgreSQL database.
 
 ```bash
-psql postgresql://global_transforms_user:global_transforms@localhost:5431/global_transforms
+psql postgresql://global_transforms:global_transforms@localhost:5431/global_transforms
 ```
 
 Next, view the table and the comments.
@@ -255,7 +248,7 @@ tag_transform:
     - principals: [ { group: fraud_and_risk } ]
       regexp:
         regexp: "^.*(@.*)$"
-        replacement: "****\\1"
+        replacement: "****$1"
     # All other users should not see the email
     - principals: [ ]
       nullify: { }
@@ -272,8 +265,7 @@ Feel free to list the global transforms to see whether it has been correctly cre
 
 ### Fetching a Data Policy with a rule set based on global transforms
 
-When we fetch the Data Policy now, the global transform should be added to the `rule_sets` section of the data 
-policy. Run the command to get a blueprint data policy for our table again.
+When we fetch the Data Policy now, the global transform should be added to the `rule_sets` section of the data policy. Run the command to get a blueprint data policy for our table again.
 
 ```bash
 pace get data-policy --processing-platform global_transforms-sample-connection public.demo
@@ -305,7 +297,7 @@ rule_sets:
       - group: fraud_and_risk
       regexp:
         regexp: ^.*(@.*)$
-        replacement: '****\1'
+        replacement: '****$1'
     - nullify: {}
   target:
     fullname: public.demo_pace_view
@@ -361,7 +353,5 @@ That wraps up the global transforms example. To clean up all resources, run the 
 ```bash
 docker compose down
 ```
-
-
 
 Any questions or comments? Please ask them on [GitHub discussions](https://github.com/getstrm/pace/discussions).

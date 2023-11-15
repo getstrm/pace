@@ -13,7 +13,7 @@ import com.getstrm.pace.config.DatabricksConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.processing_platforms.Group
-import com.getstrm.pace.processing_platforms.ProcessingPlatform
+import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.toTimestamp
@@ -27,7 +27,7 @@ private val log = LoggerFactory.getLogger(DatabricksClient::javaClass.name)
 class DatabricksClient(
     override val id: String,
     val config: DatabricksConfig,
-) : ProcessingPlatform {
+) : ProcessingPlatformClient {
 
     constructor(config: DatabricksConfig) : this(config.id, config)
 
@@ -89,7 +89,7 @@ class DatabricksClient(
     }
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
-        val statement = DatabricksDynamicViewGenerator(dataPolicy).toDynamicViewSQL()
+        val statement = DatabricksViewGenerator(dataPolicy).toDynamicViewSQL()
         val response = executeStatement(statement)
         when (response.status.state) {
             StatementState.SUCCEEDED -> return

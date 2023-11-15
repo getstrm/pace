@@ -3,12 +3,12 @@ package com.getstrm.pace.service
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.RefAndType
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.TransformCase
 import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.dao.GlobalTransformsDao
 import com.getstrm.pace.exceptions.ResourceException
-import com.getstrm.pace.util.name
 import com.getstrm.pace.util.toGlobalTransform
+import com.getstrm.pace.util.toTransformCase
 import com.google.rpc.ResourceInfo
 import org.springframework.stereotype.Component
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform as ApiFieldTransform
@@ -20,29 +20,29 @@ class GlobalTransformsService(
     private val globalTransformsDao: GlobalTransformsDao,
 ) {
 
-    fun getTransform(refAndType: RefAndType): GlobalTransform {
-        val record = globalTransformsDao.getTransform(refAndType) ?: throw ResourceException(
+    fun getTransform(ref: String, type: TransformCase): GlobalTransform {
+        val record = globalTransformsDao.getTransform(ref, type) ?: throw ResourceException(
             ResourceException.Code.NOT_FOUND,
             ResourceInfo.newBuilder()
-                .setResourceName(refAndType.name())
-                .setResourceType("GlobalTransform ${refAndType.type}")
+                .setResourceName(ref)
+                .setResourceType(type.toString())
                 .build()
         )
 
         return record.toGlobalTransform()
     }
 
-    fun getTransformOrNull(refAndType: RefAndType): GlobalTransform? =
-        globalTransformsDao.getTransform(refAndType)?.toGlobalTransform()
+    fun getTransformOrNull(ref: String, type: TransformCase): GlobalTransform? =
+        globalTransformsDao.getTransform(ref, type)?.toGlobalTransform()
 
-    fun listTransforms(type: GlobalTransform.TransformCase? = null) =
+    fun listTransforms(type: TransformCase? = null) =
         globalTransformsDao.listTransforms(type).map { it.toGlobalTransform() }
 
     fun upsertTransform(globalTransform: GlobalTransform): GlobalTransform =
         globalTransformsDao.upsertTransform(globalTransform).toGlobalTransform()
 
-    fun deleteTransforms(refAndTypes: List<RefAndType>): Int =
-        globalTransformsDao.deleteTransform(refAndTypes)
+    fun deleteTransform(ref: String, type: TransformCase): Int =
+        globalTransformsDao.deleteTransform(ref, type)
 
 
     /**
@@ -57,12 +57,8 @@ class GlobalTransformsService(
             .mapNotNull { field ->
                 val transforms = field.tagsList.flatMap { tag ->
                     // TODO this should be a batch call for multiple refAndTypes
-                    getTransformOrNull(
-                        RefAndType.newBuilder()
-                            .setRef(tag)
-                            .setType(GlobalTransform.TransformCase.TAG_TRANSFORM.name)
-                            .build()
-                    )?.tagTransform?.transformsList ?: emptyList()
+                    getTransformOrNull( tag, TransformCase.TAG_TRANSFORM )
+                        ?.tagTransform?.transformsList ?: emptyList()
                 }.combineTransforms()
 
                 return@mapNotNull if (transforms.isNotEmpty()) {
@@ -100,7 +96,7 @@ class GlobalTransformsService(
  * Since each tag can have a list of associated ApiTransforms, this makes the
  * ORDER of tags important. Let's hope the catalogs present the tags in a deterministic order!
  *
- * a certain fields the tags define non-overlapping rules? The [DataPolicyService.validate]
+ * a certain fields the tags define non-overlapping rules? The [DataPolicyValidatorService.validate]
  * method already executes this check.
  *
  * The strategy here is an ongoing discussion: https://github.com/getstrm/pace/issues/33
@@ -131,3 +127,4 @@ fun List<ApiTransform>.combineTransforms(): List<ApiTransform> {
     val (defaults, withPrincipals) = filtered.partition { it.principalsCount == 0 }
     return (withPrincipals + defaults.firstOrNull()).filterNotNull()
 }
+

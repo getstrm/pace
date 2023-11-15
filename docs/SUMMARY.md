@@ -19,6 +19,16 @@
   * [Field Transform](data-policy/rule-set/field-transform.md)
   * [Filter](data-policy/rule-set/filter.md)
 
+## Global Policies
+
+* [Global Transforms](global-policies/global-transforms/README.md)
+  * [Processing Platform Tags](global-policies/global-transforms/processing-platform-tags/README.md)
+    * [BigQuery](global-policies/global-transforms/processing-platform-tags/bigquery.md)
+    * [Databricks](global-policies/global-transforms/processing-platform-tags/databricks.md)
+    * [Snowflake](global-policies/global-transforms/processing-platform-tags/snowflake.md)
+    * [PostgreSQL](global-policies/global-transforms/processing-platform-tags/postgresql.md)
+  * [Data Catalog Tags](global-policies/global-transforms/data-catalog-tags.md)
+
 ## Tutorials
 
 * [Detokenization](tutorials/detokenization.md)
@@ -26,7 +36,9 @@
 
 ## Integrations & Reference
 
-* [API Reference](reference/api-reference.md)
+* [API Reference](integrations-and-reference/api-reference/README.md)
+  * [gRPC API](reference/api-reference/grpc.md)
+  * [REST API](reference/api-reference/rest.md)
 * [CLI Reference](reference/cli-reference/README.md)
   * [pace](cli-docs/pace.md)
     * [completion](cli-docs/pace\_completion.md)
@@ -35,22 +47,23 @@
       * [powershell](cli-docs/pace\_completion\_powershell.md)
       * [zsh](cli-docs/pace\_completion\_zsh.md)
     * [delete](cli-docs/pace\_delete.md)
-      * [delete](cli-docs/pace\_delete\_global-transform.md)
+      * [global-transform](cli-docs/pace\_delete\_global-transform.md)
     * [get](cli-docs/pace\_get.md)
-      * [data policy](cli-docs/pace\_get\_data-policy.md)
-      * [global transform](cli-docs/pace\_get\_global-transform.md)
+      * [data-policy](cli-docs/pace\_get\_data-policy.md)
+      * [global-transform](cli-docs/pace\_get\_global-transform.md)
     * [list](cli-docs/pace\_list.md)
       * [catalogs](cli-docs/pace\_list\_catalogs.md)
-      * [data policies](cli-docs/pace\_list\_data-policies.md)
+      * [data-policies](cli-docs/pace\_list\_data-policies.md)
       * [databases](cli-docs/pace\_list\_databases.md)
-      * [global transforms](cli-docs/pace\_list\_global-transforms.md)
+      * [global-transforms](cli-docs/pace\_list\_global-transforms.md)
       * [groups](cli-docs/pace\_list\_groups.md)
-      * [processing platforms](cli-docs/pace\_list\_processing-platforms.md)
+      * [processing-platforms](cli-docs/pace\_list\_processing-platforms.md)
       * [schemas](cli-docs/pace\_list\_schemas.md)
       * [tables](cli-docs/pace\_list\_tables.md)
     * [upsert](cli-docs/pace\_upsert.md)
-      * [data policy](cli-docs/pace\_upsert\_data-policy.md)
-      * [global transform](cli-docs/pace\_upsert\_global-transform.md)
+      * [data-policy](cli-docs/pace\_upsert\_data-policy.md)
+      * [global-transform](cli-docs/pace\_upsert\_global-transform.md)
+    * [version](cli-docs/pace\_version.md)
 * [Integrations](integrations-and-reference/integrations/README.md)
   * [Data Catalog Integrations](reference/data-catalog-integrations/README.md)
   * [Processing Platform Integrations](reference/processing-platform-integrations/README.md)

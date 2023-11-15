@@ -9,7 +9,7 @@ import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.processing_platforms.Group
-import com.getstrm.pace.processing_platforms.ProcessingPlatform
+import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.processing_platforms.bigquery.BigQueryClient
 import com.getstrm.pace.processing_platforms.databricks.DatabricksClient
@@ -27,7 +27,7 @@ class ProcessingPlatformsService(
     private val globalTransformsService: GlobalTransformsService,
     private val dataPolicyValidatorService: DataPolicyValidatorService,
 ) {
-    final val platforms: Map<String, ProcessingPlatform>
+    final val platforms: Map<String, ProcessingPlatformClient>
 
     private val log = LoggerFactory.getLogger(DatabricksClient::javaClass.name)
 
@@ -45,7 +45,7 @@ class ProcessingPlatformsService(
     suspend fun listGroupNames(platformId: String): Set<String> =
         listGroups(platformId).map { it.name }.toSet()
 
-    fun getProcessingPlatform(dataPolicy: DataPolicy): ProcessingPlatform {
+    fun getProcessingPlatform(dataPolicy: DataPolicy): ProcessingPlatformClient {
         val processingPlatform = platforms[dataPolicy.platform.id] ?: throw processingPlatformNotFound(
             dataPolicy.platform.id,
             dataPolicy.platform.platformType.name

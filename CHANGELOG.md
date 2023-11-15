@@ -1,3 +1,24 @@
+# [1.0.0-alpha.19](https://github.com/getstrm/pace/compare/v1.0.0-alpha.18...v1.0.0-alpha.19) (2023-11-15)
+
+
+### Features
+
+* **pace-28:** add numeric rounding transform ([#38](https://github.com/getstrm/pace/issues/38)) ([693ebe5](https://github.com/getstrm/pace/commit/693ebe5a4ff56961fac3ecb052b09b2d3092e965))
+
+# [1.0.0-alpha.18](https://github.com/getstrm/pace/compare/v1.0.0-alpha.17...v1.0.0-alpha.18) (2023-11-15)
+
+
+### Features
+
+* **pace-13:** use dollar signs to reference capturing groups in regexp transforms ([2a484f4](https://github.com/getstrm/pace/commit/2a484f45ea1bbc6f319c3c3be256540dec898581))
+
+# [1.0.0-alpha.17](https://github.com/getstrm/pace/compare/v1.0.0-alpha.16...v1.0.0-alpha.17) (2023-11-14)
+
+
+### Bug Fixes
+
+* **pace-17-4:** cel validation for list global transforms ([#44](https://github.com/getstrm/pace/issues/44)) ([2df9d8d](https://github.com/getstrm/pace/commit/2df9d8dda6ba74814538a0a89710b2eacdd096df))
+
 # [1.0.0-alpha.16](https://github.com/getstrm/pace/compare/v1.0.0-alpha.15...v1.0.0-alpha.16) (2023-11-14)
 
 

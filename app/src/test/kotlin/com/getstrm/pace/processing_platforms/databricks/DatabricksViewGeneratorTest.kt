@@ -1,7 +1,6 @@
 package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import com.getstrm.pace.processing_platforms.databricks.DatabricksDynamicViewGenerator
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import io.kotest.matchers.nulls.shouldBeNull
@@ -14,13 +13,13 @@ import com.getstrm.pace.toSql
 import com.getstrm.pace.util.yaml2json
 import org.intellij.lang.annotations.Language
 
-class DatabricksDynamicViewGeneratorTest {
+class DatabricksViewGeneratorTest {
 
-    private lateinit var underTest: DatabricksDynamicViewGenerator
+    private lateinit var underTest: DatabricksViewGenerator
 
     @BeforeEach
     fun setUp() {
-        underTest = DatabricksDynamicViewGenerator(DataPolicy.getDefaultInstance())
+        underTest = DatabricksViewGenerator(DataPolicy.getDefaultInstance())
     }
 
     @Test
@@ -282,7 +281,7 @@ class DatabricksDynamicViewGeneratorTest {
 
     @Test
     fun `transform test all transforms`() {
-        underTest = DatabricksDynamicViewGenerator(dataPolicy) { withRenderFormatted(true) }
+        underTest = DatabricksViewGenerator(dataPolicy) { withRenderFormatted(true) }
         underTest.toDynamicViewSQL()
             .shouldBe(
                 """create or replace view my_catalog.my_schema.gddemo_public
@@ -330,7 +329,7 @@ where (
     @Test
     fun `transform - no row filters`() {
         val policyWithoutFilters = dataPolicy.toBuilder().apply { ruleSetsBuilderList.first().clearFilters() }.build()
-        underTest = DatabricksDynamicViewGenerator(policyWithoutFilters) { withRenderFormatted(true) }
+        underTest = DatabricksViewGenerator(policyWithoutFilters) { withRenderFormatted(true) }
         underTest.toDynamicViewSQL()
             .shouldBe(
                 """create or replace view my_catalog.my_schema.gddemo_public

@@ -56,7 +56,7 @@ message DataPolicy {
         // The principals (e.g. groups) for which this transform will be applied.
         repeated Principal principals = 1;
         oneof transform {
-          // Extract and optionally replace a value in a field using a regular expression. Use the syntax matching the processing platform.
+          // Extract and optionally replace a value in a field using a regular expression.
           Regexp regexp = 3;
           // Use the identity transform to copy a field value as-is.
           Identity identity = 4;
@@ -70,6 +70,8 @@ message DataPolicy {
           Nullify nullify = 8;
           // Replaces a tokenized field value with its original value, looked up in a token source. If no value is found, the tokenized value is left as-is.
           Detokenize detokenize = 9;
+          // Round a numeric value with the specified rounding.
+          NumericRounding numeric_rounding = 10;
         }
         message SqlStatement {
           string statement = 1;
@@ -83,6 +85,7 @@ message DataPolicy {
         message Identity {}
         message Regexp {
           string regexp = 1;
+          // Use dollar signs to reference capturing groups in the replacement, e.g. "my-replacement-$1-$2".
           // If the replacement is left empty, the regexp match result (full match or first capturing group) is used.
           string replacement = 2;
         }
@@ -94,6 +97,30 @@ message DataPolicy {
           Field token_field = 2;
           // The field in the token source that contains the value. Only the name parts are required.
           Field value_field = 3;
+        }
+        message NumericRounding {
+          oneof rounding {
+            option (buf.validate.oneof).required = true;
+            // Round the value to the nearest integer (e.g. 1.5 becomes 2), respecting the divisor.
+            Ceil ceil = 3;
+            // Round the value down to the nearest integer (e.g. 1.5 becomes 1), respecting the divisor.
+            Floor floor = 4;
+            // Use regular natural rounding (e.g. 1.5 becomes 2, 1.4 becomes 1), respecting the precision.
+            Round round = 5;
+          }
+
+          message Ceil {
+            // The divisor to use when applying integer division. Values < 1 allow for rounding to decimal places.
+            float divisor = 1;
+          }
+          message Floor {
+            // The divisor to use when applying integer division. Values < 1 allow for rounding to decimal places.
+            float divisor = 1;
+          }
+          message Round {
+            // The precision to use for rounding. When positive, the value is rounded to the nearest decimal place. When negative, the value is rounded to the nearest power of 10.
+            int32 precision = 1;
+          }
         }
       }
     }
@@ -152,34 +179,30 @@ message DataPolicy {
   }
 }
 
-// If the specified transform is incompatible with the field data type to which this global transform is connected with,
-// then the end user will get an invalid argument, and the blueprint policy with the global transforms applied won't be returned.
+/* If the specified transform is incompatible with the field data type to which this global transform is connected with,
+   then the end user will get an invalid argument, and the blueprint policy with the global transforms applied won't be returned.
+
+  Global transforms are identified by an identifier of their [transform]. These are by default loose matching, so that
+  'Email-PII' is matched when 'email pii' is used.
+
+ */
 message GlobalTransform {
-  // unique identifier for a certain Global Transform. When empty
-  // the identifier of the transform will be used (for TagTransform tag_content)
-  string ref = 1;
-  string description = 2;
+  string description = 1;
   oneof transform {
     option (buf.validate.oneof).required = true;
-    TagTransform tag_transform = 3;
+    TagTransform tag_transform = 2;
   }
   message TagTransform {
+    /* 'tag_content' is the primary key of TagTransforms. */
     string tag_content = 1 [(buf.validate.field).string.min_len = 1];
     repeated DataPolicy.RuleSet.FieldTransform.Transform transforms = 2;
-  }
-
-  message RefAndType {
-    string ref = 1;
-    string type = 2 [(buf.validate.field).cel = {
-      id: "global-transform-ref-and-type",
-      expression: "!(this in ['TAG_TRANSFORM']) ? 'value must be in list %s'.format(['TAG_TRANSFORM']) : ''"
-    }];
   }
 }
 
 message DataCatalog {
   // An arbitrary but unique identifier for the catalog. This matches the id from the PACE app configuration.
-  string id = 1 [(buf.validate.field) = {
+  string id =
+1 [(buf.validate.field) = {
     ignore_empty: false,
     string: {min_len: 1}
   }];

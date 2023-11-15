@@ -8,7 +8,7 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-class AbstractDynamicViewGeneratorTest {
+class ProcessingPlatformViewGeneratorTest {
     private val underTest = TestDynamicViewGenerator(DataPolicy.getDefaultInstance())
 
     @Test

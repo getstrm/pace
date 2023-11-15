@@ -34,6 +34,7 @@ static_resources:
                         - "getstrm.pace.api.data_catalogs.v1alpha.DataCatalogsService"
                         - "getstrm.pace.api.data_policies.v1alpha.DataPoliciesService"
                         - "getstrm.pace.api.processing_platforms.v1alpha.ProcessingPlatformsService"
+                        - "getstrm.pace.api.global_transforms.v1alpha.GlobalTransformsService"
                       auto_mapping: false
                       convert_grpc_status: true
                       request_validation_options:
