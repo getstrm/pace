@@ -18,9 +18,13 @@ In order to be able to change the on-view results for different users with diffe
 
 We define 7 types of transforms.
 
-### 1. Regex
+### 1. Regexp
 
-Replace a value from a field using regular expressions. Beware that you need to match the syntax for regular expressions of your processing platform as defined in the `Target`. To perform a regex extract, the replacement can either be an empty string or null. Below you will find an example using Snowflake as the processing platform, where we mask (`****`) the local-part of an email address.
+Extract or replace a value from a string field using regular expressions. To perform a regular expression extraction, set the replacement to an empty string or null. The original value will be replaced by the first matching substring. The pattern to match follows the syntax of the target platform, please refer to the respective documentation for more detail.
+
+The syntax for the replacement string also follows the target platform's syntax, with **one important difference:** capturing group backreferences always use the **dollar notation**. In other words, you can use dollar-escaped digits (e.g. `$1` or `$2`) within the `replacement` string to insert text matching the corresponding parenthesized group in the `regexp` pattern. Use `$0` to refer to the entire matching text. It is quite common for platforms to limit this to 9 subgroups (i.e. `$1`-`$9`).
+
+The below example replaces the local part of an email address with `****` but preserves the domain part using a capturing group backreference.
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -28,7 +32,7 @@ Replace a value from a field using regular expressions. Beware that you need to 
 ```yaml
 regexp:
   regexp: "^.*(@.*)$"
-  replacement: "****\\\\1"
+  replacement: "****$1"
 ```
 {% endcode %}
 {% endtab %}
@@ -39,7 +43,7 @@ regexp:
 {
   "regexp": {
     "regexp": "^.*(@.*)$",
-    "replacement": "****\\\\1"
+    "replacement": "****$1"
   }
 }
 ```
