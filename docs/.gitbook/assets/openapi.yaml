@@ -211,10 +211,10 @@ components:
       type: object
     DeleteGlobalTransformRequest:
       properties:
-        refAndTypes:
-          items:
-            $ref: '#/components/schemas/GlobalTransform_RefAndType'
-          type: array
+        ref:
+          type: string
+        type:
+          type: string
       type: object
     DeleteGlobalTransformResponse:
       properties:
@@ -296,30 +296,27 @@ components:
           $ref: '#/components/schemas/GlobalTransform'
       type: object
     GlobalTransform:
-      description: "If the specified transform is incompatible with the field data\
-        \ type to which this global transform is connected with,\n then the end user\
-        \ will get an invalid argument, and the blueprint policy with the global transforms\
-        \ applied won't be returned."
+      description: 'If the specified transform is incompatible with the field data
+        type to which this global transform is connected with,
+
+        then the end user will get an invalid argument, and the blueprint policy with
+        the global transforms applied won''t be returned.
+
+
+        Global transforms are identified by an identifier of their [transform]. These
+        are by default loose matching, so that
+
+        ''Email-PII'' is matched when ''email pii'' is used.'
       properties:
         description:
-          type: string
-        ref:
-          description: "unique identifier for a certain Global Transform. When empty\n\
-            \ the identifier of the transform will be used (for TagTransform tag_content)"
           type: string
         tagTransform:
           $ref: '#/components/schemas/GlobalTransform_TagTransform'
       type: object
-    GlobalTransform_RefAndType:
-      properties:
-        ref:
-          type: string
-        type:
-          type: string
-      type: object
     GlobalTransform_TagTransform:
       properties:
         tagContent:
+          description: '''tag_content'' is the primary key of TagTransforms.'
           type: string
         transforms:
           items:
@@ -551,7 +548,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.19
+  version: 1.0.0-alpha.20
 openapi: 3.0.3
 paths:
   /catalogs:
@@ -783,30 +780,6 @@ paths:
       tags:
       - DataPoliciesService
   /global-transforms:
-    delete:
-      operationId: GlobalTransformsService_DeleteGlobalTransform
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeleteGlobalTransformRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeleteGlobalTransformResponse'
-          description: OK
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Status'
-          description: Default error response
-      summary: DeleteGlobalTransform
-      tags:
-      - GlobalTransformsService
     get:
       operationId: GlobalTransformsService_ListGlobalTransforms
       parameters:
@@ -857,10 +830,53 @@ paths:
       tags:
       - GlobalTransformsService
   /global-transforms/{ref}/{type}:
+    delete:
+      operationId: GlobalTransformsService_DeleteGlobalTransform
+      parameters:
+      - in: path
+        name: ref
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: type
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteGlobalTransformRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteGlobalTransformResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: DeleteGlobalTransform
+      tags:
+      - GlobalTransformsService
     get:
       operationId: GlobalTransformsService_GetGlobalTransform
       parameters:
-      - in: path
+      - description: 'this ref refers to the primary key in the oneof transform, so
+          its use depends
+
+          on which one it is.
+
+          TAG_TRANSFORM -> TagTransform.tag_content
+
+          no others defined (yet).'
+        in: path
         name: ref
         required: true
         schema:

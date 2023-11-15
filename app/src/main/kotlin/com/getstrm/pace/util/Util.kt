@@ -2,12 +2,13 @@ package com.getstrm.pace.util
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.RefAndType
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.TransformCase
 import build.buf.gen.getstrm.pace.api.global_transforms.v1alpha.ListGlobalTransformsResponse
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
+import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.PaceStatusException
 import com.google.cloud.bigquery.Table
 import com.google.cloud.bigquery.TableId
@@ -16,6 +17,7 @@ import com.google.protobuf.Message
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.JsonFormat
 import com.google.protobuf.util.Timestamps
+import com.google.rpc.BadRequest
 import org.jooq.*
 import org.jooq.conf.ParseNameCase
 import org.jooq.conf.ParseUnknownFunctions
@@ -128,15 +130,7 @@ fun TableId.toFullName() = "$project.$dataset.$table"
 
 fun DataPolicy.Field.pathString() = this.namePartsList.joinToString(separator = ".")
 
-fun GlobalTransform.refAndType() = GlobalTransform.RefAndType
-    .newBuilder()
-    .setRef(this.ref)
-    .setType(this.transformCase.name)
-    .build()
-
 fun GlobalTransformsRecord.toGlobalTransform() = GlobalTransform.newBuilder().merge(this.transform!!).build()
-
-fun RefAndType.name() = "${this.type}/${this.ref}"
 
 fun DataPolicy.Field.fullName(): String = this.namePartsList.joinToString(".")
 
@@ -191,3 +185,41 @@ fun DataPolicy.RuleSet.Filter.listPrincipals() = when (this.filterCase) {
 }
 
 val sqlParser = DSL.using(SQLDialect.DEFAULT).parser()
+
+/** force case type string to TransformCase
+ * don't allow TRANSFORM_NOT_SET
+ */
+fun String.toTransformCase(): TransformCase = let {
+    TransformCase.valueOf(this).also {
+        if (it == TransformCase.TRANSFORM_NOT_SET) {
+            throw BadRequestException(
+                code = BadRequestException.Code.INVALID_ARGUMENT,
+                badRequest = BadRequest.newBuilder()
+                    .addFieldViolations(
+                        BadRequest.FieldViolation.newBuilder()
+                            .setDescription(
+                                "type '${this}' is not in ${
+                                    TransformCase.values().joinToString()
+                                } "
+                            )
+                            .build()
+                    )
+                    .build()
+            )
+        }
+    }
+}
+
+fun GlobalTransform.refAndType(): Pair<String, TransformCase> = Pair(when(transformCase){
+    TransformCase.TAG_TRANSFORM -> tagTransform.tagContent
+    null, TransformCase.TRANSFORM_NOT_SET -> throw BadRequestException(
+                code = BadRequestException.Code.INVALID_ARGUMENT,
+                badRequest = BadRequest.newBuilder()
+                    .addFieldViolations(
+                        BadRequest.FieldViolation.newBuilder()
+                            .setDescription( "A GlobalTransform was seen with no `transform`. The GlobalTransform was: " + this.toJson())
+                            .build()
+                    )
+                    .build()
+            )
+}, transformCase)

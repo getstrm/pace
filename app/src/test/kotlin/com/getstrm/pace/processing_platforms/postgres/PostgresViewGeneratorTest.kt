@@ -308,7 +308,7 @@ where (
   and case
     when ('marketing' IN ( SELECT rolname FROM user_groups )) then (ts + 5 * interval '1 day') < current_timestamp
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
-    else 
+    else (ts + 10 * interval '1 day') < current_timestamp
   end
 );
 grant SELECT on public.demo_view to "fraud_and_risk";

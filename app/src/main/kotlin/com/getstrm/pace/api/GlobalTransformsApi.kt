@@ -1,23 +1,19 @@
 package com.getstrm.pace.api
 
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.global_transforms.v1alpha.*
 import com.getstrm.pace.service.GlobalTransformsService
+import com.getstrm.pace.util.toTransformCase
 import net.devh.boot.grpc.server.service.GrpcService
 
 @GrpcService
 class GlobalTransformsApi(
     private val globalTransformsService: GlobalTransformsService
 ) : GlobalTransformsServiceGrpcKt.GlobalTransformsServiceCoroutineImplBase() {
+
     override suspend fun getGlobalTransform(request: GetGlobalTransformRequest): GetGlobalTransformResponse =
         GetGlobalTransformResponse.newBuilder()
             .setTransform(
-                globalTransformsService.getTransform(
-                    GlobalTransform.RefAndType.newBuilder()
-                        .setRef(request.ref)
-                        .setType(request.type)
-                        .build()
-                )
+                globalTransformsService.getTransform(request.ref, request.type.toTransformCase() )
             )
             .build()
 
@@ -33,6 +29,6 @@ class GlobalTransformsApi(
 
     override suspend fun deleteGlobalTransform(request: DeleteGlobalTransformRequest): DeleteGlobalTransformResponse =
         DeleteGlobalTransformResponse.newBuilder()
-            .setDeletedCount(globalTransformsService.deleteTransforms(request.refAndTypesList))
+            .setDeletedCount(globalTransformsService.deleteTransform(request.ref, request.type.toTransformCase()))
             .build()
 }
