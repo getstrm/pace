@@ -223,7 +223,7 @@ rule_sets:
             - group: MARKETING
           regexp:
             regexp: '^.*(@.*)${'$'}'
-            replacement: '****\\1'
+            replacement: "****$1"
         - principals:
             - group: FRAUD_AND_RISK
             - group: ADMIN

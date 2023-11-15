@@ -24,7 +24,7 @@ pace get global-transform (ref) [flags]
 		- group: FRAUD_AND_RISK
 		regexp:
 		  regexp: ^.*(@.*)$
-		  replacement: '****\1'
+		  replacement: '****$1'
 	  - nullify: {}
 ```
 

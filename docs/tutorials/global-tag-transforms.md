@@ -248,7 +248,7 @@ tag_transform:
     - principals: [ { group: fraud_and_risk } ]
       regexp:
         regexp: "^.*(@.*)$"
-        replacement: "****\\1"
+        replacement: "****$1"
     # All other users should not see the email
     - principals: [ ]
       nullify: { }
@@ -297,7 +297,7 @@ rule_sets:
       - group: fraud_and_risk
       regexp:
         regexp: ^.*(@.*)$
-        replacement: '****\1'
+        replacement: '****$1'
     - nullify: {}
   target:
     fullname: public.demo_pace_view

@@ -257,7 +257,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/Transform_Regexp'
           description: Extract and optionally replace a value in a field using a regular
-            expression. Use the syntax matching the processing platform.
+            expression.
         sqlStatement:
           allOf:
           - $ref: '#/components/schemas/Transform_SqlStatement'
@@ -472,8 +472,9 @@ components:
         regexp:
           type: string
         replacement:
-          description: If the replacement is left empty, the regexp match result (full
-            match or first capturing group) is used.
+          description: "Use dollar signs to reference capturing groups in the replacement,\
+            \ e.g. \"my-replacement-$1-$2\".\n If the replacement is left empty, the\
+            \ regexp match result (full match or first capturing group) is used."
           type: string
       type: object
     Transform_SqlStatement:
@@ -503,7 +504,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.17
+  version: 1.0.0-alpha.18
 openapi: 3.0.3
 paths:
   /catalogs:

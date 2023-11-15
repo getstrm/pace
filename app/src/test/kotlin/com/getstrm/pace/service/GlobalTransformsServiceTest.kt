@@ -88,7 +88,7 @@ class GlobalTransformsServiceTest {
                       tags:  [ "email" ]
                     transforms:
                     - principals:  [ group: marketing ]
-                      regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
+                      regexp: {regexp: "^.*(@.*)$", replacement: "$1"}
                     - principals: [ {group: fraud-and-risk} ]
                       identity: {}
                     - fixed: {value: "****"}
@@ -162,7 +162,7 @@ class GlobalTransformsServiceTest {
                   tags: [  email,  overlap ]
                 transforms:
                 - principals: [ {group: marketing} ]
-                  regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
+                  regexp: {regexp: "^.*(@.*)$", replacement: "$1"}
                 - principals: [ {group: fraud-and-risk} ]
                   identity: {}
                 - principals: [ {group: analytics} ]
@@ -266,7 +266,7 @@ class GlobalTransformsServiceTest {
                   transforms:
                     # marketeers get only the domain
                     - principals: [ {group: marketing} ]
-                      regexp: {regexp: "^.*(@.*)$", replacement: "\\\\1"}
+                      regexp: {regexp: "^.*(@.*)$", replacement: "$1"}
                     # security gets everything
                     - principals: [ {group: fraud-and-risk} ]
                       identity: {}

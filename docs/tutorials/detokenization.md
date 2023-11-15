@@ -368,7 +368,7 @@ rule_sets:
           - principals: []
             regexp:
               regexp: "^\\d+(\\d{3})$"
-              replacement: "******\\1"
+              replacement: "******$1"
 ```
 {% endcode %}
 
