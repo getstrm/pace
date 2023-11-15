@@ -1,9 +1,10 @@
 package com.getstrm.pace.dao
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.RefAndType
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.TransformCase
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.jooq.generated.tables.references.GLOBAL_TRANSFORMS
+import com.getstrm.pace.config.GlobalTransformsConfiguration
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.util.refAndType
 import com.getstrm.pace.util.toJsonbWithDefaults
@@ -16,18 +17,33 @@ import java.time.Instant
 
 @Component
 class GlobalTransformsDao(
-    private val jooq: DSLContext
+    private val jooq: DSLContext,
+    private val globalTransformsConfiguration: GlobalTransformsConfiguration
 ) {
-    fun getTransform(refAndType: RefAndType): GlobalTransformsRecord? =
+
+    fun getTransform(ref: String, type: TransformCase): GlobalTransformsRecord? =
         jooq.select()
             .from(GLOBAL_TRANSFORMS)
             .where(
-                GLOBAL_TRANSFORMS.REF.eq(refAndType.ref),
-                GLOBAL_TRANSFORMS.TRANSFORM_TYPE.eq(refAndType.type)
+                GLOBAL_TRANSFORMS.TRANSFORM_TYPE.eq(type.name).and(
+                        if(globalTransformsConfiguration.tagTransforms.looseTagMatch) {
+                            GLOBAL_TRANSFORMS.REF.likeIgnoreCase(ref.toSqlLikePattern())
+                        } else {
+                            GLOBAL_TRANSFORMS.REF.eq(ref)
+                        }
+                )
             )
-            .fetchOneInto(GLOBAL_TRANSFORMS)
+            // deterministic ordering
+            .orderBy(GLOBAL_TRANSFORMS.TRANSFORM_TYPE, GLOBAL_TRANSFORMS.REF)
+            .fetchInto(GLOBAL_TRANSFORMS)
+            // the result might contain multiple records, but only by manual hacking
+            // in the database. Using the [upsertTransform] method will prevent duplicates.
+            .firstOrNull()
 
-    fun listTransforms(transformType: GlobalTransform.TransformCase? = null): List<GlobalTransformsRecord> =
+    fun getTagTransform(ref: String) = getTransform(ref, TransformCase.TAG_TRANSFORM)
+    fun getTransform(pair : Pair<String, TransformCase>) = getTransform(pair.first, pair.second)
+
+    fun listTransforms(transformType: TransformCase? = null): List<GlobalTransformsRecord> =
         jooq.select()
             .from(GLOBAL_TRANSFORMS)
             .apply { if (transformType != null) where(GLOBAL_TRANSFORMS.TRANSFORM_TYPE.eq(transformType.name)) }
@@ -35,19 +51,26 @@ class GlobalTransformsDao(
 
     fun upsertTransform(globalTransform: GlobalTransform): GlobalTransformsRecord {
         val now = Instant.now().toOffsetDateTime()
-
-        val record = getTransform(globalTransform.refAndType()) ?: jooq.newRecord(GLOBAL_TRANSFORMS)
-            .apply { this.createdAt = now }
+        val (ref, type) = globalTransform.refAndType()
+        val record = getTransform(ref, type) ?:
+            jooq.newRecord(GLOBAL_TRANSFORMS).apply { this.createdAt = now }
 
         record.apply {
-            this.ref = globalTransform.ref
+            /* ¡Muy importante!
+            the statement below means that if we already have a record (primary key is ref), we keep that ref
+            even though we might have found it via another tag value (case, underscore, dash or whatever)
+
+            If we wouldn't do this ternary operation, a record found via 'email PII' but originally stored
+            via 'Email-pii' would create a new record instead of update the existing one.
+            */
+            this.ref = if(record.ref.isNullOrEmpty()) ref else record.ref
             this.transformType = globalTransform.transformCase.name
             this.updatedAt = now
             this.transform = globalTransform.toJsonbWithDefaults()
             this.active = true
         }.store()
 
-        return getTransform(globalTransform.refAndType()) ?: throw InternalException(
+        return getTransform(ref, type) ?: throw InternalException(
             InternalException.Code.INTERNAL,
             DebugInfo.newBuilder()
                 .setDetail("Failed to upsert transform, record was not found after upsert")
@@ -55,11 +78,12 @@ class GlobalTransformsDao(
         )
     }
 
-    fun deleteTransform(refAndTypes: List<RefAndType>): Int {
-        return jooq.delete(GLOBAL_TRANSFORMS)
-            .where(
-                row(GLOBAL_TRANSFORMS.REF, GLOBAL_TRANSFORMS.TRANSFORM_TYPE)
-                    .`in`(refAndTypes.map { row(it.ref, it.type) }),
-            ).execute()
-    }
+    fun deleteTransform(ref: String, type: TransformCase): Int =
+        getTransform(ref, type)?.delete() ?: 0
 }
+
+/**
+ * returns SQL like style loose match pattern.
+ * Underscore is any character similar to '.' in a regular expression
+ */
+private fun String.toSqlLikePattern() = this.replace(" ", "_").replace("-", "_")

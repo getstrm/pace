@@ -2,6 +2,9 @@ package com.getstrm.pace.config
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
+import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.stereotype.Component
 
 @ConfigurationProperties(prefix = "app")
 data class AppConfiguration(
@@ -18,3 +21,4 @@ data class CatalogConfiguration(
     val password: String?,
     val fetchSize: Int? = 1,
 )
+
