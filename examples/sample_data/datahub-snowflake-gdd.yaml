@@ -25,7 +25,7 @@ rule_sets:
           - principals: [ {group: MARKETING} ]
             regexp:
               regexp: "^.*(@.*)$"
-              replacement: "****\\\\1"
+              replacement: "****$1"
           - principals: [ FRAUD_AND_RISK]
             identity: {}
           - principals: []
