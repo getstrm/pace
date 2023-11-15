@@ -315,7 +315,7 @@ class DatabricksViewGeneratorTest {
 
         // Then
         condition.toSql() shouldBe """
-            case when (is_account_group_member('marketing')) then timestamp + INTERVAL '5 days' < current_timestamp when (is_account_group_member('fraud-and-risk')) then true else timestamp + INTERVAL '10 days' < current_timestamp end""".trimIndent()
+            case when (is_account_group_member('marketing')) then dateadd(day, 5, timestamp) < current_timestamp when (is_account_group_member('fraud-and-risk')) then true else dateadd(day, 10, timestamp) < current_timestamp end""".trimIndent()
     }
 
     @Test
@@ -339,13 +339,13 @@ where (
     else transactionamount < 10
   end
   and case
-    when (is_account_group_member('marketing')) then ts + INTERVAL '5 days' < current_timestamp
+    when (is_account_group_member('marketing')) then dateadd(day, 5, ts) < current_timestamp
     when (is_account_group_member('fraud-and-risk')) then true
-    else ts + INTERVAL '10 days' < current_timestamp
+    else dateadd(day, 10, ts) < current_timestamp
   end
   and case
-    when (is_account_group_member('fraud-and-risk')) then validThrough + INTERVAL '365 days' < current_timestamp
-    else validThrough + INTERVAL '0 days' < current_timestamp
+    when (is_account_group_member('fraud-and-risk')) then dateadd(day, 365, validThrough) < current_timestamp
+    else dateadd(day, 0, validThrough) < current_timestamp
   end
 );"""
     }
@@ -370,9 +370,9 @@ where (
     else transactionamount < 10
   end
   and case
-    when (is_account_group_member('marketing')) then ts + INTERVAL '5 days' < current_timestamp
+    when (is_account_group_member('marketing')) then dateadd(day, 5, ts) < current_timestamp
     when (is_account_group_member('fraud-and-risk')) then true
-    else ts + INTERVAL '10 days' < current_timestamp
+    else dateadd(day, 10, ts) < current_timestamp
   end
 );"""
     }

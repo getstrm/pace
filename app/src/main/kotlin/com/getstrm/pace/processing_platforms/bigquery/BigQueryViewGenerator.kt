@@ -9,8 +9,8 @@ import com.google.rpc.DebugInfo
 import org.jooq.*
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.select
-import org.jooq.impl.DSL.trueCondition
+import org.jooq.impl.DSL.*
+import java.sql.Timestamp
 
 class BigQueryViewGenerator(
     dataPolicy: DataPolicy,
@@ -68,7 +68,7 @@ class BigQueryViewGenerator(
 
     override fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): Field<Boolean> =
         if (this.hasPeriod()) {
-            DSL.field("TIMESTAMP_ADD({0}, INTERVAL {1} DAY) < CURRENT_TIMESTAMP()", Boolean::class.java,  DSL.unquotedName(field.fullName()), this.period.days)
+            DSL.field("TIMESTAMP_ADD({0}, INTERVAL {1} DAY) < {2}", Boolean::class.java,  DSL.unquotedName(field.fullName()), this.period.days, currentTimestamp())
         } else {
             DSL.field(trueCondition())
         }

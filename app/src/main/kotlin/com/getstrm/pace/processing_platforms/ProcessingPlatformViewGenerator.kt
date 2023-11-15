@@ -11,6 +11,7 @@ import org.jooq.*
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.*
+import java.sql.Timestamp
 import org.jooq.Field as JooqField
 
 abstract class ProcessingPlatformViewGenerator(
@@ -24,10 +25,16 @@ abstract class ProcessingPlatformViewGenerator(
         jooq.select(fields)
 
     protected open fun additionalFooterStatements(): Queries = DSL.queries()
-;
+            ;
+
     protected open fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): JooqField<Boolean> =
         if (this.hasPeriod()) {
-            field("{0} + INTERVAL {1} < current_timestamp", Boolean::class.java, DSL.unquotedName(field.fullName()), inline("${this.period.days} days"))
+            field(
+                "{0} < {1}",
+                Boolean::class.java,
+                timestampAdd(field(unquotedName(field.fullName()), Timestamp::class.java), this.period.days, DatePart.DAY),
+                currentTimestamp()
+            )
         } else {
             field(trueCondition())
         }

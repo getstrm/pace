@@ -159,7 +159,7 @@ class SnowflakeViewGeneratorTest {
 
         // Then
         condition.toSql() shouldBe """
-            case when (IS_ROLE_IN_SESSION('MARKETING')) then timestamp + INTERVAL '5 days' < current_timestamp when (IS_ROLE_IN_SESSION('FRAUD_AND_RISK')) then true else timestamp + INTERVAL '10 days' < current_timestamp end
+            case when (IS_ROLE_IN_SESSION('MARKETING')) then dateadd(day, 5, timestamp) < current_timestamp when (IS_ROLE_IN_SESSION('FRAUD_AND_RISK')) then true else dateadd(day, 10, timestamp) < current_timestamp end
         """.trimIndent()
     }
 
@@ -183,9 +183,9 @@ where (
     else transactionamount < 10
   end
   and case
-    when (IS_ROLE_IN_SESSION('marketing')) then ts + INTERVAL '5 days' < current_timestamp
+    when (IS_ROLE_IN_SESSION('marketing')) then dateadd(day, 5, ts) < current_timestamp
     when (IS_ROLE_IN_SESSION('fraud_and_risk')) then true
-    else ts + INTERVAL '10 days' < current_timestamp
+    else dateadd(day, 10, ts) < current_timestamp
   end
 );
 grant SELECT on public.demo_view to fraud_and_risk;
@@ -213,13 +213,13 @@ where (
     else transactionamount < 10
   end
   and case
-    when (IS_ROLE_IN_SESSION('marketing')) then ts + INTERVAL '5 days' < current_timestamp
+    when (IS_ROLE_IN_SESSION('marketing')) then dateadd(day, 5, ts) < current_timestamp
     when (IS_ROLE_IN_SESSION('fraud_and_risk')) then true
-    else ts + INTERVAL '10 days' < current_timestamp
+    else dateadd(day, 10, ts) < current_timestamp
   end
   and case
-    when (IS_ROLE_IN_SESSION('fraud_and_risk')) then validThrough + INTERVAL '365 days' < current_timestamp
-    else validThrough + INTERVAL '0 days' < current_timestamp
+    when (IS_ROLE_IN_SESSION('fraud_and_risk')) then dateadd(day, 365, validThrough) < current_timestamp
+    else dateadd(day, 0, validThrough) < current_timestamp
   end
 );
 grant SELECT on public.demo_view to fraud_and_risk;

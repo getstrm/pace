@@ -223,7 +223,7 @@ class PostgresViewGeneratorTest {
 
         // Then
         condition.toSql() shouldBe """
-            case when ('marketing' IN ( SELECT rolname FROM user_groups )) then timestamp + INTERVAL '5 days' < current_timestamp when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true else timestamp + INTERVAL '10 days' < current_timestamp end""".trimIndent()
+            case when ('marketing' IN ( SELECT rolname FROM user_groups )) then dateadd(day, 5, timestamp) < current_timestamp when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true else dateadd(day, 10, timestamp) < current_timestamp end""".trimIndent()
     }
 
     @Test
@@ -260,13 +260,13 @@ where (
     else transactionamount < 10
   end
   and case
-    when ('marketing' IN ( SELECT rolname FROM user_groups )) then ts + INTERVAL '5 days' < current_timestamp
+    when ('marketing' IN ( SELECT rolname FROM user_groups )) then (ts + 5 * interval '1 day') < current_timestamp
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
-    else ts + INTERVAL '10 days' < current_timestamp
+    else (ts + 10 * interval '1 day') < current_timestamp
   end
   and case
-    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then validThrough + INTERVAL '365 days' < current_timestamp
-    else validThrough + INTERVAL '0 days' < current_timestamp
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then (validThrough + 365 * interval '1 day') < current_timestamp
+    else (validThrough + 0 * interval '1 day') < current_timestamp
   end
 );
 grant SELECT on public.demo_view to "fraud_and_risk";
@@ -306,9 +306,9 @@ where (
     else transactionamount < 10
   end
   and case
-    when ('marketing' IN ( SELECT rolname FROM user_groups )) then ts + INTERVAL '5 days' < current_timestamp
+    when ('marketing' IN ( SELECT rolname FROM user_groups )) then (ts + 5 * interval '1 day') < current_timestamp
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
-    else ts + INTERVAL '10 days' < current_timestamp
+    else 
   end
 );
 grant SELECT on public.demo_view to "fraud_and_risk";
