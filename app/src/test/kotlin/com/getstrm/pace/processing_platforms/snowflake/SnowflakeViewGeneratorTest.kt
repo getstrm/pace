@@ -24,6 +24,42 @@ class SnowflakeViewGeneratorTest {
     }
 
     @Test
+    fun `principal check with multiple principals`() {
+        // Given
+        val principals = listOf("ANALYTICS", "MARKETING").toPrincipals()
+
+        // When
+        val condition = underTest.toPrincipalCondition(principals)
+
+        // Then
+        condition!!.toSql() shouldBe "((IS_ROLE_IN_SESSION('ANALYTICS')) or (IS_ROLE_IN_SESSION('MARKETING')))"
+    }
+
+    @Test
+    fun `principal check with a single principal`() {
+        // Given
+        val principals = listOf("ANALYTICS").toPrincipals()
+
+        // When
+        val condition = underTest.toPrincipalCondition(principals)
+
+        // Then
+        condition!!.toSql() shouldBe "(IS_ROLE_IN_SESSION('ANALYTICS'))"
+    }
+
+    @Test
+    fun `principal check without any principals`() {
+        // Given
+        val principals = emptyList<DataPolicy.Principal>()
+
+        // When
+        val condition = underTest.toPrincipalCondition(principals)
+
+        // Then
+        condition.shouldBeNull()
+    }
+
+    @Test
     fun `fixed value transform with multiple principals`() {
         // Given
         val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()

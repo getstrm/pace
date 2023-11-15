@@ -25,7 +25,7 @@ fun Field<*>.toSql(): String = DSL.select(this).getSQL(ParamType.INLINED).remove
 class TestDynamicViewGenerator(dataPolicy: DataPolicy) : ProcessingPlatformViewGenerator(dataPolicy) {
     override val jooq: DSLContext = DSL.using(SQLDialect.DEFAULT)
 
-    override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
+    override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
         return null
     }
 

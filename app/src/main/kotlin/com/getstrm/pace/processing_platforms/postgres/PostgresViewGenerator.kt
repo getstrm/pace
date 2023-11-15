@@ -39,12 +39,12 @@ class PostgresViewGenerator(
         return jooq.queries(grants)
     }
 
-    override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
-        return if (isEmpty()) {
+    override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
+        return if (principals.isEmpty()) {
             null
         } else {
             DSL.or(
-                map { principal ->
+                principals.map { principal ->
                     when {
                         principal.hasGroup() -> DSL.condition(
                             "{0} IN ( SELECT rolname FROM user_groups )",

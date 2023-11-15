@@ -24,6 +24,42 @@ class DatabricksViewGeneratorTest {
     }
 
     @Test
+    fun `principal check with multiple principals`() {
+        // Given
+        val principals = listOf("analytics", "marketing").toPrincipals()
+
+        // When
+        val condition = underTest.toPrincipalCondition(principals)
+
+        // Then
+        condition!!.toSql() shouldBe "((is_account_group_member('analytics')) or (is_account_group_member('marketing')))"
+    }
+
+    @Test
+    fun `principal check with a single principal`() {
+        // Given
+        val principals = listOf("analytics").toPrincipals()
+
+        // When
+        val condition = underTest.toPrincipalCondition(principals)
+
+        // Then
+        condition!!.toSql() shouldBe "(is_account_group_member('analytics'))"
+    }
+
+    @Test
+    fun `principal check without any principals`() {
+        // Given
+        val principals = emptyList<DataPolicy.Principal>()
+
+        // When
+        val condition = underTest.toPrincipalCondition(principals)
+
+        // Then
+        condition.shouldBeNull()
+    }
+
+    @Test
     fun `fixed string value transform with multiple principals`() {
         // Given
         val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()

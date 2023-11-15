@@ -7,8 +7,6 @@ import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
 import com.getstrm.pace.util.fullName
 import com.google.rpc.DebugInfo
 import org.jooq.Condition
-import org.jooq.DSLContext
-import org.jooq.SQLDialect
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 
@@ -16,12 +14,12 @@ class DatabricksViewGenerator(
     dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {}
 ) : ProcessingPlatformViewGenerator(dataPolicy, customJooqSettings = customJooqSettings) {
-    override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
-        return if (isEmpty()) {
+    override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
+        return if (principals.isEmpty()) {
             null
         } else {
             DSL.or(
-                map { principal ->
+                principals.map { principal ->
                     when {
                         principal.hasGroup() -> DSL.condition("is_account_group_member({0})", principal.group)
                         else -> throw InternalException(

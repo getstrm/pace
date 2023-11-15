@@ -19,12 +19,12 @@ class SnowflakeViewGenerator(
     transformer = SnowflakeTransformer(),
     customJooqSettings = customJooqSettings
 ) {
-    override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
-        return if (isEmpty()) {
+    override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
+        return if (principals.isEmpty()) {
             null
         } else {
             DSL.or(
-                map { principal ->
+                principals.map { principal ->
                     when {
                         principal.hasGroup() -> DSL.condition("IS_ROLE_IN_SESSION({0})", principal.group)
                         else -> throw InternalException(

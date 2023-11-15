@@ -21,6 +21,42 @@ class PostgresViewGeneratorTest {
     private val underTest = PostgresViewGenerator(dataPolicy)
 
     @Test
+    fun `principal check with multiple principals`() {
+        // Given
+        val principals = listOf("analytics", "marketing").toPrincipals()
+
+        // When
+        val condition = underTest.toPrincipalCondition(principals)
+
+        // Then
+        condition!!.toSql() shouldBe "(('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups )))"
+    }
+
+    @Test
+    fun `principal check with a single principal`() {
+        // Given
+        val principals = listOf("analytics").toPrincipals()
+
+        // When
+        val condition = underTest.toPrincipalCondition(principals)
+
+        // Then
+        condition!!.toSql() shouldBe "('analytics' IN ( SELECT rolname FROM user_groups ))"
+    }
+
+    @Test
+    fun `principal check without any principals`() {
+        // Given
+        val principals = emptyList<DataPolicy.Principal>()
+
+        // When
+        val condition = underTest.toPrincipalCondition(principals)
+
+        // Then
+        condition.shouldBeNull()
+    }
+
+    @Test
     fun `fixed value transform with multiple principals`() {
         // Given
         val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()

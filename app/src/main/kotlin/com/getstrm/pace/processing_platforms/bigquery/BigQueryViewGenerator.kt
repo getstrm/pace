@@ -10,7 +10,6 @@ import org.jooq.*
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.*
-import java.sql.Timestamp
 
 class BigQueryViewGenerator(
     dataPolicy: DataPolicy,
@@ -27,12 +26,12 @@ class BigQueryViewGenerator(
      */
     private val bigQueryDsl: DSLContext = DSL.using(SQLDialect.MYSQL)
 
-    override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
-        return if (isEmpty()) {
+    override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
+        return if (principals.isEmpty()) {
             null
         } else {
             DSL.or(
-                map { principal ->
+                principals.map { principal ->
                     when {
                         principal.hasGroup() -> DSL.condition(
                             "{0} IN ( SELECT userGroup FROM user_groups )",
