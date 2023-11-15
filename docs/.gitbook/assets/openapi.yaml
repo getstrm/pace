@@ -268,7 +268,29 @@ components:
           description: Execute a SQL statement to transform the field value. The exact
             syntax is platform-specific.
       type: object
-    Filter_Condition:
+    Filter_GenericFilter:
+      properties:
+        conditions:
+          description: The last condition in the list must have 0 principals, as this
+            acts as the default / else condition.
+          items:
+            $ref: '#/components/schemas/GenericFilter_Condition'
+          type: array
+      type: object
+    Filter_RetentionFilter:
+      properties:
+        conditions:
+          description: The last condition in the list must have 0 principals, as this
+            acts as the default / else condition.
+          items:
+            $ref: '#/components/schemas/RetentionFilter_Condition'
+          type: array
+        field:
+          allOf:
+          - $ref: '#/components/schemas/DataPolicy_Field'
+          description: The field of type SQL date with timestamp.
+      type: object
+    GenericFilter_Condition:
       properties:
         condition:
           description: A (platform-specific) SQL expression. If it evaluates to true,
@@ -415,6 +437,25 @@ components:
           format: int32
           type: integer
       type: object
+    RetentionFilter_Condition:
+      properties:
+        period:
+          allOf:
+          - $ref: '#/components/schemas/RetentionFilter_Period'
+          description: The retention period for the data measured in days after creation.
+            If empty or null, defaults to infinite retention period.
+        principals:
+          description: The principals (e.g. groups) that apply to this condition.
+          items:
+            $ref: '#/components/schemas/DataPolicy_Principal'
+          type: array
+      type: object
+    RetentionFilter_Period:
+      properties:
+        days:
+          description: Number of days since the creation date.
+          type: string
+      type: object
     RuleSet_FieldTransform:
       properties:
         field:
@@ -429,12 +470,10 @@ components:
       type: object
     RuleSet_Filter:
       properties:
-        conditions:
-          description: The last condition in the list must have 0 principals, as this
-            acts as the default / else condition.
-          items:
-            $ref: '#/components/schemas/Filter_Condition'
-          type: array
+        genericFilter:
+          $ref: '#/components/schemas/Filter_GenericFilter'
+        retentionFilter:
+          $ref: '#/components/schemas/Filter_RetentionFilter'
       type: object
     Status:
       description: 'The `Status` type defines a logical error model that is suitable
@@ -548,7 +587,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.20
+  version: 1.0.0-alpha.21
 openapi: 3.0.3
 paths:
   /catalogs:

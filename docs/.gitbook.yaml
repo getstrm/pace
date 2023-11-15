@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.20
+    version: 1.0.0-alpha.21
 paths:
     /catalogs:
         get:
@@ -697,7 +697,27 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/Transform_NumericRounding'
                     description: Round a numeric value with the specified rounding.
-        Filter_Condition:
+        Filter_GenericFilter:
+            type: object
+            properties:
+                conditions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GenericFilter_Condition'
+                    description: The last condition in the list must have 0 principals, as this acts as the default / else condition.
+        Filter_RetentionFilter:
+            type: object
+            properties:
+                field:
+                    allOf:
+                        - $ref: '#/components/schemas/DataPolicy_Field'
+                    description: The field of type SQL date with timestamp.
+                conditions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RetentionFilter_Condition'
+                    description: The last condition in the list must have 0 principals, as this acts as the default / else condition.
+        GenericFilter_Condition:
             type: object
             properties:
                 principals:
@@ -834,6 +854,24 @@ components:
                     type: integer
                     description: The precision to use for rounding. When positive, the value is rounded to the nearest decimal place. When negative, the value is rounded to the nearest power of 10.
                     format: int32
+        RetentionFilter_Condition:
+            type: object
+            properties:
+                principals:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/DataPolicy_Principal'
+                    description: The principals (e.g. groups) that apply to this condition.
+                period:
+                    allOf:
+                        - $ref: '#/components/schemas/RetentionFilter_Period'
+                    description: The retention period for the data measured in days after creation. If empty or null, defaults to infinite retention period.
+        RetentionFilter_Period:
+            type: object
+            properties:
+                days:
+                    type: string
+                    description: Number of days since the creation date.
         RuleSet_FieldTransform:
             type: object
             properties:
@@ -849,11 +887,10 @@ components:
         RuleSet_Filter:
             type: object
             properties:
-                conditions:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/Filter_Condition'
-                    description: The last condition in the list must have 0 principals, as this acts as the default / else condition.
+                retentionFilter:
+                    $ref: '#/components/schemas/Filter_RetentionFilter'
+                genericFilter:
+                    $ref: '#/components/schemas/Filter_GenericFilter'
         Status:
             type: object
             properties:
