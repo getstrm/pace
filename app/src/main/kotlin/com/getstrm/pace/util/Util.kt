@@ -190,6 +190,4 @@ fun DataPolicy.RuleSet.Filter.listPrincipals() = when (this.filterCase) {
     else -> throw IllegalArgumentException("Unsupported filter: ${this.filterCase.name}")
 }
 
-
-
 val sqlParser = DSL.using(SQLDialect.DEFAULT).parser()
