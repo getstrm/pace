@@ -19,7 +19,6 @@ import org.jooq.Field as JooqField
 
 val CAPTURING_GROUP_REGEX = Regex("""\$(\d+)""")
 
-
 /**
  * Factory for creating jOOQ fields from [DataPolicy.Field]s and [DataPolicy.RuleSet.FieldTransform.Transform]s.
  * Functions can be overridden to support platform specific implementations of transforms.
