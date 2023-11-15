@@ -1,7 +1,7 @@
 # API Reference
 
-{% swagger src="../.gitbook/assets/openapi.yaml" path="/catalogs" method="get" expanded="true" %}
-[openapi.yaml](../.gitbook/assets/openapi.yaml)
+{% swagger src="../../.gitbook/assets/openapi.yaml" path="/catalogs" method="get" expanded="true" %}
+[openapi.yaml](../../.gitbook/assets/openapi.yaml)
 {% endswagger %}
 
 {% swagger src="../.gitbook/assets/openapi.yaml" path="/catalogs/{catalogId}/blueprint-policy" method="get" expanded="true" %}
