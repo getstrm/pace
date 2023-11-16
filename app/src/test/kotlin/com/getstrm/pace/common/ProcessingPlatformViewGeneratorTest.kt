@@ -3,6 +3,7 @@ package com.getstrm.pace.common
 import com.getstrm.pace.TestDynamicViewGenerator
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.namedField
 import com.google.rpc.BadRequest
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -14,7 +15,7 @@ class ProcessingPlatformViewGeneratorTest {
     @Test
     fun `case - sql statement - invalid`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val attribute = namedField("email", "string")
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setSqlStatement(
                 DataPolicy.RuleSet.FieldTransform.Transform.SqlStatement.newBuilder()

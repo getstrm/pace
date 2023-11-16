@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.namedField
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
 import com.getstrm.pace.toPrincipal
@@ -62,7 +63,7 @@ class SnowflakeViewGeneratorTest {
     @Test
     fun `fixed value transform with multiple principals`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val attribute = namedField("email", "string")
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addAllPrincipals(listOf("ANALYTICS", "MARKETING").toPrincipals())
@@ -79,7 +80,7 @@ class SnowflakeViewGeneratorTest {
     @Test
     fun `fixed value transform with a single principal`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val attribute = namedField("email", "string")
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addPrincipals("MARKETING".toPrincipal())
@@ -96,7 +97,7 @@ class SnowflakeViewGeneratorTest {
     @Test
     fun `fixed value transform without principals`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val attribute = namedField("email", "string")
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .build()
@@ -112,7 +113,7 @@ class SnowflakeViewGeneratorTest {
     @Test
     fun `field transform with a few transforms`() {
         // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val field = namedField("email", "string")
         val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addAllPrincipals(listOf("ANALYTICS", "MARKETING").toPrincipals())

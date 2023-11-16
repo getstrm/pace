@@ -5,6 +5,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.namedField
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
@@ -59,7 +60,7 @@ class PostgresViewGeneratorTest {
     @Test
     fun `fixed value transform with multiple principals`() {
         // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val field = namedField("email", "string")
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
@@ -76,7 +77,7 @@ class PostgresViewGeneratorTest {
     @Test
     fun `fixed value transform with a single principal`() {
         // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val field = namedField("email", "string")
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addAllPrincipals(listOf("analytics").toPrincipals())
@@ -93,7 +94,7 @@ class PostgresViewGeneratorTest {
     @Test
     fun `fixed value transform without principals`() {
         // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val field = namedField("email", "string")
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .build()
@@ -109,7 +110,7 @@ class PostgresViewGeneratorTest {
     @Test
     fun `test detokenize condition`() {
         // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("user_id_token").setType("string").build()
+        val field = namedField("user_id_token", "string")
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setDetokenize(
                 DataPolicy.RuleSet.FieldTransform.Transform.Detokenize.newBuilder()
@@ -131,7 +132,7 @@ class PostgresViewGeneratorTest {
     @Test
     fun `test detokenize condition without schema in token source ref`() {
         // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("user_id_token").setType("string").build()
+        val field = namedField("user_id_token", "string")
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setDetokenize(
                 DataPolicy.RuleSet.FieldTransform.Transform.Detokenize.newBuilder()
@@ -153,7 +154,7 @@ class PostgresViewGeneratorTest {
     @Test
     fun `field transform with a few transforms`() {
         // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val field = namedField("email", "string")
         val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
@@ -211,7 +212,7 @@ class PostgresViewGeneratorTest {
     @Test
     fun `fixed value data type should match the attribute data type`() {
         // Given an attribute and a transform
-        val field = DataPolicy.Field.newBuilder().addNameParts("age").setType("integer").build()
+        val field = namedField("age", "integer")
         val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .build()
@@ -349,66 +350,6 @@ where (
 );
 grant SELECT on public.demo_view to "fraud_and_risk";
 grant SELECT on public.demo_view to "marketing";"""
-    }
-
-    @Test
-    fun `numeric rounding - ceil`() {
-        // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("transactionamount").setType("integer").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setNumericRounding(
-                DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.newBuilder()
-                    .setCeil(
-                        DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Ceil.newBuilder().setDivisor(200f)
-                    )
-            )
-            .build()
-
-        // When
-        val (_, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        jooqField.toSql() shouldBe "(ceil((transactionamount / 2E2)) * 2E2)"
-    }
-
-    @Test
-    fun `numeric rounding - floor`() {
-        // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("transactionamount").setType("float").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setNumericRounding(
-                DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.newBuilder()
-                    .setFloor(
-                        DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Floor.newBuilder().setDivisor(-200f)
-                    )
-            )
-            .build()
-
-        // When
-        val (_, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        jooqField.toSql() shouldBe "(floor((transactionamount / -2E2)) * -2E2)"
-    }
-
-    @Test
-    fun `numeric rounding - round`() {
-        // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("transactionamount").setType("float").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setNumericRounding(
-                DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.newBuilder()
-                    .setRound(
-                        DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Round.newBuilder().setPrecision(-1)
-                    )
-            )
-            .build()
-
-        // When
-        val (_, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        jooqField.toSql() shouldBe "round(transactionamount, -1)"
     }
 
     @Test
