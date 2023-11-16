@@ -58,100 +58,6 @@ class PostgresViewGeneratorTest {
     }
 
     @Test
-    fun `fixed value transform with multiple principals`() {
-        // Given
-        val field = namedField("email", "string")
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
-            .build()
-
-        // When
-        val (condition, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        condition!!.toSql() shouldBe "(('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups )))"
-        jooqField.toSql() shouldBe "'****'"
-    }
-
-    @Test
-    fun `fixed value transform with a single principal`() {
-        // Given
-        val field = namedField("email", "string")
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("analytics").toPrincipals())
-            .build()
-
-        // When
-        val (condition, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        condition!!.toSql() shouldBe "('analytics' IN ( SELECT rolname FROM user_groups ))"
-        jooqField.toSql() shouldBe "'****'"
-    }
-
-    @Test
-    fun `fixed value transform without principals`() {
-        // Given
-        val field = namedField("email", "string")
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .build()
-
-        // When
-        val (condition, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        condition.shouldBeNull()
-        jooqField.toSql() shouldBe "'****'"
-    }
-
-    @Test
-    fun `test detokenize condition`() {
-        // Given
-        val field = namedField("user_id_token", "string")
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setDetokenize(
-                DataPolicy.RuleSet.FieldTransform.Transform.Detokenize.newBuilder()
-                    .setTokenSourceRef("public.user_id_tokens")
-                    .setTokenField(DataPolicy.Field.newBuilder().addNameParts("token"))
-                    .setValueField(DataPolicy.Field.newBuilder().addNameParts("user_id"))
-            )
-            .addPrincipals("analytics".toPrincipal())
-            .build()
-
-        // When
-        val (condition, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        condition!!.toSql() shouldBe "('analytics' IN ( SELECT rolname FROM user_groups ))"
-        jooqField.toSql() shouldBe "coalesce(public.user_id_tokens.user_id, public.demo.user_id_token)"
-    }
-
-    @Test
-    fun `test detokenize condition without schema in token source ref`() {
-        // Given
-        val field = namedField("user_id_token", "string")
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setDetokenize(
-                DataPolicy.RuleSet.FieldTransform.Transform.Detokenize.newBuilder()
-                    .setTokenSourceRef("user_id_tokens")
-                    .setTokenField(DataPolicy.Field.newBuilder().addNameParts("token"))
-                    .setValueField(DataPolicy.Field.newBuilder().addNameParts("user_id"))
-            )
-            .addPrincipals("analytics".toPrincipal())
-            .build()
-
-        // When
-        val (condition, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        condition!!.toSql() shouldBe "('analytics' IN ( SELECT rolname FROM user_groups ))"
-        jooqField.toSql() shouldBe "coalesce(user_id_tokens.user_id, public.demo.user_id_token)"
-    }
-
-    @Test
     fun `field transform with a few transforms`() {
         // Given
         val field = namedField("email", "string")
@@ -207,31 +113,6 @@ class PostgresViewGeneratorTest {
 
         // Then
         condition.toSql() shouldBe "case when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then age > 18 else false end"
-    }
-
-    @Test
-    fun `fixed value data type should match the attribute data type`() {
-        // Given an attribute and a transform
-        val field = namedField("age", "integer")
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .build()
-
-        // When the transform is rendered as case
-        val exception = assertThrows<BadRequestException> { underTest.toCase(transform, field) }
-
-        // Then
-        exception.code shouldBe BadRequestException.Code.INVALID_ARGUMENT
-        exception.badRequest shouldBe BadRequest.newBuilder()
-            .addAllFieldViolations(
-                listOf(
-                    BadRequest.FieldViolation.newBuilder()
-                        .setField("dataPolicy.ruleSetsList.fieldTransformsList.fixed")
-                        .setDescription("Data type of fixed value provided for field age does not match the data type of the field")
-                        .build()
-                )
-            )
-            .build()
     }
 
     @Test

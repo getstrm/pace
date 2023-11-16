@@ -15,7 +15,7 @@ class PostgresTransformer : ProcessingPlatformTransformer {
     ): Field<*> =
         if (regexp.replacement.isNullOrEmpty()) {
             DSL.field(
-                "regexp_extract({0}, {1})",
+                "substring({0} from {1})",
                 String::class.java,
                 DSL.unquotedName(field.fullName()),
                 DSL.`val`(regexp.regexp),
