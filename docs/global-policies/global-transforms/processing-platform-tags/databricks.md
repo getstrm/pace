@@ -4,7 +4,7 @@ description: Using tags in Databricks
 
 # Databricks
 
-Databricks allows adding tags with a key and a value. Only the `key` is being used by Pace.
+Databricks allows adding tags with a key and a value. Only the `key` is being used by PACE.
 
 <figure><img src="../../../.gitbook/assets/image (11).png" alt=""><figcaption></figcaption></figure>
 

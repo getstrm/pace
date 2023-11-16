@@ -21,5 +21,5 @@ pace version [flags]
 
 ### SEE ALSO
 
-* [pace](pace.md)	 - Pace CLI dev
+* [pace](pace.md)	 - PACE CLI dev
 

@@ -64,7 +64,7 @@
       * [data-policy](cli-docs/pace\_upsert\_data-policy.md)
       * [global-transform](cli-docs/pace\_upsert\_global-transform.md)
     * [version](cli-docs/pace\_version.md)
-* [Pace Configuration](reference/pace-configuration.md)
+* [PACE Configuration](reference/pace-configuration.md)
 * [Integrations](integrations-and-reference/integrations/README.md)
   * [Data Catalog Integrations](reference/data-catalog-integrations/README.md)
   * [Processing Platform Integrations](reference/processing-platform-integrations/README.md)

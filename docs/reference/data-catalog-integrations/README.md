@@ -155,3 +155,52 @@ source:
 
 We would typically redirect the output of this command into a file `> blueprint.yaml`, and add a rule set to the file. 
 See [create-a-data-policy.md](../../getting-started/create-a-data-policy.md "mention")for details on how to do this.
+
+<a name="config" ></a>
+## Configuring a Data Catalog connection
+
+Every catalog type is configured the same way.
+
+* `id`  The identifier of this Data Catalog connection in Pace.
+* `type` This type is taken from our [Protobuf api definition][api] and is currently `COLLIBRA`, `DATAHUB` or `ODD` (for OpenDataDiscovery).
+* `serverUrl` How to reach the Data Catalog
+* `token` an authentication token. Some Data Catalogs require this.
+* `userName` Some other Data Catalogs use `userName`/`password` combinations.
+* `password`
+* `fetchSize` Unspecified usage by Datahub. Keep at `1` for now.
+
+[collibra-graphql]: https://developer.collibra.com/api/graphql/knowledge-graph-documentation
+### Collibra
+
+Collibra uses `serverUrl`, `userName` and `password` (for now, we'll add other types of authentication later)
+`serverUrl` typically contains `https://....collibra.com/graphql/knowledgeGraph/v1`.
+
+PACE uses the [Collibra GraphQL interface][collibra-graphql] interface.
+
+### Datahub
+
+The Datahub configuration uses `serverUrl` (typically `https://...:9002/api/graphql`) and `token` which is a datahub api
+token. Datahub access tokens can be created via `Settings` → `Manage Access Tokens`
+
+### Open Data Discovery
+
+Our current implementation only uses `serverUrl`, currently `http://some.ip.address:8080`. This is obviously _alpha_!
+
+Below is an example of the `catalogs` section of a PACE configuration file.
+```yaml
+app:
+  catalogs:
+  - id: "collibra"
+    type: "COLLIBRA"
+    serverUrl: "https://test-drive.collibra.com/graphql/knowledgeGraph/v1"
+    userName: "test-drive-user-..."
+    password: "Dbxv..."
+  - id: "datahub"
+    type: "DATAHUB"
+    serverUrl: "http://...:9002/api/graphql"
+    fetchSize: 1
+    token: "eyJhbGciOiJIUzI..."
+  - id: odd
+    type: ODD
+    serverURL: http://some-host:8080
+```

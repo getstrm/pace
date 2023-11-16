@@ -14,7 +14,7 @@ Even though you've created a lowercase `pii_email` tag, it will be transformed t
 
 <figure><img src="../../../.gitbook/assets/image (9).png" alt=""><figcaption></figcaption></figure>
 
-Note that you **must** give the tag a value, even though Pace doesn't use it. Now that you've added the tag to Snowflake, it becomes visible in the blueprint policies.
+Note that you **must** give the tag a value, even though PACE doesn't use it. Now that you've added the tag to Snowflake, it becomes visible in the blueprint policies.
 
 ```
 pace get data-policy --processing-platform sf-pace ALPHA_TEST.GDDEMO

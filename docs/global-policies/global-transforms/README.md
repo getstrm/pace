@@ -99,7 +99,7 @@ rule_sets:
 As can be seen, the blueprint Data Policy includes a ruleset with the transforms [defined in the previous section](./#creating-global-transforms).
 
 ## Tag value matching
-The processing platforms and catalogs that we support have quite different constraints on the entity that Pace uses to collect `tags`.
+The processing platforms and catalogs that we support have quite different constraints on the entity that PACE uses to collect `tags`.
 Some platforms only have upper-case, others prohibit dashes, and others whitespace.
 
 In order to make it possible to re-use the same global transform on different processing platforms, we've made it so that tag value matching
@@ -110,4 +110,4 @@ is _loose_:
 So you can type `pii-email`, `PII EMAIL` or similar in your global transform definition, and whichever tag format your platform supports, it
 will be matched.
 
-**Note**: This mechanism can be disabled via a Pace configuration value (`app.global-transforms.tagTransforms.looseTagMatch` can be `true` (the default) or `false`)
+**Note**: This mechanism can be disabled via a PACE configuration value (`app.global-transforms.tagTransforms.looseTagMatch` can be `true` (the default) or `false`)

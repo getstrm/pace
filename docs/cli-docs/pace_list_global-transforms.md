@@ -4,7 +4,7 @@ List Global Transforms
 
 ### Synopsis
 
-Lists all the global transforms stored in Pace.
+Lists all the global transforms stored in PACE.
 
 ```
 pace list global-transforms [flags]

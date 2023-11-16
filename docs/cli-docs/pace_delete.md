@@ -17,6 +17,6 @@ Delete entities
 
 ### SEE ALSO
 
-* [pace](pace.md)	 - Pace CLI dev
+* [pace](pace.md)	 - PACE CLI dev
 * [pace delete global-transform](pace_delete_global-transform.md)	 - delete a global transform
 

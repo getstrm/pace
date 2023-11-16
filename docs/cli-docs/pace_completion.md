@@ -23,7 +23,7 @@ See each sub-command's help for details on how to use the generated script.
 
 ### SEE ALSO
 
-* [pace](pace.md)	 - Pace CLI dev
+* [pace](pace.md)	 - PACE CLI dev
 * [pace completion bash](pace_completion_bash.md)	 - Generate the autocompletion script for bash
 * [pace completion fish](pace_completion_fish.md)	 - Generate the autocompletion script for fish
 * [pace completion powershell](pace_completion_powershell.md)	 - Generate the autocompletion script for powershell
