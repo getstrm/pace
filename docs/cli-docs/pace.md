@@ -1,6 +1,6 @@
 ## pace
 
-Pace CLI dev
+PACE CLI dev
 
 ### Options
 

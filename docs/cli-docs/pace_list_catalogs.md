@@ -4,9 +4,9 @@ List Catalogs
 
 ### Synopsis
 
-Shows all the catalogs that have been configured on this Pace instance.
+Shows all the catalogs that have been configured on this PACE instance.
 
-Catalogs are connected via configuration, and only read upon startup of the Pace server.
+Catalogs are connected via configuration, and only read upon startup of the PACE server.
 
 ```
 pace list catalogs [flags]

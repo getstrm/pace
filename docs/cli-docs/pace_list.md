@@ -21,7 +21,7 @@ return 0 or more entities of a certain type
 
 ### SEE ALSO
 
-* [pace](pace.md)	 - Pace CLI dev
+* [pace](pace.md)	 - PACE CLI dev
 * [pace list catalogs](pace_list_catalogs.md)	 - List Catalogs
 * [pace list data-policies](pace_list_data-policies.md)	 - List Datapolicies
 * [pace list databases](pace_list_databases.md)	 - List Databases
