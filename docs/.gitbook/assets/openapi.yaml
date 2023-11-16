@@ -1,5 +1,32 @@
 components:
   schemas:
+    BadRequest_FieldViolation:
+      description: A message type used to describe a single bad request field.
+      properties:
+        description:
+          description: A description of why the request element is bad.
+          type: string
+        field:
+          description: "A path that leads to a field in the request body. The value\
+            \ will be a\n sequence of dot-separated identifiers that identify a protocol\
+            \ buffer\n field.\n\n Consider the following:\n\n     message CreateContactRequest\
+            \ {\n       message EmailAddress {\n         enum Type {\n           TYPE_UNSPECIFIED\
+            \ = 0;\n           HOME = 1;\n           WORK = 2;\n         }\n\n   \
+            \      optional string email = 1;\n         repeated EmailType type =\
+            \ 2;\n       }\n\n       string full_name = 1;\n       repeated EmailAddress\
+            \ email_addresses = 2;\n     }\n\n In this example, in proto `field` could\
+            \ take one of the following values:\n\n * `full_name` for a violation\
+            \ in the `full_name` value\n * `email_addresses[1].email` for a violation\
+            \ in the `email` field of the\n   first `email_addresses` message\n *\
+            \ `email_addresses[3].type[2]` for a violation in the second `type`\n\
+            \   value in the third `email_addresses` message.\n\n In JSON, the same\
+            \ values are represented as:\n\n * `fullName` for a violation in the `fullName`\
+            \ value\n * `emailAddresses[1].email` for a violation in the `email` field\
+            \ of the\n   first `emailAddresses` message\n * `emailAddresses[3].type[2]`\
+            \ for a violation in the second `type`\n   value in the third `emailAddresses`\
+            \ message."
+          type: string
+      type: object
     DataCatalog:
       properties:
         databases:
@@ -306,6 +333,8 @@ components:
       properties:
         dataPolicy:
           $ref: '#/components/schemas/DataPolicy'
+        violation:
+          $ref: '#/components/schemas/BadRequest_FieldViolation'
       type: object
     GetDataPolicyResponse:
       properties:
@@ -587,7 +616,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.21
+  version: 1.0.0-alpha.22
 openapi: 3.0.3
 paths:
   /catalogs:

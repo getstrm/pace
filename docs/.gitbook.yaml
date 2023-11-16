@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.21
+    version: 1.0.0-alpha.22
 paths:
     /catalogs:
         get:
@@ -445,6 +445,53 @@ paths:
                                 $ref: '#/components/schemas/Status'
 components:
     schemas:
+        BadRequest_FieldViolation:
+            type: object
+            properties:
+                field:
+                    type: string
+                    description: |-
+                        A path that leads to a field in the request body. The value will be a
+                         sequence of dot-separated identifiers that identify a protocol buffer
+                         field.
+
+                         Consider the following:
+
+                             message CreateContactRequest {
+                               message EmailAddress {
+                                 enum Type {
+                                   TYPE_UNSPECIFIED = 0;
+                                   HOME = 1;
+                                   WORK = 2;
+                                 }
+
+                                 optional string email = 1;
+                                 repeated EmailType type = 2;
+                               }
+
+                               string full_name = 1;
+                               repeated EmailAddress email_addresses = 2;
+                             }
+
+                         In this example, in proto `field` could take one of the following values:
+
+                         * `full_name` for a violation in the `full_name` value
+                         * `email_addresses[1].email` for a violation in the `email` field of the
+                           first `email_addresses` message
+                         * `email_addresses[3].type[2]` for a violation in the second `type`
+                           value in the third `email_addresses` message.
+
+                         In JSON, the same values are represented as:
+
+                         * `fullName` for a violation in the `fullName` value
+                         * `emailAddresses[1].email` for a violation in the `email` field of the
+                           first `emailAddresses` message
+                         * `emailAddresses[3].type[2]` for a violation in the second `type`
+                           value in the third `emailAddresses` message.
+                description:
+                    type: string
+                    description: A description of why the request element is bad.
+            description: A message type used to describe a single bad request field.
         DataCatalog:
             type: object
             properties:
@@ -733,6 +780,8 @@ components:
             properties:
                 dataPolicy:
                     $ref: '#/components/schemas/DataPolicy'
+                violation:
+                    $ref: '#/components/schemas/BadRequest_FieldViolation'
         GetDataPolicyResponse:
             type: object
             properties:
