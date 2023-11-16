@@ -30,8 +30,6 @@ class ProcessingPlatformsApi(
             processingPlatformsService.listProcessingPlatformGroups(request.platformId).map { it.name },
         ).build()
 
-    override suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest): GetBlueprintPolicyResponse =
-        GetBlueprintPolicyResponse.newBuilder()
-            .setDataPolicy(processingPlatformsService.getBlueprintPolicy(request.platformId, request.tableId))
-            .build()
+    override suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest) =
+        processingPlatformsService.getBlueprintPolicy(request.platformId, request.tableId)
 }

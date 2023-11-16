@@ -4,6 +4,7 @@ package getstrm.pace.api.data_catalogs.v1alpha;
 import "getstrm/pace/api/entities/v1alpha/entities.proto";
 import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
+import "google/rpc/error_details.proto";
 
 option go_package = "github.com/getstrm/pace/protos/data_catalogs;data_catalogs";
 option java_package = "com.getstrm.pace.api.data_catalogs.v1alpha";
@@ -53,6 +54,7 @@ message GetBlueprintPolicyRequest {
 
 message GetBlueprintPolicyResponse {
     entities.v1alpha.DataPolicy data_policy = 1;
+    google.rpc.BadRequest.FieldViolation violation = 2;
 }
 
 message ListCatalogsRequest {
