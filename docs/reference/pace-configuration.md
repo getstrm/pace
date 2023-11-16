@@ -31,7 +31,7 @@ An outline of the yaml file is as follows.
     * ..
   * `global-transforms`
     * `tag-transforms`
-      * `looseTagMatch` [See here](../global-transforms/README).
+      * `looseTagMatch` [See here](../global-policies/global-transforms/README.md#tag-value-matching).
 
 ## Processing Platforms Configuration
 Each of the supported processing platforms has a different configuration format. Every configuration must have
