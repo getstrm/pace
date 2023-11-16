@@ -1,3 +1,15 @@
+# [1.0.0-alpha.22](https://github.com/getstrm/pace/compare/v1.0.0-alpha.21...v1.0.0-alpha.22) (2023-11-16)
+
+
+### Bug Fixes
+
+* **feature/pace-32:** handles absent description ([c8ce92e](https://github.com/getstrm/pace/commit/c8ce92eb37b924a15fe4486334ca22ea37aecb06))
+
+
+### Features
+
+* **feature/pace-32:** handles validation errors in blueprint policy ([30a0bc9](https://github.com/getstrm/pace/commit/30a0bc948aee57f754407c41d76a5e24fe7cd0fd))
+
 # [1.0.0-alpha.21](https://github.com/getstrm/pace/compare/v1.0.0-alpha.20...v1.0.0-alpha.21) (2023-11-15)
 
 
