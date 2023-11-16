@@ -15,6 +15,11 @@ import org.junit.jupiter.api.Test
 class DefaultProcessingPlatformTransformerTest {
 
     @Test
+    fun `render name`() {
+        DefaultProcessingPlatformTransformer.renderName("myschema.my_field") shouldBe "myschema.my_field"
+    }
+
+    @Test
     fun `regexp extract`() {
         // Given
         val field = namedField("my_field")
