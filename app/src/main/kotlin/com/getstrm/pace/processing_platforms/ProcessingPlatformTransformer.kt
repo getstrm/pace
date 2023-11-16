@@ -41,10 +41,12 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
                 DSL.`val`(regexp.regexp),
             )
         } else {
-            DSL.regexpReplaceAll(
-                DSL.field(field.fullName(), String::class.java),
-                regexp.regexp,
-                regexp.replacement,
+            DSL.field(
+                "regexp_replace({0}, {1}, {2})",
+                String::class.java,
+                DSL.unquotedName(field.fullName()),
+                DSL.`val`(regexp.regexp),
+                DSL.`val`(regexp.replacement),
             )
         }
 

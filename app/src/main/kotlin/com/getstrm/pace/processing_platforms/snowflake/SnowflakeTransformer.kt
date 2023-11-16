@@ -15,18 +15,20 @@ class SnowflakeTransformer : ProcessingPlatformTransformer {
     ): Field<*> =
         if (regexp.replacement.isNullOrEmpty()) {
             DSL.field(
-                "regexp_extract({0}, {1})",
+                "regexp_substr({0}, {1})",
                 String::class.java,
                 DSL.unquotedName(field.fullName()),
                 DSL.`val`(regexp.regexp),
             )
         } else {
-            // Postgres expects two backslashes for the capturing group notation, here doubled because of Kotlin escaping.
+            // Snowflake expects two backslashes for the capturing group notation, here doubled because of Kotlin escaping.
             val replacementWithBackslashNotation = regexp.replacement.replace(CAPTURING_GROUP_REGEX, """\\\\$1""")
-            DSL.regexpReplaceAll(
-                DSL.field(field.fullName(), String::class.java),
-                regexp.regexp,
-                replacementWithBackslashNotation,
+            DSL.field(
+                "regexp_replace({0}, {1}, {2})",
+                String::class.java,
+                DSL.unquotedName(field.fullName()),
+                DSL.`val`(regexp.regexp),
+                DSL.`val`(replacementWithBackslashNotation),
             )
         }
 }

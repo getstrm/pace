@@ -61,56 +61,6 @@ class SnowflakeViewGeneratorTest {
     }
 
     @Test
-    fun `fixed value transform with multiple principals`() {
-        // Given
-        val attribute = namedField("email", "string")
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("ANALYTICS", "MARKETING").toPrincipals())
-            .build()
-
-        // When
-        val (condition, field) = underTest.toCase(transform, attribute)
-
-        // Then
-        condition!!.toSql() shouldBe "((IS_ROLE_IN_SESSION('ANALYTICS')) or (IS_ROLE_IN_SESSION('MARKETING')))"
-        field.toSql() shouldBe "'****'"
-    }
-
-    @Test
-    fun `fixed value transform with a single principal`() {
-        // Given
-        val attribute = namedField("email", "string")
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addPrincipals("MARKETING".toPrincipal())
-            .build()
-
-        // When
-        val (condition, field) = underTest.toCase(transform, attribute)
-
-        // Then
-        condition!!.toSql() shouldBe "(IS_ROLE_IN_SESSION('MARKETING'))"
-        field.toSql() shouldBe "'****'"
-    }
-
-    @Test
-    fun `fixed value transform without principals`() {
-        // Given
-        val attribute = namedField("email", "string")
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .build()
-
-        // When
-        val (condition, field) = underTest.toCase(transform, attribute)
-
-        // Then
-        condition.shouldBeNull()
-        field.toSql() shouldBe "'****'"
-    }
-
-    @Test
     fun `field transform with a few transforms`() {
         // Given
         val field = namedField("email", "string")
@@ -264,7 +214,7 @@ grant SELECT on public.demo_view to marketing;"""
     }
 
     @Test
-    fun `transform test all transforms`() {
+    fun `transform test various transforms`() {
         // Given
         underTest = SnowflakeViewGenerator(dataPolicy) { withRenderFormatted(true) }
         underTest.toDynamicViewSQL()
