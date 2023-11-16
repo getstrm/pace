@@ -36,13 +36,38 @@ message DataPolicy {
     repeated Filter filters = 3;
 
     message Filter {
-      // The last condition in the list must have 0 principals, as this acts as the default / else condition.
-      repeated Condition conditions = 1;
-      message Condition {
-        // The principals (e.g. groups) that apply to this condition.
-        repeated Principal principals = 1 [(buf.validate.field).repeated.min_items = 0];
-        // A (platform-specific) SQL expression. If it evaluates to true, the principals are allowed to access the data.
-        string condition = 2;
+      oneof filter {
+        option (buf.validate.oneof).required = true;
+        RetentionFilter retention_filter = 1;
+        GenericFilter generic_filter = 2;
+      }
+
+      message RetentionFilter {
+        // The field of type SQL date with timestamp.
+        Field field = 1;
+        // The last condition in the list must have 0 principals, as this acts as the default / else condition.
+        repeated Condition conditions = 2;
+        message Condition {
+          // The principals (e.g. groups) that apply to this condition.
+          repeated Principal principals = 1 [(buf.validate.field).repeated.min_items = 0];
+          // The retention period for the data measured in days after creation. If empty or null, defaults to infinite retention period.
+          Period period = 2;
+        }
+        message Period {
+          // Number of days since the creation date.
+          int64 days = 1;
+        }
+      }
+
+      message GenericFilter {
+        // The last condition in the list must have 0 principals, as this acts as the default / else condition.
+        repeated Condition conditions = 1;
+        message Condition {
+          // The principals (e.g. groups) that apply to this condition.
+          repeated Principal principals = 1 [(buf.validate.field).repeated.min_items = 0];
+          // A (platform-specific) SQL expression. If it evaluates to true, the principals are allowed to access the data.
+          string condition = 2;
+        }
       }
     }
 
@@ -201,8 +226,7 @@ message GlobalTransform {
 
 message DataCatalog {
   // An arbitrary but unique identifier for the catalog. This matches the id from the PACE app configuration.
-  string id =
-1 [(buf.validate.field) = {
+  string id = 1 [(buf.validate.field) = {
     ignore_empty: false,
     string: {min_len: 1}
   }];

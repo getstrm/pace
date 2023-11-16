@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.19
+    version: 1.0.0-alpha.21
 paths:
     /catalogs:
         get:
@@ -273,29 +273,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-        delete:
-            tags:
-                - GlobalTransformsService
-            operationId: GlobalTransformsService_DeleteGlobalTransform
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/DeleteGlobalTransformRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/DeleteGlobalTransformResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
     /global-transforms/{ref}/{type}:
         get:
             tags:
@@ -304,6 +281,11 @@ paths:
             parameters:
                 - name: ref
                   in: path
+                  description: |-
+                    this ref refers to the primary key in the oneof transform, so its use depends
+                    on which one it is.
+                    TAG_TRANSFORM -> TagTransform.tag_content
+                    no others defined (yet).
                   required: true
                   schema:
                     type: string
@@ -319,6 +301,40 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetGlobalTransformResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        delete:
+            tags:
+                - GlobalTransformsService
+            operationId: GlobalTransformsService_DeleteGlobalTransform
+            parameters:
+                - name: ref
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: type
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/DeleteGlobalTransformRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteGlobalTransformResponse'
                 default:
                     description: Default error response
                     content:
@@ -631,10 +647,10 @@ components:
         DeleteGlobalTransformRequest:
             type: object
             properties:
-                refAndTypes:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/GlobalTransform_RefAndType'
+                ref:
+                    type: string
+                type:
+                    type: string
         DeleteGlobalTransformResponse:
             type: object
             properties:
@@ -681,7 +697,27 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/Transform_NumericRounding'
                     description: Round a numeric value with the specified rounding.
-        Filter_Condition:
+        Filter_GenericFilter:
+            type: object
+            properties:
+                conditions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GenericFilter_Condition'
+                    description: The last condition in the list must have 0 principals, as this acts as the default / else condition.
+        Filter_RetentionFilter:
+            type: object
+            properties:
+                field:
+                    allOf:
+                        - $ref: '#/components/schemas/DataPolicy_Field'
+                    description: The field of type SQL date with timestamp.
+                conditions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RetentionFilter_Condition'
+                    description: The last condition in the list must have 0 principals, as this acts as the default / else condition.
+        GenericFilter_Condition:
             type: object
             properties:
                 principals:
@@ -710,30 +746,22 @@ components:
         GlobalTransform:
             type: object
             properties:
-                ref:
-                    type: string
-                    description: |-
-                        unique identifier for a certain Global Transform. When empty
-                         the identifier of the transform will be used (for TagTransform tag_content)
                 description:
                     type: string
                 tagTransform:
                     $ref: '#/components/schemas/GlobalTransform_TagTransform'
             description: |-
                 If the specified transform is incompatible with the field data type to which this global transform is connected with,
-                 then the end user will get an invalid argument, and the blueprint policy with the global transforms applied won't be returned.
-        GlobalTransform_RefAndType:
-            type: object
-            properties:
-                ref:
-                    type: string
-                type:
-                    type: string
+                then the end user will get an invalid argument, and the blueprint policy with the global transforms applied won't be returned.
+
+                Global transforms are identified by an identifier of their [transform]. These are by default loose matching, so that
+                'Email-PII' is matched when 'email pii' is used.
         GlobalTransform_TagTransform:
             type: object
             properties:
                 tagContent:
                     type: string
+                    description: '''tag_content'' is the primary key of TagTransforms.'
                 transforms:
                     type: array
                     items:
@@ -826,6 +854,24 @@ components:
                     type: integer
                     description: The precision to use for rounding. When positive, the value is rounded to the nearest decimal place. When negative, the value is rounded to the nearest power of 10.
                     format: int32
+        RetentionFilter_Condition:
+            type: object
+            properties:
+                principals:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/DataPolicy_Principal'
+                    description: The principals (e.g. groups) that apply to this condition.
+                period:
+                    allOf:
+                        - $ref: '#/components/schemas/RetentionFilter_Period'
+                    description: The retention period for the data measured in days after creation. If empty or null, defaults to infinite retention period.
+        RetentionFilter_Period:
+            type: object
+            properties:
+                days:
+                    type: string
+                    description: Number of days since the creation date.
         RuleSet_FieldTransform:
             type: object
             properties:
@@ -841,11 +887,10 @@ components:
         RuleSet_Filter:
             type: object
             properties:
-                conditions:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/Filter_Condition'
-                    description: The last condition in the list must have 0 principals, as this acts as the default / else condition.
+                retentionFilter:
+                    $ref: '#/components/schemas/Filter_RetentionFilter'
+                genericFilter:
+                    $ref: '#/components/schemas/Filter_GenericFilter'
         Status:
             type: object
             properties:

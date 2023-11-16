@@ -14,6 +14,7 @@ import org.jooq.Field
 import org.jooq.SQLDialect
 import org.jooq.conf.ParamType
 import org.jooq.impl.DSL
+import org.jooq.impl.DSL.trueCondition
 import org.junit.jupiter.api.BeforeAll
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
@@ -26,6 +27,10 @@ class TestDynamicViewGenerator(dataPolicy: DataPolicy) : ProcessingPlatformViewG
 
     override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
         return null
+    }
+
+    override fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): Condition {
+        return trueCondition()
     }
 }
 

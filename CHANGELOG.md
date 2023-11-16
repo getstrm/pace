@@ -1,3 +1,20 @@
+# [1.0.0-alpha.21](https://github.com/getstrm/pace/compare/v1.0.0-alpha.20...v1.0.0-alpha.21) (2023-11-15)
+
+
+### Features
+
+* **pace-19:** add retention to rulesets for filtering rows ([#50](https://github.com/getstrm/pace/issues/50)) ([6e77039](https://github.com/getstrm/pace/commit/6e770396dc41e743adf01a6e22a4aec464276dfe))
+
+# [1.0.0-alpha.20](https://github.com/getstrm/pace/compare/v1.0.0-alpha.19...v1.0.0-alpha.20) (2023-11-15)
+
+
+### Features
+
+* **feature/pace-31:** added loose tag matching ([f6d6a2b](https://github.com/getstrm/pace/commit/f6d6a2b7068e059ce3abdad798bce9ff2be6bec1))
+* **feature/pace-31:** case insensitive global transform tags ([53d1e0d](https://github.com/getstrm/pace/commit/53d1e0db0989e280e7db32c2925e97c066d09b8f))
+* **feature/pace-31:** merged origin/alpha ([2116e39](https://github.com/getstrm/pace/commit/2116e397971bac1fbd8544f79c4ff4546c6a036f))
+* **feature/pace-31:** removed RefAndType, and ref in GlobalTransform ([c0f0526](https://github.com/getstrm/pace/commit/c0f05269a058267638610be026255739e5659257))
+
 # [1.0.0-alpha.19](https://github.com/getstrm/pace/compare/v1.0.0-alpha.18...v1.0.0-alpha.19) (2023-11-15)
 
 
