@@ -184,8 +184,7 @@ abstract class ProcessingPlatformViewGenerator(
         return caseWhenStatement
     }
 
-    // Todo make private
-    fun toCase(
+    private fun toCase(
         transform: DataPolicy.RuleSet.FieldTransform.Transform?,
         field: DataPolicy.Field,
     ): Pair<Condition?, JooqField<Any>> {
