@@ -59,13 +59,7 @@ abstract class ProcessingPlatformViewGenerator(
                         addDetokenizeJoins(it, ruleSet)
                     }
                     .where(
-                        ruleSet.filtersList.map { filter ->
-                            when (filter.filterCase) {
-                                RETENTION_FILTER -> toCondition(filter.retentionFilter)
-                                GENERIC_FILTER -> toCondition(filter.genericFilter)
-                                else -> throw IllegalArgumentException("Unsupported filter: ${filter.filterCase.name}")
-                            }
-                        }
+                        createWhereStatement(ruleSet)
                     ),
             )
         }
@@ -74,6 +68,18 @@ abstract class ProcessingPlatformViewGenerator(
 
         return jooq.queries(allQueries).sql
     }
+
+    /**
+     * needs an override for Synapse
+     */
+    open fun createWhereStatement(ruleSet: DataPolicy.RuleSet) =
+        ruleSet.filtersList.map { filter ->
+            when (filter.filterCase) {
+                RETENTION_FILTER -> toCondition(filter.retentionFilter)
+                GENERIC_FILTER -> toCondition(filter.genericFilter)
+                else -> throw IllegalArgumentException("Unsupported filter: ${filter.filterCase.name}")
+            }
+        }
 
     private fun addDetokenizeJoins(
         selectJoinStep: SelectJoinStep<Record>,
@@ -97,7 +103,7 @@ abstract class ProcessingPlatformViewGenerator(
         return result
     }
 
-    fun toCondition(filter: DataPolicy.RuleSet.Filter.GenericFilter): Condition {
+    open fun toCondition(filter: DataPolicy.RuleSet.Filter.GenericFilter): Condition {
         if (filter.conditionsList.size == 1) {
             // If there is only one filter it should be the only option
             return getParser().parseCondition(filter.conditionsList.first().condition)
