@@ -11,7 +11,7 @@ Here's an example configuration file.
 ```yaml
 spring:
   datasource:
-    # the db where Pace stores its data-policies
+    # the db where PACE stores its data-policies
     url: jdbc:postgresql://localhost:5432/pace
     hikari:
       username: pace # this principal must have all rights on the pace db

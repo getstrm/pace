@@ -4,7 +4,7 @@ Get a global transform
 
 ### Synopsis
 
-Returns a global transform from Pace, by transform reference and transform type.
+Returns a global transform from PACE, by transform reference and transform type.
 
 ```
 pace get global-transform (ref) [flags]

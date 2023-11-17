@@ -5,6 +5,7 @@ import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
 import com.getstrm.pace.util.defaultJooqSettings
+import com.getstrm.pace.util.listPrincipals
 import com.google.rpc.DebugInfo
 import org.jooq.*
 import org.jooq.conf.Settings
@@ -23,7 +24,7 @@ class PostgresViewGenerator(
         val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->
             val principals =
                 ruleSet.fieldTransformsList.flatMap { it.transformsList }.flatMap { it.principalsList }.toSet() +
-                    ruleSet.filtersList.flatMap { it.conditionsList }.flatMap { it.principalsList }.toSet()
+                        ruleSet.filtersList.flatMap { it.listPrincipals() }.toSet()
 
             val viewName = ruleSet.target.fullname
 
@@ -38,12 +39,12 @@ class PostgresViewGenerator(
         return jooq.queries(grants)
     }
 
-    override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
-        return if (isEmpty()) {
+    override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
+        return if (principals.isEmpty()) {
             null
         } else {
             DSL.or(
-                map { principal ->
+                principals.map { principal ->
                     when {
                         principal.hasGroup() -> DSL.condition(
                             "{0} IN ( SELECT rolname FROM user_groups )",

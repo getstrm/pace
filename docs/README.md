@@ -33,7 +33,7 @@ Once installed, PACE sits between your data definitions (often a [catalog](cli-d
 
 **Supported platforms**
 
-Pace currently [supports](integrations-and-reference/integrations/) Collibra, Datahub and Open Data Discovery on the catalog side, connecting to Snowflake, Databricks, Google BigQuery and PostgreSQL for creating your dynamic views.
+PACE currently [supports](integrations-and-reference/integrations/) Collibra, Datahub and Open Data Discovery on the catalog side, connecting to Snowflake, Databricks, Google BigQuery and PostgreSQL for creating your dynamic views.
 
 **Let's go**
 

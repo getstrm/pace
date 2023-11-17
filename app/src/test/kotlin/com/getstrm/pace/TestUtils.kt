@@ -1,6 +1,8 @@
 package com.getstrm.pace
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.TransformCase.TAG_TRANSFORM
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -12,18 +14,29 @@ import org.jooq.Field
 import org.jooq.SQLDialect
 import org.jooq.conf.ParamType
 import org.jooq.impl.DSL
+import org.jooq.impl.DSL.trueCondition
 import org.junit.jupiter.api.BeforeAll
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
 // We wrap the field in a select to get a sql with bound values
+// Note: this is uses default settings (e.g. dialect).
 fun Field<*>.toSql(): String = DSL.select(this).getSQL(ParamType.INLINED).removePrefix("select ")
+
+fun namedField(name: String, type: String? = null): DataPolicy.Field = DataPolicy.Field.newBuilder()
+    .addNameParts(name).apply {
+        if (type != null) setType(type)
+    }.build()
 
 class TestDynamicViewGenerator(dataPolicy: DataPolicy) : ProcessingPlatformViewGenerator(dataPolicy) {
     override val jooq: DSLContext = DSL.using(SQLDialect.DEFAULT)
 
-    override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
+    override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
         return null
+    }
+
+    override fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): Condition {
+        return trueCondition()
     }
 }
 

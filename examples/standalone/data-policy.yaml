@@ -36,11 +36,12 @@ rule_sets:
   - target:
       fullname: public.demo_view
     filters:
-      - conditions:
-          - principals: [ { group: administrator }, { group: fraud_and_risk } ]
-            condition: "true"
-          - principals: [ ]
-            condition: "age > 8"
+      - generic_filters:
+          conditions:
+            - principals: [ { group: administrator }, { group: fraud_and_risk } ]
+              condition: "true"
+            - principals: [ ]
+              condition: "age > 8"
     field_transforms:
       - field:
           name_parts: [ userid ]

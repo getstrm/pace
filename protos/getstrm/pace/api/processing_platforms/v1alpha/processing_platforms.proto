@@ -4,6 +4,7 @@ package getstrm.pace.api.processing_platforms.v1alpha;
 import "getstrm/pace/api/entities/v1alpha/entities.proto";
 import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
+import "google/rpc/error_details.proto";
 
 option go_package = "github.com/getstrm/pace/protos/processing_platforms;processing_platforms";
 option java_package = "com.getstrm.pace.api.processing_platforms.v1alpha";
@@ -68,4 +69,5 @@ message GetBlueprintPolicyRequest {
 
 message GetBlueprintPolicyResponse {
     entities.v1alpha.DataPolicy data_policy = 1;
+    google.rpc.BadRequest.FieldViolation violation = 2;
 }

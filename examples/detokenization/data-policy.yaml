@@ -39,13 +39,14 @@ rule_sets:
   - target:
       fullname: public.transactions_view
     filters:
-      - conditions:
-        - principals:
-          - group: fraud_and_risk
-          - group: fraud_investigation
-          condition: "true"
-        - principals: []
-          condition: "region <> 'Europe'"
+      - generic_filter:
+          conditions:
+            - principals:
+                - group: fraud_and_risk
+                - group: fraud_investigation
+              condition: "true"
+            - principals: []
+              condition: "region <> 'Europe'"
     field_transforms:
       - field:
           name_parts: [ card_holder_name ]

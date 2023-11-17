@@ -36,13 +36,38 @@ message DataPolicy {
     repeated Filter filters = 3;
 
     message Filter {
-      // The last condition in the list must have 0 principals, as this acts as the default / else condition.
-      repeated Condition conditions = 1;
-      message Condition {
-        // The principals (e.g. groups) that apply to this condition.
-        repeated Principal principals = 1 [(buf.validate.field).repeated.min_items = 0];
-        // A (platform-specific) SQL expression. If it evaluates to true, the principals are allowed to access the data.
-        string condition = 2;
+      oneof filter {
+        option (buf.validate.oneof).required = true;
+        RetentionFilter retention_filter = 1;
+        GenericFilter generic_filter = 2;
+      }
+
+      message RetentionFilter {
+        // The field of type SQL date with timestamp.
+        Field field = 1;
+        // The last condition in the list must have 0 principals, as this acts as the default / else condition.
+        repeated Condition conditions = 2;
+        message Condition {
+          // The principals (e.g. groups) that apply to this condition.
+          repeated Principal principals = 1 [(buf.validate.field).repeated.min_items = 0];
+          // The retention period for the data measured in days after creation. If empty or null, defaults to infinite retention period.
+          Period period = 2;
+        }
+        message Period {
+          // Number of days since the creation date.
+          int64 days = 1;
+        }
+      }
+
+      message GenericFilter {
+        // The last condition in the list must have 0 principals, as this acts as the default / else condition.
+        repeated Condition conditions = 1;
+        message Condition {
+          // The principals (e.g. groups) that apply to this condition.
+          repeated Principal principals = 1 [(buf.validate.field).repeated.min_items = 0];
+          // A (platform-specific) SQL expression. If it evaluates to true, the principals are allowed to access the data.
+          string condition = 2;
+        }
       }
     }
 
@@ -179,35 +204,29 @@ message DataPolicy {
   }
 }
 
-// If the specified transform is incompatible with the field data type to which this global transform is connected with,
-// then the end user will get an invalid argument, and the blueprint policy with the global transforms applied won't be returned.
+/* If the specified transform is incompatible with the field data type to which this global transform is connected with,
+   then the end user will get an invalid argument, and the blueprint policy with the global transforms applied won't be returned.
+
+  Global transforms are identified by an identifier of their [transform]. These are by default loose matching, so that
+  'Email-PII' is matched when 'email pii' is used.
+
+ */
 message GlobalTransform {
-  // unique identifier for a certain Global Transform. When empty
-  // the identifier of the transform will be used (for TagTransform tag_content)
-  string ref = 1;
-  string description = 2;
+  string description = 1;
   oneof transform {
     option (buf.validate.oneof).required = true;
-    TagTransform tag_transform = 3;
+    TagTransform tag_transform = 2;
   }
   message TagTransform {
+    /* 'tag_content' is the primary key of TagTransforms. */
     string tag_content = 1 [(buf.validate.field).string.min_len = 1];
     repeated DataPolicy.RuleSet.FieldTransform.Transform transforms = 2;
-  }
-
-  message RefAndType {
-    string ref = 1;
-    string type = 2 [(buf.validate.field).cel = {
-      id: "global-transform-ref-and-type",
-      expression: "!(this in ['TAG_TRANSFORM']) ? 'value must be in list %s'.format(['TAG_TRANSFORM']) : ''"
-    }];
   }
 }
 
 message DataCatalog {
   // An arbitrary but unique identifier for the catalog. This matches the id from the PACE app configuration.
-  string id =
-1 [(buf.validate.field) = {
+  string id = 1 [(buf.validate.field) = {
     ignore_empty: false,
     string: {min_len: 1}
   }];

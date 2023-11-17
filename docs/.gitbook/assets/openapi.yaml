@@ -1,5 +1,32 @@
 components:
   schemas:
+    BadRequest_FieldViolation:
+      description: A message type used to describe a single bad request field.
+      properties:
+        description:
+          description: A description of why the request element is bad.
+          type: string
+        field:
+          description: "A path that leads to a field in the request body. The value\
+            \ will be a\n sequence of dot-separated identifiers that identify a protocol\
+            \ buffer\n field.\n\n Consider the following:\n\n     message CreateContactRequest\
+            \ {\n       message EmailAddress {\n         enum Type {\n           TYPE_UNSPECIFIED\
+            \ = 0;\n           HOME = 1;\n           WORK = 2;\n         }\n\n   \
+            \      optional string email = 1;\n         repeated EmailType type =\
+            \ 2;\n       }\n\n       string full_name = 1;\n       repeated EmailAddress\
+            \ email_addresses = 2;\n     }\n\n In this example, in proto `field` could\
+            \ take one of the following values:\n\n * `full_name` for a violation\
+            \ in the `full_name` value\n * `email_addresses[1].email` for a violation\
+            \ in the `email` field of the\n   first `email_addresses` message\n *\
+            \ `email_addresses[3].type[2]` for a violation in the second `type`\n\
+            \   value in the third `email_addresses` message.\n\n In JSON, the same\
+            \ values are represented as:\n\n * `fullName` for a violation in the `fullName`\
+            \ value\n * `emailAddresses[1].email` for a violation in the `email` field\
+            \ of the\n   first `emailAddresses` message\n * `emailAddresses[3].type[2]`\
+            \ for a violation in the second `type`\n   value in the third `emailAddresses`\
+            \ message."
+          type: string
+      type: object
     DataCatalog:
       properties:
         databases:
@@ -211,10 +238,10 @@ components:
       type: object
     DeleteGlobalTransformRequest:
       properties:
-        refAndTypes:
-          items:
-            $ref: '#/components/schemas/GlobalTransform_RefAndType'
-          type: array
+        ref:
+          type: string
+        type:
+          type: string
       type: object
     DeleteGlobalTransformResponse:
       properties:
@@ -268,7 +295,29 @@ components:
           description: Execute a SQL statement to transform the field value. The exact
             syntax is platform-specific.
       type: object
-    Filter_Condition:
+    Filter_GenericFilter:
+      properties:
+        conditions:
+          description: The last condition in the list must have 0 principals, as this
+            acts as the default / else condition.
+          items:
+            $ref: '#/components/schemas/GenericFilter_Condition'
+          type: array
+      type: object
+    Filter_RetentionFilter:
+      properties:
+        conditions:
+          description: The last condition in the list must have 0 principals, as this
+            acts as the default / else condition.
+          items:
+            $ref: '#/components/schemas/RetentionFilter_Condition'
+          type: array
+        field:
+          allOf:
+          - $ref: '#/components/schemas/DataPolicy_Field'
+          description: The field of type SQL date with timestamp.
+      type: object
+    GenericFilter_Condition:
       properties:
         condition:
           description: A (platform-specific) SQL expression. If it evaluates to true,
@@ -284,6 +333,8 @@ components:
       properties:
         dataPolicy:
           $ref: '#/components/schemas/DataPolicy'
+        violation:
+          $ref: '#/components/schemas/BadRequest_FieldViolation'
       type: object
     GetDataPolicyResponse:
       properties:
@@ -296,30 +347,27 @@ components:
           $ref: '#/components/schemas/GlobalTransform'
       type: object
     GlobalTransform:
-      description: "If the specified transform is incompatible with the field data\
-        \ type to which this global transform is connected with,\n then the end user\
-        \ will get an invalid argument, and the blueprint policy with the global transforms\
-        \ applied won't be returned."
+      description: 'If the specified transform is incompatible with the field data
+        type to which this global transform is connected with,
+
+        then the end user will get an invalid argument, and the blueprint policy with
+        the global transforms applied won''t be returned.
+
+
+        Global transforms are identified by an identifier of their [transform]. These
+        are by default loose matching, so that
+
+        ''Email-PII'' is matched when ''email pii'' is used.'
       properties:
         description:
-          type: string
-        ref:
-          description: "unique identifier for a certain Global Transform. When empty\n\
-            \ the identifier of the transform will be used (for TagTransform tag_content)"
           type: string
         tagTransform:
           $ref: '#/components/schemas/GlobalTransform_TagTransform'
       type: object
-    GlobalTransform_RefAndType:
-      properties:
-        ref:
-          type: string
-        type:
-          type: string
-      type: object
     GlobalTransform_TagTransform:
       properties:
         tagContent:
+          description: '''tag_content'' is the primary key of TagTransforms.'
           type: string
         transforms:
           items:
@@ -418,6 +466,25 @@ components:
           format: int32
           type: integer
       type: object
+    RetentionFilter_Condition:
+      properties:
+        period:
+          allOf:
+          - $ref: '#/components/schemas/RetentionFilter_Period'
+          description: The retention period for the data measured in days after creation.
+            If empty or null, defaults to infinite retention period.
+        principals:
+          description: The principals (e.g. groups) that apply to this condition.
+          items:
+            $ref: '#/components/schemas/DataPolicy_Principal'
+          type: array
+      type: object
+    RetentionFilter_Period:
+      properties:
+        days:
+          description: Number of days since the creation date.
+          type: string
+      type: object
     RuleSet_FieldTransform:
       properties:
         field:
@@ -432,12 +499,10 @@ components:
       type: object
     RuleSet_Filter:
       properties:
-        conditions:
-          description: The last condition in the list must have 0 principals, as this
-            acts as the default / else condition.
-          items:
-            $ref: '#/components/schemas/Filter_Condition'
-          type: array
+        genericFilter:
+          $ref: '#/components/schemas/Filter_GenericFilter'
+        retentionFilter:
+          $ref: '#/components/schemas/Filter_RetentionFilter'
       type: object
     Status:
       description: 'The `Status` type defines a logical error model that is suitable
@@ -551,7 +616,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.19
+  version: 1.0.0-alpha.23
 openapi: 3.0.3
 paths:
   /catalogs:
@@ -783,30 +848,6 @@ paths:
       tags:
       - DataPoliciesService
   /global-transforms:
-    delete:
-      operationId: GlobalTransformsService_DeleteGlobalTransform
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeleteGlobalTransformRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeleteGlobalTransformResponse'
-          description: OK
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Status'
-          description: Default error response
-      summary: DeleteGlobalTransform
-      tags:
-      - GlobalTransformsService
     get:
       operationId: GlobalTransformsService_ListGlobalTransforms
       parameters:
@@ -857,10 +898,53 @@ paths:
       tags:
       - GlobalTransformsService
   /global-transforms/{ref}/{type}:
+    delete:
+      operationId: GlobalTransformsService_DeleteGlobalTransform
+      parameters:
+      - in: path
+        name: ref
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: type
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteGlobalTransformRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteGlobalTransformResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: DeleteGlobalTransform
+      tags:
+      - GlobalTransformsService
     get:
       operationId: GlobalTransformsService_GetGlobalTransform
       parameters:
-      - in: path
+      - description: 'this ref refers to the primary key in the oneof transform, so
+          its use depends
+
+          on which one it is.
+
+          TAG_TRANSFORM -> TagTransform.tag_content
+
+          no others defined (yet).'
+        in: path
         name: ref
         required: true
         schema:

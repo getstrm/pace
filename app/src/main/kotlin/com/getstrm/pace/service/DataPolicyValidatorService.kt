@@ -96,11 +96,16 @@ class DataPolicyValidatorService {
                     }
                 }
             }
+
             // check for every row filter that the principals overlap with groups in the processing platform
             // and that the fields exist in the DataPolicy
             ruleSet.filtersList.forEach { filter ->
-                filter.conditionsList.forEach { condition ->
-                    checkPrincipals(condition.principalsList)
+                when (filter.filterCase) {
+                    DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER -> filter.retentionFilter.conditionsList.map { it.principalsList }
+                    DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER -> filter.genericFilter.conditionsList.map { it.principalsList }
+                    else -> throw IllegalArgumentException("Unsupported filter: ${filter.filterCase.name}")
+                }.forEach {
+                    checkPrincipals(it)
                 }
             }
             // check non-overlapping fields within one ruleset
@@ -114,6 +119,26 @@ class DataPolicyValidatorService {
                                 FieldViolation.newBuilder()
                                     .setField("ruleSet")
                                     .setDescription("RuleSet has overlapping fields, ${field.pathString()} is already present")
+                                    .build()
+                            )
+                        )
+                    }
+
+                    alreadySeen + it
+                }
+            }
+
+            // check non-overlapping fields in the retention filters within one ruleset
+            ruleSet.filtersList.filter{ it.hasRetentionFilter()}.map { it.retentionFilter.field }.fold(
+                emptySet<String>(),
+            ) { alreadySeen, field ->
+                field.pathString().let {
+                    if (alreadySeen.contains(it)) {
+                        throw invalidArgumentException(
+                            listOf(
+                                FieldViolation.newBuilder()
+                                    .setField("ruleSet")
+                                    .setDescription("RuleSet.Retention has overlapping fields, ${field.pathString()} is already present")
                                     .build()
                             )
                         )

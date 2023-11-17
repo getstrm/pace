@@ -4,7 +4,7 @@ Upsert a data policy
 
 ### Synopsis
 
-Upserts (inserts or updates) a data policy into Pace AND
+Upserts (inserts or updates) a data policy into PACE AND
 applies it to the target platform.
 
 The file to upsert is checked for validity, a transformation is generated
