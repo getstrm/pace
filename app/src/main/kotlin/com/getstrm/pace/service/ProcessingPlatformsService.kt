@@ -15,6 +15,7 @@ import com.getstrm.pace.processing_platforms.bigquery.BigQueryClient
 import com.getstrm.pace.processing_platforms.databricks.DatabricksClient
 import com.getstrm.pace.processing_platforms.postgres.PostgresClient
 import com.getstrm.pace.processing_platforms.snowflake.SnowflakeClient
+import com.getstrm.pace.processing_platforms.synapse.SynapseClient
 import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
@@ -36,7 +37,8 @@ class ProcessingPlatformsService(
         val snowflake = config.snowflake.map { SnowflakeClient(it) }
         val bigQuery = config.bigquery.map { BigQueryClient(it) }
         val postgres = config.postgres.map { PostgresClient(it) }
-        platforms = (databricks + snowflake + bigQuery + postgres).associateBy { it.id }
+        val synapse = config.synapse.map { SynapseClient(it) }
+        platforms = (databricks + snowflake + bigQuery + postgres + synapse).associateBy { it.id }
     }
 
     suspend fun listGroups(platformId: String): List<Group> =
