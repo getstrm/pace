@@ -8,6 +8,7 @@ data class ProcessingPlatformConfiguration(
     val snowflake: List<SnowflakeConfig> = emptyList(),
     val bigquery: List<BigQueryConfig> = emptyList(),
     val postgres: List<PostgresConfig> = emptyList(),
+    val synapse: List<SynapseConfig> = emptyList(),
 )
 
 data class SnowflakeConfig(
@@ -48,3 +49,15 @@ data class DatabricksConfig(
     val clientSecret: String,
     val warehouseId: String,
 )
+
+data class SynapseConfig(
+    val id: String,
+    val hostName: String,
+    val database: String,
+    val userName: String,
+    val password: String,
+) {
+    internal fun getJdbcUrl() = "jdbc:sqlserver://$hostName:1433;database=$database;user=$userName;password=$password;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.sql.azuresynapse.net;loginTimeout=30;"
+}
+//pace-getstrm.sql.azuresynapse.net
+//jdbc:sqlserver://yourserver.sql.azuresynapse.net:1433;database=yourdatabase;user=$userName;password=$password;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.sql.azuresynapse.net;loginTimeout=30;
