@@ -71,4 +71,5 @@
     * [BigQuery](reference/processing-platform-integrations/bigquery.md)
     * [Databricks](reference/processing-platform-integrations/databricks.md)
     * [Snowflake](reference/processing-platform-integrations/snowflake.md)
+    * [PostgreSQL](reference/processing-platform-integrations/postgres.md)
 * [Glossary](integrations-and-reference/glossary.md)
