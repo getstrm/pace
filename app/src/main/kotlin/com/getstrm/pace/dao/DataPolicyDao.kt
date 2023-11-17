@@ -24,19 +24,26 @@ class DataPolicyDao(
         .where(DATA_POLICIES.ACTIVE.isTrue)
         .fetchInto(DATA_POLICIES).map { it.toApiDataPolicy() }
 
-    fun upsertDataPolicy(dataPolicy: DataPolicy): DataPolicy {
+    fun upsertDataPolicy(dataPolicy: DataPolicy, incrementVersion: Boolean): DataPolicy {
         val id = dataPolicy.id.ifBlank { dataPolicy.source.ref }
         val oldPolicy = getActiveDataPolicy(id, dataPolicy.platform.id)?.also {
             checkStaleness(it.version!!, dataPolicy.metadata.version)
-            deactivateDataPolicy(it)
+            if (incrementVersion) {
+                deactivateDataPolicy(it)
+            }
         }
-        val newVersion = oldPolicy?.version?.plus(1) ?: 1
+        val versionToStore = if (incrementVersion) {
+            oldPolicy?.version?.plus(1) ?: 1
+        } else {
+            dataPolicy.metadata.version
+        }
+
         val updateTimestamp = OffsetDateTime.now()
         val updatedPolicy = dataPolicy.toBuilder()
             .setId(id)
             .setMetadata(
                 dataPolicy.metadata.toBuilder()
-                    .setVersion(newVersion)
+                    .setVersion(versionToStore)
                     .setUpdateTime(updateTimestamp.toTimestamp())
                     .setCreateTime((oldPolicy?.createdAt ?: updateTimestamp).toTimestamp())
             ).build()
