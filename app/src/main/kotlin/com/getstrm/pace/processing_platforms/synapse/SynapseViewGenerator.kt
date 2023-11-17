@@ -1,16 +1,19 @@
 package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.UNIMPLEMENTED
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
 import com.getstrm.pace.util.fullName
+import com.getstrm.pace.util.headTailFold
 import com.google.rpc.DebugInfo
 import org.jooq.Condition
+import org.jooq.DatePart
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
+import java.sql.Timestamp
+import org.jooq.Field as JooqField
 
 class SynapseViewGenerator(
     dataPolicy: DataPolicy,
@@ -52,21 +55,54 @@ class SynapseViewGenerator(
     else 10 end
     ), ts) > CURRENT_TIMESTAMP
      */
-    override fun createWhereStatement(ruleSet: DataPolicy.RuleSet): List<Condition> {
-        ruleSet.filtersList.filter { it.filterCase == GENERIC_FILTER }
-        TODO()
-    }
 
     override fun toCondition(filter: GenericFilter): Condition {
-        val c = super.toCondition(with(filter.toBuilder()) {
-            conditionsList.map {
-                with(it.toBuilder()) {
-                    condition = "(CASE WHEN $condition THEN 1 ELSE 0 END )"
-                    build()
-                }
-            }
-            build()
-        })
-        return c
+        val builder = filter.toBuilder()
+        builder.conditionsBuilderList.map {
+            it.condition = "(CASE WHEN ${it.condition.let { c -> if (c == "true") "1=1" else c }} THEN 1 ELSE 0 END)"
+        }
+
+        return DSL.condition("1 = ({0})", super.toCondition(builder.build()))
+    }
+
+    override fun toCondition(retention: DataPolicy.RuleSet.Filter.RetentionFilter): Condition {
+        val whereCondition = retention.conditionsList.headTailFold(
+            headOperation = { condition ->
+                DSL.`when`(
+                    toPrincipalCondition(condition.principalsList),
+                    condition.toSynapseRetentionCondition(retention.field),
+                )
+            },
+            bodyOperation = { conditionStep, condition ->
+                conditionStep.`when`(
+                    toPrincipalCondition(condition.principalsList),
+                    condition.toSynapseRetentionCondition(retention.field),
+                )
+            },
+            tailOperation = { conditionStep, condition ->
+                conditionStep.otherwise(condition.toSynapseRetentionCondition(retention.field))
+            },
+        )
+
+        val retentionClause = DSL.field(
+            "{0} > {1}",
+            Boolean::class.java,
+            DSL.timestampAdd(
+                DSL.field(DSL.unquotedName(retention.field.fullName()), Timestamp::class.java),
+                DSL.field("(${whereCondition})", Int::class.java),
+                DatePart.DAY
+            ),
+            DSL.currentTimestamp()
+        )
+
+        return DSL.condition(retentionClause)
+    }
+
+    fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toSynapseRetentionCondition(field: DataPolicy.Field): JooqField<Int> {
+        return if (this.hasPeriod()) {
+            DSL.field("{0}", Int::class.java, this.period.days)
+        } else {
+            DSL.field("{0}", Int::class.java, 10000)
+        }
     }
 }

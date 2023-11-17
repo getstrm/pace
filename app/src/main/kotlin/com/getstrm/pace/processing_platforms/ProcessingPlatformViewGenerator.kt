@@ -72,7 +72,7 @@ abstract class ProcessingPlatformViewGenerator(
     /**
      * needs an override for Synapse
      */
-    open fun createWhereStatement(ruleSet: DataPolicy.RuleSet) =
+    private fun createWhereStatement(ruleSet: DataPolicy.RuleSet) =
         ruleSet.filtersList.map { filter ->
             when (filter.filterCase) {
                 RETENTION_FILTER -> toCondition(filter.retentionFilter)
@@ -132,7 +132,7 @@ abstract class ProcessingPlatformViewGenerator(
         return DSL.condition(whereCondition)
     }
 
-    fun toCondition(retention: DataPolicy.RuleSet.Filter.RetentionFilter): Condition {
+    open fun toCondition(retention: DataPolicy.RuleSet.Filter.RetentionFilter): Condition {
         if (retention.conditionsList.size == 1) {
             // If there is only one filter it should be the only option
             // create retention sql

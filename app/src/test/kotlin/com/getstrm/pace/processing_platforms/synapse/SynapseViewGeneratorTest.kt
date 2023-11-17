@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.SqlStatement
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
 import com.getstrm.pace.namedField
 import com.getstrm.pace.processing_platforms.databricks.SynapseViewGenerator
 import com.getstrm.pace.toPrincipal
@@ -596,19 +597,15 @@ from mycatalog.my_schema.gddemo;"""
     }
 
     @Test
-    fun `single condion`() {
+    fun `single generic condition`() {
         val f = GenericFilter.newBuilder()
             .addAllConditions(listOf(
                 GenericFilter.Condition.newBuilder()
-                    .addAllPrincipals(listOf(
-                        Principal.newBuilder().setGroup("fraud_and_risk").build(),
-                    ))
+                    .addAllPrincipals(groupPrincipals("fraud_and_risk"))
                     .setCondition("1=1")
                     .build(),
                 GenericFilter.Condition.newBuilder()
-                    .addAllPrincipals(listOf(
-                        Principal.newBuilder().setGroup("marketing").build(),
-                        Principal.newBuilder().setGroup("sales").build(),))
+                    .addAllPrincipals(groupPrincipals("marketing", "sales"))
                     .setCondition("transactionamount < 100")
                     .build(),
                 GenericFilter.Condition.newBuilder()
@@ -620,5 +617,34 @@ from mycatalog.my_schema.gddemo;"""
         println(sql.toSql())
     }
 
+    @Test
+    fun `single retention condition`() {
+        val f = RetentionFilter.newBuilder()
+            .setField( DataPolicy.Field.newBuilder().addNameParts("ts") )
+            .addAllConditions(
+                listOf(
+                    RetentionFilter.Condition.newBuilder()
+                        .addAllPrincipals(groupPrincipals("fraud_and_risk"))
+                        .build(),
+                    RetentionFilter.Condition.newBuilder()
+                        .addAllPrincipals(groupPrincipals("marketing", "sales"))
+                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(3))
+                        .build(),
+                    RetentionFilter.Condition.newBuilder()
+                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
+                        .build(),
+                    )
+            )
+            .build()
+        val sql = underTest.toCondition(f)
+        println(sql.toSql())
+    }
 
+
+    private fun groupPrincipals(vararg p: String) : List<Principal> =
+        p.map{
+            Principal.newBuilder()
+                .setGroup(it)
+                .build()
+        }
 }
