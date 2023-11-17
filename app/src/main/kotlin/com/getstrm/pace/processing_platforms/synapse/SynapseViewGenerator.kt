@@ -59,9 +59,15 @@ class SynapseViewGenerator(
     override fun toCondition(filter: GenericFilter): Condition {
         val builder = filter.toBuilder()
         builder.conditionsBuilderList.map {
-            it.condition = "(CASE WHEN ${it.condition.let { c -> if (c == "true") "1=1" else c }} THEN 1 ELSE 0 END)"
+            val synapseCondition = it.condition.let { c ->
+                when (c) {
+                    "true" -> "1=1"
+                    "false" -> "1=0"
+                    else -> c
+                }
+            }
+            it.condition = "(CASE WHEN $synapseCondition THEN 1 ELSE 0 END)"
         }
-
         return DSL.condition("1 = ({0})", super.toCondition(builder.build()))
     }
 
@@ -70,17 +76,17 @@ class SynapseViewGenerator(
             headOperation = { condition ->
                 DSL.`when`(
                     toPrincipalCondition(condition.principalsList),
-                    condition.toSynapseRetentionCondition(retention.field),
+                    condition.toSynapseRetentionCondition(),
                 )
             },
             bodyOperation = { conditionStep, condition ->
                 conditionStep.`when`(
                     toPrincipalCondition(condition.principalsList),
-                    condition.toSynapseRetentionCondition(retention.field),
+                    condition.toSynapseRetentionCondition(),
                 )
             },
             tailOperation = { conditionStep, condition ->
-                conditionStep.otherwise(condition.toSynapseRetentionCondition(retention.field))
+                conditionStep.otherwise(condition.toSynapseRetentionCondition())
             },
         )
 
@@ -98,7 +104,7 @@ class SynapseViewGenerator(
         return DSL.condition(retentionClause)
     }
 
-    fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toSynapseRetentionCondition(field: DataPolicy.Field): JooqField<Int> {
+    private fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toSynapseRetentionCondition(): JooqField<Int> {
         return if (this.hasPeriod()) {
             DSL.field("{0}", Int::class.java, this.period.days)
         } else {
