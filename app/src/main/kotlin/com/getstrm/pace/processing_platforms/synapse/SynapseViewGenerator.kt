@@ -1,6 +1,8 @@
 package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.UNIMPLEMENTED
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
@@ -32,5 +34,39 @@ class SynapseViewGenerator(
                 }
             )
         }
+    }
+
+    /**
+
+    where
+    -- use exclude all groups that have already passed
+    where
+    1 = (case
+    when (IS_ROLEMEMBER('fraud_and_risk') = 1) then (case when 1=1 then 1 else 0 end)
+    else (case when transactionamount < 100 then 1 else 0 end) end)
+    and
+    DATEADD(day, (
+    select case
+    when IS_ROLEMEMBER('fraud_and_risk') = 1 then 10000
+    when IS_ROLEMEMBER('marketing') = 1 then 3
+    else 10 end
+    ), ts) > CURRENT_TIMESTAMP
+     */
+    override fun createWhereStatement(ruleSet: DataPolicy.RuleSet): List<Condition> {
+        ruleSet.filtersList.filter { it.filterCase == GENERIC_FILTER }
+        TODO()
+    }
+
+    override fun toCondition(filter: GenericFilter): Condition {
+        val c = super.toCondition(with(filter.toBuilder()) {
+            conditionsList.map {
+                with(it.toBuilder()) {
+                    condition = "(CASE WHEN $condition THEN 1 ELSE 0 END )"
+                    build()
+                }
+            }
+            build()
+        })
+        return c
     }
 }

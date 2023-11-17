@@ -1,6 +1,8 @@
 package com.getstrm.pace.processing_platforms.synapse
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.SqlStatement
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import com.getstrm.pace.namedField
 import com.getstrm.pace.processing_platforms.databricks.SynapseViewGenerator
@@ -52,7 +54,7 @@ class SynapseViewGeneratorTest {
     @Test
     fun `principal check without any principals`() {
         // Given
-        val principals = emptyList<DataPolicy.Principal>()
+        val principals = emptyList<Principal>()
 
         // When
         val condition = underTest.toPrincipalCondition(principals)
@@ -186,14 +188,14 @@ class SynapseViewGeneratorTest {
             .addAllConditions(
                 listOf(
                     DataPolicy.RuleSet.Filter.RetentionFilter.Condition.newBuilder()
-                        .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("marketing"))
+                        .addPrincipals(Principal.newBuilder().setGroup("marketing"))
                         .setPeriod(DataPolicy.RuleSet.Filter.RetentionFilter.Period.newBuilder().setDays(5))
                         .build(),
                     DataPolicy.RuleSet.Filter.RetentionFilter.Condition.newBuilder()
-                        .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("fraud-and-risk"))
+                        .addPrincipals(Principal.newBuilder().setGroup("fraud-and-risk"))
                         .build(),
                     DataPolicy.RuleSet.Filter.RetentionFilter.Condition.newBuilder()
-                        .addPrincipals(DataPolicy.Principal.getDefaultInstance())
+                        .addPrincipals(Principal.getDefaultInstance())
                         .setPeriod(DataPolicy.RuleSet.Filter.RetentionFilter.Period.newBuilder().setDays(10))
                         .build()
                 )
@@ -592,4 +594,31 @@ from mycatalog.my_schema.gddemo;"""
                             days: 0
         """.trimIndent().yaml2json().parseDataPolicy()
     }
+
+    @Test
+    fun `single condion`() {
+        val f = GenericFilter.newBuilder()
+            .addAllConditions(listOf(
+                GenericFilter.Condition.newBuilder()
+                    .addAllPrincipals(listOf(
+                        Principal.newBuilder().setGroup("fraud_and_risk").build(),
+                    ))
+                    .setCondition("1=1")
+                    .build(),
+                GenericFilter.Condition.newBuilder()
+                    .addAllPrincipals(listOf(
+                        Principal.newBuilder().setGroup("marketing").build(),
+                        Principal.newBuilder().setGroup("sales").build(),))
+                    .setCondition("transactionamount < 100")
+                    .build(),
+                GenericFilter.Condition.newBuilder()
+                    .setCondition("transactionamount < 10")
+                    .build()
+            ))
+            .build()
+        val sql = underTest.toCondition(f)
+        println(sql.toSql())
+    }
+
+
 }
