@@ -1,3 +1,10 @@
+# [1.0.0-alpha.24](https://github.com/getstrm/pace/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) (2023-11-17)
+
+
+### Features
+
+* **pace-10:** do not apply data policies by default when upserting ([#58](https://github.com/getstrm/pace/issues/58)) ([0be8b70](https://github.com/getstrm/pace/commit/0be8b706d43e608fd137315dd782eac219e15bc1))
+
 # [1.0.0-alpha.23](https://github.com/getstrm/pace/compare/v1.0.0-alpha.22...v1.0.0-alpha.23) (2023-11-17)
 
 
