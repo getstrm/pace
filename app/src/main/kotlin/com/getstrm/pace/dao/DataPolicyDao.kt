@@ -4,10 +4,10 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.jooq.generated.tables.DataPolicies.Companion.DATA_POLICIES
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.util.toApiDataPolicy
 import com.getstrm.pace.util.toJsonbWithDefaults
 import com.getstrm.pace.util.toOffsetDateTime
 import com.getstrm.pace.util.toTimestamp
-import com.google.protobuf.util.JsonFormat
 import com.google.rpc.BadRequest
 import org.jooq.DSLContext
 import org.springframework.stereotype.Component
@@ -19,36 +19,29 @@ class DataPolicyDao(
     private val jooq: DSLContext,
 ) {
 
-    fun listDataPolicies(): List<DataPolicy> = jooq.select()
+    fun listDataPolicies(): List<DataPoliciesRecord> = jooq.select()
         .from(DATA_POLICIES)
         .where(DATA_POLICIES.ACTIVE.isTrue)
-        .fetchInto(DATA_POLICIES).map { it.toApiDataPolicy() }
+        .fetchInto(DATA_POLICIES)
 
-    fun upsertDataPolicy(dataPolicy: DataPolicy, incrementVersion: Boolean): DataPolicy {
+    fun upsertDataPolicy(dataPolicy: DataPolicy): DataPoliciesRecord {
         val id = dataPolicy.id.ifBlank { dataPolicy.source.ref }
         val oldPolicy = getActiveDataPolicy(id, dataPolicy.platform.id)?.also {
             checkStaleness(it.version!!, dataPolicy.metadata.version)
-            if (incrementVersion) {
-                deactivateDataPolicy(it)
-            }
+            deactivateDataPolicy(it)
         }
-        val versionToStore = if (incrementVersion) {
-            oldPolicy?.version?.plus(1) ?: 1
-        } else {
-            dataPolicy.metadata.version
-        }
-
+        val newVersion = oldPolicy?.version?.plus(1) ?: 1
         val updateTimestamp = OffsetDateTime.now()
         val updatedPolicy = dataPolicy.toBuilder()
             .setId(id)
             .setMetadata(
                 dataPolicy.metadata.toBuilder()
-                    .setVersion(versionToStore)
+                    .setVersion(newVersion)
                     .setUpdateTime(updateTimestamp.toTimestamp())
                     .setCreateTime((oldPolicy?.createdAt ?: updateTimestamp).toTimestamp())
             ).build()
 
-        jooq.newRecord(DATA_POLICIES).apply {
+        return jooq.newRecord(DATA_POLICIES).apply {
             this.policy = updatedPolicy.toJsonbWithDefaults()
             this.id = updatedPolicy.id
             this.platformId = updatedPolicy.platform.id
@@ -61,14 +54,27 @@ class DataPolicyDao(
         }.also {
             it.store()
         }
-
-        return updatedPolicy
     }
 
-    fun getLatestDataPolicy(id: String, platformId: String): DataPolicy? =
-        getActiveDataPolicy(id, platformId)?.toApiDataPolicy()
+    fun applyDataPolicy(dataPolicy: DataPoliciesRecord): DataPoliciesRecord {
+        val now = OffsetDateTime.now()
+        val updatedApiDataPolicy = with(dataPolicy.toApiDataPolicy()) {
+            toBuilder()
+                .setMetadata(
+                    metadata.toBuilder()
+                        .setUpdateTime(now.toTimestamp())
+                        .setLastApplyTime(now.toTimestamp())
+                ).build()
+        }
+        return dataPolicy.apply {
+            this.policy = updatedApiDataPolicy.toJsonbWithDefaults()
+            this.updatedAt = now
+        }.also {
+            it.store()
+        }
+    }
 
-    private fun getActiveDataPolicy(id: String, platformId: String): DataPoliciesRecord? = jooq.select()
+    fun getActiveDataPolicy(id: String, platformId: String): DataPoliciesRecord? = jooq.select()
         .from(DATA_POLICIES)
         .where(DATA_POLICIES.ID.eq(id))
         .and(DATA_POLICIES.PLATFORM_ID.eq(platformId))
@@ -100,12 +106,5 @@ class DataPolicyDao(
             .where(DATA_POLICIES.ID.eq(dataPolicy.id))
             .and(DATA_POLICIES.VERSION.eq(dataPolicy.version))
             .execute()
-    }
-}
-
-fun DataPoliciesRecord?.toApiDataPolicy(): DataPolicy? = this?.policy?.let {
-    with(DataPolicy.newBuilder()) {
-        JsonFormat.parser().ignoringUnknownFields().merge(it.data(), this)
-        build()
     }
 }
