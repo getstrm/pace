@@ -1,7 +1,12 @@
 package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.*
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Detokenize
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Fixed
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Hash
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Regexp
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.SqlStatement
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
@@ -36,10 +41,12 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
                 DSL.`val`(regexp.regexp),
             )
         } else {
-            DSL.regexpReplaceAll(
-                DSL.field(field.fullName(), String::class.java),
-                regexp.regexp,
-                regexp.replacement,
+            DSL.field(
+                "regexp_replace({0}, {1}, {2})",
+                String::class.java,
+                DSL.unquotedName(field.fullName()),
+                DSL.`val`(regexp.regexp),
+                DSL.`val`(regexp.replacement),
             )
         }
 
@@ -50,15 +57,24 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
         fixedDataTypeMatchesFieldType(fixed.value, field)
     }
 
+    // Fixme: hash implementations differ significantly between platforms and are often limited to a single (output) type. We may need casting etc.
     fun hash(
         field: DataPolicy.Field,
         hash: Hash
-    ): JooqField<*> = DSL.field(
-        "hash({0}, {1})",
-        Any::class.java,
-        DSL.`val`(hash.seed),
-        DSL.unquotedName(field.fullName()),
-    )
+    ): JooqField<*> = if (hash.hasSeed()) {
+        DSL.field(
+            "hash({0}, {1})",
+            Any::class.java,
+            DSL.`val`(hash.seed),
+            DSL.unquotedName(field.fullName()),
+        )
+    } else {
+        DSL.field(
+            "hash({0})",
+            Any::class.java,
+            DSL.unquotedName(field.fullName()),
+        )
+    }
 
     fun sqlStatement(
         parser: Parser,

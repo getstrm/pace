@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.namedField
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
 import com.getstrm.pace.toPrincipal
@@ -24,59 +25,45 @@ class SnowflakeViewGeneratorTest {
     }
 
     @Test
-    fun `fixed value transform with multiple principals`() {
+    fun `principal check with multiple principals`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("ANALYTICS", "MARKETING").toPrincipals())
-            .build()
+        val principals = listOf("ANALYTICS", "MARKETING").toPrincipals()
 
         // When
-        val (condition, field) = underTest.toCase(transform, attribute)
+        val condition = underTest.toPrincipalCondition(principals)
 
         // Then
         condition!!.toSql() shouldBe "((IS_ROLE_IN_SESSION('ANALYTICS')) or (IS_ROLE_IN_SESSION('MARKETING')))"
-        field.toSql() shouldBe "'****'"
     }
 
     @Test
-    fun `fixed value transform with a single principal`() {
+    fun `principal check with a single principal`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addPrincipals("MARKETING".toPrincipal())
-            .build()
+        val principals = listOf("ANALYTICS").toPrincipals()
 
         // When
-        val (condition, field) = underTest.toCase(transform, attribute)
+        val condition = underTest.toPrincipalCondition(principals)
 
         // Then
-        condition!!.toSql() shouldBe "(IS_ROLE_IN_SESSION('MARKETING'))"
-        field.toSql() shouldBe "'****'"
+        condition!!.toSql() shouldBe "(IS_ROLE_IN_SESSION('ANALYTICS'))"
     }
 
     @Test
-    fun `fixed value transform without principals`() {
+    fun `principal check without any principals`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .build()
+        val principals = emptyList<DataPolicy.Principal>()
 
         // When
-        val (condition, field) = underTest.toCase(transform, attribute)
+        val condition = underTest.toPrincipalCondition(principals)
 
         // Then
         condition.shouldBeNull()
-        field.toSql() shouldBe "'****'"
     }
 
     @Test
     fun `field transform with a few transforms`() {
         // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val field = namedField("email", "string")
         val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addAllPrincipals(listOf("ANALYTICS", "MARKETING").toPrincipals())
@@ -227,7 +214,7 @@ grant SELECT on public.demo_view to marketing;"""
     }
 
     @Test
-    fun `transform test all transforms`() {
+    fun `transform test various transforms`() {
         // Given
         underTest = SnowflakeViewGenerator(dataPolicy) { withRenderFormatted(true) }
         underTest.toDynamicViewSQL()

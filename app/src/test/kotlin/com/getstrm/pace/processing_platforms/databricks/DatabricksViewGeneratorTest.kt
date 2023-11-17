@@ -2,6 +2,7 @@ package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
+import com.getstrm.pace.namedField
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
@@ -24,76 +25,45 @@ class DatabricksViewGeneratorTest {
     }
 
     @Test
-    fun `fixed string value transform with multiple principals`() {
+    fun `principal check with multiple principals`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
-            .build()
+        val principals = listOf("analytics", "marketing").toPrincipals()
 
         // When
-        val (condition, field) = underTest.toCase(transform, attribute)
+        val condition = underTest.toPrincipalCondition(principals)
 
         // Then
         condition!!.toSql() shouldBe "((is_account_group_member('analytics')) or (is_account_group_member('marketing')))"
-        field shouldBe DSL.`val`("****")
     }
 
     @Test
-    fun `fixed string value transform with a single principal`() {
+    fun `principal check with a single principal`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addPrincipals("analytics".toPrincipal())
-            .build()
+        val principals = listOf("analytics").toPrincipals()
 
         // When
-        val (condition, field) = underTest.toCase(transform, attribute)
+        val condition = underTest.toPrincipalCondition(principals)
 
         // Then
         condition!!.toSql() shouldBe "(is_account_group_member('analytics'))"
-        field shouldBe DSL.`val`("****")
     }
 
     @Test
-    fun `fixed integer value transform`() {
+    fun `principal check without any principals`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("userId").setType("int").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("123"))
-            .addPrincipals("analytics".toPrincipal())
-            .build()
+        val principals = emptyList<DataPolicy.Principal>()
 
         // When
-        val (condition, field) = underTest.toCase(transform, attribute)
-
-        // Then
-        condition!!.toSql() shouldBe "(is_account_group_member('analytics'))"
-        field shouldBe DSL.`val`(123)
-    }
-
-    @Test
-    fun `fixed string value transform without principals`() {
-        // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .build()
-
-        // When
-        val (condition, field) = underTest.toCase(transform, attribute)
+        val condition = underTest.toPrincipalCondition(principals)
 
         // Then
         condition.shouldBeNull()
-        field shouldBe DSL.`val`("****")
     }
 
     @Test
     fun `field transform with three transforms`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val attribute = namedField("email", "string")
         val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addAllPrincipals(listOf("marketing", "analytics").toPrincipals())
@@ -121,7 +91,7 @@ class DatabricksViewGeneratorTest {
     @Test
     fun `field transform with two transforms`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val attribute = namedField("email", "string")
         val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addPrincipals("analytics".toPrincipal())
@@ -144,7 +114,7 @@ class DatabricksViewGeneratorTest {
     @Test
     fun `field transform with single transform`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").build()
+        val attribute = namedField("email")
         val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setRegexp(
                 DataPolicy.RuleSet.FieldTransform.Transform.Regexp.newBuilder().setRegexp("^.*(@.*)$")
@@ -166,94 +136,12 @@ class DatabricksViewGeneratorTest {
     @Test
     fun `field with no transform`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").build()
+        val attribute = namedField("email")
 
         // When
         val field = underTest.toJooqField(attribute, null)
 
         // Then
-        field shouldBe DSL.field("email")
-    }
-
-    @Test
-    fun `regex replace transform without principals`() {
-        // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setRegexp(
-                DataPolicy.RuleSet.FieldTransform.Transform.Regexp.newBuilder().setRegexp("^.*(@.*)$")
-                    .setReplacement("****$1")
-            )
-            .build()
-
-        // When
-        val (condition, field) = underTest.toCase(transform, attribute)
-
-        // Then
-        condition.shouldBeNull()
-        field.toSql() shouldBe "regexp_replace(email, '^.*(@.*)\$', '****\$1')"
-    }
-
-    @Test
-    fun `regex extract transform with a principal`() {
-        // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setRegexp(DataPolicy.RuleSet.FieldTransform.Transform.Regexp.newBuilder().setRegexp("^.*(@.*)$"))
-            .addPrincipals("data-science".toPrincipal())
-            .build()
-
-        // When
-        val (condition, field) = underTest.toCase(transform, attribute)
-
-        // Then
-        condition shouldBe DSL.condition("is_account_group_member('data-science')")
-        field.toSql() shouldBe "regexp_extract(email, '^.*(@.*)\$')"
-    }
-
-    @Test
-    fun `nullify transform with a principal`() {
-        // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setRegexp(DataPolicy.RuleSet.FieldTransform.Transform.Regexp.newBuilder().setRegexp("^.*(@.*)$"))
-            .addPrincipals("data-science".toPrincipal())
-            .build()
-
-        // When
-        val (condition, field) = underTest.toCase(transform, attribute)
-
-        // Then
-        condition shouldBe DSL.condition("is_account_group_member('data-science')")
-        field.toSql() shouldBe "regexp_extract(email, '^.*(@.*)\$')"
-    }
-
-    @Test
-    fun `hash transform without a principal`() {
-        // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("userId").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setHash(DataPolicy.RuleSet.FieldTransform.Transform.Hash.newBuilder().setSeed(1234))
-            .build()
-
-        // When
-        val (condition, field) = underTest.toCase(transform, attribute)
-
-        // Then
-        condition.shouldBeNull()
-        field.toSql() shouldBe "hash(1234, userId)"
-    }
-
-    @Test
-    fun `attribute without transform`() {
-        // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").build()
-
-        // When
-        val (condition, field) = underTest.toCase(null, attribute)
-
-        // Then
-        condition.shouldBeNull()
         field shouldBe DSL.field("email")
     }
 
@@ -378,7 +266,7 @@ where (
     }
 
     @Test
-    fun `transform test all transforms`() {
+    fun `transform test various transforms`() {
         underTest = DatabricksViewGenerator(dataPolicy) { withRenderFormatted(true) }
         underTest.toDynamicViewSQL()
             .shouldBe(

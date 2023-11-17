@@ -5,6 +5,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.namedField
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
@@ -21,103 +22,45 @@ class PostgresViewGeneratorTest {
     private val underTest = PostgresViewGenerator(dataPolicy)
 
     @Test
-    fun `fixed value transform with multiple principals`() {
+    fun `principal check with multiple principals`() {
         // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
-            .build()
+        val principals = listOf("analytics", "marketing").toPrincipals()
 
         // When
-        val (condition, jooqField) = underTest.toCase(transform, field)
+        val condition = underTest.toPrincipalCondition(principals)
 
         // Then
         condition!!.toSql() shouldBe "(('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups )))"
-        jooqField.toSql() shouldBe "'****'"
     }
 
     @Test
-    fun `fixed value transform with a single principal`() {
+    fun `principal check with a single principal`() {
         // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("analytics").toPrincipals())
-            .build()
+        val principals = listOf("analytics").toPrincipals()
 
         // When
-        val (condition, jooqField) = underTest.toCase(transform, field)
+        val condition = underTest.toPrincipalCondition(principals)
 
         // Then
         condition!!.toSql() shouldBe "('analytics' IN ( SELECT rolname FROM user_groups ))"
-        jooqField.toSql() shouldBe "'****'"
     }
 
     @Test
-    fun `fixed value transform without principals`() {
+    fun `principal check without any principals`() {
         // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .build()
+        val principals = emptyList<DataPolicy.Principal>()
 
         // When
-        val (condition, jooqField) = underTest.toCase(transform, field)
+        val condition = underTest.toPrincipalCondition(principals)
 
         // Then
         condition.shouldBeNull()
-        jooqField.toSql() shouldBe "'****'"
-    }
-
-    @Test
-    fun `test detokenize condition`() {
-        // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("user_id_token").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setDetokenize(
-                DataPolicy.RuleSet.FieldTransform.Transform.Detokenize.newBuilder()
-                    .setTokenSourceRef("public.user_id_tokens")
-                    .setTokenField(DataPolicy.Field.newBuilder().addNameParts("token"))
-                    .setValueField(DataPolicy.Field.newBuilder().addNameParts("user_id"))
-            )
-            .addPrincipals("analytics".toPrincipal())
-            .build()
-
-        // When
-        val (condition, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        condition!!.toSql() shouldBe "('analytics' IN ( SELECT rolname FROM user_groups ))"
-        jooqField.toSql() shouldBe "coalesce(public.user_id_tokens.user_id, public.demo.user_id_token)"
-    }
-
-    @Test
-    fun `test detokenize condition without schema in token source ref`() {
-        // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("user_id_token").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setDetokenize(
-                DataPolicy.RuleSet.FieldTransform.Transform.Detokenize.newBuilder()
-                    .setTokenSourceRef("user_id_tokens")
-                    .setTokenField(DataPolicy.Field.newBuilder().addNameParts("token"))
-                    .setValueField(DataPolicy.Field.newBuilder().addNameParts("user_id"))
-            )
-            .addPrincipals("analytics".toPrincipal())
-            .build()
-
-        // When
-        val (condition, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        condition!!.toSql() shouldBe "('analytics' IN ( SELECT rolname FROM user_groups ))"
-        jooqField.toSql() shouldBe "coalesce(user_id_tokens.user_id, public.demo.user_id_token)"
     }
 
     @Test
     fun `field transform with a few transforms`() {
         // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val field = namedField("email", "string")
         val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
@@ -170,31 +113,6 @@ class PostgresViewGeneratorTest {
 
         // Then
         condition.toSql() shouldBe "case when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then age > 18 else false end"
-    }
-
-    @Test
-    fun `fixed value data type should match the attribute data type`() {
-        // Given an attribute and a transform
-        val field = DataPolicy.Field.newBuilder().addNameParts("age").setType("integer").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .build()
-
-        // When the transform is rendered as case
-        val exception = assertThrows<BadRequestException> { underTest.toCase(transform, field) }
-
-        // Then
-        exception.code shouldBe BadRequestException.Code.INVALID_ARGUMENT
-        exception.badRequest shouldBe BadRequest.newBuilder()
-            .addAllFieldViolations(
-                listOf(
-                    BadRequest.FieldViolation.newBuilder()
-                        .setField("dataPolicy.ruleSetsList.fieldTransformsList.fixed")
-                        .setDescription("Data type of fixed value provided for field age does not match the data type of the field")
-                        .build()
-                )
-            )
-            .build()
     }
 
     @Test
@@ -313,66 +231,6 @@ where (
 );
 grant SELECT on public.demo_view to "fraud_and_risk";
 grant SELECT on public.demo_view to "marketing";"""
-    }
-
-    @Test
-    fun `numeric rounding - ceil`() {
-        // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("transactionamount").setType("integer").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setNumericRounding(
-                DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.newBuilder()
-                    .setCeil(
-                        DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Ceil.newBuilder().setDivisor(200f)
-                    )
-            )
-            .build()
-
-        // When
-        val (_, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        jooqField.toSql() shouldBe "(ceil((transactionamount / 2E2)) * 2E2)"
-    }
-
-    @Test
-    fun `numeric rounding - floor`() {
-        // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("transactionamount").setType("float").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setNumericRounding(
-                DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.newBuilder()
-                    .setFloor(
-                        DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Floor.newBuilder().setDivisor(-200f)
-                    )
-            )
-            .build()
-
-        // When
-        val (_, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        jooqField.toSql() shouldBe "(floor((transactionamount / -2E2)) * -2E2)"
-    }
-
-    @Test
-    fun `numeric rounding - round`() {
-        // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("transactionamount").setType("float").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setNumericRounding(
-                DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.newBuilder()
-                    .setRound(
-                        DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Round.newBuilder().setPrecision(-1)
-                    )
-            )
-            .build()
-
-        // When
-        val (_, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        jooqField.toSql() shouldBe "round(transactionamount, -1)"
     }
 
     @Test

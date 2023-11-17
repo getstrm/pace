@@ -20,12 +20,18 @@ import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
 // We wrap the field in a select to get a sql with bound values
+// Note: this is uses default settings (e.g. dialect).
 fun Field<*>.toSql(): String = DSL.select(this).getSQL(ParamType.INLINED).removePrefix("select ")
+
+fun namedField(name: String, type: String? = null): DataPolicy.Field = DataPolicy.Field.newBuilder()
+    .addNameParts(name).apply {
+        if (type != null) setType(type)
+    }.build()
 
 class TestDynamicViewGenerator(dataPolicy: DataPolicy) : ProcessingPlatformViewGenerator(dataPolicy) {
     override val jooq: DSLContext = DSL.using(SQLDialect.DEFAULT)
 
-    override fun List<DataPolicy.Principal>.toPrincipalCondition(): Condition? {
+    override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
         return null
     }
 

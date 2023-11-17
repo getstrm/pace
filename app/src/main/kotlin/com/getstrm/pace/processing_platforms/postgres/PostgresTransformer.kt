@@ -15,7 +15,7 @@ class PostgresTransformer : ProcessingPlatformTransformer {
     ): Field<*> =
         if (regexp.replacement.isNullOrEmpty()) {
             DSL.field(
-                "regexp_extract({0}, {1})",
+                "substring({0} from {1})",
                 String::class.java,
                 DSL.unquotedName(field.fullName()),
                 DSL.`val`(regexp.regexp),
@@ -25,8 +25,8 @@ class PostgresTransformer : ProcessingPlatformTransformer {
             val replacementWithBackslashNotation = regexp.replacement.replace(CAPTURING_GROUP_REGEX, """\\$1""")
             DSL.regexpReplaceAll(
                 DSL.field(field.fullName(), String::class.java),
-                regexp.regexp,
-                replacementWithBackslashNotation,
+                DSL.`val`(regexp.regexp),
+                DSL.`val`(replacementWithBackslashNotation),
             )
         }
 }

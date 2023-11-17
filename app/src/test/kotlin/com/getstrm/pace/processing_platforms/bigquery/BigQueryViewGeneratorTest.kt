@@ -4,7 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
-import com.getstrm.pace.toPrincipal
+import com.getstrm.pace.namedField
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
 import com.getstrm.pace.util.parseDataPolicy
@@ -12,7 +12,6 @@ import com.getstrm.pace.util.yaml2json
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.intellij.lang.annotations.Language
-import org.jooq.impl.DSL
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -29,81 +28,45 @@ class BigQueryViewGeneratorTest {
     }
 
     @Test
-    fun `fixed value transform with multiple principals`() {
+    fun `principal check with multiple principals`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("ANALYTICS", "MARKETING").map { Principal.newBuilder().setGroup(it).build() })
-            .build()
+        val principals = listOf("ANALYTICS", "MARKETING").toPrincipals()
 
-        // when
-        val (condition, field) = underTest.toCase(transform, attribute)
+        // When
+        val condition = underTest.toPrincipalCondition(principals)
 
         // Then
         condition!!.toSql() shouldBe "(('ANALYTICS' IN ( SELECT userGroup FROM user_groups )) or ('MARKETING' IN ( SELECT userGroup FROM user_groups )))"
-        field shouldBe DSL.`val`("****")
     }
 
     @Test
-    fun `fixed value transform with a single principal`() {
+    fun `principal check with a single principal`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addPrincipals("MARKETING".toPrincipal())
-            .build()
+        val principals = listOf("ANALYTICS").toPrincipals()
 
-        // when
-        val (condition, field) = underTest.toCase(transform, attribute)
+        // When
+        val condition = underTest.toPrincipalCondition(principals)
 
         // Then
-        condition!!.toSql() shouldBe "('MARKETING' IN ( SELECT userGroup FROM user_groups ))"
-        field shouldBe DSL.`val`("****")
+        condition!!.toSql() shouldBe "('ANALYTICS' IN ( SELECT userGroup FROM user_groups ))"
     }
 
     @Test
-    fun `fixed value transform without principals`() {
+    fun `principal check without any principals`() {
         // Given
-        val attribute = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .build()
+        val principals = emptyList<Principal>()
 
-        // when
-        val (condition, field) = underTest.toCase(transform, attribute)
+        // When
+        val condition = underTest.toPrincipalCondition(principals)
 
         // Then
         condition.shouldBeNull()
-        field shouldBe DSL.`val`("****")
-    }
-
-    @Test
-    fun `test detokenize condition`() {
-        // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("user_id_token").setType("string").build()
-        val transform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setDetokenize(
-                DataPolicy.RuleSet.FieldTransform.Transform.Detokenize.newBuilder()
-                    .setTokenSourceRef("google-project-id.users_dataset.user_id_tokens")
-                    .setTokenField(DataPolicy.Field.newBuilder().addNameParts("token"))
-                    .setValueField(DataPolicy.Field.newBuilder().addNameParts("user_id"))
-            )
-            .addPrincipals("analytics".toPrincipal())
-            .build()
-
-        // When
-        val (condition, jooqField) = underTest.toCase(transform, field)
-
-        // Then
-        condition!!.toSql() shouldBe "('analytics' IN ( SELECT userGroup FROM user_groups ))"
-        jooqField.toSql() shouldBe "coalesce(`google-project-id.users_dataset.user_id_tokens`.user_id, `my-project.my_dataset.my_source_table`.user_id_token)"
     }
 
     @Test
     fun `field transform with a few transforms`() {
         // Given
-        val field = DataPolicy.Field.newBuilder().addNameParts("email").setType("string").build()
+        val field = namedField("email", "string")
         val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addAllPrincipals(listOf("ANALYTICS", "MARKETING").toPrincipals())
