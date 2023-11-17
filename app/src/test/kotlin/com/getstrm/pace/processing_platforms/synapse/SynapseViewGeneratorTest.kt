@@ -2,7 +2,6 @@ package com.getstrm.pace.processing_platforms.synapse
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.SqlStatement
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
 import com.getstrm.pace.namedField
@@ -74,7 +73,7 @@ class SynapseViewGeneratorTest {
             .build()
         val otherFixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("REDACTED EMAIL"))
-            .addAllPrincipals(listOf("fraud-and-risk").toPrincipals())
+            .addAllPrincipals(listOf("fraud_and_risk").toPrincipals())
             .build()
         val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
             .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("stoelpoot"))
@@ -88,7 +87,7 @@ class SynapseViewGeneratorTest {
         val field = underTest.toJooqField(attribute, fieldTransform)
 
         // Then
-        field.toSql() shouldBe "case when ((IS_ROLEMEMBER('marketing')=1) or (IS_ROLEMEMBER('analytics')=1)) then '****' when (IS_ROLEMEMBER('fraud-and-risk')=1) then " +
+        field.toSql() shouldBe "case when ((IS_ROLEMEMBER('marketing')=1) or (IS_ROLEMEMBER('analytics')=1)) then '****' when (IS_ROLEMEMBER('fraud_and_risk')=1) then " +
                 "'REDACTED EMAIL' else 'stoelpoot' end \"email\""
     }
 
@@ -158,7 +157,7 @@ class SynapseViewGeneratorTest {
                     .addAllConditions(
                         listOf(
                             GenericFilter.Condition.newBuilder()
-                                .addAllPrincipals(listOf("fraud-and-risk").toPrincipals())
+                                .addAllPrincipals(listOf("fraud_and_risk").toPrincipals())
                                 .setCondition("true")
                                 .build(),
                             GenericFilter.Condition.newBuilder()
@@ -177,27 +176,26 @@ class SynapseViewGeneratorTest {
         val condition = underTest.toCondition(filter.genericFilter)
 
         // Then
-        condition.toSql() shouldBe "case when (IS_ROLEMEMBER('fraud-and-risk')=1) then true when ((IS_ROLEMEMBER('analytics')=1) or (IS_ROLEMEMBER('marketing')=1)) " +
-                "then age > 18 else false end"
+        condition.toSql() shouldBe "(1 = (case when (IS_ROLEMEMBER('fraud_and_risk')=1) then (CASE WHEN 1=1 THEN 1 ELSE 0 END) when ((IS_ROLEMEMBER('analytics')=1) or (IS_ROLEMEMBER('marketing')=1)) then (CASE WHEN age > 18 THEN 1 ELSE 0 END) else (CASE WHEN 1=0 THEN 1 ELSE 0 END) end))"
     }
 
     @Test
     fun `single retention to condition`() {
         // Given
-        val retention = DataPolicy.RuleSet.Filter.RetentionFilter.newBuilder()
+        val retention = RetentionFilter.newBuilder()
             .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
             .addAllConditions(
                 listOf(
-                    DataPolicy.RuleSet.Filter.RetentionFilter.Condition.newBuilder()
+                    RetentionFilter.Condition.newBuilder()
                         .addPrincipals(Principal.newBuilder().setGroup("marketing"))
-                        .setPeriod(DataPolicy.RuleSet.Filter.RetentionFilter.Period.newBuilder().setDays(5))
+                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(5))
                         .build(),
-                    DataPolicy.RuleSet.Filter.RetentionFilter.Condition.newBuilder()
-                        .addPrincipals(Principal.newBuilder().setGroup("fraud-and-risk"))
+                    RetentionFilter.Condition.newBuilder()
+                        .addPrincipals(Principal.newBuilder().setGroup("fraud_and_risk"))
                         .build(),
-                    DataPolicy.RuleSet.Filter.RetentionFilter.Condition.newBuilder()
+                    RetentionFilter.Condition.newBuilder()
                         .addPrincipals(Principal.getDefaultInstance())
-                        .setPeriod(DataPolicy.RuleSet.Filter.RetentionFilter.Period.newBuilder().setDays(10))
+                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
                         .build()
                 )
             ).build()
@@ -207,7 +205,11 @@ class SynapseViewGeneratorTest {
 
         // Then
         condition.toSql() shouldBe """
-            case when (IS_ROLEMEMBER('marketing')=1) then dateadd(day, 5, timestamp) > current_timestamp when (IS_ROLEMEMBER('fraud-and-risk')=1) then true else dateadd(day, 10, timestamp) > current_timestamp end""".trimIndent()
+            dateadd(day, (case
+              when (IS_ROLEMEMBER('marketing')=1) then 5
+              when (IS_ROLEMEMBER('fraud_and_risk')=1) then 10000
+              else 10
+            end), timestamp) > current_timestamp""".trimIndent()
     }
 
     @Test
@@ -226,19 +228,19 @@ select
   transactionamount
 from public.demo_tokenized
 where (
-  case
-    when (IS_ROLEMEMBER('fraud-and-risk')=1) then true
-    else transactionamount < 10
-  end
-  and case
-    when (IS_ROLEMEMBER('marketing')=1) then dateadd(day, 5, ts) > current_timestamp
-    when (IS_ROLEMEMBER('fraud-and-risk')=1) then true
-    else dateadd(day, 10, ts) > current_timestamp
-  end
-  and case
-    when (IS_ROLEMEMBER('fraud-and-risk')=1) then dateadd(day, 365, validThrough) > current_timestamp
-    else dateadd(day, 0, validThrough) > current_timestamp
-  end
+  (1 = (case
+    when (IS_ROLEMEMBER('fraud_and_risk')=1) then (CASE WHEN 1=1 THEN 1 ELSE 0 END)
+    else (CASE WHEN transactionamount < 10 THEN 1 ELSE 0 END)
+  end))
+  and dateadd(day, (case
+  when (IS_ROLEMEMBER('marketing')=1) then 5
+  when (IS_ROLEMEMBER('fraud_and_risk')=1) then 10000
+  else 10
+end), ts) > current_timestamp
+  and dateadd(day, (case
+  when (IS_ROLEMEMBER('fraud_and_risk')=1) then 365
+  else 0
+end), validThrough) > current_timestamp
 );"""
     }
 
@@ -257,15 +259,15 @@ select
   transactionamount
 from public.demo_tokenized
 where (
-  case
-    when (IS_ROLEMEMBER('fraud-and-risk')=1) then true
-    else transactionamount < 10
-  end
-  and case
-    when (IS_ROLEMEMBER('marketing')=1) then dateadd(day, 5, ts) > current_timestamp
-    when (IS_ROLEMEMBER('fraud-and-risk')=1) then true
-    else dateadd(day, 10, ts) > current_timestamp
-  end
+  (1 = (case
+    when (IS_ROLEMEMBER('fraud_and_risk')=1) then (CASE WHEN 1=1 THEN 1 ELSE 0 END)
+    else (CASE WHEN transactionamount < 10 THEN 1 ELSE 0 END)
+  end))
+  and dateadd(day, (case
+  when (IS_ROLEMEMBER('marketing')=1) then 5
+  when (IS_ROLEMEMBER('fraud_and_risk')=1) then 10000
+  else 10
+end), ts) > current_timestamp
 );"""
     }
 
@@ -279,7 +281,7 @@ as
 select
   transactionId,
   case
-    when (IS_ROLEMEMBER('fraud-and-risk')=1) then userId
+    when (IS_ROLEMEMBER('fraud_and_risk')=1) then userId
     else hash(1234, userId)
   end userId,
   case
@@ -288,7 +290,7 @@ select
       or (IS_ROLEMEMBER('marketing')=1)
     ) then regexp_replace(email, '^.*(@.*)${'$'}', '****${'$'}1')
     when (
-      (IS_ROLEMEMBER('fraud-and-risk')=1)
+      (IS_ROLEMEMBER('fraud_and_risk')=1)
       or (IS_ROLEMEMBER('admin')=1)
     ) then email
     else '****'
@@ -304,7 +306,7 @@ select
 from mycatalog.my_schema.gddemo
 where (
   case
-    when (IS_ROLEMEMBER('fraud-and-risk')=1) then true
+    when (IS_ROLEMEMBER('fraud_and_risk')=1) then true
     else age > 18
   end
   and case
@@ -327,7 +329,7 @@ as
 select
   transactionId,
   case
-    when (IS_ROLEMEMBER('fraud-and-risk')=1) then userId
+    when (IS_ROLEMEMBER('fraud_and_risk')=1) then userId
     else hash(1234, userId)
   end userId,
   case
@@ -336,7 +338,7 @@ select
       or (IS_ROLEMEMBER('marketing')=1)
     ) then regexp_replace(email, '^.*(@.*)${'$'}', '****${'$'}1')
     when (
-      (IS_ROLEMEMBER('fraud-and-risk')=1)
+      (IS_ROLEMEMBER('fraud_and_risk')=1)
       or (IS_ROLEMEMBER('admin')=1)
     ) then email
     else '****'
@@ -413,7 +415,7 @@ from mycatalog.my_schema.gddemo;"""
                 regexp: '^.*(@.*)${'$'}'
                 replacement: '****${'$'}1'
             - principals:
-                - group: fraud-and-risk
+                - group: fraud_and_risk
                 - group: admin
               identity: {}
             - principals: []
@@ -424,7 +426,7 @@ from mycatalog.my_schema.gddemo;"""
               - userId
           transforms:
             - principals:
-                - group: fraud-and-risk
+                - group: fraud_and_risk
               identity: {}
             - principals: []
               hash:
@@ -449,7 +451,7 @@ from mycatalog.my_schema.gddemo;"""
                 - age
             conditions:
               - principals:
-                  - group: fraud-and-risk
+                  - group: fraud_and_risk
                 condition: "true"
               - principals: []
                 condition: "age > 18"
@@ -508,7 +510,7 @@ from mycatalog.my_schema.gddemo;"""
                 filters:
                   - generic_filter:
                       conditions:
-                        - principals: [ {group: fraud-and-risk} ]
+                        - principals: [ {group: fraud_and_risk} ]
                           condition: "true"
                         - principals : []
                           condition: "transactionamount < 10"
@@ -522,7 +524,7 @@ from mycatalog.my_schema.gddemo;"""
                         - principals: [ {group: marketing} ]
                           period:
                             days: 5
-                        - principals: [ {group: fraud-and-risk} ]
+                        - principals: [ {group: fraud_and_risk} ]
                         - principals: [] 
                           period:
                             days: 10
@@ -562,7 +564,7 @@ from mycatalog.my_schema.gddemo;"""
                 filters:
                   - generic_filter:
                       conditions:
-                        - principals: [ {group: fraud-and-risk} ]
+                        - principals: [ {group: fraud_and_risk} ]
                           condition: "true"
                         - principals : []
                           condition: "transactionamount < 10"
@@ -576,7 +578,7 @@ from mycatalog.my_schema.gddemo;"""
                         - principals: [ {group: marketing} ]
                           period:
                             days: 5
-                        - principals: [ {group: fraud-and-risk} ]
+                        - principals: [ {group: fraud_and_risk} ]
                         - principals: [] 
                           period:
                             days: 10
@@ -587,7 +589,7 @@ from mycatalog.my_schema.gddemo;"""
                         required: true
                         type: timestamp
                       conditions:
-                        - principals: [ {group: fraud-and-risk} ]
+                        - principals: [ {group: fraud_and_risk} ]
                           period:
                             days: 365
                         - principals: [] 

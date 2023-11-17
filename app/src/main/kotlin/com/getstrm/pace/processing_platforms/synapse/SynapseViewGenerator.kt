@@ -108,6 +108,7 @@ class SynapseViewGenerator(
         return if (this.hasPeriod()) {
             DSL.field("{0}", Int::class.java, this.period.days)
         } else {
+            // this virtually represents no retention.
             DSL.field("{0}", Int::class.java, 10000)
         }
     }
