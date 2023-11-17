@@ -42,7 +42,7 @@ class SynapseClient(
     override val type = SYNAPSE
 
     override suspend fun listTables(): List<Table> = jooq.meta().tables
-//        .filter { !schemasToIgnore.contains(it.schema?.name) }
+        .filter { !schemasToIgnore.contains(it.schema?.name) }
         .map { SynapseTable(it) }
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
@@ -61,7 +61,7 @@ class SynapseClient(
 
     companion object {
         // These are built-in Postgres schemas that we don't want to list tables from.
-        private val schemasToIgnore = listOf("information_schema", "pg_catalog")
+        private val schemasToIgnore = listOf("sys", "INFORMATION_SCHEMA")
     }
 }
 
