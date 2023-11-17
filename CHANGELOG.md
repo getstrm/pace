@@ -1,3 +1,15 @@
+# [1.0.0-alpha.23](https://github.com/getstrm/pace/compare/v1.0.0-alpha.22...v1.0.0-alpha.23) (2023-11-17)
+
+
+### Bug Fixes
+
+* **pace-37:** improve regexp transforms and add transformer tests ([#60](https://github.com/getstrm/pace/issues/60)) ([6533005](https://github.com/getstrm/pace/commit/653300514e0496e5505c40599fe0bb2b3232fc57))
+
+
+### Features
+
+* **feature/pace-5:** added displayName for Collibra databases ([b71110e](https://github.com/getstrm/pace/commit/b71110ee4cf0c29f5df8c72fc1e9f5c1d7687f68))
+
 # [1.0.0-alpha.22](https://github.com/getstrm/pace/compare/v1.0.0-alpha.21...v1.0.0-alpha.22) (2023-11-16)
 
 
