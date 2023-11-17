@@ -1,5 +1,10 @@
 components:
   schemas:
+    ApplyDataPolicyResponse:
+      properties:
+        dataPolicy:
+          $ref: '#/components/schemas/DataPolicy'
+      type: object
     BadRequest_FieldViolation:
       description: A message type used to describe a single bad request field.
       properties:
@@ -150,6 +155,10 @@ components:
           format: date-time
           type: string
         description:
+          type: string
+        lastApplyTime:
+          description: The last time the policy was applied to the target(s).
+          format: date-time
           type: string
         tags:
           items:
@@ -596,6 +605,10 @@ components:
       type: object
     UpsertDataPolicyRequest:
       properties:
+        apply:
+          description: "whether to apply the policy directly on the processing platform\n\
+            \ if omitted, defaults to false"
+          type: boolean
         dataPolicy:
           $ref: '#/components/schemas/DataPolicy'
       type: object
@@ -616,7 +629,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.23
+  version: 1.0.0-alpha.24
 openapi: 3.0.3
 paths:
   /catalogs:
@@ -791,8 +804,8 @@ paths:
       tags:
       - DataPoliciesService
     post:
-      description: Creates or updates a DataPolicy in PACE and applies it to the processing
-        platform.
+      description: Creates or updates a DataPolicy in PACE and optionally applies
+        it to the processing platform.
       operationId: DataPoliciesService_UpsertDataPolicy
       requestBody:
         content:
@@ -845,6 +858,36 @@ paths:
                 $ref: '#/components/schemas/Status'
           description: Default error response
       summary: GetDataPolicy
+      tags:
+      - DataPoliciesService
+    post:
+      description: Applies an existing DataPolicy to the processing platform.
+      operationId: DataPoliciesService_ApplyDataPolicy
+      parameters:
+      - in: path
+        name: dataPolicyId
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: platformId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplyDataPolicyResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: ApplyDataPolicy
       tags:
       - DataPoliciesService
   /global-transforms:
