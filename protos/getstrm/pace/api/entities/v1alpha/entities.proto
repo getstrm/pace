@@ -25,6 +25,8 @@ message DataPolicy {
     google.protobuf.Timestamp create_time = 5;
     google.protobuf.Timestamp update_time = 6;
     repeated string tags = 7;
+    // The last time the policy was applied to the target(s).
+    google.protobuf.Timestamp last_apply_time = 8;
   }
 
   message RuleSet {

@@ -9,7 +9,6 @@ import net.devh.boot.grpc.server.service.GrpcService
 class DataPoliciesApi(
     private val dataPolicyService: DataPolicyService,
 ) : DataPoliciesServiceGrpcKt.DataPoliciesServiceCoroutineImplBase() {
-
     override suspend fun listDataPolicies(request: ListDataPoliciesRequest): ListDataPoliciesResponse {
         return ListDataPoliciesResponse.newBuilder()
             .addAllDataPolicies(dataPolicyService.listDataPolicies())
@@ -18,7 +17,13 @@ class DataPoliciesApi(
 
     override suspend fun upsertDataPolicy(request: UpsertDataPolicyRequest): UpsertDataPolicyResponse {
         return UpsertDataPolicyResponse.newBuilder()
-            .setDataPolicy(dataPolicyService.upsertDataPolicy(request.dataPolicy))
+            .setDataPolicy(dataPolicyService.upsertDataPolicy(request))
+            .build()
+    }
+
+    override suspend fun applyDataPolicy(request: ApplyDataPolicyRequest): ApplyDataPolicyResponse {
+        return ApplyDataPolicyResponse.newBuilder()
+            .setDataPolicy(dataPolicyService.applyDataPolicy(request.dataPolicyId, request.platformId))
             .build()
     }
 
