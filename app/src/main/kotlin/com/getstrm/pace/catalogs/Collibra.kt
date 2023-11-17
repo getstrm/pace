@@ -19,13 +19,12 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
     override suspend fun listDatabases(): List<DataCatalog.Database> =
         listPhysicalAssets(AssetTypes.DATABASE).map {
-            Database(this, it.id, it.getDataSourceType())
+            Database(this, it.id.toString(), it.getDataSourceType(), it.displayName?:"")
         }
 
-    class Database(override val catalog: CollibraCatalog, id: String, dbType: String) :
-        DataCatalog.Database(catalog, id, dbType) {
-        constructor(catalog: CollibraCatalog, id: Any, dbType: String) : this(catalog, id.toString(), dbType)
-
+    class Database(override val catalog: CollibraCatalog, id: String, dbType: String, displayName: String) :
+        DataCatalog.Database(catalog, id, dbType, displayName) {
+            
         override suspend fun getSchemas(): List<DataCatalog.Schema> {
             val assets = catalog.client.query(ListSchemaIdsQuery(id)).execute().data!!.assets!!.filterNotNull()
                 .flatMap { schema ->
