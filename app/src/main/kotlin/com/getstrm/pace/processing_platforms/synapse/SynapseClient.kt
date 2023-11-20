@@ -33,7 +33,7 @@ class SynapseClient(
                     username = config.userName
                     password = config.password
                 }),
-            SQLDialect.DEFAULT
+            SQLDialect.MYSQL
         )
     )
 

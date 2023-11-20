@@ -2,8 +2,10 @@ package com.getstrm.pace.processing_platforms.synapse
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
+import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.namedField
 import com.getstrm.pace.processing_platforms.databricks.SynapseViewGenerator
 import com.getstrm.pace.toPrincipal
@@ -11,6 +13,7 @@ import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
 import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.util.yaml2json
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.intellij.lang.annotations.Language
@@ -67,18 +70,18 @@ class SynapseViewGeneratorTest {
     fun `field transform with three transforms`() {
         // Given
         val attribute = namedField("email", "string")
-        val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
+        val fixed = FieldTransform.Transform.newBuilder()
+            .setFixed(FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addAllPrincipals(listOf("marketing", "analytics").toPrincipals())
             .build()
-        val otherFixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("REDACTED EMAIL"))
+        val otherFixed = FieldTransform.Transform.newBuilder()
+            .setFixed(FieldTransform.Transform.Fixed.newBuilder().setValue("REDACTED EMAIL"))
             .addAllPrincipals(listOf("fraud_and_risk").toPrincipals())
             .build()
-        val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("stoelpoot"))
+        val fallbackTransform = FieldTransform.Transform.newBuilder()
+            .setFixed(FieldTransform.Transform.Fixed.newBuilder().setValue("stoelpoot"))
             .build()
-        val fieldTransform = DataPolicy.RuleSet.FieldTransform.newBuilder()
+        val fieldTransform = FieldTransform.newBuilder()
             .setField(attribute)
             .addAllTransforms(listOf(fixed, otherFixed, fallbackTransform))
             .build()
@@ -95,14 +98,14 @@ class SynapseViewGeneratorTest {
     fun `field transform with two transforms`() {
         // Given
         val attribute = namedField("email", "string")
-        val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
+        val fixed = FieldTransform.Transform.newBuilder()
+            .setFixed(FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
             .addPrincipals("analytics".toPrincipal())
             .build()
-        val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("stoelpoot"))
+        val fallbackTransform = FieldTransform.Transform.newBuilder()
+            .setFixed(FieldTransform.Transform.Fixed.newBuilder().setValue("stoelpoot"))
             .build()
-        val fieldTransform = DataPolicy.RuleSet.FieldTransform.newBuilder()
+        val fieldTransform = FieldTransform.newBuilder()
             .setField(attribute)
             .addAllTransforms(listOf(fixed, fallbackTransform))
             .build()
@@ -118,13 +121,12 @@ class SynapseViewGeneratorTest {
     fun `field transform with single transform`() {
         // Given
         val attribute = namedField("email")
-        val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setRegexp(
-                DataPolicy.RuleSet.FieldTransform.Transform.Regexp.newBuilder().setRegexp("^.*(@.*)$")
-                    .setReplacement("****$1")
+        val fallbackTransform = FieldTransform.Transform.newBuilder()
+            .setFixed(
+                FieldTransform.Transform.Fixed.newBuilder().setValue("former regexp")
             )
             .build()
-        val fieldTransform = DataPolicy.RuleSet.FieldTransform.newBuilder()
+        val fieldTransform = FieldTransform.newBuilder()
             .setField(attribute)
             .addTransforms(fallbackTransform)
             .build()
@@ -133,7 +135,7 @@ class SynapseViewGeneratorTest {
         val field = underTest.toJooqField(attribute, fieldTransform)
 
         // Then
-        field.toSql() shouldBe "regexp_replace(email, '^.*(@.*)\$', '****\$1') \"email\""
+        field.toSql() shouldBe "'former regexp' \"email\""
     }
 
     @Test
@@ -176,7 +178,16 @@ class SynapseViewGeneratorTest {
         val condition = underTest.toCondition(filter.genericFilter)
 
         // Then
-        condition.toSql() shouldBe "(1 = (case when (IS_ROLEMEMBER('fraud_and_risk')=1) then (CASE WHEN 1=1 THEN 1 ELSE 0 END) when ((IS_ROLEMEMBER('analytics')=1) or (IS_ROLEMEMBER('marketing')=1)) then (CASE WHEN age > 18 THEN 1 ELSE 0 END) else (CASE WHEN 1=0 THEN 1 ELSE 0 END) end))"
+        condition.toSql() shouldBe """(1 = (case when (IS_ROLEMEMBER('fraud_and_risk')=1) then (case
+  when (1=1) then 1
+  else 0
+end) when ((IS_ROLEMEMBER('analytics')=1) or (IS_ROLEMEMBER('marketing')=1)) then (case
+  when (age > 18) then 1
+  else 0
+end) else (case
+  when (1=0) then 1
+  else 0
+end) end))""".trimMargin()
     }
 
     @Test
@@ -229,8 +240,14 @@ select
 from public.demo_tokenized
 where (
   (1 = (case
-    when (IS_ROLEMEMBER('fraud_and_risk')=1) then (CASE WHEN 1=1 THEN 1 ELSE 0 END)
-    else (CASE WHEN transactionamount < 10 THEN 1 ELSE 0 END)
+    when (IS_ROLEMEMBER('fraud_and_risk')=1) then (case
+  when (1=1) then 1
+  else 0
+end)
+    else (case
+  when (transactionamount < 10) then 1
+  else 0
+end)
   end))
   and dateadd(day, (case
   when (IS_ROLEMEMBER('marketing')=1) then 5
@@ -260,8 +277,14 @@ select
 from public.demo_tokenized
 where (
   (1 = (case
-    when (IS_ROLEMEMBER('fraud_and_risk')=1) then (CASE WHEN 1=1 THEN 1 ELSE 0 END)
-    else (CASE WHEN transactionamount < 10 THEN 1 ELSE 0 END)
+    when (IS_ROLEMEMBER('fraud_and_risk')=1) then (case
+  when (1=1) then 1
+  else 0
+end)
+    else (case
+  when (transactionamount < 10) then 1
+  else 0
+end)
   end))
   and dateadd(day, (case
   when (IS_ROLEMEMBER('marketing')=1) then 5
@@ -273,7 +296,7 @@ end), ts) > current_timestamp
 
     @Test
     fun `transform test various transforms`() {
-        underTest = SynapseViewGenerator(dataPolicy) { withRenderFormatted(true) }
+        underTest = SynapseViewGenerator(policyWithoutRegexes) { withRenderFormatted(true) }
         underTest.toDynamicViewSQL()
             .shouldBe(
                 """create or replace view my_catalog.my_schema.gddemo_public
@@ -282,13 +305,13 @@ select
   transactionId,
   case
     when (IS_ROLEMEMBER('fraud_and_risk')=1) then userId
-    else hash(1234, userId)
+    else HASHBYTES('SHA2_512', userId)
   end userId,
   case
     when (
       (IS_ROLEMEMBER('analytics')=1)
       or (IS_ROLEMEMBER('marketing')=1)
-    ) then regexp_replace(email, '^.*(@.*)${'$'}', '****${'$'}1')
+    ) then 'former regexp'
     when (
       (IS_ROLEMEMBER('fraud_and_risk')=1)
       or (IS_ROLEMEMBER('admin')=1)
@@ -305,15 +328,30 @@ select
   purpose
 from mycatalog.my_schema.gddemo
 where (
-  case
-    when (IS_ROLEMEMBER('fraud_and_risk')=1) then true
-    else age > 18
-  end
-  and case
-    when (IS_ROLEMEMBER('marketing')=1) then userId in ('1', '2', '3', '4')
-    else true
-  end
-  and transactionAmount < 10
+  (1 = (case
+    when (IS_ROLEMEMBER('fraud_and_risk')=1) then (case
+  when (1=1) then 1
+  else 0
+end)
+    else (case
+  when (age > 18) then 1
+  else 0
+end)
+  end))
+  and (1 = (case
+    when (IS_ROLEMEMBER('marketing')=1) then (case
+  when (userId in ('1', '2', '3', '4')) then 1
+  else 0
+end)
+    else (case
+  when (1=1) then 1
+  else 0
+end)
+  end))
+  and (1 = ((case
+  when (transactionAmount < 10) then 1
+  else 0
+end)))
 );"""
             )
     }
@@ -322,6 +360,12 @@ where (
     fun `transform - no row filters`() {
         val policyWithoutFilters = dataPolicy.toBuilder().apply { ruleSetsBuilderList.first().clearFilters() }.build()
         underTest = SynapseViewGenerator(policyWithoutFilters) { withRenderFormatted(true) }
+        shouldThrow<InternalException> { underTest.toDynamicViewSQL() }
+    }
+
+    @Test
+    fun `transform without regex replace - no row filters`() {
+        underTest = SynapseViewGenerator(policyWithoutFiltersAndRegexes) { withRenderFormatted(true) }
         underTest.toDynamicViewSQL()
             .shouldBe(
                 """create or replace view my_catalog.my_schema.gddemo_public
@@ -330,13 +374,13 @@ select
   transactionId,
   case
     when (IS_ROLEMEMBER('fraud_and_risk')=1) then userId
-    else hash(1234, userId)
+    else HASHBYTES('SHA2_512', userId)
   end userId,
   case
     when (
       (IS_ROLEMEMBER('analytics')=1)
       or (IS_ROLEMEMBER('marketing')=1)
-    ) then regexp_replace(email, '^.*(@.*)${'$'}', '****${'$'}1')
+    ) then 'former regexp'
     when (
       (IS_ROLEMEMBER('fraud_and_risk')=1)
       or (IS_ROLEMEMBER('admin')=1)
@@ -353,6 +397,53 @@ select
   purpose
 from mycatalog.my_schema.gddemo;"""
             )
+    }
+
+
+    @Test
+    fun `single generic condition`() {
+        val f = GenericFilter.newBuilder()
+            .addAllConditions(
+                listOf(
+                    GenericFilter.Condition.newBuilder()
+                        .addAllPrincipals(groupPrincipals("fraud_and_risk"))
+                        .setCondition("1=1")
+                        .build(),
+                    GenericFilter.Condition.newBuilder()
+                        .addAllPrincipals(groupPrincipals("marketing", "sales"))
+                        .setCondition("transactionamount < 100")
+                        .build(),
+                    GenericFilter.Condition.newBuilder()
+                        .setCondition("transactionamount < 10")
+                        .build()
+                )
+            )
+            .build()
+        val sql = underTest.toCondition(f)
+        println(sql.toSql())
+    }
+
+    @Test
+    fun `single retention condition`() {
+        val f = RetentionFilter.newBuilder()
+            .setField(DataPolicy.Field.newBuilder().addNameParts("ts"))
+            .addAllConditions(
+                listOf(
+                    RetentionFilter.Condition.newBuilder()
+                        .addAllPrincipals(groupPrincipals("fraud_and_risk"))
+                        .build(),
+                    RetentionFilter.Condition.newBuilder()
+                        .addAllPrincipals(groupPrincipals("marketing", "sales"))
+                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(3))
+                        .build(),
+                    RetentionFilter.Condition.newBuilder()
+                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
+                        .build(),
+                )
+            )
+            .build()
+        val sql = underTest.toCondition(f)
+        println(sql.toSql())
     }
 
     companion object {
@@ -446,9 +537,6 @@ from mycatalog.my_schema.gddemo;"""
                 statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
       filters:
         - generic_filter:
-            field:
-              name_parts:
-                - age
             conditions:
               - principals:
                   - group: fraud_and_risk
@@ -456,9 +544,6 @@ from mycatalog.my_schema.gddemo;"""
               - principals: []
                 condition: "age > 18"
         - generic_filter:
-            field:
-              name_parts:
-                - userId
             conditions:
               - principals:
                   - group: marketing
@@ -466,9 +551,6 @@ from mycatalog.my_schema.gddemo;"""
               - principals: []
                 condition: "true"
         - generic_filter:
-            field:
-              name_parts:
-                - transactionAmount
             conditions:
               - principals: []
                 condition: "transactionAmount < 10"
@@ -479,6 +561,31 @@ from mycatalog.my_schema.gddemo;"""
       create_time: "2023-09-26T16:33:51.150Z"
       update_time: "2023-09-26T16:33:51.150Z"
               """.yaml2json().parseDataPolicy()
+
+        val policyWithoutRegexes: DataPolicy = dataPolicy.toBuilder().apply {
+            val fieldTransforms = this.ruleSetsBuilderList.first().fieldTransformsList.map { fieldTransform ->
+                FieldTransform.newBuilder()
+                    .setField(fieldTransform.field)
+                    .addAllTransforms(
+                        fieldTransform.transformsList.map {
+                            if (it.hasRegexp()) {
+                                it.toBuilder().clearRegexp()
+                                    .setFixed(FieldTransform.Transform.Fixed.newBuilder().setValue("former regexp"))
+                                    .build()
+                            } else {
+                                it
+                            }
+                        }
+                    ).build()
+            }
+            ruleSetsBuilderList.first().clearFieldTransforms()
+                .addAllFieldTransforms(fieldTransforms)
+        }.build()
+
+        val policyWithoutFiltersAndRegexes: DataPolicy = policyWithoutRegexes.toBuilder().apply {
+                this.ruleSetsBuilderList.first().clearFilters()
+        }.build()
+
 
         @Language("yaml")
         val singleRetentionPolicy = """
@@ -598,53 +705,9 @@ from mycatalog.my_schema.gddemo;"""
         """.trimIndent().yaml2json().parseDataPolicy()
     }
 
-    @Test
-    fun `single generic condition`() {
-        val f = GenericFilter.newBuilder()
-            .addAllConditions(listOf(
-                GenericFilter.Condition.newBuilder()
-                    .addAllPrincipals(groupPrincipals("fraud_and_risk"))
-                    .setCondition("1=1")
-                    .build(),
-                GenericFilter.Condition.newBuilder()
-                    .addAllPrincipals(groupPrincipals("marketing", "sales"))
-                    .setCondition("transactionamount < 100")
-                    .build(),
-                GenericFilter.Condition.newBuilder()
-                    .setCondition("transactionamount < 10")
-                    .build()
-            ))
-            .build()
-        val sql = underTest.toCondition(f)
-        println(sql.toSql())
-    }
 
-    @Test
-    fun `single retention condition`() {
-        val f = RetentionFilter.newBuilder()
-            .setField( DataPolicy.Field.newBuilder().addNameParts("ts") )
-            .addAllConditions(
-                listOf(
-                    RetentionFilter.Condition.newBuilder()
-                        .addAllPrincipals(groupPrincipals("fraud_and_risk"))
-                        .build(),
-                    RetentionFilter.Condition.newBuilder()
-                        .addAllPrincipals(groupPrincipals("marketing", "sales"))
-                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(3))
-                        .build(),
-                    RetentionFilter.Condition.newBuilder()
-                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
-                        .build(),
-                    )
-            )
-            .build()
-        val sql = underTest.toCondition(f)
-        println(sql.toSql())
-    }
-
-
-    private fun groupPrincipals(vararg p: String) : List<Principal> =
-        p.map{
+    private fun groupPrincipals(vararg p: String): List<Principal> =
+        p.map {
             Principal.newBuilder()
                 .setGroup(it)
                 .build()

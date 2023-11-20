@@ -1,10 +1,12 @@
 package com.getstrm.pace.processing_platforms.databricks
 
+import SynapseTransformer
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.UNIMPLEMENTED
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
+import com.getstrm.pace.processing_platforms.postgres.PostgresTransformer
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
 import com.google.rpc.DebugInfo
@@ -18,7 +20,11 @@ import org.jooq.Field as JooqField
 class SynapseViewGenerator(
     dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {}
-) : ProcessingPlatformViewGenerator(dataPolicy, customJooqSettings = customJooqSettings) {
+) : ProcessingPlatformViewGenerator(
+    dataPolicy,
+    transformer = SynapseTransformer(),
+    customJooqSettings = customJooqSettings
+) {
     override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
         return if (principals.isEmpty()) {
             null
@@ -66,9 +72,16 @@ class SynapseViewGenerator(
                     else -> c
                 }
             }
-            it.condition = "(CASE WHEN $synapseCondition THEN 1 ELSE 0 END)"
+
+            it.condition = DSL.condition(DSL.`when`(DSL.condition(synapseCondition), 1).else_(0).toString()).toString()
         }
-        return DSL.condition("1 = ({0})", super.toCondition(builder.build()))
+        with(builder.build()) {
+            if (this.conditionsList.size == 1) {
+                return DSL.condition("1 = ({0})", DSL.unquotedName(this.conditionsList.first().condition))
+            } else {
+                return DSL.condition("1 = ({0})", super.toCondition(this))
+            }
+        }
     }
 
     override fun toCondition(retention: DataPolicy.RuleSet.Filter.RetentionFilter): Condition {
