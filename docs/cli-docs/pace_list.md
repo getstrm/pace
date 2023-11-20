@@ -23,7 +23,7 @@ return 0 or more entities of a certain type
 
 * [pace](pace.md)	 - PACE CLI dev
 * [pace list catalogs](pace_list_catalogs.md)	 - List Catalogs
-* [pace list data-policies](pace_list_data-policies.md)	 - List Datapolicies
+* [pace list data-policies](pace_list_data-policies.md)	 - List Data Policies
 * [pace list databases](pace_list_databases.md)	 - List Databases
 * [pace list global-transforms](pace_list_global-transforms.md)	 - List Global Transforms
 * [pace list groups](pace_list_groups.md)	 - List Groups

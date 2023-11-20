@@ -5,7 +5,7 @@ Upsert a data policy
 ### Synopsis
 
 Upserts (inserts or updates) a data policy into PACE AND
-applies it to the target platform.
+optionally applies it to the target platform (default false).
 
 The file to upsert is checked for validity, a transformation is generated
 for the processing platform, and then applied on it.
@@ -43,7 +43,8 @@ data_policy:
 ### Options
 
 ```
-  -h, --help   help for data-policy
+  -a, --apply   apply a data policy to the target processing platform when upserting
+  -h, --help    help for data-policy
 ```
 
 ### Options inherited from parent commands
