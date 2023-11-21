@@ -1,3 +1,10 @@
+# [1.0.0-alpha.29](https://github.com/getstrm/pace/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) (2023-11-21)
+
+
+### Features
+
+* **pace-62:** add renovate config ([77ac9f0](https://github.com/getstrm/pace/commit/77ac9f070803981dfb024905e2d52866690939bf))
+
 # [1.0.0-alpha.28](https://github.com/getstrm/pace/compare/v1.0.0-alpha.27...v1.0.0-alpha.28) (2023-11-21)
 
 
