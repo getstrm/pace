@@ -194,6 +194,7 @@ components:
           - SNOWFLAKE
           - BIGQUERY
           - POSTGRES
+          - SYNAPSE
           format: enum
           type: string
       type: object
@@ -629,7 +630,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.25
+  version: 1.0.0-alpha.26
 openapi: 3.0.3
 paths:
   /catalogs:

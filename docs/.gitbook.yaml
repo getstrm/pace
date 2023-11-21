@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.25
+    version: 1.0.0-alpha.26
 paths:
     /catalogs:
         get:
@@ -680,6 +680,7 @@ components:
                         - SNOWFLAKE
                         - BIGQUERY
                         - POSTGRES
+                        - SYNAPSE
                     type: string
                     format: enum
                 id:
