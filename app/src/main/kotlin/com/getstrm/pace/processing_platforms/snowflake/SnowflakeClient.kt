@@ -60,7 +60,7 @@ class SnowflakeClient(
     }
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
-        val statement = SnowflakeViewGenerator(dataPolicy).toDynamicViewSQL()
+        val statement = SnowflakeViewGenerator(dataPolicy).toDynamicViewSQL().sql
             .replace("\\n".toRegex(), "\\\\n")
             .replace("""(\\\d)""".toRegex(), """\\\\""" + "\$1")
         val statementCount = statement.mapNotNull { element -> element.takeIf { it == ';' } }.size.toString()
