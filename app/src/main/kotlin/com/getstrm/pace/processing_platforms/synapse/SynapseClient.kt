@@ -20,7 +20,6 @@ import org.jooq.impl.DSL
 class SynapseClient(
     override val id: String,
     private val jooq: DSLContext,
-    private val schema: String?,
 ) : ProcessingPlatformClient {
     // To match the behavior of the other ProcessingPlatform implementations, we connect to a
     // single database. If we want to add support for a single client to connect to multiple
@@ -37,7 +36,6 @@ class SynapseClient(
                 }),
             SQLDialect.DEFAULT
         ),
-        config.schema
     )
 
     override val type = SYNAPSE
