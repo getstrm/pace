@@ -3,7 +3,6 @@ package com.getstrm.pace.catalogs
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.util.normalizeType
-import okhttp3.internal.notifyAll
 import org.opendatadiscovery.generated.api.DataSetApi
 import org.opendatadiscovery.generated.api.DataSourceApi
 import org.opendatadiscovery.generated.api.SearchApi
@@ -25,7 +24,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
      * of this kind in its api.
      */
     override suspend fun listDatabases(): List<Database> =
-        dataSources.values.filter{dataSource ->
+        dataSources.values.filter { dataSource ->
             val searchId = searchDataSetsInDataSource(dataSource).searchId
             // we try for one search result on the first page, we only want to know if there are any.
             searchClient.getSearchResults(searchId, 1, 1).items.isNotEmpty()
@@ -77,6 +76,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
                 listOf(parent.id)
             }
         }
+
         override suspend fun getDataPolicy(): DataPolicy? {
             val datasetStructure = catalog.datasetsClient.getDataSetStructureLatest(id.toLong())
             val fields = datasetStructure.fieldList
@@ -101,8 +101,8 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
                         .build().normalizeType()
                 },
             )
-            with(policyBuilder.metadataBuilder){
-                title=name
+            with(policyBuilder.metadataBuilder) {
+                title = name
                 description = schema.database.displayName
             }
             return policyBuilder.build()
