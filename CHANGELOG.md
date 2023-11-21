@@ -1,3 +1,10 @@
+# [1.0.0-alpha.27](https://github.com/getstrm/pace/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) (2023-11-21)
+
+
+### Features
+
+* **feature/pace-58:** much better database list ([9ac032f](https://github.com/getstrm/pace/commit/9ac032fd899d37557d122e203d8e00d3fa6ea176))
+
 # [1.0.0-alpha.26](https://github.com/getstrm/pace/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) (2023-11-21)
 
 
