@@ -16,12 +16,13 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
     override suspend fun listDatabases(): List<Database> {
         return fetchAllDatasets().map {
-            Database(this, it.entity.urn)
+            val m = urnPattern.matchEntire(it.entity.urn)
+            Database(this, it.entity.urn, m?.groupValues?.get(1) ?:"", m?.groupValues?.get(2) ?:"")
         }
     }
 
     private suspend fun fetchAllDatasets(start: Int = 0): List<ListDatasetsQuery.SearchResult> {
-        val response = client.query(ListDatasetsQuery(start, config.fetchSize ?: 1)).execute()
+        val response = client.query(ListDatasetsQuery(start, config.fetchSize ?: 100)).execute()
 
         if (response.hasErrors()) throw RuntimeException("Error fetching databases: ${response.errors}")
 
@@ -36,7 +37,9 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         }
     }
 
-    class Database(override val catalog: DatahubCatalog, id: String) : DataCatalog.Database(catalog, id) {
+    class Database(override val catalog: DatahubCatalog, urn: String, dbType: String, displayName: String) : DataCatalog.Database(
+        catalog, urn, dbType, displayName
+    ) {
         override suspend fun getSchemas(): List<DataCatalog.Schema> {
             return catalog.client.query(GetDatasetDetailsQuery(id)).execute().data?.dataset?.let { dataset ->
                 val schema = Schema(this, dataset)
@@ -94,4 +97,8 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         .serverUrl(config.serverUrl)
         .addHttpHeader("Authorization", "Bearer ${config.token}")
         .build()
+    companion object {
+        val urnPattern = """^urn:li:dataset:\(urn:li:dataPlatform:([^,]*),(.*)\)$""".toRegex()
+        
+    }
 }
