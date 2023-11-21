@@ -36,6 +36,15 @@ jobs:
           # Ensure that the GH Actions default token isn't configured for git access, which intervenes with the semantic-release process.
           persist-credentials: false
 
+      - uses: bufbuild/buf-setup-action@v1
+        if: github.event.pull_request.merged
+      - name: Delete BSR drafts
+        if: github.event.pull_request.merged && !contains(fromJSON('["main", "alpha", "beta"]'), github.event.pull_request.head.ref)
+        env:
+          BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
+        run: |
+          buf beta registry draft delete buf.build/getstrm/pace:${{ github.event.pull_request.head.ref }}
+
       # Gradle build and test
       - uses: actions/setup-java@v3
         with:
