@@ -42,8 +42,9 @@ class PostgresClient(
 
     override val type = POSTGRES
 
-    override suspend fun listTables(): List<Table> = jooq.meta().tables
-        .filter { !schemasToIgnore.contains(it.schema?.name) }
+    override suspend fun listTables(): List<Table> = jooq.meta()
+        .filterSchemas { !schemasToIgnore.contains(it.name) }
+        .tables
         .map { PostgresTable(it) }
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {

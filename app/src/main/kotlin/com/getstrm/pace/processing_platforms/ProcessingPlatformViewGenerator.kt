@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.*
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER
+import com.getstrm.pace.processing_platforms.DefaultProcessingPlatformTransformer.renderName
 import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
@@ -24,14 +25,18 @@ abstract class ProcessingPlatformViewGenerator(
     protected open fun selectWithAdditionalHeaderStatements(fields: List<JooqField<*>>): SelectSelectStep<Record> =
         jooq.select(fields)
 
-    protected open fun additionalFooterStatements(): Queries = DSL.queries()
+    open fun additionalFooterStatements(): Queries = DSL.queries()
 
     protected open fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): JooqField<Boolean> =
         if (this.hasPeriod()) {
             field(
                 "{0} > {1}",
                 Boolean::class.java,
-                timestampAdd(field(unquotedName(field.fullName()), Timestamp::class.java), this.period.days, DatePart.DAY),
+                timestampAdd(
+                    field(unquotedName(field.fullName()), Timestamp::class.java),
+                    this.period.days,
+                    DatePart.DAY
+                ),
                 currentTimestamp()
             )
         } else {
@@ -40,11 +45,13 @@ abstract class ProcessingPlatformViewGenerator(
 
     protected open val jooq: DSLContext = using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
 
-    fun toDynamicViewSQL(): String {
+    open fun createOrReplaceView(name: String) = jooq.createOrReplaceView(name)
+
+    open fun toDynamicViewSQL(): String {
         val queries = dataPolicy.ruleSetsList.map { ruleSet ->
             val targetView = ruleSet.target.fullname
 
-            jooq.createOrReplaceView(renderName(targetView)).`as`(
+            createOrReplaceView(renderName(targetView)).`as`(
                 selectWithAdditionalHeaderStatements(
                     dataPolicy.source.fieldsList.map { field ->
                         toJooqField(
@@ -207,6 +214,7 @@ abstract class ProcessingPlatformViewGenerator(
                 transform.detokenize,
                 dataPolicy.source.ref,
             )
+
             NUMERIC_ROUNDING -> transformer.numericRounding(field, transform.numericRounding)
             TRANSFORM_NOT_SET, IDENTITY, null -> transformer.identity(field)
         }

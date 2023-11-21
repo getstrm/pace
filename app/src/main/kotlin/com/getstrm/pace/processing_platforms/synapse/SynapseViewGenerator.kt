@@ -6,15 +6,15 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.UNIMPLEMENTED
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
-import com.getstrm.pace.processing_platforms.postgres.PostgresTransformer
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
+import com.getstrm.pace.util.listPrincipals
 import com.google.rpc.DebugInfo
-import org.jooq.Condition
-import org.jooq.DatePart
+import org.jooq.*
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import java.sql.Timestamp
+import kotlin.math.min
 import org.jooq.Field as JooqField
 
 class SynapseViewGenerator(
@@ -25,6 +25,41 @@ class SynapseViewGenerator(
     transformer = SynapseTransformer(),
     customJooqSettings = customJooqSettings
 ) {
+    fun grantSelectPrivileges(): String {
+        val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->
+            val principals =
+                ruleSet.fieldTransformsList.flatMap { it.transformsList }.flatMap { it.principalsList }.toSet() +
+                        ruleSet.filtersList.flatMap { it.listPrincipals() }.toSet()
+
+            val viewName = ruleSet.target.fullname
+
+            principals.map {
+                DSL.query(
+                    jooq.grant(DSL.privilege("SELECT")).on(DSL.table(DSL.unquotedName(renderName(viewName))))
+                        .to(DSL.role(DSL.quotedName(it.group))).sql
+                )
+            }
+        }
+
+        return jooq.queries(grants).sql
+    }
+
+    override fun createOrReplaceView(name: String): CreateViewAsStep<Record> = jooq.createView(name)
+
+    fun dropViewsSQL() = jooq.queries(dataPolicy.ruleSetsList.map {
+        jooq.dropViewIfExists(renderName(it.target.fullname))
+    }).sql
+
+    override fun renderName(name: String): String {
+        val reference = name.split(".", limit = 3)
+        return super.renderName(
+            reference
+                .drop(min(reference.size - 2, 1))
+                .joinToString(".")
+        )
+    }
+
+
     override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
         return if (principals.isEmpty()) {
             null
@@ -44,23 +79,6 @@ class SynapseViewGenerator(
             )
         }
     }
-
-    /**
-
-    where
-    -- use exclude all groups that have already passed
-    where
-    1 = (case
-    when (IS_ROLEMEMBER('fraud_and_risk') = 1) then (case when 1=1 then 1 else 0 end)
-    else (case when transactionamount < 100 then 1 else 0 end) end)
-    and
-    DATEADD(day, (
-    select case
-    when IS_ROLEMEMBER('fraud_and_risk') = 1 then 10000
-    when IS_ROLEMEMBER('marketing') = 1 then 3
-    else 10 end
-    ), ts) > CURRENT_TIMESTAMP
-     */
 
     override fun toCondition(filter: GenericFilter): Condition {
         val builder = filter.toBuilder()

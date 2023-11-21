@@ -230,7 +230,7 @@ end) end))""".trimMargin()
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL() shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL() shouldBe """create view public.demo_view
 as
 select
   ts,
@@ -268,7 +268,7 @@ end), validThrough) > current_timestamp
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL() shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL() shouldBe """create view public.demo_view
 as
 select
   ts,
@@ -299,7 +299,7 @@ end), ts) > current_timestamp
         underTest = SynapseViewGenerator(policyWithoutRegexes) { withRenderFormatted(true) }
         underTest.toDynamicViewSQL()
             .shouldBe(
-                """create or replace view my_catalog.my_schema.gddemo_public
+                """create view my_schema.gddemo_public
 as
 select
   transactionId,
@@ -326,7 +326,7 @@ select
   itemCount,
   date,
   purpose
-from mycatalog.my_schema.gddemo
+from my_schema.gddemo
 where (
   (1 = (case
     when (IS_ROLEMEMBER('fraud_and_risk')=1) then (case
@@ -357,6 +357,17 @@ end)))
     }
 
     @Test
+    fun `grant select permission`() {
+        underTest = SynapseViewGenerator(policyWithoutRegexes) { withRenderFormatted(true) }
+        underTest.grantSelectPrivileges()
+            .shouldBe("""grant SELECT on my_schema.gddemo_public to "analytics";
+grant SELECT on my_schema.gddemo_public to "marketing";
+grant SELECT on my_schema.gddemo_public to "fraud_and_risk";
+grant SELECT on my_schema.gddemo_public to "admin";""")
+
+    }
+
+    @Test
     fun `transform - no row filters`() {
         val policyWithoutFilters = dataPolicy.toBuilder().apply { ruleSetsBuilderList.first().clearFilters() }.build()
         underTest = SynapseViewGenerator(policyWithoutFilters) { withRenderFormatted(true) }
@@ -368,7 +379,7 @@ end)))
         underTest = SynapseViewGenerator(policyWithoutFiltersAndRegexes) { withRenderFormatted(true) }
         underTest.toDynamicViewSQL()
             .shouldBe(
-                """create or replace view my_catalog.my_schema.gddemo_public
+                """create view my_schema.gddemo_public
 as
 select
   transactionId,
@@ -395,7 +406,7 @@ select
   itemCount,
   date,
   purpose
-from mycatalog.my_schema.gddemo;"""
+from my_schema.gddemo;"""
             )
     }
 

@@ -56,6 +56,7 @@ data class SynapseConfig(
     val database: String,
     val userName: String,
     val password: String,
+    val schema: String?
 ) {
     internal fun getJdbcUrl() = "jdbc:sqlserver://$hostName:1433;database=$database;user=$userName;password=$password;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.sql.azuresynapse.net;loginTimeout=30;"
 }
