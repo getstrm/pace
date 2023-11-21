@@ -15,11 +15,11 @@ service DataPoliciesService {
   rpc ListDataPolicies(ListDataPoliciesRequest) returns (ListDataPoliciesResponse) {
     option (google.api.http) = {get: "/data-policies"};
   }
-  // Evaluates a DataPolicy against a provided CSV data sample. Platform-specific transforms and nested fields are not supported.
-  // The DataPolicy does not need to be upserted or applied first.
+  // Evaluates a previously upserted DataPolicy against a provided data sample. Platform-specific data types, transforms
+  // and nested fields are not supported.
   rpc EvaluateDataPolicy(EvaluateDataPolicyRequest) returns (EvaluateDataPolicyResponse) {
     option (google.api.http) = {
-      post: "/data-policies/evaluate"
+      post: "/data-policies/{data_policy_id}/{platform_id}/evaluate"
       body: "*"
     };
   }
@@ -75,9 +75,12 @@ message ListDataPoliciesResponse {
   repeated entities.v1alpha.DataPolicy data_policies = 1;
 }
 message EvaluateDataPolicyRequest {
-  entities.v1alpha.DataPolicy data_policy = 1;
-  // The data sample to evaluate the policy against. Must be in CSV format.
-  string data_sample = 2;
+  string data_policy_id = 1 [(buf.validate.field).string.min_len = 1];
+  string platform_id = 2 [(buf.validate.field).string.min_len = 1];
+  oneof sample_data {
+    // CSV-formatted sample data to evaluate the policy against. The first row must be a header row.
+    string csv = 3;
+  }
 }
 message EvaluateDataPolicyResponse {
   // The results of the evaluation in CSV format. A result is returned for each principal specified in the policy, as
@@ -88,6 +91,6 @@ message EvaluateDataPolicyResponse {
     // The principal that was evaluated.
     entities.v1alpha.DataPolicy.Principal principal = 1;
     // The result of the evaluation in CSV format, including headers.
-    string result = 2;
+    string csv = 2;
   }
 }
