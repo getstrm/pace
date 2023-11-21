@@ -1,3 +1,10 @@
+# [1.0.0-alpha.26](https://github.com/getstrm/pace/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) (2023-11-21)
+
+
+### Features
+
+* **pace-46:** integration for Azure Synapse Analytics ([#66](https://github.com/getstrm/pace/issues/66)) ([d4c116f](https://github.com/getstrm/pace/commit/d4c116f77aaa73420733479a992c23595398c113))
+
 # [1.0.0-alpha.25](https://github.com/getstrm/pace/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) (2023-11-21)
 
 
