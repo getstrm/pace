@@ -9,7 +9,7 @@ description: >-
 
 **Integrations**
 
-* Synapse and Fabric as data platform to support Azure
+* Fabric as data platform to support Azure
 * JDBC supported platforms and databases
 * PowerBI, Looker
 * Data.world, Atlan as catalogs

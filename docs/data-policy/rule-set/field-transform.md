@@ -10,7 +10,7 @@ To be able to transform the input data on a field-level, we define `Field Transf
 
 This is useful if data needs to be presented differently for different groups of data users. That is, for _fraud detection_ you can usually access a lot more data than you can for _analysis_ or _marketing_ purposes.
 
-The `Field Transform` consists of a `Field` and a list of `Transforms`. The `Field` is a reference to the corresponding field in the source fields.&#x20;
+The `Field Transform` consists of a `Field` and a list of `Transforms`. The `Field` is a reference to the corresponding field in the source fields.
 
 In order to be able to change the on-view results for different users with different roles, each entry in the list of transforms specifies how to transform the specific field for a set of [`Principals`](../principals.md). Principals can be any set of users as defined in the processing platform for the target view. Every `Field Transform` for one `Field` should at least contain one `Transform` without any `Principal`, defined as last item in the list. This `Transform` acts as the default or fallback transform for the specified field.
 
@@ -51,9 +51,13 @@ regexp:
 | ----------------------- | ----------------- |
 | `local-part@domain.com` | `****@domain.com` |
 
+{% hint style="danger" %}
+This transform is not available for [Azure Synapse Analytics](../../integrations-and-reference/integrations/processing-platform-integrations/synapse.md), as Regular Expression (Replacements) are not supported natively in Synapse
+{% endhint %}
+
 ### **2. Identity**
 
-Return the original value.&#x20;
+Return the original value.
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -205,7 +209,7 @@ nullify: {}
 
 ### **7. Detokenize**
 
-If you have tokenized data and the processing platform principal can query the token table, you can detokenize the data.&#x20;
+If you have tokenized data and the processing platform principal can query the token table, you can detokenize the data.
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -314,7 +318,18 @@ numeric_rounding:
 
 Examples of rounding:
 
-<table><thead><tr><th>Rounding type</th><th>Parameters</th><th>Input</th><th>Output</th></tr></thead><tbody><tr><td>Ceil</td><td>Divisor = 10</td><td>33</td><td>40</td></tr><tr><td>Ceil</td><td>Divisor = 0.1</td><td>33.3</td><td>34</td></tr><tr><td>Ceil</td><td>Divisor = -10</td><td>33</td><td><a data-footnote-ref href="#user-content-fn-1">30</a></td></tr><tr><td>Floor</td><td>Divisor = 10</td><td>33</td><td>30</td></tr><tr><td>Floor</td><td>Divisor = 0.1</td><td>33.3</td><td>33</td></tr><tr><td>Floor</td><td>Divisor = -10</td><td>33</td><td><a data-footnote-ref href="#user-content-fn-2">40</a></td></tr><tr><td>Round</td><td>Precision = 1</td><td>33.345</td><td>33.3</td></tr><tr><td>Round</td><td>Precision = 0</td><td>33.345</td><td>33</td></tr><tr><td>Round</td><td>Precision = <a data-footnote-ref href="#user-content-fn-3">-1</a></td><td>33.345</td><td>30</td></tr><tr><td>Round</td><td>Precision = <a data-footnote-ref href="#user-content-fn-4">-2</a></td><td>33.345</td><td>0</td></tr></tbody></table>
+| Rounding type | Parameters         | Input  | Output |
+| ------------- | ------------------ | ------ | ------ |
+| Ceil          | Divisor = 10       | 33     | 40     |
+| Ceil          | Divisor = 0.1      | 33.3   | 34     |
+| Ceil          | Divisor = -10      | 33     | 30[^1] |
+| Floor         | Divisor = 10       | 33     | 30     |
+| Floor         | Divisor = 0.1      | 33.3   | 33     |
+| Floor         | Divisor = -10      | 33     | 40[^2] |
+| Round         | Precision = 1      | 33.345 | 33.3   |
+| Round         | Precision = 0      | 33.345 | 33     |
+| Round         | Precision = -1[^3] | 33.345 | 30     |
+| Round         | Precision = -2[^4] | 33.345 | 0      |
 
 {% hint style="warning" %}
 Note that ceiling and floor functions with negative numbers may behave differently based on the processing platform.
@@ -542,14 +557,10 @@ Below you will find raw data and sample outputs for different (sets of) principa
 
 {% tab title="[ COMP, F&R ]" %}
 <table><thead><tr><th>userId</th><th>card_number</th><th>email</th><th data-type="number">age</th><th>brand</th></tr></thead><tbody><tr><td>123</td><td>TOKEN_123</td><td>****@store.com</td><td>20</td><td>Apple</td></tr><tr><td>456</td><td>TOKEN_456</td><td>****@company.com</td><td>20</td><td>Other</td></tr><tr><td>789</td><td>TOKEN_789</td><td>****@domain.com</td><td>0</td><td>Other</td></tr></tbody></table>
-
-
 {% endtab %}
 
 {% tab title="[ ANALYSIS ]" %}
 <table><thead><tr><th>userId</th><th>card_number</th><th>email</th><th data-type="number">age</th><th>brand</th></tr></thead><tbody><tr><td>23459023894857195</td><td>TOKEN_123</td><td>****</td><td>30</td><td>Apple</td></tr><tr><td>-903845745009147219</td><td>TOKEN_456</td><td>****</td><td>30</td><td>Other</td></tr><tr><td>-872050645009147732</td><td>TOKEN_789</td><td>****</td><td>10</td><td>Other</td></tr></tbody></table>
-
-
 {% endtab %}
 {% endtabs %}
 
