@@ -3,6 +3,7 @@ package com.getstrm.pace.catalogs
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.util.normalizeType
+import okhttp3.internal.notifyAll
 import org.opendatadiscovery.generated.api.DataSetApi
 import org.opendatadiscovery.generated.api.DataSourceApi
 import org.opendatadiscovery.generated.api.SearchApi
@@ -100,10 +101,10 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
                         .build().normalizeType()
                 },
             )
-
-            policyBuilder.metadataBuilder.title = schema.database.displayName
-            policyBuilder.metadataBuilder.description = schema.database.dbType
-
+            with(policyBuilder.metadataBuilder){
+                title=name
+                description = schema.database.displayName
+            }
             return policyBuilder.build()
         }
     }
@@ -126,30 +127,30 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
      */
     private fun searchDataSetsInDataSource(dataSource: DataSource): SearchFacetsData =
         searchClient.search(
-        SearchFormData(
-            query = "",
-            filters = SearchFormDataFilters(
-                entityClasses = listOf(
-                    SearchFilterState(
-                        entityName = "DATA_SET",
-                        // selected means that this is included in the search results
-                        selected = true,
-                        // Not sure why the entity id is necessary, I think it
-                        // refers to the entity class id, which "should be" a static
-                        // value, in case of the entity type DATA_SET it is 1
-                        entityId = 1,
+            SearchFormData(
+                query = "",
+                filters = SearchFormDataFilters(
+                    entityClasses = listOf(
+                        SearchFilterState(
+                            entityName = "DATA_SET",
+                            // selected means that this is included in the search results
+                            selected = true,
+                            // Not sure why the entity id is necessary, I think it
+                            // refers to the entity class id, which "should be" a static
+                            // value, in case of the entity type DATA_SET it is 1
+                            entityId = 1,
+                        ),
                     ),
-                ),
-                datasources = listOf(
-                    SearchFilterState(
-                        entityName = dataSource.name,
-                        entityId = dataSource.id,
-                        selected = true,
+                    datasources = listOf(
+                        SearchFilterState(
+                            entityName = dataSource.name,
+                            entityId = dataSource.id,
+                            selected = true,
+                        )
                     )
-                )
+                ),
             ),
-        ),
-    )
+        )
 
     /**
      * recursively get all results for a given search id.
