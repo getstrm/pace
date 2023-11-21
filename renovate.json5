@@ -1,5 +1,5 @@
 {
     "extends": [
-        "github>getstrm/renovate-config//base-renovate-config"
+        "github>getstrm/renovate-config//base-renovate-config.json5"
     ]
 }
