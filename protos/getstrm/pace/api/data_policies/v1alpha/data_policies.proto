@@ -1,74 +1,93 @@
 syntax = "proto3";
 
 package getstrm.pace.api.data_policies.v1alpha;
+
+import "buf/validate/validate.proto";
 import "getstrm/pace/api/entities/v1alpha/entities.proto";
 import "google/api/annotations.proto";
-import "buf/validate/validate.proto";
 
 option go_package = "github.com/getstrm/pace/protos/data_policies;data_policies";
-option java_package = "com.getstrm.pace.api.data_policies.v1alpha";
 option java_multiple_files = true;
+option java_package = "com.getstrm.pace.api.data_policies.v1alpha";
 
 service DataPoliciesService {
-    // Lists all DataPolicies for all platforms.
-    rpc ListDataPolicies (ListDataPoliciesRequest) returns (ListDataPoliciesResponse) {
-        option (google.api.http) = {
-            get: "/data-policies"
-        };
+  // Lists all DataPolicies for all platforms.
+  rpc ListDataPolicies(ListDataPoliciesRequest) returns (ListDataPoliciesResponse) {
+    option (google.api.http) = {get: "/data-policies"};
+  }
+  // Evaluates a DataPolicy against a provided CSV data sample. Platform-specific transforms and nested fields are not supported.
+  // The DataPolicy does not need to be upserted or applied first.
+  rpc EvaluateDataPolicy(EvaluateDataPolicyRequest) returns (EvaluateDataPolicyResponse) {
+    option (google.api.http) = {
+      post: "/data-policies/evaluate"
+      body: "*"
     };
-    // Creates or updates a DataPolicy in PACE and optionally applies it to the processing platform.
-    rpc UpsertDataPolicy (UpsertDataPolicyRequest) returns (UpsertDataPolicyResponse) {
-        option (google.api.http) = {
-            post: "/data-policies"
-            body: "*"
-        };
+  }
+  // Creates or updates a DataPolicy in PACE and optionally applies it to the processing platform.
+  rpc UpsertDataPolicy(UpsertDataPolicyRequest) returns (UpsertDataPolicyResponse) {
+    option (google.api.http) = {
+      post: "/data-policies"
+      body: "*"
     };
-    // Applies an existing DataPolicy to the processing platform.
-    rpc ApplyDataPolicy (ApplyDataPolicyRequest) returns (ApplyDataPolicyResponse) {
-        option (google.api.http) = {
-            post: "/data-policies/{data_policy_id}/{platform_id}"
-        };
-    };
-    // Returns the latest policy for a given id and platform.
-    rpc GetDataPolicy (GetDataPolicyRequest) returns (GetDataPolicyResponse) {
-        option (google.api.http) = {
-            get: "/data-policies/{data_policy_id}/{platform_id}"
-        };
-    };
+  }
+  // Applies an existing DataPolicy to the processing platform.
+  rpc ApplyDataPolicy(ApplyDataPolicyRequest) returns (ApplyDataPolicyResponse) {
+    option (google.api.http) = {post: "/data-policies/{data_policy_id}/{platform_id}"};
+  }
+  // Returns the latest policy for a given id and platform.
+  rpc GetDataPolicy(GetDataPolicyRequest) returns (GetDataPolicyResponse) {
+    option (google.api.http) = {get: "/data-policies/{data_policy_id}/{platform_id}"};
+  }
 }
 
 message GetDataPolicyRequest {
-    string data_policy_id = 1 [(buf.validate.field).string.min_len = 1];
-    string platform_id = 2 [(buf.validate.field).string.min_len = 1];
+  string data_policy_id = 1 [(buf.validate.field).string.min_len = 1];
+  string platform_id = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 message GetDataPolicyResponse {
-    entities.v1alpha.DataPolicy data_policy = 1;
+  entities.v1alpha.DataPolicy data_policy = 1;
 }
 
 message UpsertDataPolicyRequest {
-    entities.v1alpha.DataPolicy data_policy = 1;
-    // whether to apply the policy directly on the processing platform
-    // if omitted, defaults to false
-    bool apply = 2;
+  entities.v1alpha.DataPolicy data_policy = 1;
+  // whether to apply the policy directly on the processing platform
+  // if omitted, defaults to false
+  bool apply = 2;
 }
 
 message UpsertDataPolicyResponse {
-    entities.v1alpha.DataPolicy data_policy = 1;
+  entities.v1alpha.DataPolicy data_policy = 1;
 }
 
 message ApplyDataPolicyRequest {
-    string data_policy_id = 1 [(buf.validate.field).string.min_len = 1];
-    string platform_id = 2 [(buf.validate.field).string.min_len = 1];
+  string data_policy_id = 1 [(buf.validate.field).string.min_len = 1];
+  string platform_id = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 message ApplyDataPolicyResponse {
-    entities.v1alpha.DataPolicy data_policy = 1;
+  entities.v1alpha.DataPolicy data_policy = 1;
 }
 
-message ListDataPoliciesRequest {
-}
+message ListDataPoliciesRequest {}
 
 message ListDataPoliciesResponse {
-    repeated entities.v1alpha.DataPolicy data_policies = 1;
+  repeated entities.v1alpha.DataPolicy data_policies = 1;
+}
+message EvaluateDataPolicyRequest {
+  entities.v1alpha.DataPolicy data_policy = 1;
+  // The data sample to evaluate the policy against. Must be in CSV format.
+  string data_sample = 2;
+}
+message EvaluateDataPolicyResponse {
+  // The results of the evaluation in CSV format. A result is returned for each principal specified in the policy, as
+  // well as the case where there is no matching principal.
+  repeated PrincipalEvaluationResult results = 1;
+
+  message PrincipalEvaluationResult {
+    // The principal that was evaluated.
+    entities.v1alpha.DataPolicy.Principal principal = 1;
+    // The result of the evaluation in CSV format, including headers.
+    string result = 2;
+  }
 }
