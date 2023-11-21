@@ -143,7 +143,11 @@ class SynapseViewGenerator(
             DSL.field("{0}", Int::class.java, this.period.days)
         } else {
             // this virtually represents no retention.
-            DSL.field("{0}", Int::class.java, 100000)
+            DSL.field("{0}", Int::class.java, MAX_RETENTION)
         }
+    }
+
+    companion object {
+        const val MAX_RETENTION = 100000
     }
 }
