@@ -47,7 +47,7 @@ abstract class ProcessingPlatformViewGenerator(
 
     open fun createOrReplaceView(name: String) = jooq.createOrReplaceView(name)
 
-    open fun toDynamicViewSQL(): String {
+    open fun toDynamicViewSQL(): Queries {
         val queries = dataPolicy.ruleSetsList.map { ruleSet ->
             val targetView = ruleSet.target.fullname
 
@@ -73,12 +73,9 @@ abstract class ProcessingPlatformViewGenerator(
 
         val allQueries = queries + additionalFooterStatements()
 
-        return jooq.queries(allQueries).sql
+        return jooq.queries(allQueries)
     }
 
-    /**
-     * needs an override for Synapse
-     */
     private fun createWhereStatement(ruleSet: DataPolicy.RuleSet) =
         ruleSet.filtersList.map { filter ->
             when (filter.filterCase) {

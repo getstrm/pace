@@ -12,7 +12,6 @@ import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jooq.DSLContext
-import org.jooq.Field
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
@@ -49,7 +48,7 @@ class PostgresClient(
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = PostgresViewGenerator(dataPolicy)
-        val query = viewGenerator.toDynamicViewSQL()
+        val query = viewGenerator.toDynamicViewSQL().sql
 
         withContext(Dispatchers.IO) {
             jooq.query(query).execute()
@@ -105,15 +104,5 @@ class PostgresTable(
                     .build(),
             )
             .build()
-    }
-
-    companion object {
-        private val regex = """(?:pace)\:\:((?:\"[\w\s\-\_]+\"|[\w\-\_]+))""".toRegex()
-        private fun <T> Field<T>.toTags(): List<String> {
-            val match = regex.findAll(comment)
-            return match.map {
-                it.groupValues[1].trim('"')
-            }.toList()
-        }
     }
 }

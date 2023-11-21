@@ -213,7 +213,7 @@ class DatabricksViewGeneratorTest {
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL() shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe """create or replace view public.demo_view
 as
 select
   ts,
@@ -245,7 +245,7 @@ where (
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL() shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe """create or replace view public.demo_view
 as
 select
   ts,
@@ -268,7 +268,7 @@ where (
     @Test
     fun `transform test various transforms`() {
         underTest = DatabricksViewGenerator(dataPolicy) { withRenderFormatted(true) }
-        underTest.toDynamicViewSQL()
+        underTest.toDynamicViewSQL().sql
             .shouldBe(
                 """create or replace view my_catalog.my_schema.gddemo_public
 as
@@ -316,7 +316,7 @@ where (
     fun `transform - no row filters`() {
         val policyWithoutFilters = dataPolicy.toBuilder().apply { ruleSetsBuilderList.first().clearFilters() }.build()
         underTest = DatabricksViewGenerator(policyWithoutFilters) { withRenderFormatted(true) }
-        underTest.toDynamicViewSQL()
+        underTest.toDynamicViewSQL().sql
             .shouldBe(
                 """create or replace view my_catalog.my_schema.gddemo_public
 as

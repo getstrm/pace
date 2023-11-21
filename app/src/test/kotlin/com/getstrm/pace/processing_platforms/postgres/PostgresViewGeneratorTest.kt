@@ -151,7 +151,7 @@ class PostgresViewGeneratorTest {
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL() shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe """create or replace view public.demo_view
 as
 with
   user_groups as (
@@ -198,7 +198,7 @@ grant SELECT on public.demo_view to "marketing";"""
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL() shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe """create or replace view public.demo_view
 as
 with
   user_groups as (
@@ -237,7 +237,7 @@ grant SELECT on public.demo_view to "marketing";"""
     fun `full SQL view statement with a single detokenize join`() {
         // Given
         val viewGenerator = PostgresViewGenerator(singleDetokenizePolicy) { withRenderFormatted(true) }
-        viewGenerator.toDynamicViewSQL() shouldBe
+        viewGenerator.toDynamicViewSQL().sql shouldBe
                 """create or replace view public.demo_view
 as
 with
@@ -274,7 +274,7 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
     fun `full SQL view statement with multiple detokenize joins on two tables`() {
         // Given
         val viewGenerator = PostgresViewGenerator(multiDetokenizePolicy) { withRenderFormatted(true) }
-        viewGenerator.toDynamicViewSQL() shouldBe
+        viewGenerator.toDynamicViewSQL().sql shouldBe
                 """create or replace view public.demo_view
 as
 with
@@ -316,7 +316,7 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
     fun `full SQL view statement with multiple transforms`() {
         // Given
         val viewGenerator = PostgresViewGenerator(dataPolicy) { withRenderFormatted(true) }
-        viewGenerator.toDynamicViewSQL()
+        viewGenerator.toDynamicViewSQL().sql
             .shouldBe(
                 """create or replace view public.demo_view
 as

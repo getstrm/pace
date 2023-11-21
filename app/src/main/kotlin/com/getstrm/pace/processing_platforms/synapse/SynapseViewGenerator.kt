@@ -10,10 +10,7 @@ import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
 import com.getstrm.pace.util.listPrincipals
 import com.google.rpc.DebugInfo
-import org.jooq.Condition
-import org.jooq.CreateViewAsStep
-import org.jooq.DatePart
-import org.jooq.Record
+import org.jooq.*
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import java.sql.Timestamp
@@ -28,7 +25,7 @@ class SynapseViewGenerator(
     transformer = SynapseTransformer(),
     customJooqSettings = customJooqSettings
 ) {
-    fun grantSelectPrivileges(): String {
+    fun grantSelectPrivileges(): Queries {
         val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->
             val principals =
                 ruleSet.fieldTransformsList.flatMap { it.transformsList }.flatMap { it.principalsList }.toSet() +
@@ -44,15 +41,19 @@ class SynapseViewGenerator(
             }
         }
 
-        return jooq.queries(grants).sql
+        return jooq.queries(grants)
     }
 
     override fun createOrReplaceView(name: String): CreateViewAsStep<Record> = jooq.createView(name)
 
     fun dropViewsSQL() = jooq.queries(dataPolicy.ruleSetsList.map {
         jooq.dropViewIfExists(renderName(it.target.fullname))
-    }).sql
+    })
 
+    /**
+     * If the database name is included in the ref, we need to drop it.
+     * The sql query for Synapse only supports <schema.table>.
+     */
     override fun renderName(name: String): String {
         val reference = name.split(".", limit = 3)
         return super.renderName(
@@ -83,6 +84,10 @@ class SynapseViewGenerator(
         }
     }
 
+    /**
+     * Synapse does not support the direct use of booleans in the where clause. The conditions need to evaluate to
+     * either true or false, but cannot be the reserved keywords true or false. Hence, the replacement with 1=1 and 1=0.
+     */
     override fun toCondition(filter: GenericFilter): Condition {
         val builder = filter.toBuilder()
         builder.conditionsBuilderList.map {
@@ -94,7 +99,10 @@ class SynapseViewGenerator(
                 }
             }
 
-            it.condition = DSL.condition(DSL.`when`(DSL.condition(synapseCondition), 1).else_(0).toString()).toString()
+            it.condition = DSL.condition(
+                DSL.`when`(DSL.condition(synapseCondition), 1)
+                    .otherwise(0).toString()
+            ).toString()
         }
         with(builder.build()) {
             if (this.conditionsList.size == 1) {

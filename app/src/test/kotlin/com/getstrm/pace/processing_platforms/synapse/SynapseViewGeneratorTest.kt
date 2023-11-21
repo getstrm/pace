@@ -5,6 +5,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
+import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.namedField
 import com.getstrm.pace.processing_platforms.databricks.SynapseViewGenerator
@@ -230,7 +231,7 @@ end) end))""".trimMargin()
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL() shouldBe """create view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe """create view public.demo_view
 as
 select
   ts,
@@ -268,7 +269,7 @@ end), validThrough) > current_timestamp
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL() shouldBe """create view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe """create view public.demo_view
 as
 select
   ts,
@@ -297,7 +298,7 @@ end), ts) > current_timestamp
     @Test
     fun `transform test various transforms`() {
         underTest = SynapseViewGenerator(policyWithoutRegexes) { withRenderFormatted(true) }
-        underTest.toDynamicViewSQL()
+        underTest.toDynamicViewSQL().sql
             .shouldBe(
                 """create view my_schema.gddemo_public
 as
@@ -359,7 +360,7 @@ end)))
     @Test
     fun `grant select permission`() {
         underTest = SynapseViewGenerator(policyWithoutRegexes) { withRenderFormatted(true) }
-        underTest.grantSelectPrivileges()
+        underTest.grantSelectPrivileges().sql
             .shouldBe(
                 """grant SELECT on my_schema.gddemo_public to "analytics";
 grant SELECT on my_schema.gddemo_public to "marketing";
@@ -372,13 +373,13 @@ grant SELECT on my_schema.gddemo_public to "admin";"""
     fun `transform - no row filters`() {
         val policyWithoutFilters = dataPolicy.toBuilder().apply { ruleSetsBuilderList.first().clearFilters() }.build()
         underTest = SynapseViewGenerator(policyWithoutFilters) { withRenderFormatted(true) }
-        shouldThrow<InternalException> { underTest.toDynamicViewSQL() }
+        shouldThrow<BadRequestException> { underTest.toDynamicViewSQL() }
     }
 
     @Test
     fun `transform without regex replace - no row filters`() {
         underTest = SynapseViewGenerator(policyWithoutFiltersAndRegexes) { withRenderFormatted(true) }
-        underTest.toDynamicViewSQL()
+        underTest.toDynamicViewSQL().sql
             .shouldBe(
                 """create view my_schema.gddemo_public
 as

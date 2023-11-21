@@ -50,14 +50,12 @@ class SynapseClient(
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = SynapseViewGenerator(dataPolicy)
         // Explicitly dropping the views if they exist first and granting the 'select' to roles is required by Synapse.
-        val dropQuery = viewGenerator.dropViewsSQL()
-        val query = viewGenerator.toDynamicViewSQL()
-        val grantSelectQuery = viewGenerator.grantSelectPrivileges()
+        val dropQuery = viewGenerator.dropViewsSQL().queries()
+        val query = viewGenerator.toDynamicViewSQL().queries()
+        val grantSelectQuery = viewGenerator.grantSelectPrivileges().queries()
 
         withContext(Dispatchers.IO) {
-            jooq.query(dropQuery).execute()
-            jooq.query(query).execute()
-            jooq.query(grantSelectQuery).execute()
+            jooq.queries(*dropQuery, *query, *grantSelectQuery).executeBatch()
         }
     }
 
@@ -109,15 +107,5 @@ class SynapseTable(
                     .build(),
             )
             .build()
-    }
-
-    companion object {
-        private val regex = """(?:pace)\:\:((?:\"[\w\s\-\_]+\"|[\w\-\_]+))""".toRegex()
-        private fun <T> Field<T>.toTags(): List<String> {
-            val match = regex.findAll(comment)
-            return match.map {
-                it.groupValues[1].trim('"')
-            }.toList()
-        }
     }
 }
