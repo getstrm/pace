@@ -333,11 +333,22 @@ apollo {
     service("collibra") {
         packageName.set("com.collibra.generated")
         sourceFolder.set("collibra")
+        introspection {
+            endpointUrl.set("https://test-drive.collibra.com/graphql/knowledgeGraph/v1")
+            schemaFile.set(file("src/main/graphql/collibra/schema.graphqls"))
+            // TODO remove creds
+            headers.set(mapOf("Authorization" to "Basic dGVzdGRyaXZldXNlcjlvMHY4bjRuOk9vY2Vtb2ckNW01cjduOGQ="))
+        }
     }
 
     service("datahub") {
         packageName.set("io.datahubproject.generated")
         sourceFolder.set("datahub")
+        introspection {
+            endpointUrl.set("http://datahub-datahub-frontend.datahub:9002/api/graphql")
+            schemaFile.set(file("src/main/graphql/datahub/schema.graphqls"))
+            // TODO remove creds
+            headers.set(mapOf("Authorization" to "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhY3RvclR5cGUiOiJVU0VSIiwiYWN0b3JJZCI6ImRhdGFodWIiLCJ0eXBlIjoiUEVSU09OQUwiLCJ2ZXJzaW9uIjoiMiIsImp0aSI6IjE4YWExMjA3LWY2NTQtNDc4OS05MTU3LTkwYTMyMjExMWJkYyIsInN1YiI6ImRhdGFodWIiLCJpc3MiOiJkYXRhaHViLW1ldGFkYXRhLXNlcnZpY2UifQ.8-NksHdL4p3o9_Bryst2MOvH-bATl-avC8liB-E2_sM"))
+        }
     }
 }
-
