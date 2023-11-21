@@ -69,6 +69,7 @@
 * [PACE Configuration](reference/pace-configuration.md)
 * [Integrations](integrations-and-reference/integrations/README.md)
   * [Data Catalog Integrations](reference/data-catalog-integrations/README.md)
+      * [Data Catalog Specifics](reference/data-catalog-integrations/catalog-specifics.md)
   * [Processing Platform Integrations](reference/processing-platform-integrations/README.md)
     * [BigQuery](reference/processing-platform-integrations/bigquery.md)
     * [Databricks](reference/processing-platform-integrations/databricks.md)
