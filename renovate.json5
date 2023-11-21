@@ -1,0 +1,5 @@
+{
+    "extends": [
+        "github>getstrm/renovate-config//base-renovate-config"
+    ]
+}
