@@ -6,12 +6,12 @@ description: Welcome to the PACE docs!
 
 **About PACE**
 
-PACE is the **P**olicy **A**nd **C**ontract **E**ngine. It helps you to programmatically create and apply a data policy to a processing platform (like Databricks, Snowflake or BigQuery). Through a data contract, you can apply filters, field transforms and access settings to create a view inside a data platform.&#x20;
+PACE is the **P**olicy **A**nd **C**ontract **E**ngine. It helps you to programmatically create and apply a data policy to a processing platform (like Databricks, Snowflake or BigQuery). Through a data contract, you can apply filters, field transforms and access settings to create a view inside a data platform.
 
-_`Data policy IN, dynamic view OUT`_ is the easiest way to describe it.&#x20;
+_`Data policy IN, dynamic view OUT`_ is the easiest way to describe it.
 
 {% hint style="info" %}
-PACE is currently in closed alpha! Reach out to [pace@getstrm.com](mailto:pace@getstrm.com) to request access! Please list your name, organization, and why you would like to try PACE.&#x20;
+PACE is currently in closed alpha. [Request access!](https://pace-alpha.framer.ai/)&#x20;
 {% endhint %}
 
 **ProblemsPACE**
@@ -20,7 +20,7 @@ PACE is designed to remove friction and cost from using data in real-world organ
 
 If (one of) these sound familiar and you are using one of the currently supported processing platforms, PACE is worth a try:
 
-* You have to navigate many (competing) policies, constraints and stakeholders to access data.&#x20;
+* You have to navigate many (competing) policies, constraints and stakeholders to access data.
 * The data approval process is complicated, costly and lengthy.
 * Data policies cannot be configured uniformly over hybrid and multi-cloud setups.
 * Governance and processing are done in different, unconnected tools
@@ -39,5 +39,5 @@ PACE currently [supports](integrations-and-reference/integrations/) Collibra, Da
 
 To install and use PACE, you need:
 
-* The [PACE app ](https://github.com/getstrm/pace)(as Spring Boot app or Docker image)&#x20;
+* The [PACE app ](https://github.com/getstrm/pace)(as Spring Boot app or Docker image)
 * The PACE [CLI](https://github.com/getstrm/cli) to interact with your deployment

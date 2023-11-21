@@ -75,3 +75,4 @@
     * [Snowflake](reference/processing-platform-integrations/snowflake.md)
     * [PostgreSQL](reference/processing-platform-integrations/postgres.md)
 * [Glossary](integrations-and-reference/glossary.md)
+* [Roadmap](integrations-and-reference/roadmap.md)
