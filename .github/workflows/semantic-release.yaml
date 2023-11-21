@@ -43,7 +43,7 @@ jobs:
         env:
           BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
         run: |
-          buf beta registry draft delete buf.build/getstrm/pace:${{ github.event.pull_request.head.ref }}
+          buf beta registry draft delete buf.build/getstrm/pace:${{ github.event.pull_request.head.ref }} --force || true
 
       # Gradle build and test
       - uses: actions/setup-java@v3
