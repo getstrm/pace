@@ -218,7 +218,7 @@ end) end))""".trimMargin()
         condition.toSql() shouldBe """
             dateadd(day, (case
               when (IS_ROLEMEMBER('marketing')=1) then 5
-              when (IS_ROLEMEMBER('fraud_and_risk')=1) then 10000
+              when (IS_ROLEMEMBER('fraud_and_risk')=1) then 100000
               else 10
             end), timestamp) > current_timestamp""".trimIndent()
     }
@@ -251,7 +251,7 @@ end)
   end))
   and dateadd(day, (case
   when (IS_ROLEMEMBER('marketing')=1) then 5
-  when (IS_ROLEMEMBER('fraud_and_risk')=1) then 10000
+  when (IS_ROLEMEMBER('fraud_and_risk')=1) then 100000
   else 10
 end), ts) > current_timestamp
   and dateadd(day, (case
@@ -288,7 +288,7 @@ end)
   end))
   and dateadd(day, (case
   when (IS_ROLEMEMBER('marketing')=1) then 5
-  when (IS_ROLEMEMBER('fraud_and_risk')=1) then 10000
+  when (IS_ROLEMEMBER('fraud_and_risk')=1) then 100000
   else 10
 end), ts) > current_timestamp
 );"""
