@@ -19,13 +19,15 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
     private val dataSources = getAllDataSources().associateBy { it.id }
 
     /**
-     * We're doing a weird workaround, where we search all datasets, and then find the data sources
-     * that contain any datasets.
+     * We're doing a weird workaround, where we search all dataSources, and then select those
+     * that contain at least one dataset. This is because ODD does not provide information
+     * of this kind in its api.
      */
     override suspend fun listDatabases(): List<Database> =
-        dataSources.mapNotNull { (_, dataSource) ->
+        dataSources.values.filter{dataSource ->
             val searchId = searchDataSetsInDataSource(dataSource).searchId
-            if (searchClient.getSearchResults(searchId, 1, 1).items.isNotEmpty()) dataSource else null
+            // we try for one search result on the first page, we only want to know if there are any.
+            searchClient.getSearchResults(searchId, 1, 1).items.isNotEmpty()
         }.map {
             Database(this, it, it.id.toString(), it.namespace?.name ?: "", it.name)
         }
@@ -37,6 +39,9 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         dbType: String,
         displayName: String
     ) : DataCatalog.Database(catalog, id, dbType, displayName) {
+        /*
+            Just returning a hardcoded schema with id 'schema' and name the same as that of the dataSource.
+        */
         override suspend fun getSchemas(): List<Schema> {
             return listOf(Schema(catalog, this, "schema", dataSource.name))
         }
@@ -44,20 +49,23 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
 
     class Schema(
         private val catalog: OpenDataDiscoveryCatalog,
-        val oddDatabase: Database,
+        // oddDatabase as a separate value, because we need to access its dataSource.
+        private val oddDatabase: Database,
         id: String,
         name: String,
     ) : DataCatalog.Schema(oddDatabase, id, name) {
         override suspend fun getTables(): List<DataCatalog.Table> {
-
-            val ref = catalog.searchDataSetsInDataSource(oddDatabase.dataSource)
-            val x = catalog.getAllSearchResults(ref.searchId)
-            return x.map{Table(catalog, this, "${it.id}", it.externalName)}
+            val searchId = catalog.searchDataSetsInDataSource(oddDatabase.dataSource).searchId
+            return catalog.getAllSearchResults(searchId).map { Table(catalog, this, "${it.id}", it.externalName) }
         }
     }
 
-
-    class Table(private val catalog: OpenDataDiscoveryCatalog, schema: DataCatalog.Schema, id: String, name: String) :
+    class Table(
+        private val catalog: OpenDataDiscoveryCatalog,
+        schema: DataCatalog.Schema,
+        id: String,
+        name: String
+    ) :
         DataCatalog.Table(schema, id, name) {
         private fun getAllParents(parentId: Long, fieldsById: Map<Long, DataSetField>): List<Long> {
             val parent = checkNotNull(fieldsById[parentId]) { "The parent field should exist" }
