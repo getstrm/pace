@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.*
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER
+import com.getstrm.pace.processing_platforms.DefaultProcessingPlatformTransformer.renderName
 import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
@@ -31,7 +32,11 @@ abstract class ProcessingPlatformViewGenerator(
             field(
                 "{0} > {1}",
                 Boolean::class.java,
-                timestampAdd(field(unquotedName(field.fullName()), Timestamp::class.java), this.period.days, DatePart.DAY),
+                timestampAdd(
+                    field(unquotedName(field.fullName()), Timestamp::class.java),
+                    this.period.days,
+                    DatePart.DAY
+                ),
                 currentTimestamp()
             )
         } else {
@@ -40,11 +45,13 @@ abstract class ProcessingPlatformViewGenerator(
 
     protected open val jooq: DSLContext = using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
 
-    fun toDynamicViewSQL(): String {
+    open fun createOrReplaceView(name: String) = jooq.createOrReplaceView(name)
+
+    open fun toDynamicViewSQL(): Queries {
         val queries = dataPolicy.ruleSetsList.map { ruleSet ->
             val targetView = ruleSet.target.fullname
 
-            jooq.createOrReplaceView(renderName(targetView)).`as`(
+            createOrReplaceView(renderName(targetView)).`as`(
                 selectWithAdditionalHeaderStatements(
                     dataPolicy.source.fieldsList.map { field ->
                         toJooqField(
@@ -59,21 +66,24 @@ abstract class ProcessingPlatformViewGenerator(
                         addDetokenizeJoins(it, ruleSet)
                     }
                     .where(
-                        ruleSet.filtersList.map { filter ->
-                            when (filter.filterCase) {
-                                RETENTION_FILTER -> toCondition(filter.retentionFilter)
-                                GENERIC_FILTER -> toCondition(filter.genericFilter)
-                                else -> throw IllegalArgumentException("Unsupported filter: ${filter.filterCase.name}")
-                            }
-                        }
+                        createWhereStatement(ruleSet)
                     ),
             )
         }
 
         val allQueries = queries + additionalFooterStatements()
 
-        return jooq.queries(allQueries).sql
+        return jooq.queries(allQueries)
     }
+
+    private fun createWhereStatement(ruleSet: DataPolicy.RuleSet) =
+        ruleSet.filtersList.map { filter ->
+            when (filter.filterCase) {
+                RETENTION_FILTER -> toCondition(filter.retentionFilter)
+                GENERIC_FILTER -> toCondition(filter.genericFilter)
+                else -> throw IllegalArgumentException("Unsupported filter: ${filter.filterCase.name}")
+            }
+        }
 
     private fun addDetokenizeJoins(
         selectJoinStep: SelectJoinStep<Record>,
@@ -97,7 +107,7 @@ abstract class ProcessingPlatformViewGenerator(
         return result
     }
 
-    fun toCondition(filter: DataPolicy.RuleSet.Filter.GenericFilter): Condition {
+    open fun toCondition(filter: DataPolicy.RuleSet.Filter.GenericFilter): Condition {
         if (filter.conditionsList.size == 1) {
             // If there is only one filter it should be the only option
             return getParser().parseCondition(filter.conditionsList.first().condition)
@@ -126,7 +136,7 @@ abstract class ProcessingPlatformViewGenerator(
         return DSL.condition(whereCondition)
     }
 
-    fun toCondition(retention: DataPolicy.RuleSet.Filter.RetentionFilter): Condition {
+    open fun toCondition(retention: DataPolicy.RuleSet.Filter.RetentionFilter): Condition {
         if (retention.conditionsList.size == 1) {
             // If there is only one filter it should be the only option
             // create retention sql
@@ -201,6 +211,7 @@ abstract class ProcessingPlatformViewGenerator(
                 transform.detokenize,
                 dataPolicy.source.ref,
             )
+
             NUMERIC_ROUNDING -> transformer.numericRounding(field, transform.numericRounding)
             TRANSFORM_NOT_SET, IDENTITY, null -> transformer.identity(field)
         }

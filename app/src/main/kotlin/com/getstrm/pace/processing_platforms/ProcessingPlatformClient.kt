@@ -3,6 +3,7 @@ package com.getstrm.pace.processing_platforms
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.ResourceException
 import com.google.rpc.ResourceInfo
+import org.jooq.Field
 
 interface ProcessingPlatformClient {
     val id: String
@@ -29,4 +30,14 @@ abstract class Table {
     abstract val fullName: String
     abstract suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy
     override fun toString(): String = "${javaClass.simpleName}(fullName=$fullName)"
+    companion object {
+        private val regex = """(?:pace)\:\:((?:\"[\w\s\-\_]+\"|[\w\-\_]+))""".toRegex()
+        fun <T> Field<T>.toTags(): List<String> {
+            val match = regex.findAll(comment)
+            return match.map {
+                it.groupValues[1].trim('"')
+            }.toList()
+        }
+    }
+
 }

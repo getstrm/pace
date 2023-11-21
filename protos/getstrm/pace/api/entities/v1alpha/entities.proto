@@ -163,6 +163,7 @@ message DataPolicy {
       SNOWFLAKE = 2;
       BIGQUERY = 3;
       POSTGRES = 4;
+      SYNAPSE = 5;
     }
   }
 

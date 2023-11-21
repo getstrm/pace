@@ -1,3 +1,24 @@
+# [1.0.0-alpha.27](https://github.com/getstrm/pace/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) (2023-11-21)
+
+
+### Features
+
+* **feature/pace-58:** much better database list ([9ac032f](https://github.com/getstrm/pace/commit/9ac032fd899d37557d122e203d8e00d3fa6ea176))
+
+# [1.0.0-alpha.26](https://github.com/getstrm/pace/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) (2023-11-21)
+
+
+### Features
+
+* **pace-46:** integration for Azure Synapse Analytics ([#66](https://github.com/getstrm/pace/issues/66)) ([d4c116f](https://github.com/getstrm/pace/commit/d4c116f77aaa73420733479a992c23595398c113))
+
+# [1.0.0-alpha.25](https://github.com/getstrm/pace/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) (2023-11-21)
+
+
+### Features
+
+* **pace-39:** delete bsr branch after merging PR ([#67](https://github.com/getstrm/pace/issues/67)) ([0e76fc7](https://github.com/getstrm/pace/commit/0e76fc7ae73affcbabf884566148e66aa16e2cea))
+
 # [1.0.0-alpha.24](https://github.com/getstrm/pace/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) (2023-11-17)
 
 
