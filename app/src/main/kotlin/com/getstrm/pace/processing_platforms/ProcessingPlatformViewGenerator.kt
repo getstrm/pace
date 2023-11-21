@@ -25,7 +25,7 @@ abstract class ProcessingPlatformViewGenerator(
     protected open fun selectWithAdditionalHeaderStatements(fields: List<JooqField<*>>): SelectSelectStep<Record> =
         jooq.select(fields)
 
-    open fun additionalFooterStatements(): Queries = DSL.queries()
+    protected open fun additionalFooterStatements(): Queries = DSL.queries()
 
     protected open fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(field: DataPolicy.Field): JooqField<Boolean> =
         if (this.hasPeriod()) {

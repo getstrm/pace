@@ -10,7 +10,10 @@ import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
 import com.getstrm.pace.util.listPrincipals
 import com.google.rpc.DebugInfo
-import org.jooq.*
+import org.jooq.Condition
+import org.jooq.CreateViewAsStep
+import org.jooq.DatePart
+import org.jooq.Record
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import java.sql.Timestamp
@@ -140,7 +143,7 @@ class SynapseViewGenerator(
             DSL.field("{0}", Int::class.java, this.period.days)
         } else {
             // this virtually represents no retention.
-            DSL.field("{0}", Int::class.java, 10000)
+            DSL.field("{0}", Int::class.java, 100000)
         }
     }
 }

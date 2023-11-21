@@ -53,12 +53,11 @@ data class DatabricksConfig(
 data class SynapseConfig(
     val id: String,
     val hostName: String,
+    val port: Int = 1433,
     val database: String,
     val userName: String,
     val password: String,
     val schema: String?
 ) {
-    internal fun getJdbcUrl() = "jdbc:sqlserver://$hostName:1433;database=$database;user=$userName;password=$password;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.sql.azuresynapse.net;loginTimeout=30;"
+    internal fun getJdbcUrl() = "jdbc:sqlserver://$hostName:$port;database=$database;user=$userName;password=$password;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.sql.azuresynapse.net;loginTimeout=30;"
 }
-//pace-getstrm.sql.azuresynapse.net
-//jdbc:sqlserver://yourserver.sql.azuresynapse.net:1433;database=yourdatabase;user=$userName;password=$password;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.sql.azuresynapse.net;loginTimeout=30;

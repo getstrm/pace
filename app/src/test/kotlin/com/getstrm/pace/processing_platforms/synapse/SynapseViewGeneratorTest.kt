@@ -360,11 +360,12 @@ end)))
     fun `grant select permission`() {
         underTest = SynapseViewGenerator(policyWithoutRegexes) { withRenderFormatted(true) }
         underTest.grantSelectPrivileges()
-            .shouldBe("""grant SELECT on my_schema.gddemo_public to "analytics";
+            .shouldBe(
+                """grant SELECT on my_schema.gddemo_public to "analytics";
 grant SELECT on my_schema.gddemo_public to "marketing";
 grant SELECT on my_schema.gddemo_public to "fraud_and_risk";
-grant SELECT on my_schema.gddemo_public to "admin";""")
-
+grant SELECT on my_schema.gddemo_public to "admin";"""
+            )
     }
 
     @Test
@@ -594,7 +595,7 @@ from my_schema.gddemo;"""
         }.build()
 
         val policyWithoutFiltersAndRegexes: DataPolicy = policyWithoutRegexes.toBuilder().apply {
-                this.ruleSetsBuilderList.first().clearFilters()
+            this.ruleSetsBuilderList.first().clearFilters()
         }.build()
 
 
