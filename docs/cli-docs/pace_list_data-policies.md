@@ -1,6 +1,6 @@
 ## pace list data-policies
 
-List Datapolicies
+List Data Policies
 
 ### Synopsis
 

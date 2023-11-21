@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.23
+    version: 1.0.0-alpha.24
 paths:
     /catalogs:
         get:
@@ -174,7 +174,7 @@ paths:
         post:
             tags:
                 - DataPoliciesService
-            description: Creates or updates a DataPolicy in PACE and applies it to the processing platform.
+            description: Creates or updates a DataPolicy in PACE and optionally applies it to the processing platform.
             operationId: DataPoliciesService_UpsertDataPolicy
             requestBody:
                 content:
@@ -219,6 +219,35 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/GetDataPolicyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        post:
+            tags:
+                - DataPoliciesService
+            description: Applies an existing DataPolicy to the processing platform.
+            operationId: DataPoliciesService_ApplyDataPolicy
+            parameters:
+                - name: dataPolicyId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: platformId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApplyDataPolicyResponse'
                 default:
                     description: Default error response
                     content:
@@ -445,6 +474,11 @@ paths:
                                 $ref: '#/components/schemas/Status'
 components:
     schemas:
+        ApplyDataPolicyResponse:
+            type: object
+            properties:
+                dataPolicy:
+                    $ref: '#/components/schemas/DataPolicy'
         BadRequest_FieldViolation:
             type: object
             properties:
@@ -627,6 +661,10 @@ components:
                     type: array
                     items:
                         type: string
+                lastApplyTime:
+                    type: string
+                    description: The last time the policy was applied to the target(s).
+                    format: date-time
         DataPolicy_Principal:
             type: object
             properties:
@@ -1021,6 +1059,11 @@ components:
             properties:
                 dataPolicy:
                     $ref: '#/components/schemas/DataPolicy'
+                apply:
+                    type: boolean
+                    description: |-
+                        whether to apply the policy directly on the processing platform
+                         if omitted, defaults to false
         UpsertDataPolicyResponse:
             type: object
             properties:

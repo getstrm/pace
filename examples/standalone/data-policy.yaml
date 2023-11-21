@@ -36,7 +36,7 @@ rule_sets:
   - target:
       fullname: public.demo_view
     filters:
-      - generic_filters:
+      - generic_filter:
           conditions:
             - principals: [ { group: administrator }, { group: fraud_and_risk } ]
               condition: "true"

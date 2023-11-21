@@ -92,6 +92,7 @@ rule_sets:
 ### Options
 
 ```
+  -b, --blueprint                    fetch a blueprint data policy from a catalog or a processing platform
   -c, --catalog string               id of catalog
   -d, --database string              database in the catalog
   -h, --help                         help for data-policy

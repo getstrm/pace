@@ -41,6 +41,8 @@
   * [REST API](reference/api-reference/rest.md)
 * [CLI Reference](reference/cli-reference/README.md)
   * [pace](cli-docs/pace.md)
+    * [apply](cli-docs/pace\_apply.md)
+      * [data-policy](cli-docs/pace\_apply\_data-policy.md)
     * [completion](cli-docs/pace\_completion.md)
       * [bash](cli-docs/pace\_completion\_bash.md)
       * [fish](cli-docs/pace\_completion\_fish.md)
