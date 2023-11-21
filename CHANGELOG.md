@@ -1,3 +1,12 @@
+# [1.0.0-alpha.28](https://github.com/getstrm/pace/compare/v1.0.0-alpha.27...v1.0.0-alpha.28) (2023-11-21)
+
+
+### Features
+
+* **feature/pace-57:** adds some hierarchy to ODD ([c9634f5](https://github.com/getstrm/pace/commit/c9634f58a7515b63d0bafd5205209d49146c6aba))
+* **feature/pace-57:** docs, and correct title for data-policy ([1600586](https://github.com/getstrm/pace/commit/1600586a4c9f554e112794f00be10cd2daf053e6))
+* **feature/pace-57:** hierarchy for ODD ([47bad44](https://github.com/getstrm/pace/commit/47bad4498763ee17725386806f82ae7e472703b9))
+
 # [1.0.0-alpha.27](https://github.com/getstrm/pace/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) (2023-11-21)
 
 
