@@ -1,3 +1,10 @@
+# [1.0.0-alpha.25](https://github.com/getstrm/pace/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) (2023-11-21)
+
+
+### Features
+
+* **pace-39:** delete bsr branch after merging PR ([#67](https://github.com/getstrm/pace/issues/67)) ([0e76fc7](https://github.com/getstrm/pace/commit/0e76fc7ae73affcbabf884566148e66aa16e2cea))
+
 # [1.0.0-alpha.24](https://github.com/getstrm/pace/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) (2023-11-17)
 
 
