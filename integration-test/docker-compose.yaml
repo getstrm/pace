@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres_pace:
+    container_name: postgres_pace
+    image: postgres
+    environment:
+      POSTGRES_USER: pace
+      POSTGRES_PASSWORD: pace
+      PGDATA: /data/postgres
+      PGUSER: pace # Required for health check
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+    ports:
+      - "5433:5432"
+    networks:
+      - postgres_pace
+
+  postgres_processing_platform:
+    container_name: postgres_processing_platform
+    image: postgres
+    environment:
+      POSTGRES_USER: standalone
+      POSTGRES_PASSWORD: standalone
+      POSTGRES_DB: standalone
+      PGDATA: /data/postgres
+      PGUSER: standalone # Required for health check
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+    volumes:
+      - ./data.sql:/docker-entrypoint-initdb.d/data.sql
+    ports:
+      - "5431:5432"
+    networks:
+      - postgres_processing_platform
+
+networks:
+  postgres_pace:
+    name: postgres_pace
+    driver: bridge
+  postgres_processing_platform:
+    name: postgres_processing_platform
+    driver: bridge

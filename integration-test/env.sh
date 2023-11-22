@@ -1,0 +1,3 @@
+
+export PGPASSFILE=$PWD/pgpass
+
