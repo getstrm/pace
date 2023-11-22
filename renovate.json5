@@ -27,6 +27,17 @@
             matchPackagePrefixes: [
                 "build.buf.gen"
             ],
+            registryUrls: [
+                "https://buf.build/gen/maven"
+            ]
+        },
+        {
+            matchManagers: [
+                "regex"
+            ],
+            matchPackagePrefixes: [
+                "build.buf.gen"
+            ],
             matchUpdateTypes: [
                 "major"
             ],
