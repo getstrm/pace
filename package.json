@@ -1,16 +1,16 @@
 {
   "devDependencies": {
-    "@commitlint/config-conventional": "17.8.1",
+    "@commitlint/config-conventional": "18.4.3",
     "semantic-release-replace-plugin": "1.2.7",
     "@semantic-release/changelog": "6.0.3",
     "@semantic-release/exec": "6.0.3",
     "@semantic-release/git": "10.0.1",
-    "@semantic-release/github": "9.2.1",
-    "commitlint": "17.6.7",
-    "conventional-changelog-conventionalcommits": "6.1.0",
+    "@semantic-release/github": "9.2.3",
+    "commitlint": "17.8.1",
+    "conventional-changelog-conventionalcommits": "7.0.2",
     "cz-conventional-changelog": "3.3.0",
     "husky": "8.0.3",
-    "semantic-release": "21.0.9"
+    "semantic-release": "21.1.2"
   },
   "scripts": {
     "postinstall": "husky install",
