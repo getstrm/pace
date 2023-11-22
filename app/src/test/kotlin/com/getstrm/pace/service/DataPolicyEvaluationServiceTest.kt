@@ -18,11 +18,7 @@ class DataPolicyEvaluationServiceTest {
 
         // Then
         val resultsByPrincipal = results.associateBy {
-            if (it.hasPrincipal()) {
-                it.principal.group
-            } else {
-                "none"
-            }
+            it.principal?.group
         }
         resultsByPrincipal["administrator"]!!.csv shouldBe administratorResult
         resultsByPrincipal["administrator"]!!.principal shouldBe "administrator".toPrincipal()
@@ -30,8 +26,8 @@ class DataPolicyEvaluationServiceTest {
         resultsByPrincipal["fraud_and_risk"]!!.principal shouldBe "fraud_and_risk".toPrincipal()
         resultsByPrincipal["marketing"]!!.csv shouldBe marketingResult
         resultsByPrincipal["marketing"]!!.principal shouldBe "marketing".toPrincipal()
-        resultsByPrincipal["none"]!!.csv shouldBe fallbackResult
-        resultsByPrincipal["none"]!!.hasPrincipal() shouldBe false
+        resultsByPrincipal[""]!!.csv shouldBe fallbackResult
+        resultsByPrincipal[""]!!.hasPrincipal() shouldBe false
     }
 
     companion object {
