@@ -1,5 +1,5 @@
 ---
-description: Create and use a Python UDF on Databricks.
+description: Create and use a Python UDF on Databricks
 ---
 # User Defined Functions in Python
 In this tutorial we will
