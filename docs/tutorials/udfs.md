@@ -3,7 +3,7 @@ description: Create and use a Python UDF on Databricks.
 ---
 # User Defined Functions in Python
 In this tutorial we will
-* create a User Defined Function written in Python. We will use DataBricks as a processing platform.
+* create a User Defined Function written in Python. We will use Databricks as a processing platform.
 * create a Data Policy that uses this UDF, and apply it to the the platform.
 * inspect the resulting SQL View.
 * show some results.
@@ -24,12 +24,12 @@ NOTE: Make sure both the PACE service credential, as well as any user that might
 on Databricks has `EXECUTE` permissions on the function.
 ![exec permissions](./dbr-exec-perms.png)
 
-## Create a data-policy
-I've used a demo table with an `age` integer column in it, and downloaded a blueprint data policy
+## Create a Data Policy
+We have used a demo table with an `age` integer column in it, and downloaded a blueprint data policy:
 
     pace  get data-policy --processing-platform dbr-pace pace.alpha_test.gddemo > policy.yaml
 
-I've edited the policy file, and included the following field transformation.
+We have then edited the policy file, and included the following field transformation:
 
 ```yaml
 metadata:
@@ -54,16 +54,16 @@ source:
 ```
 So this field transformation defines that any user (`principals: []`) receives the squared value of the `age` column.
 
-## Create the SQL VIEW on Databricks:
+## Create the SQL VIEW on Databricks
 First `upsert` the policy file to PACE.
 
     pace upsert data-policy policy.yaml
 
-And the actually apply it on the processing platform.
+And then actually apply it on the processing platform.
 
     pace apply data-policy pace.alpha_test.gddemo  --processing-platform dbr-pace 
 
-## Investigate the results.
+## Investigate the results
 If everything went right we would have a SQL VIEW named `pace.alpha_test.gddemo_pace_view` with this
 view definition:
 
@@ -86,7 +86,7 @@ oliverjulie@yahoo.com     12
 debra64@hotmail.com       79
 ```
 
-But the VIEW not so much :-)
+But the _view_ clearly shows them squared:
 ```text
 select email, age from pace.alpha_test.gddemo_pace_view limit 5;
 email                     age
