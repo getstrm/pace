@@ -69,8 +69,8 @@ dependencies {
     implementation("com.google.cloud:google-cloud-bigquery")
     implementation("com.google.cloud:google-cloud-datacatalog")
 
-    implementation("build.buf.gen:getstrm_pace_grpc_java:1.58.0.1.$generatedBufDependencyVersion")
-    implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.3.1.1.$generatedBufDependencyVersion")
+    implementation("build.buf.gen:getstrm_pace_grpc_java:1.59.0.2.$generatedBufDependencyVersion")
+    implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.4.1.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_pace_protocolbuffers_java:24.4.0.1.$generatedBufDependencyVersion")
     implementation("build.buf:protovalidate:0.1.6")
 
