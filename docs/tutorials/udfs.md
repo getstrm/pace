@@ -27,7 +27,7 @@ on Databricks has `EXECUTE` permissions on the function.
 ## Create a Data Policy
 We have used a demo table with an `age` integer column in it, and downloaded a blueprint data policy:
 
-    pace  get data-policy --processing-platform dbr-pace pace.alpha_test.gddemo > policy.yaml
+    pace  get data-policy --processing-platform dbr-pace pace.alpha_test.demo > policy.yaml
 
 We have then edited the policy file, and included the following field transformation:
 
@@ -47,10 +47,10 @@ rule_sets:
           statement: pace.alpha_test.squarewithpython(age)
         principals: []
   target:
-    fullname: pace.alpha_test.gddemo_pace_view
+    fullname: pace.alpha_test.demo_pace_view
 source:
   ...
-  ref: pace.alpha_test.gddemo
+  ref: pace.alpha_test.demo
 ```
 So this field transformation defines that any user (`principals: []`) receives the squared value of the `age` column.
 
@@ -61,10 +61,10 @@ First `upsert` the policy file to PACE.
 
 And then actually apply it on the processing platform.
 
-    pace apply data-policy pace.alpha_test.gddemo  --processing-platform dbr-pace 
+    pace apply data-policy pace.alpha_test.demo  --processing-platform dbr-pace 
 
 ## Investigate the results
-If everything went right we would have a SQL VIEW named `pace.alpha_test.gddemo_pace_view` with this
+If everything went right we would have a SQL VIEW named `pace.alpha_test.demo_pace_view` with this
 view definition:
 
 ```sql
@@ -72,12 +72,12 @@ view definition:
 select
     transactionId, userId, email, pace.alpha_test.squarewithpython(age) age,
     size, hairColor, transactionAmount, items, itemCount, date, purpose
-    from pace.alpha_test.gddemo
+    from pace.alpha_test.demo
 ```
 
 The original `gdddemo` table contains fairly normal ages:
 ```text
-select email, age from pace.alpha_test.gddemo limit 5;
+select email, age from pace.alpha_test.demo limit 5;
 email                     age
 jeffreypowell@hotmail.com 33
 forbeserik@gmail.com      16
@@ -88,7 +88,7 @@ debra64@hotmail.com       79
 
 But the _view_ clearly shows them squared:
 ```text
-select email, age from pace.alpha_test.gddemo_pace_view limit 5;
+select email, age from pace.alpha_test.demo_pace_view limit 5;
 email                     age
 jeffreypowell@hotmail.com 1089
 forbeserik@gmail.com      256

@@ -179,6 +179,9 @@ sql_statement:
 | `HP`      | `Other` |
 | `Acer`    | `Other` |
 
+We can use User Defined Functions, using SQL or other languages like Python (depending on the processing platform).
+We explore a trivial Python UDF on the Databricks platform in [this tutorials page](../../tutorials/udfs.md).
+
 ### **6. Nullify**
 
 Make the field value null.
