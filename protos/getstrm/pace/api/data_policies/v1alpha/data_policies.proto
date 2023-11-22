@@ -88,8 +88,8 @@ message EvaluateDataPolicyResponse {
   repeated PrincipalEvaluationResult results = 1;
 
   message PrincipalEvaluationResult {
-    // The principal that was evaluated.
-    entities.v1alpha.DataPolicy.Principal principal = 1;
+    // The principal that was evaluated. If absent, this is the result for the case where there is no matching principal.
+    optional entities.v1alpha.DataPolicy.Principal principal = 1;
     // The result of the evaluation in CSV format, including headers.
     string csv = 2;
   }

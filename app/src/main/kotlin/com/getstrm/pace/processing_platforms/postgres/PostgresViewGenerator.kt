@@ -5,9 +5,15 @@ import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
 import com.getstrm.pace.util.defaultJooqSettings
-import com.getstrm.pace.util.listPrincipals
+import com.getstrm.pace.util.uniquePrincipals
 import com.google.rpc.DebugInfo
-import org.jooq.*
+import org.jooq.Condition
+import org.jooq.DSLContext
+import org.jooq.Field
+import org.jooq.Queries
+import org.jooq.Record
+import org.jooq.SQLDialect
+import org.jooq.SelectSelectStep
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 
@@ -22,13 +28,9 @@ class PostgresViewGenerator(
     override val jooq: DSLContext = DSL.using(SQLDialect.POSTGRES, defaultJooqSettings.apply(customJooqSettings))
     override fun additionalFooterStatements(): Queries {
         val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->
-            val principals =
-                ruleSet.fieldTransformsList.flatMap { it.transformsList }.flatMap { it.principalsList }.toSet() +
-                        ruleSet.filtersList.flatMap { it.listPrincipals() }.toSet()
-
             val viewName = ruleSet.target.fullname
 
-            principals.map {
+            ruleSet.uniquePrincipals().map {
                 DSL.query(
                     jooq.grant(DSL.privilege("SELECT")).on(DSL.table(DSL.unquotedName(viewName)))
                         .to(DSL.role(DSL.quotedName(it.group))).sql
