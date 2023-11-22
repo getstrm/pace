@@ -157,7 +157,7 @@ class BigQueryViewGeneratorTest {
         // Given
         val viewGenerator =
             BigQueryViewGenerator(singleDetokenizePolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
-        viewGenerator.toDynamicViewSQL() shouldBe
+        viewGenerator.toDynamicViewSQL().sql shouldBe
                 """create or replace view `my-project.my_dataset.my_target_view`
 as
 with
@@ -187,7 +187,7 @@ end;"""
         // Given
         val viewGenerator =
             BigQueryViewGenerator(multiDetokenizePolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
-        viewGenerator.toDynamicViewSQL() shouldBe
+        viewGenerator.toDynamicViewSQL().sql shouldBe
                 """create or replace view `my-project.my_dataset.my_target_view`
 as
 with
@@ -221,7 +221,7 @@ end;"""
     fun `transform test multiple transforms`() {
         // Given
         underTest = BigQueryViewGenerator(dataPolicy, defaultUserGroupsTable) { withRenderFormatted(true) }
-        underTest.toDynamicViewSQL()
+        underTest.toDynamicViewSQL().sql
             .shouldBe(
                 """create or replace view `my_target_project.my_target_dataset.my_target_view`
 as

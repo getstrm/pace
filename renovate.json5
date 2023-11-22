@@ -1,0 +1,77 @@
+{
+    "extends": [
+        "github>getstrm/renovate-config//base-renovate-config.json5"
+    ],
+    "customManagers": [
+        {
+            // Renovate cannot update build.buf.gen dependencies through the regular Maven datasource manager,
+            // therefore, a custom regex manager is needed.
+            "customType": "regex",
+            "fileMatch": [
+                "build.gradle.kts$"
+            ],
+            // Via named capturing groups, we extract the buf.build generated dependency name and the current version
+            "matchStrings": [
+                "(?<depName>build\\.buf\\.gen:getstrm_pace.*?):(?<currentValue>[\\d.]*?)\\.\\$generatedBufDependencyVersion\\\""
+            ],
+            "datasourceTemplate": "maven",
+            // Version extracted from Maven repository
+            "extractVersionTemplate": "^(?<version>.*)\\..*\\..*$"
+        }
+    ],
+    packageRules: [
+        {
+            matchManagers: [
+                "regex"
+            ],
+            matchPackagePrefixes: [
+                "build.buf.gen"
+            ],
+            registryUrls: [
+                "https://buf.build/gen/maven"
+            ]
+        },
+        {
+            matchManagers: [
+                "regex"
+            ],
+            matchPackagePrefixes: [
+                "build.buf.gen"
+            ],
+            matchUpdateTypes: [
+                "major"
+            ],
+            groupName: "grpc-protobuf major dependencies",
+            groupSlug: "grpc-protobuf",
+            automerge: false,
+            addLabels: [
+                "major",
+                "grpc-protobuf",
+                "gradle",
+                "gradle-app"
+            ]
+        },
+        {
+            matchManagers: [
+                "regex"
+            ],
+            matchPackagePrefixes: [
+                "build.buf.gen"
+            ],
+            matchUpdateTypes: [
+                "minor",
+                "patch"
+            ],
+            groupName: "grpc-protobuf non-major dependencies",
+            groupSlug: "non-major-grpc-protobuf",
+            automerge: true,
+            platformAutomerge: true,
+            addLabels: [
+                "minor-patch",
+                "grpc-protobuf",
+                "gradle",
+                "gradle-app"
+            ]
+        }
+    ]
+}

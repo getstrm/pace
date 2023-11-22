@@ -157,7 +157,7 @@ class SnowflakeViewGeneratorTest {
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL() shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe """create or replace view public.demo_view
 as
 select
   ts,
@@ -186,7 +186,7 @@ grant SELECT on public.demo_view to marketing;"""
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL() shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe """create or replace view public.demo_view
 as
 select
   ts,
@@ -217,7 +217,7 @@ grant SELECT on public.demo_view to marketing;"""
     fun `transform test various transforms`() {
         // Given
         underTest = SnowflakeViewGenerator(dataPolicy) { withRenderFormatted(true) }
-        underTest.toDynamicViewSQL()
+        underTest.toDynamicViewSQL().sql
             .shouldBe(
                 """create or replace view my_database.my_schema.gddemo_public
 as

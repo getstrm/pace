@@ -1,3 +1,40 @@
+# [1.0.0-alpha.29](https://github.com/getstrm/pace/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) (2023-11-21)
+
+
+### Features
+
+* **pace-62:** add renovate config ([77ac9f0](https://github.com/getstrm/pace/commit/77ac9f070803981dfb024905e2d52866690939bf))
+
+# [1.0.0-alpha.28](https://github.com/getstrm/pace/compare/v1.0.0-alpha.27...v1.0.0-alpha.28) (2023-11-21)
+
+
+### Features
+
+* **feature/pace-57:** adds some hierarchy to ODD ([c9634f5](https://github.com/getstrm/pace/commit/c9634f58a7515b63d0bafd5205209d49146c6aba))
+* **feature/pace-57:** docs, and correct title for data-policy ([1600586](https://github.com/getstrm/pace/commit/1600586a4c9f554e112794f00be10cd2daf053e6))
+* **feature/pace-57:** hierarchy for ODD ([47bad44](https://github.com/getstrm/pace/commit/47bad4498763ee17725386806f82ae7e472703b9))
+
+# [1.0.0-alpha.27](https://github.com/getstrm/pace/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) (2023-11-21)
+
+
+### Features
+
+* **feature/pace-58:** much better database list ([9ac032f](https://github.com/getstrm/pace/commit/9ac032fd899d37557d122e203d8e00d3fa6ea176))
+
+# [1.0.0-alpha.26](https://github.com/getstrm/pace/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) (2023-11-21)
+
+
+### Features
+
+* **pace-46:** integration for Azure Synapse Analytics ([#66](https://github.com/getstrm/pace/issues/66)) ([d4c116f](https://github.com/getstrm/pace/commit/d4c116f77aaa73420733479a992c23595398c113))
+
+# [1.0.0-alpha.25](https://github.com/getstrm/pace/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) (2023-11-21)
+
+
+### Features
+
+* **pace-39:** delete bsr branch after merging PR ([#67](https://github.com/getstrm/pace/issues/67)) ([0e76fc7](https://github.com/getstrm/pace/commit/0e76fc7ae73affcbabf884566148e66aa16e2cea))
+
 # [1.0.0-alpha.24](https://github.com/getstrm/pace/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) (2023-11-17)
 
 

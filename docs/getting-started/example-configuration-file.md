@@ -4,8 +4,7 @@ description: PACE yaml configuration file
 
 # Example configuration file
 
-PACE is a Spring Boot application that needs a configuration file following its conventions.
-Here's an example configuration file.
+PACE is a Spring Boot application that needs a configuration file following its conventions. Here's an example configuration file.
 
 {% code title="app/src/mainapp/src/main/resources/application-local.yaml" %}
 ```yaml
@@ -52,6 +51,13 @@ app:
         accountName: "MV.."
         organizationName: "SP.."
         privateKeyPath: "processing-platforms/snowflake/pace-private-key.p8"
+    synapse:
+      - id: "pace-synapse"
+        host-name: "....sql.azuresynapse.net"
+        user-name: "..."
+        password: "..."
+        database: "pace"
+        port: 1433
   catalogs:
     - id: "COLLIBRA"
       type: "COLLIBRA"

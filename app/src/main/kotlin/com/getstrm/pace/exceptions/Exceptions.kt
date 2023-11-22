@@ -158,6 +158,6 @@ class InternalException(
         UNKNOWN(Status.UNKNOWN),
         INTERNAL(Status.INTERNAL),
         UNAVAILABLE(Status.UNAVAILABLE),
-        DEADLINE_EXCEEDED(Status.DEADLINE_EXCEEDED);
+        DEADLINE_EXCEEDED(Status.DEADLINE_EXCEEDED),
     }
 }

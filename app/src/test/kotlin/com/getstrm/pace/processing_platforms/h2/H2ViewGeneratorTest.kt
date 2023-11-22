@@ -173,7 +173,7 @@ class H2ViewGeneratorTest {
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL() shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe """create or replace view public.demo_view
 as
 select
   ts,
@@ -202,7 +202,7 @@ grant SELECT on public.demo_view to marketing;"""
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL() shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe """create or replace view public.demo_view
 as
 select
   ts,
@@ -235,7 +235,7 @@ grant SELECT on public.demo_view to marketing;"""
         underTest = H2ViewGenerator(dataPolicy, analyticsPrincipal, "source_override") {
             withRenderFormatted(true)
         }
-        underTest.toDynamicViewSQL()
+        underTest.toDynamicViewSQL().sql
             .shouldBe(
                 """create or replace view my_database.my_schema.gddemo_public
 as
