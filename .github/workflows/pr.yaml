@@ -36,5 +36,15 @@ jobs:
         uses: gradle/gradle-build-action@v2
       - name: Execute Gradle build
         run: ./gradlew build -PciBuild
+      - name: change to integration-test directory
+        run: cd integration-test
+      - name: install postgresql-client
+        run: apt update -y && apt install -y postgresql-client
+      - name: setup postgres server
+        run: docker-compose up -d
+      - name: execute test steps
+        run: make all
+      - name: tear down
+        run: docker-compose down
 
 
