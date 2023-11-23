@@ -27,34 +27,24 @@ jobs:
         ports:
           - 5432:5432
       postgres_pace:
-        container_name: postgres_pace
         image: postgres
-        environment:
+        env:
           POSTGRES_USER: pace
           POSTGRES_PASSWORD: pace
           PGDATA: /data/postgres
-          PGUSER: pace # Required for health check
-        healthcheck:
-          test: ["CMD-SHELL", "pg_isready"]
-          interval: 2s
-          timeout: 2s
-          retries: 10
+        options: >-
+          --health-cmd pg_isready
         ports:
           - "5433:5432"
       postgres_processing_platform:
-        container_name: postgres_processing_platform
         image: postgres
-        environment:
+        env:
           POSTGRES_USER: standalone
           POSTGRES_PASSWORD: standalone
           POSTGRES_DB: standalone
           PGDATA: /data/postgres
-          PGUSER: standalone # Required for health check
-        healthcheck:
-          test: [ "CMD-SHELL", "pg_isready" ]
-          interval: 2s
-          timeout: 2s
-          retries: 10
+        options: >-
+          --health-cmd pg_isready
         volumes:
           - ./data.sql:/docker-entrypoint-initdb.d/data.sql
         ports:
