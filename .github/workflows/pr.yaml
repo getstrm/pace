@@ -45,8 +45,6 @@ jobs:
           PGDATA: /data/postgres
         options: >-
           --health-cmd pg_isready
-        volumes:
-          - ./integration-test/data.sql:/docker-entrypoint-initdb.d/data.sql
         ports:
           - "5431:5432"
     steps:
@@ -66,5 +64,7 @@ jobs:
       - name: all steps
         working-directory: integration-test/
         run: |
+          source env.sh # pgpass
+          psql -f data.sql -h localhost -p 5431 -U standalone standalone
           ./wait-for-port.sh 5431
           make all
