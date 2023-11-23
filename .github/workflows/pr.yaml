@@ -60,9 +60,8 @@ jobs:
         run: |
           ./wait-for-port.sh 5431
           source env.sh # pgpass
-          psql -f data.sql -h localhost -p 5431 -U standalone standalone
-          ls -l
           echo "PGPASSFILE='$PGPASSFILE'"
+          psql -f data.sql -h localhost -p 5431 -U standalone standalone
           make demo.csv
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
@@ -73,4 +72,6 @@ jobs:
       - name: all steps
         working-directory: integration-test/
         run: |
+          source env.sh # pgpass
+          echo "PGPASSFILE='$PGPASSFILE'"
           make all
