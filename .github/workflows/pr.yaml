@@ -53,18 +53,21 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+      - name: install postgresql-client
+        run: sudo apt update -y && sudo apt install -y postgresql-client
+      - name: preload standalone db
+        working-directory: integration-test/
+        run: |
+          ./wait-for-port.sh 5431
+          source env.sh # pgpass
+          psql -f data.sql -h localhost -p 5431 -U standalone standalone
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
       - name: Execute Gradle build
         run: ./gradlew build -PciBuild
       - name: copy app.jar
         run: cp app/build/libs/app.jar integration-test/
-      - name: install postgresql-client
-        run: sudo apt update -y && sudo apt install -y postgresql-client
       - name: all steps
         working-directory: integration-test/
         run: |
-          source env.sh # pgpass
-          psql -f data.sql -h localhost -p 5431 -U standalone standalone
-          ./wait-for-port.sh 5431
           make all
