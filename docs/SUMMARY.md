@@ -33,6 +33,7 @@
 
 * [Detokenization](tutorials/detokenization.md)
 * [Global Tag Transforms](tutorials/global-tag-transforms.md)
+* [User Defined Functions in Python](tutorials/udfs.md)
 
 ## Integrations & Reference
 
