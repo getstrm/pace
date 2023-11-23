@@ -38,13 +38,14 @@ jobs:
         run: ./gradlew build -PciBuild
       - name: copy app.jar
         run: cp app/build/libs/app.jar integration-test/
-      - name: change to integration-test directory
-        run: cd integration-test
       - name: install postgresql-client
         run: sudo apt update -y && sudo apt install -y postgresql-client
       - name: setup postgres server
+        working-directory: integration-test/
         run: docker-compose up -d
       - name: execute test steps
+        working-directory: integration-test/
         run: make all
       - name: tear down
+        working-directory: integration-test/
         run: docker-compose down
