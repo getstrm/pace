@@ -26,6 +26,39 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+      postgres_pace:
+        container_name: postgres_pace
+        image: postgres
+        environment:
+          POSTGRES_USER: pace
+          POSTGRES_PASSWORD: pace
+          PGDATA: /data/postgres
+          PGUSER: pace # Required for health check
+        healthcheck:
+          test: ["CMD-SHELL", "pg_isready"]
+          interval: 2s
+          timeout: 2s
+          retries: 10
+        ports:
+          - "5433:5432"
+      postgres_processing_platform:
+        container_name: postgres_processing_platform
+        image: postgres
+        environment:
+          POSTGRES_USER: standalone
+          POSTGRES_PASSWORD: standalone
+          POSTGRES_DB: standalone
+          PGDATA: /data/postgres
+          PGUSER: standalone # Required for health check
+        healthcheck:
+          test: [ "CMD-SHELL", "pg_isready" ]
+          interval: 2s
+          timeout: 2s
+          retries: 10
+        volumes:
+          - ./data.sql:/docker-entrypoint-initdb.d/data.sql
+        ports:
+          - "5431:5432"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v3
@@ -43,6 +76,5 @@ jobs:
       - name: all steps
         working-directory: integration-test/
         run: |
-          docker-compose up --wait && \
+          ./wait-for-port.sh 5431
           make all
-          docker-compose down
