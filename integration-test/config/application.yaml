@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://postgres_pace:5433/pace
+    url: jdbc:postgresql://localhost:5433/pace
     hikari:
       username: pace
       password: pace
