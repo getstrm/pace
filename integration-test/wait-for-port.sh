@@ -1,7 +1,7 @@
 #!/bin/bash
 
 HOST=${2:-localhost}
-PORT=${1:50051}
+PORT=${1:-50051}
 MAX_WAIT_TIME=15
 SECONDS_WAITED=0
 

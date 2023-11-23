@@ -43,7 +43,7 @@ jobs:
       - name: all steps
         working-directory: integration-test/
         run: |
-          docker-compose up -d
-          ./wait-for-port.sh 5431
+          docker-compose up -d && \
+          ./wait-for-port.sh 5431 && \
           make all
           docker-compose down
