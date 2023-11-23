@@ -6,6 +6,7 @@ import com.getstrm.pace.util.yaml2json
 import io.kotest.matchers.shouldBe
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
+import java.time.OffsetDateTime
 
 class DataPolicyEvaluationServiceTest {
 
@@ -30,6 +31,30 @@ class DataPolicyEvaluationServiceTest {
         resultsByPrincipal[""]!!.hasPrincipal() shouldBe false
     }
 
+    @Test
+    fun `evaluate a policy with a retention filter`() {
+        // Given
+        val retentionCsvInput = generateRetentionCsvInput()
+
+        // When
+        val results = underTest.evaluatePolicy(retentionPolicy, retentionCsvInput)
+
+        // Then
+        val resultsByPrincipal = results.associateBy {
+            it.principal?.group
+        }
+
+        fun expectedResult(maxDays: Int) = "transactionid,ts\n" + retentionCsvInput.lines().drop(1).filter {
+            it.split(",").first().toInt() < maxDays
+        }.joinToString("\n", postfix = "\n")
+        resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe retentionCsvInput + "\n"
+        resultsByPrincipal["fraud_and_risk"]!!.principal shouldBe "fraud_and_risk".toPrincipal()
+        resultsByPrincipal["marketing"]!!.csv shouldBe expectedResult(10)
+        resultsByPrincipal["marketing"]!!.principal shouldBe "marketing".toPrincipal()
+        resultsByPrincipal[""]!!.csv shouldBe expectedResult(5)
+        resultsByPrincipal[""]!!.hasPrincipal() shouldBe false
+    }
+
     companion object {
         @Language("yaml")
         private val dataPolicy = """
@@ -37,9 +62,6 @@ metadata:
   description: ""
   version: 1
   title: public.demo
-platform:
-  id: standalone-sample-connection
-  platform_type: POSTGRES
 source:
   fields:
     - name_parts:
@@ -110,9 +132,7 @@ rule_sets:
               statement: "CASE WHEN brand = 'Macbook' THEN 'Apple' ELSE 'Other' END"
     """.yaml2json().parseDataPolicy()
 
-    }
-
-    private val csvInput = """
+        private val csvInput = """
         transactionid,userid,email,age,transactionamount,brand
         861200791,533445,jeffreypowell@hotmail.com,33,123,Lenovo
         733970993,468355,forbeserik@gmail.com,16,46,Macbook
@@ -146,7 +166,7 @@ rule_sets:
         142409570,567637,meganriley@gmail.com,56,296,Acer
     """.trimIndent()
 
-    private val administratorResult = """
+        private val administratorResult = """
         transactionid,userid,email,age,brand,transactionamount
         861200791,533445,jeffreypowell@hotmail.com,33,Lenovo,123
         733970993,468355,forbeserik@gmail.com,16,Macbook,46
@@ -181,7 +201,7 @@ rule_sets:
 
     """.trimIndent()
 
-    private val fraudAndRiskResult = """
+        private val fraudAndRiskResult = """
         transactionid,userid,email,age,brand,transactionamount
         861200791,533445,jeffreypowell@hotmail.com,33,Other,123
         733970993,468355,forbeserik@gmail.com,16,Apple,46
@@ -216,7 +236,7 @@ rule_sets:
 
     """.trimIndent()
 
-    private val marketingResult = """
+        private val marketingResult = """
         transactionid,userid,email,age,brand,transactionamount
         861200791,0,****@hotmail.com,33,Other,123
         733970993,0,****@gmail.com,16,Apple,46
@@ -246,7 +266,7 @@ rule_sets:
 
     """.trimIndent()
 
-    private val fallbackResult = """
+        private val fallbackResult = """
         transactionid,userid,email,age,brand,transactionamount
         861200791,0,****,33,Other,123
         733970993,0,****,16,Apple,46
@@ -275,4 +295,49 @@ rule_sets:
         142409570,0,****,56,Other,296
 
     """.trimIndent()
+
+        @Language("yaml")
+        private val retentionPolicy = """
+metadata:
+  description: ""
+  version: 1
+  title: public.demo
+source:
+  fields:
+    - name_parts:
+        - transactionid
+      required: true
+      type: integer
+    - name_parts:
+        - ts
+      required: true
+      type: timestamptz
+  ref: public.demo
+rule_sets:
+  - target:
+      fullname: public.demo_view
+    filters:
+      - retention_filter:
+          field:
+            name_parts:
+              - ts
+          conditions:
+            - principals: [ {group: marketing} ]
+              period:
+                days: 10
+            - principals: [ {group: fraud_and_risk} ]
+            - principals: [] 
+              period:
+                days: 5
+""".yaml2json().parseDataPolicy()
+
+        private fun generateRetentionCsvInput(): String {
+            val header = "transactionid,ts\n"
+            val rows = (0..20).mapTo(mutableListOf()) { i ->
+                val ts = OffsetDateTime.now().minusDays(i.toLong()).toString()
+                "$i,$ts"
+            }.apply { shuffle() }.joinToString("\n")
+            return header + rows
+        }
+    }
 }
