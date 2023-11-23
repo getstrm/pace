@@ -41,7 +41,7 @@ jobs:
       - name: change to integration-test directory
         run: cd integration-test
       - name: install postgresql-client
-        run: sudo apt update -y && apt install -y postgresql-client
+        run: sudo apt update -y && sudo apt install -y postgresql-client
       - name: setup postgres server
         run: docker-compose up -d
       - name: execute test steps
