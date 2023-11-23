@@ -75,7 +75,7 @@ select
     from pace.alpha_test.demo
 ```
 
-The original `gdddemo` table contains fairly normal ages:
+The original `demo` table contains fairly normal ages:
 ```text
 select email, age from pace.alpha_test.demo limit 5;
 email                     age
