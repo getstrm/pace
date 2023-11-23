@@ -1,3 +1,10 @@
+# [1.0.0-alpha.30](https://github.com/getstrm/pace/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) (2023-11-23)
+
+
+### Features
+
+* **pace-51:** gddemo → demo ([c2ba840](https://github.com/getstrm/pace/commit/c2ba840c06f023deafafcec0ccbe5b547560c9e9))
+
 # [1.0.0-alpha.29](https://github.com/getstrm/pace/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) (2023-11-21)
 
 
