@@ -46,7 +46,7 @@ jobs:
         options: >-
           --health-cmd pg_isready
         volumes:
-          - ./data.sql:/docker-entrypoint-initdb.d/data.sql
+          - ./integration-tests/data.sql:/docker-entrypoint-initdb.d/data.sql
         ports:
           - "5431:5432"
     steps:
