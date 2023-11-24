@@ -26,7 +26,7 @@ all: ${CHECKS}
 
 check-mark: mark.csv demo.csv awk cut
 	@ echo ----- checking marketing with user mark -----
-	@ echo checking emails with '****' for the local part
+	@ echo checking emails to have '****' for the local part
 	@ ! cut --delimiter='|' --fields=3 $< | egrep -v '^\*\*\*\*@[a-z]+\.[a-z]+$$'
 	@ echo checking that the user ids are 0
 	@ ! cut --delimiter='|' --fields=2 $< | egrep -v '^0$$'
@@ -104,9 +104,18 @@ kill-pace:
 pace:
 	@ echo downloading latest pace cli release
 	@ curl --silent -L -o - ${CLI_URL} | tar xz > $@ && chmod +x $@
-	@ ls -lh pace
+	@ echo pace version: $$(pace version)
 
-launch-pace:
+app.jar:
+	@ echo building $@ and symlinking it here.
+	@ (cd .. ; gw build ) && ln -sf ../app/build/libs/app.jar $@
+
+launch-pace: app.jar
+	@ echo checking postgres ports 5431 and 5433
+	@ nc -z localhost 5431
+	@ nc -z localhost 5433
+	@ echo checking that port 50051 is free
+	@ ! nc -z localhost 50051
 	@ java -jar app.jar > pace.log& echo $$! > $@
 	@ echo launched local pace app.jar and stored pid $$(cat $@) in $@
 	@ ./wait-for-port.sh
@@ -118,7 +127,7 @@ clean:
 	@ rm -f *.csv
 	@ rm -f load-db-data pace
 	@ rm -f awk cut
-	@ ${PSQL} -c 'truncate table data_policies' -S -U pace -p 5433 pace 2> /dev/null || true
+	@ ${PSQL} -U pace -c 'truncate table data_policies' -S -p 5433 pace 2> /dev/null || true
 	@ ${PSQL} -U standalone -c "drop view if exists ${VIEW}" ${STANDALONE_FLAGS} 2> /dev/null
 	@ ${PSQL} -U standalone -c "drop table if exists ${REF}" ${STANDALONE_FLAGS} 2> /dev/null
 	@ ${MAKE} -s kill-pace
