@@ -26,6 +26,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+      # pace database for integration test
       postgres_pace:
         image: postgres
         env:
@@ -36,6 +37,7 @@ jobs:
           --health-cmd pg_isready
         ports:
           - "5433:5432"
+      # public.demo database for integration test
       postgres_processing_platform:
         image: postgres
         env:
@@ -55,23 +57,13 @@ jobs:
           java-version: 17
       - name: install postgresql-client
         run: sudo apt update -y && sudo apt install -y postgresql-client
-      - name: preload standalone db
-        working-directory: integration-test/
-        run: |
-          ./wait-for-port.sh 5431
-          source env.sh # pgpass
-          echo "PGPASSFILE='$PGPASSFILE'"
-          psql -f data.sql -h localhost -p 5431 -U standalone standalone
-          make demo.csv
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
       - name: Execute Gradle build
         run: ./gradlew build -PciBuild
-      - name: copy app.jar
+      - name: copy app.jar to integration-test directory
         run: cp app/build/libs/app.jar integration-test/
-      - name: all steps
+      - name: executing integration test
         working-directory: integration-test/
         run: |
-          source env.sh # pgpass
-          echo "PGPASSFILE='$PGPASSFILE'"
           make all
