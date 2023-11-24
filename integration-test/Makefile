@@ -2,89 +2,107 @@
 
 SHELL = /bin/bash
 
-PGPASSFILE       := $(shell pwd)/pgpass
-PP               := standalone-sample-connection
-REF              := public.demo
-VIEW             := ${REF}_view
-STANDALONE_FLAGS := -t -A -h localhost -p 5431 standalone
+PSQL             = PGPASSFILE=pgpass psql -h localhost -q
+PP               = standalone-sample-connection # the processing platform
+REF              = public.demo
+VIEW             = ${REF}_view
+STANDALONE_FLAGS = -t -A -p 5431 standalone # psql flags non-aligned tuples
 
-USERS := mark far other
-VIEW_CSVS := $(addsuffix .csv, ${USERS})
+# These are the login users defined in data-sql. We download the
+# view for each one, and execute check-<user>
+USERS            = mark far other
+VIEW_CSVS        = $(addsuffix .csv, ${USERS})
+CHECKS           = $(addprefix check-, ${USERS})
 
-# default target sets up everything, and reads the views from
-# the standalone database table.
-all: demo.csv $(VIEW_CSVS) check-mark check-far check-other
+# default target sets up everything, reads the views from
+# the standalone database table and executes the checks.
+all: ${CHECKS}
 
 check-mark: mark.csv demo.csv
-	# ----- checking marketing -----
-	# checking emails with '****' for the local part
+	@ echo ----- checking marketing with user mark -----
+	@ echo checking emails with '****' for the local part
 	@ ! cut --delimiter='|' --fields=3 $< | egrep -v '^\*\*\*\*@[a-z]+\.[a-z]+$$'
-	# checking that the user ids are 0
+	@ echo checking that the user ids are 0
 	@ ! cut --delimiter='|' --fields=2 $< | egrep -v '^0$$'
-	# checking that the brands are Apple or Other
+	@ echo checking that the brands are Apple or Other
 	@ ! cut --delimiter='|' --fields=5 $< | egrep -v '^(Apple|Other)$$'
-	# checking no age under 30
+	@ echo checking no age under 30
 	@ awk -F '|' '{if($$4 <= 30) { printf("Age %s ≤ 30\n", $$4); exit 1;}}' $<
-	# checking that the number of records in $< is less than the source table ${REF}
+	@ echo checking that the number of records in $< is less than the source table ${REF}
 	@ ! [[ $$(wc -l < demo.csv) -eq $$(wc -l < $<) ]]
+	@ echo ----- marketing view verified -----
 
 check-far: far.csv demo.csv
-	# ----- checking fraud and risk -----
-	# checking that the number of records in $< is equal to the source table ${REF}
+	@ echo ----- checking fraud and risk with user far -----
+	@ echo checking that the number of records in $< is equal to the source table ${REF}
 	@ [[ $$(wc -l < demo.csv) -eq $$(wc -l < far.csv) ]]
-	# only the brands have been changed to Apple and Other, everything else is the same
+	@ echo only the brands have been changed to Apple and Other, everything else is the same
 	@ diff <(cut -f 5 -d '|' --complement demo.csv) <(cut -f 5 -d '|' --complement far.csv)
+	@ echo ----- fraud and risk verified-----
 
 check-other: other.csv demo.csv
-	# ----- checking other users -----
-	# all emails are '****'
+	@ echo ----- checking other users with user 'other' -----
+	@ echo all emails are '****'
 	@ ! cut --delimiter='|' --fields=3 other.csv | egrep -v '^\*\*\*\*$$'
-	# checking that the user ids are 0
+	@ echo checking that the user ids are 0
 	@ ! cut --delimiter='|' --fields=2 other.csv | egrep -v '^0$$'
-	# checking that the brands are Apple or Other
+	@ echo checking that the brands are Apple or Other
 	@ ! cut --delimiter='|' --fields=5 other.csv | egrep -v '^(Apple|Other)$$'
-	# checking no age under 30
+	@ echo checking no age under 30
 	@ awk -F '|' '{if($$4 <= 30) { printf("Age %s ≤ 30\n", $$4); exit 1;}}' other.csv
-	# checking that the number of records in $< is less than the source table ${REF}
+	@ echo checking that the number of records in $< is less than the source table ${REF}
 	@ ! [[ $$(wc -l < demo.csv) -eq $$(wc -l < other.csv) ]]
+	@ echo ----- other users verified -----
 
-demo.csv:
-	# downloading ${REF} to $@
-	@ psql -t -c 'select * from demo'  -U standalone ${STANDALONE_FLAGS} -o $@
+demo.csv: load-db-data
+	@ echo downloading ${REF} to $@ as user standalone
+	@ ${PSQL} -t -c "select * from ${REF}"  -U standalone ${STANDALONE_FLAGS} -o $@
 
 # the user views depend on the data-policy having been applied
 ${VIEW_CSVS}: %.csv: applied
-	# downloading $@ by querying database as user $(basename $@)
-	@ psql -c "select * from ${VIEW}"  -U $(basename $@)  ${STANDALONE_FLAGS} -o $@
+	@ echo downloading $@ by querying database as user $*
+	@ ${PSQL} -c "select * from ${VIEW}"  -U $*  ${STANDALONE_FLAGS} -o $@
 
-launch-pace:
-	# launching local pace install and storing pid in $@
-	@ java -jar app.jar > ./pace.log& echo $$! > $@
-	@ echo " pid of PACE is $$(cat $@)"
-	# Waiting for port to become available
-	@ ./wait-for-port.sh
-	# port 50051 is open
-
-blueprint.yaml: launch-pace
-	# getting blueprint ${REF}
+blueprint.yaml: launch-pace load-db-data
+	@ echo getting blueprint ${REF}
 	@ ./pace get data-policy --processing-platform ${PP} --blueprint ${REF} > $@
 
 # the rulesets.patch file is part of the test and committed in git.
 policy.yaml: blueprint.yaml rulesets.patch
-	# Creating $@ by patching $< with rulesets.patch
+	@ echo Creating $@ by patching $< with rulesets.patch
 	@ cp blueprint.yaml $@ ; patch -R -p1 < rulesets.patch $@
 
 upserted.yaml: policy.yaml
-	# upserting $< and creating $@
+	@ echo upserting $< and creating $@
 	@ ./pace upsert data-policy $< > $@
 
 applied: upserted.yaml
 	@ ./pace apply data-policy --processing-platform ${PP} ${REF} && date > $@
-	@ echo "applied $< at $$(cat $@)"
+	@ echo applied $< at $$(cat $@)
+
+load-db-data:
+	@ echo Loading demo data into postgres
+	@ ./wait-for-port.sh 5431
+	@ ${PSQL} -f data.sql -p 5431 -U standalone standalone > load-db-data
+
+kill-pace:
+	@ if [ -f launch-pace ] ; then \
+		echo killing pace pid $$(cat launch-pace); \
+		cat launch-pace|xargs kill; rm launch-pace ; \
+	fi
+
+launch-pace:
+	@ java -jar app.jar > ./pace.log& echo $$! > $@
+	@ echo launched local pace app.jar and stored pid $$(cat $@) in $@
+	@ ./wait-for-port.sh
+	@ echo port 50051 is open
 
 clean:
-	rm -f blueprint.yaml policy.yaml upserted.yaml applied
-	rm -f *.csv
-	psql -c 'truncate table data_policies' -S -U pace -h localhost -p 5433 pace
-	psql -U standalone -c "drop view if exists ${VIEW}" ${STANDALONE_FLAGS}
-	if [ -f launch-pace ] ; then cat launch-pace|xargs kill; rm launch-pace ; fi
+	@ echo Cleaning all generated resources, pace policies and the ${REF} table.
+	@ rm -f blueprint.yaml policy.yaml upserted.yaml applied
+	@ rm -f *.csv
+	@ rm -f load-db-data
+	@ ${PSQL} -c 'truncate table data_policies' -S -U pace -p 5433 pace 2> /dev/null || true
+	@ ${PSQL} -U standalone -c "drop view if exists ${VIEW}" ${STANDALONE_FLAGS} 2> /dev/null
+	@ ${PSQL} -U standalone -c "drop table if exists ${REF}" ${STANDALONE_FLAGS} 2> /dev/null
+	@ ${MAKE} -s kill-pace

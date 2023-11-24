@@ -1,4 +1,4 @@
-create table public.demo
+create table if not exists public.demo
 (
     transactionid     int     not null,
     userid            int     not null,
@@ -7,6 +7,8 @@ create table public.demo
     brand             varchar not null,
     transactionamount int     not null
 );
+
+truncate table public.demo;
 
 create user mark with encrypted password 'mark';
 create user far with encrypted password 'far';
