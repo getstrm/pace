@@ -15,3 +15,5 @@ app/src/main/resources/application-local.yaml
 *.binpb
 protos/openapi.yaml
 integration-test/pace.log
+integration-test/awk
+integration-test/cut

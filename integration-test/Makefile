@@ -24,7 +24,7 @@ CHECKS           = $(addprefix check-, ${USERS})
 # the standalone database table and executes the checks.
 all: ${CHECKS}
 
-check-mark: mark.csv demo.csv
+check-mark: mark.csv demo.csv awk cut
 	@ echo ----- checking marketing with user mark -----
 	@ echo checking emails with '****' for the local part
 	@ ! cut --delimiter='|' --fields=3 $< | egrep -v '^\*\*\*\*@[a-z]+\.[a-z]+$$'
@@ -38,7 +38,7 @@ check-mark: mark.csv demo.csv
 	@ ! [[ $$(wc -l < demo.csv) -eq $$(wc -l < $<) ]]
 	@ echo ----- marketing view verified -----
 
-check-far: far.csv demo.csv
+check-far: far.csv demo.csv awk cut
 	@ echo ----- checking fraud and risk with user far -----
 	@ echo checking that the number of records in $< is equal to the source table ${REF}
 	@ [[ $$(wc -l < demo.csv) -eq $$(wc -l < far.csv) ]]
@@ -46,7 +46,7 @@ check-far: far.csv demo.csv
 	@ diff <(cut -f 5 -d '|' --complement demo.csv) <(cut -f 5 -d '|' --complement far.csv)
 	@ echo ----- fraud and risk verified-----
 
-check-other: other.csv demo.csv
+check-other: other.csv demo.csv awk cut
 	@ echo ----- checking other users with user 'other' -----
 	@ echo all emails are '****'
 	@ ! cut --delimiter='|' --fields=3 other.csv | egrep -v '^\*\*\*\*$$'
@@ -91,6 +91,10 @@ load-db-data:
 	@ ./wait-for-port.sh 5431
 	@ ${PSQL} -f data.sql -p 5431 -U standalone standalone > load-db-data
 
+awk cut:
+	@ echo creating GNU coreutils symlinks
+	@ ./gnu-coreutils-symlinks.sh
+
 kill-pace:
 	@ if [ -f launch-pace ] ; then \
 		echo killing pace pid $$(cat launch-pace); \
@@ -113,6 +117,7 @@ clean:
 	@ rm -f blueprint.yaml policy.yaml upserted.yaml applied
 	@ rm -f *.csv
 	@ rm -f load-db-data pace
+	@ rm -f awk cut
 	@ ${PSQL} -c 'truncate table data_policies' -S -U pace -p 5433 pace 2> /dev/null || true
 	@ ${PSQL} -U standalone -c "drop view if exists ${VIEW}" ${STANDALONE_FLAGS} 2> /dev/null
 	@ ${PSQL} -U standalone -c "drop table if exists ${REF}" ${STANDALONE_FLAGS} 2> /dev/null
