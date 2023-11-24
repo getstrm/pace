@@ -66,4 +66,5 @@ jobs:
       - name: executing integration test
         working-directory: integration-test/
         run: |
+          chmod go-rw pgpass
           make all
