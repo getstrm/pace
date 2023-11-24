@@ -1,7 +1,12 @@
 .PHONY: all check-mark check-far check-other
 
 SHELL = /bin/bash
+# github actions downloads a `pace` cli, and puts it in this directory.
+# PACE developers will probably already have `pace` somewhere on their path
+# we don't check for the os type (Darwin for instance) because only github actions will use
+# this local `pace` cli.
 export PATH := .:${PATH}
+CLI_URL          = https://github.com/getstrm/cli/releases/latest/download/pace_linux_amd64.tar.gz
 
 PSQL             = PGPASSFILE=pgpass psql -h localhost -q
 PP               = standalone-sample-connection # the processing platform
@@ -94,9 +99,8 @@ kill-pace:
 
 pace:
 	@ echo downloading latest pace cli release
-	curl -L -o - https://github.com/getstrm/cli/releases/latest/download/pace_linux_amd64.tar.gz \
-		| tar xz > W$@ && chmod +x $@
-
+	@ curl --silent -L -o - ${CLI_URL} | tar xz > $@ && chmod +x $@
+	@ ls -lh pace
 
 launch-pace:
 	@ java -jar app.jar > pace.log& echo $$! > $@
@@ -108,7 +112,7 @@ clean:
 	@ echo Cleaning all generated resources, pace policies and the ${REF} table.
 	@ rm -f blueprint.yaml policy.yaml upserted.yaml applied
 	@ rm -f *.csv
-	@ rm -f load-db-data
+	@ rm -f load-db-data pace
 	@ ${PSQL} -c 'truncate table data_policies' -S -U pace -p 5433 pace 2> /dev/null || true
 	@ ${PSQL} -U standalone -c "drop view if exists ${VIEW}" ${STANDALONE_FLAGS} 2> /dev/null
 	@ ${PSQL} -U standalone -c "drop table if exists ${REF}" ${STANDALONE_FLAGS} 2> /dev/null
