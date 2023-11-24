@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/pace
+    hikari:
+      username: pace
+      password: pace
+      schema: public
+
+app:
+  processing-platforms:
+    postgres:
+      - id: "standalone-sample-connection"
+        host-name: localhost
+        port: 5431
+        user-name: "standalone"
+        password: "standalone"
+        database: "standalone"
+

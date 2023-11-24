@@ -26,15 +26,45 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+      # pace database for integration test
+      postgres_pace:
+        image: postgres
+        env:
+          POSTGRES_USER: pace
+          POSTGRES_PASSWORD: pace
+          PGDATA: /data/postgres
+        options: >-
+          --health-cmd pg_isready
+        ports:
+          - "5433:5432"
+      # public.demo database for integration test
+      postgres_processing_platform:
+        image: postgres
+        env:
+          POSTGRES_USER: standalone
+          POSTGRES_PASSWORD: standalone
+          POSTGRES_DB: standalone
+          PGDATA: /data/postgres
+        options: >-
+          --health-cmd pg_isready
+        ports:
+          - "5431:5432"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 17
+      - name: install postgresql-client
+        run: sudo apt update -y && sudo apt install -y postgresql-client
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
       - name: Execute Gradle build
         run: ./gradlew build -PciBuild
-
-
+      - name: copy app.jar to integration-test directory
+        run: cp app/build/libs/app.jar integration-test/
+      - name: executing integration test
+        working-directory: integration-test/
+        run: |
+          chmod go-rw pgpass
+          make pace all
