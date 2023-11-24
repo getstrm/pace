@@ -55,6 +55,60 @@ class DataPolicyEvaluationServiceTest {
         resultsByPrincipal[""]!!.hasPrincipal() shouldBe false
     }
 
+    @Test
+    fun `evaluating a policy with mismatching data types results in empty CSVs`() {
+        // Given
+        val csv = """
+            transactionid,ts
+            foo,bar
+            fizz,buzz
+            """.trimIndent()
+
+        // When
+        val results = underTest.evaluatePolicy(retentionPolicy, csv)
+
+        // Then
+        val resultsByPrincipal = results.associateBy {
+            it.principal?.group
+        }
+        // Identity transforms preserve the null values inserted due to mismatching data types.
+        resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe """
+            transactionid,ts
+            "",""
+            "",""
+            
+            """.trimIndent()
+        resultsByPrincipal["fraud_and_risk"]!!.principal shouldBe "fraud_and_risk".toPrincipal()
+        resultsByPrincipal["marketing"]!!.csv shouldBe "transactionid,ts\n"
+        resultsByPrincipal["marketing"]!!.principal shouldBe "marketing".toPrincipal()
+        resultsByPrincipal[""]!!.csv shouldBe "transactionid,ts\n"
+        resultsByPrincipal[""]!!.hasPrincipal() shouldBe false
+    }
+
+    @Test
+    fun `evaluating a policy with mismatching headers results in empty CSVs`() {
+        // Given
+        val csv = """
+            foo,bar
+            1,2021-01-01T00:00:00Z
+            2,2021-01-02T00:00:00Z
+            """.trimIndent()
+
+        // When
+        val results = underTest.evaluatePolicy(retentionPolicy, csv)
+
+        // Then
+        val resultsByPrincipal = results.associateBy {
+            it.principal?.group
+        }
+        resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe "transactionid,ts\n"
+        resultsByPrincipal["fraud_and_risk"]!!.principal shouldBe "fraud_and_risk".toPrincipal()
+        resultsByPrincipal["marketing"]!!.csv shouldBe "transactionid,ts\n"
+        resultsByPrincipal["marketing"]!!.principal shouldBe "marketing".toPrincipal()
+        resultsByPrincipal[""]!!.csv shouldBe "transactionid,ts\n"
+        resultsByPrincipal[""]!!.hasPrincipal() shouldBe false
+    }
+
     companion object {
         @Language("yaml")
         private val dataPolicy = """
