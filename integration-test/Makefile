@@ -1,6 +1,7 @@
 .PHONY: all check-mark check-far check-other
 
 SHELL = /bin/bash
+export PATH := .:${PATH}
 
 PSQL             = PGPASSFILE=pgpass psql -h localhost -q
 PP               = standalone-sample-connection # the processing platform
@@ -65,7 +66,7 @@ ${VIEW_CSVS}: %.csv: applied
 
 blueprint.yaml: launch-pace load-db-data
 	@ echo getting blueprint ${REF}
-	@ ./pace get data-policy --processing-platform ${PP} --blueprint ${REF} > $@
+	@ pace get data-policy --processing-platform ${PP} --blueprint ${REF} > $@
 
 # the rulesets.patch file is part of the test and committed in git.
 policy.yaml: blueprint.yaml rulesets.patch
@@ -74,10 +75,10 @@ policy.yaml: blueprint.yaml rulesets.patch
 
 upserted.yaml: policy.yaml
 	@ echo upserting $< and creating $@
-	@ ./pace upsert data-policy $< > $@
+	@ pace upsert data-policy $< > $@
 
 applied: upserted.yaml
-	@ ./pace apply data-policy --processing-platform ${PP} ${REF} && date > $@
+	@ pace apply data-policy --processing-platform ${PP} ${REF} && date > $@
 	@ echo applied $< at $$(cat $@)
 
 load-db-data:
@@ -91,8 +92,14 @@ kill-pace:
 		cat launch-pace|xargs kill; rm launch-pace ; \
 	fi
 
+pace:
+	@ echo downloading latest pace cli release
+	curl -L -o - https://github.com/getstrm/cli/releases/latest/download/pace_linux_amd64.tar.gz \
+		| tar xz > W$@ && chmod +x $@
+
+
 launch-pace:
-	@ java -jar app.jar > ./pace.log& echo $$! > $@
+	@ java -jar app.jar > pace.log& echo $$! > $@
 	@ echo launched local pace app.jar and stored pid $$(cat $@) in $@
 	@ ./wait-for-port.sh
 	@ echo port 50051 is open
