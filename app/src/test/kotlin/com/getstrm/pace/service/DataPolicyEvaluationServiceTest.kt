@@ -1,10 +1,15 @@
 package com.getstrm.pace.service
 
+import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.util.yaml2json
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beInstanceOf
 import org.intellij.lang.annotations.Language
+import org.jooq.exception.DataAccessException
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 
@@ -21,6 +26,7 @@ class DataPolicyEvaluationServiceTest {
         val resultsByPrincipal = results.associateBy {
             it.principal?.group
         }
+        resultsByPrincipal.size shouldBe 4
         resultsByPrincipal["administrator"]!!.csv shouldBe administratorResult
         resultsByPrincipal["administrator"]!!.principal shouldBe "administrator".toPrincipal()
         resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe fraudAndRiskResult
@@ -43,7 +49,7 @@ class DataPolicyEvaluationServiceTest {
         val resultsByPrincipal = results.associateBy {
             it.principal?.group
         }
-
+        resultsByPrincipal.size shouldBe 3
         fun expectedResult(maxDays: Int) = "transactionid,ts\n" + retentionCsvInput.lines().drop(1).filter {
             it.split(",").first().toInt() < maxDays
         }.joinToString("\n", postfix = "\n")
@@ -71,6 +77,7 @@ class DataPolicyEvaluationServiceTest {
         val resultsByPrincipal = results.associateBy {
             it.principal?.group
         }
+        resultsByPrincipal.size shouldBe 3
         // Identity transforms preserve the null values inserted due to mismatching data types.
         resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe """
             transactionid,ts
@@ -101,12 +108,29 @@ class DataPolicyEvaluationServiceTest {
         val resultsByPrincipal = results.associateBy {
             it.principal?.group
         }
+        resultsByPrincipal.size shouldBe 3
         resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe "transactionid,ts\n"
         resultsByPrincipal["fraud_and_risk"]!!.principal shouldBe "fraud_and_risk".toPrincipal()
         resultsByPrincipal["marketing"]!!.csv shouldBe "transactionid,ts\n"
         resultsByPrincipal["marketing"]!!.principal shouldBe "marketing".toPrincipal()
         resultsByPrincipal[""]!!.csv shouldBe "transactionid,ts\n"
         resultsByPrincipal[""]!!.hasPrincipal() shouldBe false
+    }
+
+    @Test
+    fun `evaluating a policy with unsupported sql`() {
+        // Given
+        val csv = "transactionid\n1\n2\n"
+
+        // Then
+        shouldThrow<InternalException> {
+            underTest.evaluatePolicy(incompatiblePolicy, csv)
+        }.apply {
+            code shouldBe InternalException.Code.UNKNOWN
+            cause should beInstanceOf<DataAccessException>()
+            message shouldBe "org.jooq.exception.DataAccessException: SQL [select some_unknown_function(transactionid) \"transactionid\" from input]; Function \"some_unknown_function\" not found; SQL statement:\n" +
+                "select some_unknown_function(transactionid) \"transactionid\" from input [90022-214]"
+        }
     }
 
     companion object {
@@ -384,7 +408,6 @@ rule_sets:
               period:
                 days: 5
 """.yaml2json().parseDataPolicy()
-
         private fun generateRetentionCsvInput(): String {
             val header = "transactionid,ts\n"
             val rows = (0..20).mapTo(mutableListOf()) { i ->
@@ -393,5 +416,30 @@ rule_sets:
             }.apply { shuffle() }.joinToString("\n")
             return header + rows
         }
+
+        @Language("yaml")
+        private val incompatiblePolicy = """
+metadata:
+  description: ""
+  version: 1
+  title: public.demo
+source:
+  fields:
+    - name_parts:
+        - transactionid
+      required: true
+      type: integer
+  ref: public.demo
+rule_sets:
+  - target:
+      fullname: public.demo_view
+    field_transforms:
+      - field:
+          name_parts: [ transactionid ]
+        transforms:
+          - principals: [ ]
+            sql_statement:
+                statement: "some_unknown_function(transactionid)"
+""".yaml2json().parseDataPolicy()
     }
 }

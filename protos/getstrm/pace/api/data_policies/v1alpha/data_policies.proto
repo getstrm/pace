@@ -83,14 +83,21 @@ message EvaluateDataPolicyRequest {
   }
 }
 message EvaluateDataPolicyResponse {
-  // The results of the evaluation in CSV format. A result is returned for each principal specified in the policy, as
-  // well as the case where there is no matching principal.
-  repeated PrincipalEvaluationResult results = 1;
+  // The results of the evaluation, grouped by rule set.
+  repeated RuleSetResult rule_set_results = 1;
 
-  message PrincipalEvaluationResult {
-    // The principal that was evaluated. If absent, this is the result for the case where there is no matching principal.
-    optional entities.v1alpha.DataPolicy.Principal principal = 1;
-    // The result of the evaluation in CSV format, including headers.
-    string csv = 2;
+  message RuleSetResult {
+    // The target of the evaluated rule set.
+    entities.v1alpha.DataPolicy.Target target = 1;
+    // A result is returned for each principal specified in the rule set, as
+    // well as the case where there is no matching principal.
+    repeated PrincipalEvaluationResult principal_evaluation_results = 2;
+
+    message PrincipalEvaluationResult {
+      // The principal that was evaluated. If absent, this is the result for the case where there is no matching principal.
+      optional entities.v1alpha.DataPolicy.Principal principal = 1;
+      // The result of the evaluation in CSV format, including headers.
+      string csv = 2;
+    }
   }
 }

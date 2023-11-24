@@ -17,7 +17,7 @@ class PostgresTransformer : ProcessingPlatformTransformer {
             DSL.field(
                 "substring({0} from {1})",
                 String::class.java,
-                DSL.unquotedName(field.fullName()),
+                DSL.field(field.fullName(), String::class.java),
                 DSL.`val`(regexp.regexp),
             )
         } else {

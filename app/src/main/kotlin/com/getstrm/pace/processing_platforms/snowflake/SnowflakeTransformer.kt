@@ -17,7 +17,7 @@ class SnowflakeTransformer : ProcessingPlatformTransformer {
             DSL.field(
                 "regexp_substr({0}, {1})",
                 String::class.java,
-                DSL.unquotedName(field.fullName()),
+                DSL.field(field.fullName(), String::class.java),
                 DSL.`val`(regexp.regexp),
             )
         } else {
@@ -26,7 +26,7 @@ class SnowflakeTransformer : ProcessingPlatformTransformer {
             DSL.field(
                 "regexp_replace({0}, {1}, {2})",
                 String::class.java,
-                DSL.unquotedName(field.fullName()),
+                DSL.field(field.fullName(), String::class.java),
                 DSL.`val`(regexp.regexp),
                 DSL.`val`(replacementWithBackslashNotation),
             )
