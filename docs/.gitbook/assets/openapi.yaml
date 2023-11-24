@@ -630,7 +630,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.30
+  version: 1.0.0-alpha.31
 openapi: 3.0.3
 paths:
   /catalogs:
