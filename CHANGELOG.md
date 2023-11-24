@@ -1,3 +1,21 @@
+# [1.0.0-alpha.31](https://github.com/getstrm/pace/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) (2023-11-24)
+
+
+### Bug Fixes
+
+* **pace-66:** chmod go-rw pgpass ([3f605b6](https://github.com/getstrm/pace/commit/3f605b68e94f78b0b1db52a71dbbcdc8da02e0b8))
+* **pace-66:** path to data.sql ([69af846](https://github.com/getstrm/pace/commit/69af846c3cec341c17045291f0146a7462065e45))
+
+
+### Features
+
+* **pace-66:** checking free ports before launching PACE ([b30ce4d](https://github.com/getstrm/pace/commit/b30ce4dce5bcf3d09a3dec032dce605f3ce6111a))
+* **pace-66:** ensure cross platform compatibility ([0b6c58c](https://github.com/getstrm/pace/commit/0b6c58c5b22e1eafa87e80eb69c72c4db407ee3d))
+* **pace-66:** github action integration ([b45a8fa](https://github.com/getstrm/pace/commit/b45a8fa133a63afc10d60a2e9994e44ff607a931))
+* **pace-66:** integration test wip ([90937e9](https://github.com/getstrm/pace/commit/90937e956ea9ef6b2d15564a0f689af2535e22f6))
+* **pace-66:** make all in integration-test ([2d88f47](https://github.com/getstrm/pace/commit/2d88f47029649de762d05ecb059d50c58dd17816))
+* **pace-66:** other standalone sql load mechanism ([a14b45a](https://github.com/getstrm/pace/commit/a14b45a833b6bfbdc98d55abbe3958072432ebc7))
+
 # [1.0.0-alpha.30](https://github.com/getstrm/pace/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) (2023-11-23)
 
 
