@@ -10,7 +10,7 @@ Databricks allows adding tags with a key and a value. Only the `key` is being us
 
 ```
 pace get data-policy --processing-platform dbr-pace \
-  pace.alpha_test.gddemo
+  pace.alpha_test.demo
 ...
 platform:
   id: dbr-pace

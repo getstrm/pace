@@ -14,6 +14,7 @@ PACE leverages Databricks' **Unity Catalog** to create dynamic views based on Da
 4. Next, grant the **User** permission to the principal on your desired Databricks Workspace, also through the [Account Console](https://accounts.cloud.databricks.com/workspaces).
 5. In your workspace, either create a new SQL Warehouse, or choose an existing one, and grant usage permission on it to the service principal. Its size can be very small, as it is only used to create views or list tables.
 6. For PACE to be able to list source tables and apply Data Policies through dynamic views, the service principal requires the `USE CATALOG`, `USE SCHEMA` and `SELECT` privileges on all desired **source** resources. The principal requires `CREATE TABLE` privileges on all **target** schemas where Data Policy views are to be created.
+7. If one wishes to use User Defined Functions, the PACE service principal, as well as any user of views where the UDF is used, require an `EXECUTE` permission on the function. See [the UDF tutorial](/tutorials/udfs.md) for more detail.
 
 ## PACE application properties
 
