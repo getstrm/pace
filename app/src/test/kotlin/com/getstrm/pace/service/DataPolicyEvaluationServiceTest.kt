@@ -8,8 +8,8 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
+import org.h2.jdbc.JdbcSQLSyntaxErrorException
 import org.intellij.lang.annotations.Language
-import org.jooq.exception.DataAccessException
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 
@@ -20,10 +20,12 @@ class DataPolicyEvaluationServiceTest {
     @Test
     fun `evaluate a basic policy with various transforms and principals`() {
         // When
-        val results = underTest.evaluatePolicy(dataPolicy, csvInput)
+        val result = underTest.evaluatePolicy(dataPolicy, csvInput)
 
         // Then
-        val resultsByPrincipal = results.associateBy {
+        result.ruleSetResultsList.size shouldBe 1
+        result.ruleSetResultsList.first().target.fullname shouldBe "public.demo_view"
+        val resultsByPrincipal = result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
             it.principal?.group
         }
         resultsByPrincipal.size shouldBe 4
@@ -43,10 +45,12 @@ class DataPolicyEvaluationServiceTest {
         val retentionCsvInput = generateRetentionCsvInput()
 
         // When
-        val results = underTest.evaluatePolicy(retentionPolicy, retentionCsvInput)
+        val result = underTest.evaluatePolicy(retentionPolicy, retentionCsvInput)
 
         // Then
-        val resultsByPrincipal = results.associateBy {
+        result.ruleSetResultsList.size shouldBe 1
+        result.ruleSetResultsList.first().target.fullname shouldBe "public.retention_view"
+        val resultsByPrincipal = result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
             it.principal?.group
         }
         resultsByPrincipal.size shouldBe 3
@@ -71,18 +75,20 @@ class DataPolicyEvaluationServiceTest {
             """.trimIndent()
 
         // When
-        val results = underTest.evaluatePolicy(retentionPolicy, csv)
+        val result = underTest.evaluatePolicy(retentionPolicy, csv)
 
         // Then
-        val resultsByPrincipal = results.associateBy {
+        result.ruleSetResultsList.size shouldBe 1
+        result.ruleSetResultsList.first().target.fullname shouldBe "public.retention_view"
+        val resultsByPrincipal = result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
             it.principal?.group
         }
         resultsByPrincipal.size shouldBe 3
         // Identity transforms preserve the null values inserted due to mismatching data types.
         resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe """
             transactionid,ts
-            "",""
-            "",""
+            ,
+            ,
             
             """.trimIndent()
         resultsByPrincipal["fraud_and_risk"]!!.principal shouldBe "fraud_and_risk".toPrincipal()
@@ -102,10 +108,11 @@ class DataPolicyEvaluationServiceTest {
             """.trimIndent()
 
         // When
-        val results = underTest.evaluatePolicy(retentionPolicy, csv)
+        val result = underTest.evaluatePolicy(retentionPolicy, csv)
 
         // Then
-        val resultsByPrincipal = results.associateBy {
+        result.ruleSetResultsList.size shouldBe 1
+        val resultsByPrincipal = result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
             it.principal?.group
         }
         resultsByPrincipal.size shouldBe 3
@@ -127,8 +134,9 @@ class DataPolicyEvaluationServiceTest {
             underTest.evaluatePolicy(incompatiblePolicy, csv)
         }.apply {
             code shouldBe InternalException.Code.UNKNOWN
-            cause should beInstanceOf<DataAccessException>()
-            message shouldBe "org.jooq.exception.DataAccessException: SQL [select some_unknown_function(transactionid) \"transactionid\" from input]; Function \"some_unknown_function\" not found; SQL statement:\n" +
+            cause should beInstanceOf<JdbcSQLSyntaxErrorException>()
+            debugInfo.detail shouldBe "Error while evaluating data policy. If caused by platform-specific statements, please test the data policy on the platform itself. Details: Function \"some_unknown_function\" not found"
+            message shouldBe "org.h2.jdbc.JdbcSQLSyntaxErrorException: Function \"some_unknown_function\" not found; SQL statement:\n" +
                 "select some_unknown_function(transactionid) \"transactionid\" from input [90022-214]"
         }
     }
@@ -393,7 +401,7 @@ source:
   ref: public.demo
 rule_sets:
   - target:
-      fullname: public.demo_view
+      fullname: public.retention_view
     filters:
       - retention_filter:
           field:

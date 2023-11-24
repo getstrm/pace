@@ -36,7 +36,9 @@ class DataPoliciesApi(
     override suspend fun evaluateDataPolicy(request: EvaluateDataPolicyRequest): EvaluateDataPolicyResponse {
         val policy = dataPolicyService.getLatestDataPolicy(request.dataPolicyId, request.platformId)
         return EvaluateDataPolicyResponse.newBuilder()
-            .addAllResults(dataPolicyEvaluationService.evaluatePolicy(policy, request.csv))
+            .setFullEvaluationResult(
+                dataPolicyEvaluationService.evaluatePolicy(policy, request.fullEvaluation.sampleCsv)
+            )
             .build()
     }
 

@@ -149,7 +149,7 @@ class InternalException(
 ) : PaceStatusException(
     code.status
         .withDescription(
-            cause?.message ?: debugInfo.detail ?: "Error description missing. $BUG_REPORT"
+            debugInfo.detail.ifEmpty { null } ?: cause?.message ?: "Error description missing. $BUG_REPORT"
         )
         .withCause(cause)
 ) {
