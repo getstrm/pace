@@ -9,7 +9,6 @@ import com.google.cloud.bigquery.Table
 import com.google.cloud.bigquery.TableId
 import org.jooq.*
 import org.jooq.exception.DataAccessException
-import org.slf4j.LoggerFactory
 
 
 suspend fun <R> coUnwrapStatusException(block: suspend () -> R): R {
@@ -65,7 +64,11 @@ fun <T, Accumulator, Result> List<T>.headTailFold(
     return tailOperation(accumulator, this.last())
 }
 
-fun DataPolicy.RuleSet.Filter.listPrincipals() = when (this.filterCase) {
+fun DataPolicy.RuleSet.uniquePrincipals(): Set<DataPolicy.Principal> =
+    fieldTransformsList.flatMap { it.transformsList }.flatMap { it.principalsList }.toSet() +
+        filtersList.flatMap { it.listPrincipals() }.toSet()
+
+private fun DataPolicy.RuleSet.Filter.listPrincipals() = when (this.filterCase) {
     DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER -> this.retentionFilter.conditionsList.flatMap { it.principalsList }
     DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER -> this.genericFilter.conditionsList.flatMap { it.principalsList }
     else -> throw IllegalArgumentException("Unsupported filter: ${this.filterCase.name}")

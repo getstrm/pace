@@ -1,17 +1,38 @@
 package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.*
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.DETOKENIZE
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.FIXED
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.HASH
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.IDENTITY
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.NULLIFY
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.NUMERIC_ROUNDING
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.REGEXP
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.SQL_STATEMENT
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.TRANSFORM_NOT_SET
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER
 import com.getstrm.pace.processing_platforms.DefaultProcessingPlatformTransformer.renderName
 import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
-import org.jooq.*
+import org.jooq.Condition
+import org.jooq.DSLContext
+import org.jooq.DatePart
+import org.jooq.Queries
+import org.jooq.Record
+import org.jooq.SQLDialect
+import org.jooq.SelectJoinStep
+import org.jooq.SelectSelectStep
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.*
+import org.jooq.impl.DSL.condition
+import org.jooq.impl.DSL.currentTimestamp
+import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.timestampAdd
+import org.jooq.impl.DSL.trueCondition
+import org.jooq.impl.DSL.unquotedName
+import org.jooq.impl.DSL.using
 import java.sql.Timestamp
 import org.jooq.Field as JooqField
 
@@ -50,31 +71,31 @@ abstract class ProcessingPlatformViewGenerator(
     open fun toDynamicViewSQL(): Queries {
         val queries = dataPolicy.ruleSetsList.map { ruleSet ->
             val targetView = ruleSet.target.fullname
-
-            createOrReplaceView(renderName(targetView)).`as`(
-                selectWithAdditionalHeaderStatements(
-                    dataPolicy.source.fieldsList.map { field ->
-                        toJooqField(
-                            field,
-                            ruleSet.fieldTransformsList.firstOrNull {
-                                it.field.fullName() == field.fullName()
-                            },
-                        )
-                    },
-                )
-                    .from(renderName(dataPolicy.source.ref)).let {
-                        addDetokenizeJoins(it, ruleSet)
-                    }
-                    .where(
-                        createWhereStatement(ruleSet)
-                    ),
-            )
+            createOrReplaceView(renderName(targetView)).`as`(toSelectStatement(ruleSet))
         }
 
         val allQueries = queries + additionalFooterStatements()
 
         return jooq.queries(allQueries)
     }
+
+    fun toSelectStatement(ruleSet: DataPolicy.RuleSet) =
+        selectWithAdditionalHeaderStatements(
+            dataPolicy.source.fieldsList.map { field ->
+                toJooqField(
+                    field,
+                    ruleSet.fieldTransformsList.firstOrNull {
+                        it.field.fullName() == field.fullName()
+                    },
+                )
+            },
+        )
+            .from(renderName(dataPolicy.source.ref)).let {
+                addDetokenizeJoins(it, ruleSet)
+            }
+            .where(
+                createWhereStatement(ruleSet)
+            )
 
     private fun createWhereStatement(ruleSet: DataPolicy.RuleSet) =
         ruleSet.filtersList.map { filter ->
@@ -211,7 +232,6 @@ abstract class ProcessingPlatformViewGenerator(
                 transform.detokenize,
                 dataPolicy.source.ref,
             )
-
             NUMERIC_ROUNDING -> transformer.numericRounding(field, transform.numericRounding)
             TRANSFORM_NOT_SET, IDENTITY, null -> transformer.identity(field)
         }

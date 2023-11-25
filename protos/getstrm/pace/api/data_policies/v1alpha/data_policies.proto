@@ -1,74 +1,119 @@
 syntax = "proto3";
 
 package getstrm.pace.api.data_policies.v1alpha;
+
+import "buf/validate/validate.proto";
 import "getstrm/pace/api/entities/v1alpha/entities.proto";
 import "google/api/annotations.proto";
-import "buf/validate/validate.proto";
 
 option go_package = "github.com/getstrm/pace/protos/data_policies;data_policies";
-option java_package = "com.getstrm.pace.api.data_policies.v1alpha";
 option java_multiple_files = true;
+option java_package = "com.getstrm.pace.api.data_policies.v1alpha";
 
 service DataPoliciesService {
-    // Lists all DataPolicies for all platforms.
-    rpc ListDataPolicies (ListDataPoliciesRequest) returns (ListDataPoliciesResponse) {
-        option (google.api.http) = {
-            get: "/data-policies"
-        };
+  // Lists all DataPolicies for all platforms.
+  rpc ListDataPolicies(ListDataPoliciesRequest) returns (ListDataPoliciesResponse) {
+    option (google.api.http) = {get: "/data-policies"};
+  }
+  // Evaluates a previously upserted DataPolicy against a provided data sample. Platform-specific data types, transforms
+  // and nested fields are not supported.
+  rpc EvaluateDataPolicy(EvaluateDataPolicyRequest) returns (EvaluateDataPolicyResponse) {
+    option (google.api.http) = {
+      post: "/data-policies/{data_policy_id}/{platform_id}/evaluate"
+      body: "*"
     };
-    // Creates or updates a DataPolicy in PACE and optionally applies it to the processing platform.
-    rpc UpsertDataPolicy (UpsertDataPolicyRequest) returns (UpsertDataPolicyResponse) {
-        option (google.api.http) = {
-            post: "/data-policies"
-            body: "*"
-        };
+  }
+  // Creates or updates a DataPolicy in PACE and optionally applies it to the processing platform.
+  rpc UpsertDataPolicy(UpsertDataPolicyRequest) returns (UpsertDataPolicyResponse) {
+    option (google.api.http) = {
+      post: "/data-policies"
+      body: "*"
     };
-    // Applies an existing DataPolicy to the processing platform.
-    rpc ApplyDataPolicy (ApplyDataPolicyRequest) returns (ApplyDataPolicyResponse) {
-        option (google.api.http) = {
-            post: "/data-policies/{data_policy_id}/{platform_id}"
-        };
-    };
-    // Returns the latest policy for a given id and platform.
-    rpc GetDataPolicy (GetDataPolicyRequest) returns (GetDataPolicyResponse) {
-        option (google.api.http) = {
-            get: "/data-policies/{data_policy_id}/{platform_id}"
-        };
-    };
+  }
+  // Applies an existing DataPolicy to the processing platform.
+  rpc ApplyDataPolicy(ApplyDataPolicyRequest) returns (ApplyDataPolicyResponse) {
+    option (google.api.http) = {post: "/data-policies/{data_policy_id}/{platform_id}"};
+  }
+  // Returns the latest policy for a given id and platform.
+  rpc GetDataPolicy(GetDataPolicyRequest) returns (GetDataPolicyResponse) {
+    option (google.api.http) = {get: "/data-policies/{data_policy_id}/{platform_id}"};
+  }
 }
 
 message GetDataPolicyRequest {
-    string data_policy_id = 1 [(buf.validate.field).string.min_len = 1];
-    string platform_id = 2 [(buf.validate.field).string.min_len = 1];
+  string data_policy_id = 1 [(buf.validate.field).string.min_len = 1];
+  string platform_id = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 message GetDataPolicyResponse {
-    entities.v1alpha.DataPolicy data_policy = 1;
+  entities.v1alpha.DataPolicy data_policy = 1;
 }
 
 message UpsertDataPolicyRequest {
-    entities.v1alpha.DataPolicy data_policy = 1;
-    // whether to apply the policy directly on the processing platform
-    // if omitted, defaults to false
-    bool apply = 2;
+  entities.v1alpha.DataPolicy data_policy = 1;
+  // whether to apply the policy directly on the processing platform
+  // if omitted, defaults to false
+  bool apply = 2;
 }
 
 message UpsertDataPolicyResponse {
-    entities.v1alpha.DataPolicy data_policy = 1;
+  entities.v1alpha.DataPolicy data_policy = 1;
 }
 
 message ApplyDataPolicyRequest {
-    string data_policy_id = 1 [(buf.validate.field).string.min_len = 1];
-    string platform_id = 2 [(buf.validate.field).string.min_len = 1];
+  string data_policy_id = 1 [(buf.validate.field).string.min_len = 1];
+  string platform_id = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 message ApplyDataPolicyResponse {
-    entities.v1alpha.DataPolicy data_policy = 1;
+  entities.v1alpha.DataPolicy data_policy = 1;
 }
 
-message ListDataPoliciesRequest {
-}
+message ListDataPoliciesRequest {}
 
 message ListDataPoliciesResponse {
-    repeated entities.v1alpha.DataPolicy data_policies = 1;
+  repeated entities.v1alpha.DataPolicy data_policies = 1;
+}
+
+message EvaluateDataPolicyRequest {
+  string data_policy_id = 1 [(buf.validate.field).string.min_len = 1];
+  string platform_id = 2 [(buf.validate.field).string.min_len = 1];
+
+  oneof evaluation {
+    // Evaluate a complete data policy for all principals against a sample of data.
+    FullEvaluation full_evaluation = 3;
+  }
+
+  message FullEvaluation {
+    // CSV-formatted sample data to evaluate the policy against. The first row must be a header row.
+    string sample_csv = 2;
+  }
+}
+
+message EvaluateDataPolicyResponse {
+
+  oneof evaluation_result {
+    // The result of a full evaluation of a data policy against a sample of data.
+    FullEvaluationResult full_evaluation_result = 1;
+  }
+
+  message FullEvaluationResult {
+    // The results of the evaluation, grouped by rule set.
+    repeated RuleSetResult rule_set_results = 1;
+
+    message RuleSetResult {
+      // The target of the evaluated rule set.
+      entities.v1alpha.DataPolicy.Target target = 1;
+      // A result is returned for each principal specified in the rule set, as
+      // well as the case where there is no matching principal.
+      repeated PrincipalEvaluationResult principal_evaluation_results = 2;
+
+      message PrincipalEvaluationResult {
+        // The principal that was evaluated. If absent, this is the result for the case where there is no matching principal.
+        optional entities.v1alpha.DataPolicy.Principal principal = 1;
+        // The result of the evaluation in CSV format, including headers.
+        string csv = 2;
+      }
+    }
+  }
 }

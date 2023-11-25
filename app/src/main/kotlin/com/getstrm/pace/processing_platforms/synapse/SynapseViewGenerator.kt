@@ -8,9 +8,13 @@ import com.getstrm.pace.exceptions.PaceStatusException.Companion.UNIMPLEMENTED
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
-import com.getstrm.pace.util.listPrincipals
+import com.getstrm.pace.util.uniquePrincipals
 import com.google.rpc.DebugInfo
-import org.jooq.*
+import org.jooq.Condition
+import org.jooq.CreateViewAsStep
+import org.jooq.DatePart
+import org.jooq.Queries
+import org.jooq.Record
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import java.sql.Timestamp
@@ -27,13 +31,9 @@ class SynapseViewGenerator(
 ) {
     fun grantSelectPrivileges(): Queries {
         val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->
-            val principals =
-                ruleSet.fieldTransformsList.flatMap { it.transformsList }.flatMap { it.principalsList }.toSet() +
-                        ruleSet.filtersList.flatMap { it.listPrincipals() }.toSet()
-
             val viewName = ruleSet.target.fullname
 
-            principals.map {
+            ruleSet.uniquePrincipals().map {
                 DSL.query(
                     jooq.grant(DSL.privilege("SELECT")).on(DSL.table(DSL.unquotedName(renderName(viewName))))
                         .to(DSL.role(DSL.quotedName(it.group))).sql

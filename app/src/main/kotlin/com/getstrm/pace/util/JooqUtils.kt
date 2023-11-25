@@ -2,6 +2,7 @@ package com.getstrm.pace.util
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import org.jooq.DataType
+import org.jooq.Field
 import org.jooq.SQLDialect
 import org.jooq.conf.ParseNameCase
 import org.jooq.conf.ParseUnknownFunctions
@@ -38,3 +39,5 @@ val sqlParser = DSL.using(SQLDialect.DEFAULT).parser()
 
 fun DataPolicy.Field.normalizeType(): DataPolicy.Field =
     toBuilder().setType(sqlDataType().typeName).build()
+
+fun DataPolicy.Field.toJooqField(): Field<*> = DSL.field(namePartsList.joinToString("."), sqlDataType())
