@@ -12,6 +12,7 @@ import org.h2.jdbc.JdbcSQLSyntaxErrorException
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 
 class DataPolicyEvaluationServiceTest {
 
@@ -419,7 +420,7 @@ rule_sets:
         private fun generateRetentionCsvInput(): String {
             val header = "transactionid,ts\n"
             val rows = (0..20).mapTo(mutableListOf()) { i ->
-                val ts = OffsetDateTime.now().minusDays(i.toLong()).toString()
+                val ts = OffsetDateTime.now().minusDays(i.toLong()).truncatedTo(ChronoUnit.MICROS).toString()
                 "$i,$ts"
             }.apply { shuffle() }.joinToString("\n")
             return header + rows
