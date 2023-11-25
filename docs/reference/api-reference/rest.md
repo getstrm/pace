@@ -36,6 +36,10 @@
 [openapi.yaml](../../.gitbook/assets/openapi.yaml)
 {% endswagger %}
 
+{% swagger src="../../.gitbook/assets/openapi.yaml" path="/data-policies/{dataPolicyId}/{platformId}/evaluate" method="post" expanded="true" %}
+[openapi.yaml](../../.gitbook/assets/openapi.yaml)
+{% endswagger %}
+
 {% swagger src="../../.gitbook/assets/openapi.yaml" path="/global-transforms" method="get" expanded="true" %}
 [openapi.yaml](../../.gitbook/assets/openapi.yaml)
 {% endswagger %}

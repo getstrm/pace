@@ -259,6 +259,41 @@ components:
           format: uint32
           type: integer
       type: object
+    EvaluateDataPolicyRequest:
+      properties:
+        dataPolicyId:
+          type: string
+        fullEvaluation:
+          allOf:
+          - $ref: '#/components/schemas/EvaluateDataPolicyRequest_FullEvaluation'
+          description: Evaluate a complete data policy for all principals against
+            a sample of data.
+        platformId:
+          type: string
+      type: object
+    EvaluateDataPolicyRequest_FullEvaluation:
+      properties:
+        sampleCsv:
+          description: CSV-formatted sample data to evaluate the policy against. The
+            first row must be a header row.
+          type: string
+      type: object
+    EvaluateDataPolicyResponse:
+      properties:
+        fullEvaluationResult:
+          allOf:
+          - $ref: '#/components/schemas/EvaluateDataPolicyResponse_FullEvaluationResult'
+          description: The result of a full evaluation of a data policy against a
+            sample of data.
+      type: object
+    EvaluateDataPolicyResponse_FullEvaluationResult:
+      properties:
+        ruleSetResults:
+          description: The results of the evaluation, grouped by rule set.
+          items:
+            $ref: '#/components/schemas/FullEvaluationResult_RuleSetResult'
+          type: array
+      type: object
     FieldTransform_Transform:
       properties:
         detokenize:
@@ -326,6 +361,19 @@ components:
           allOf:
           - $ref: '#/components/schemas/DataPolicy_Field'
           description: The field of type SQL date with timestamp.
+      type: object
+    FullEvaluationResult_RuleSetResult:
+      properties:
+        principalEvaluationResults:
+          description: "A result is returned for each principal specified in the rule\
+            \ set, as\n well as the case where there is no matching principal."
+          items:
+            $ref: '#/components/schemas/RuleSetResult_PrincipalEvaluationResult'
+          type: array
+        target:
+          allOf:
+          - $ref: '#/components/schemas/DataPolicy_Target'
+          description: The target of the evaluated rule set.
       type: object
     GenericFilter_Condition:
       properties:
@@ -495,6 +543,17 @@ components:
           description: Number of days since the creation date.
           type: string
       type: object
+    RuleSetResult_PrincipalEvaluationResult:
+      properties:
+        csv:
+          description: The result of the evaluation in CSV format, including headers.
+          type: string
+        principal:
+          allOf:
+          - $ref: '#/components/schemas/DataPolicy_Principal'
+          description: The principal that was evaluated. If absent, this is the result
+            for the case where there is no matching principal.
+      type: object
     RuleSet_FieldTransform:
       properties:
         field:
@@ -630,7 +689,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.31
+  version: 1.0.0-alpha.32
 openapi: 3.0.3
 paths:
   /catalogs:
@@ -889,6 +948,45 @@ paths:
                 $ref: '#/components/schemas/Status'
           description: Default error response
       summary: ApplyDataPolicy
+      tags:
+      - DataPoliciesService
+  /data-policies/{dataPolicyId}/{platformId}/evaluate:
+    post:
+      description: "Evaluates a previously upserted DataPolicy against a provided\
+        \ data sample. Platform-specific data types, transforms\n and nested fields\
+        \ are not supported."
+      operationId: DataPoliciesService_EvaluateDataPolicy
+      parameters:
+      - in: path
+        name: dataPolicyId
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: platformId
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateDataPolicyRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluateDataPolicyResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: EvaluateDataPolicy
       tags:
       - DataPoliciesService
   /global-transforms:

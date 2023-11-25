@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.31
+    version: 1.0.0-alpha.32
 paths:
     /catalogs:
         get:
@@ -248,6 +248,44 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ApplyDataPolicyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /data-policies/{dataPolicyId}/{platformId}/evaluate:
+        post:
+            tags:
+                - DataPoliciesService
+            description: |-
+                Evaluates a previously upserted DataPolicy against a provided data sample. Platform-specific data types, transforms
+                 and nested fields are not supported.
+            operationId: DataPoliciesService_EvaluateDataPolicy
+            parameters:
+                - name: dataPolicyId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: platformId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/EvaluateDataPolicyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EvaluateDataPolicyResponse'
                 default:
                     description: Default error response
                     content:
@@ -743,6 +781,38 @@ components:
                 deletedCount:
                     type: integer
                     format: uint32
+        EvaluateDataPolicyRequest:
+            type: object
+            properties:
+                dataPolicyId:
+                    type: string
+                platformId:
+                    type: string
+                fullEvaluation:
+                    allOf:
+                        - $ref: '#/components/schemas/EvaluateDataPolicyRequest_FullEvaluation'
+                    description: Evaluate a complete data policy for all principals against a sample of data.
+        EvaluateDataPolicyRequest_FullEvaluation:
+            type: object
+            properties:
+                sampleCsv:
+                    type: string
+                    description: CSV-formatted sample data to evaluate the policy against. The first row must be a header row.
+        EvaluateDataPolicyResponse:
+            type: object
+            properties:
+                fullEvaluationResult:
+                    allOf:
+                        - $ref: '#/components/schemas/EvaluateDataPolicyResponse_FullEvaluationResult'
+                    description: The result of a full evaluation of a data policy against a sample of data.
+        EvaluateDataPolicyResponse_FullEvaluationResult:
+            type: object
+            properties:
+                ruleSetResults:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/FullEvaluationResult_RuleSetResult'
+                    description: The results of the evaluation, grouped by rule set.
         FieldTransform_Transform:
             type: object
             properties:
@@ -803,6 +873,20 @@ components:
                     items:
                         $ref: '#/components/schemas/RetentionFilter_Condition'
                     description: The last condition in the list must have 0 principals, as this acts as the default / else condition.
+        FullEvaluationResult_RuleSetResult:
+            type: object
+            properties:
+                target:
+                    allOf:
+                        - $ref: '#/components/schemas/DataPolicy_Target'
+                    description: The target of the evaluated rule set.
+                principalEvaluationResults:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RuleSetResult_PrincipalEvaluationResult'
+                    description: |-
+                        A result is returned for each principal specified in the rule set, as
+                         well as the case where there is no matching principal.
         GenericFilter_Condition:
             type: object
             properties:
@@ -960,6 +1044,16 @@ components:
                 days:
                     type: string
                     description: Number of days since the creation date.
+        RuleSetResult_PrincipalEvaluationResult:
+            type: object
+            properties:
+                principal:
+                    allOf:
+                        - $ref: '#/components/schemas/DataPolicy_Principal'
+                    description: The principal that was evaluated. If absent, this is the result for the case where there is no matching principal.
+                csv:
+                    type: string
+                    description: The result of the evaluation in CSV format, including headers.
         RuleSet_FieldTransform:
             type: object
             properties:
