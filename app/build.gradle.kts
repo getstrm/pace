@@ -4,6 +4,7 @@ import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
 import nu.studer.gradle.jooq.JooqGenerate
 import org.flywaydb.gradle.task.FlywayMigrateTask
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import java.net.InetAddress
 import java.net.Socket
@@ -80,6 +81,7 @@ dependencies {
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.kotest:kotest-assertions-core-jvm:5.7.2")
+    testImplementation("io.kotest:kotest-runner-junit5:5.7.2")
     testImplementation("io.mockk:mockk:1.13.8")
     testImplementation("io.zonky.test:embedded-postgres:2.0.4")
 }
@@ -125,6 +127,13 @@ kotlin {
     val kotlinMainSourceSet = sourceSets["main"].kotlin
 
     kotlinMainSourceSet.srcDir("$openDataDiscoveryOpenApiDir/src/main/kotlin")
+}
+
+tasks.test {
+    testLogging {
+        // Ensures full kotest diffs are printed
+        exceptionFormat = TestExceptionFormat.FULL
+    }
 }
 
 tasks.named<BootJar>("bootJar") {
