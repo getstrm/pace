@@ -1,3 +1,10 @@
+# [1.0.0-alpha.32](https://github.com/getstrm/pace/compare/v1.0.0-alpha.31...v1.0.0-alpha.32) (2023-11-25)
+
+
+### Features
+
+* **pace-52:** add EvaluateDataPolicy RPC ([#68](https://github.com/getstrm/pace/issues/68)) ([8fdd60a](https://github.com/getstrm/pace/commit/8fdd60ac50db4863d3fdfec29452e5b4294f7519))
+
 # [1.0.0-alpha.31](https://github.com/getstrm/pace/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) (2023-11-24)
 
 
