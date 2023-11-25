@@ -43,12 +43,12 @@ data_policy:
 # get a blueprint policy without rulesets from Processing Platform BigQuery
 pace get data-policy \
 	--processing-platform bigquery-dev \
-	stream-machine-development.dynamic_view_poc.demo
+	stream-machine-development.dynamic_view_poc.gddemo
 dataPolicy:
   metadata:
     createTime: '2023-10-04T09:04:56.246Z'
     description: ''
-    title: stream-machine-development.dynamic_view_poc.demo
+    title: stream-machine-development.dynamic_view_poc.gddemo
     updateTime: '2023-10-04T09:04:56.246Z'
   platform:
     id: bigquery-dev
