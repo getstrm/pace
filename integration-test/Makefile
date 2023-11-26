@@ -108,7 +108,7 @@ pace:
 
 app.jar:
 	@ echo building $@ and symlinking it here.
-	@ (cd .. ; gw build ) && ln -sf ../app/build/libs/app.jar $@
+	@ (cd .. ; ./gradlew build ) && ln -sf ../app/build/libs/app.jar $@
 
 launch-pace: app.jar
 	@ echo checking postgres ports 5431 and 5433
