@@ -4,9 +4,28 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.32
+    version: 1.0.0-alpha.33
 paths:
-    /catalogs:
+    /data-policies:
+        get:
+            tags:
+                - DataPoliciesService
+            description: Lists all DataPolicies for all platforms.
+            operationId: DataPoliciesService_ListDataPolicies
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDataPoliciesResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1alpha/catalogs:
         get:
             tags:
                 - DataCatalogsService
@@ -25,7 +44,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /catalogs/{catalogId}/blueprint-policy:
+    /v1alpha/catalogs/{catalogId}/blueprint-policy:
         get:
             tags:
                 - DataCatalogsService
@@ -65,7 +84,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /catalogs/{catalogId}/databases:
+    /v1alpha/catalogs/{catalogId}/databases:
         get:
             tags:
                 - DataCatalogsService
@@ -90,7 +109,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /catalogs/{catalogId}/schemas:
+    /v1alpha/catalogs/{catalogId}/schemas:
         get:
             tags:
                 - DataCatalogsService
@@ -119,7 +138,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /catalogs/{catalogId}/tables:
+    /v1alpha/catalogs/{catalogId}/tables:
         get:
             tags:
                 - DataCatalogsService
@@ -152,25 +171,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /data-policies:
-        get:
-            tags:
-                - DataPoliciesService
-            description: Lists all DataPolicies for all platforms.
-            operationId: DataPoliciesService_ListDataPolicies
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ListDataPoliciesResponse'
-                default:
-                    description: Default error response
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Status'
+    /v1alpha/data-policies:
         post:
             tags:
                 - DataPoliciesService
@@ -195,7 +196,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /data-policies/{dataPolicyId}/{platformId}:
+    /v1alpha/data-policies/{dataPolicyId}/{platformId}:
         get:
             tags:
                 - DataPoliciesService
@@ -254,7 +255,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /data-policies/{dataPolicyId}/{platformId}/evaluate:
+    /v1alpha/data-policies/{dataPolicyId}/{platformId}/evaluate:
         post:
             tags:
                 - DataPoliciesService
@@ -292,7 +293,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /global-transforms:
+    /v1alpha/global-transforms:
         get:
             tags:
                 - GlobalTransformsService
@@ -340,7 +341,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /global-transforms/{ref}/{type}:
+    /v1alpha/global-transforms/{ref}/{type}:
         get:
             tags:
                 - GlobalTransformsService
@@ -408,7 +409,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /processing-platforms:
+    /v1alpha/processing-platforms:
         get:
             tags:
                 - ProcessingPlatformsService
@@ -427,7 +428,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /processing-platforms/{platformId}/groups:
+    /v1alpha/processing-platforms/{platformId}/groups:
         get:
             tags:
                 - ProcessingPlatformsService
@@ -452,7 +453,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /processing-platforms/{platformId}/tables:
+    /v1alpha/processing-platforms/{platformId}/tables:
         get:
             tags:
                 - ProcessingPlatformsService
@@ -477,7 +478,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /processing-platforms/{platformId}/tables/{tableId}/blueprint-policy:
+    /v1alpha/processing-platforms/{platformId}/tables/{tableId}/blueprint-policy:
         get:
             tags:
                 - ProcessingPlatformsService
