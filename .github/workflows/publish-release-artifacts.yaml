@@ -43,6 +43,7 @@ jobs:
           buf_dependency_version=$(buf alpha sdk maven-version --module=buf.build/getstrm/pace:${{ env.TAG }} --plugin=buf.build/protocolbuffers/java:v24.4 | sed "s/24.4.0.1.//")
           echo "BUF_DEPENDENCY_VERSION=${buf_dependency_version}" >> "$GITHUB_ENV"
 
+      # TODO ensure that the json schemas in app/src/main/resources/jsonschemas are updated with the latest generated protobuf files
       # JVM artifact
       - uses: actions/setup-java@v3
         with:
