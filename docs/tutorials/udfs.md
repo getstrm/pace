@@ -1,17 +1,20 @@
 ---
 description: Create and use a Python UDF on Databricks
 ---
+
 # User Defined Functions in Python
+
 In this tutorial we will
+
 * create a User Defined Function written in Python. We will use Databricks as a processing platform.
 * create a Data Policy that uses this UDF, and apply it to the the platform.
 * inspect the resulting SQL View.
 * show some results.
 
-[databricks-udf]: https://docs.databricks.com/en/udf/python.html
 ## Creating the UDF
-On Databricks this is [quite simple][databricks-udf]. In SQL we would do the following.
-Make sure we execute it in the catalog and schema of the data.
+
+On Databricks this is [quite simple](https://docs.databricks.com/en/udf/python.html). In SQL we would do the following. Make sure we execute it in the catalog and schema of the data.
+
 ```sql
 CREATE OR REPLACE FUNCTION squareWithPython(age INT)
 RETURNS INT
@@ -20,14 +23,16 @@ AS $$
 return age*age
 $$;
 ```
-NOTE: Make sure both the PACE service credential, as well as any user that might access the resulting SQL VIEW
-on Databricks has `EXECUTE` permissions on the function.
-![exec permissions](./dbr-exec-perms.png)
+
+NOTE: Make sure both the PACE service credential, as well as any user that might access the resulting SQL VIEW on Databricks has `EXECUTE` permissions on the function. ![exec permissions](dbr-exec-perms.png)
 
 ## Create a Data Policy
+
 We have used a demo table with an `age` integer column in it, and downloaded a blueprint data policy:
 
-    pace  get data-policy --processing-platform dbr-pace pace.alpha_test.demo > policy.yaml
+```
+pace get data-policy --blueprint --processing-platform dbr-pace pace.alpha_test.demo > policy.yaml
+```
 
 We have then edited the policy file, and included the following field transformation:
 
@@ -52,20 +57,26 @@ source:
   ...
   ref: pace.alpha_test.demo
 ```
+
 So this field transformation defines that any user (`principals: []`) receives the squared value of the `age` column.
 
 ## Create the SQL VIEW on Databricks
+
 First `upsert` the policy file to PACE.
 
-    pace upsert data-policy policy.yaml
+```
+pace upsert data-policy policy.yaml
+```
 
-And then actually apply it on the processing platform.
+And then actually apply it on the processing platform (alternatively, you can execute the `upsert` command with the `--apply` flag to immediately apply it).
 
-    pace apply data-policy pace.alpha_test.demo  --processing-platform dbr-pace 
+```
+pace apply data-policy pace.alpha_test.demo  --processing-platform dbr-pace 
+```
 
 ## Investigate the results
-If everything went right we would have a SQL VIEW named `pace.alpha_test.demo_pace_view` with this
-view definition:
+
+If everything went right we would have a SQL VIEW named `pace.alpha_test.demo_pace_view` with this view definition:
 
 ```sql
 -- VIEW DEFINITION
@@ -76,7 +87,8 @@ select
 ```
 
 The original `demo` table contains fairly normal ages:
-```text
+
+```
 select email, age from pace.alpha_test.demo limit 5;
 email                     age
 jeffreypowell@hotmail.com 33
@@ -87,7 +99,8 @@ debra64@hotmail.com       79
 ```
 
 But the _view_ clearly shows them squared:
-```text
+
+```
 select email, age from pace.alpha_test.demo_pace_view limit 5;
 email                     age
 jeffreypowell@hotmail.com 1089
@@ -96,6 +109,3 @@ wboone@gmail.com          4096
 oliverjulie@yahoo.com     144
 debra64@hotmail.com       6241
 ```
-
-<!-- vim:expandtab
--->

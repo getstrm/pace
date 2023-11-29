@@ -14,6 +14,7 @@
 Tip: want to make this easier? Just create a `examples/.envrc` file with the following contents:
 ```
 export IMAGE=pace-local
+export PULL_POLICY=never
 ```
 
 Then you can run `docker compose up` as usual.

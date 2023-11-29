@@ -169,7 +169,7 @@ This results in the following representation of the demo table. As you can see, 
 Before we create the global transform, first, let's see what is returned when we fetch the Data Policy created from the table when there are no global transforms defined.
 
 ```bash
-pace get data-policy --processing-platform global_transforms-sample-connection public.demo
+pace get data-policy --blueprint --processing-platform global_transforms-sample-connection public.demo
 ```
 
 Which returns the following data policy.
@@ -258,7 +258,7 @@ tag_transform:
 So for any fields in the schema with the tag `pii-email`, this transform should be included. Next, create the global transform.
 
 ```bash
-pace upsert global-transform global-tag-transform.yaml
+pace upsert global-transform global-tag-transform.yaml --apply
 ```
 
 Feel free to list the global transforms to see whether it has been correctly created (`pace list global-transforms`)
