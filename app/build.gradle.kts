@@ -64,7 +64,7 @@ dependencies {
     implementation("com.github.drapostolos:type-parser:0.8.1")
     implementation("com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre11")
 
-    implementation("com.nimbusds:nimbus-jose-jwt:9.37")
+    implementation("com.nimbusds:nimbus-jose-jwt:9.37.1")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.76")
 
     implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.27.0"))
