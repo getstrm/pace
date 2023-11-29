@@ -355,7 +355,7 @@ Ordering of `transforms` is important! The first match determines the behavior o
 
 **Final `data-policy.yaml`**
 
-For the final Data Policy, please have a look at the [file here](https://github.com/getstrm/pace/blob/standalone/examples/standalone/data-policy.yaml). This is the file that is used when creating the Data Policy.
+For the final Data Policy, please have a look at the [file here](../../examples/standalone/data-policy.yaml). This is the file that is used when creating the Data Policy.
 
 ## Creating the Data Policy
 
