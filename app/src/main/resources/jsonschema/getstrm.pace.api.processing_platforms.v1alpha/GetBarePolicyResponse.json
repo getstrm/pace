@@ -1,0 +1,381 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/GetBarePolicyResponse",
+    "definitions": {
+        "GetBarePolicyResponse": {
+            "properties": {
+                "data_policy": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy",
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Get Bare Policy Response"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy": {
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.Metadata",
+                    "additionalProperties": false
+                },
+                "source": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.Source",
+                    "additionalProperties": false
+                },
+                "platform": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform",
+                    "additionalProperties": false
+                },
+                "rule_sets": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet"
+                    },
+                    "additionalProperties": false,
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Data Policy"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.Field": {
+            "properties": {
+                "name_parts": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "Instead of using \"nodes\", nesting can be expressed by specifying multiple name parts. A flat table (e.g. csv file) will only contain a single name part for all fields."
+                },
+                "type": {
+                    "type": "string",
+                    "description": "The data type of the field."
+                },
+                "required": {
+                    "type": "boolean",
+                    "description": "Whether the field is required. If not, the field may be null."
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Field"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.Metadata": {
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer",
+                    "description": "For new policies, the version does not need to be set. When updating a policy, the version must match the current version. The version is then automatically incremented."
+                },
+                "create_time": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "update_time": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Metadata"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.Principal": {
+            "properties": {
+                "group": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Principal"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform": {
+            "properties": {
+                "platform_type": {
+                    "enum": [
+                        "PLATFORM_TYPE_UNSPECIFIED",
+                        0,
+                        "DATABRICKS",
+                        1,
+                        "SNOWFLAKE",
+                        2,
+                        "BIGQUERY",
+                        3,
+                        "POSTGRES",
+                        4
+                    ],
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "title": "Platform Type"
+                },
+                "id": {
+                    "type": "string",
+                    "description": "An arbitrary but unique identifier for the platform. This matches the id from the PACE app configuration."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Processing Platform"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet": {
+            "properties": {
+                "target": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.Target",
+                    "additionalProperties": false
+                },
+                "field_transforms": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform"
+                    },
+                    "additionalProperties": false,
+                    "type": "array",
+                    "description": "Zero or more field transforms. Any field for which no field transform is specified will be included as-is."
+                },
+                "filters": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter"
+                    },
+                    "additionalProperties": false,
+                    "type": "array",
+                    "description": "Zero or more filters. Records that match the conditions are included in the result. When no filters are defined, all records are always included."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Rule Set"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform": {
+            "properties": {
+                "field": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.Field",
+                    "additionalProperties": false
+                },
+                "transforms": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform"
+                    },
+                    "additionalProperties": false,
+                    "type": "array",
+                    "description": "The last condition in the list must have 0 principals, as this acts as the default / else condition. Transforms should have mutually exclusive sets of principals."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Field Transform"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform": {
+            "properties": {
+                "principals": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.Principal"
+                    },
+                    "additionalProperties": false,
+                    "type": "array",
+                    "description": "The principals (e.g. groups) for which this transform will be applied."
+                },
+                "regexp": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Regexp",
+                    "additionalProperties": false,
+                    "description": "Extract and optionally replace a value in a field using a regular expression. Use the syntax matching the processing platform."
+                },
+                "identity": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Identity",
+                    "additionalProperties": false,
+                    "description": "Use the identity transform to copy a field value as-is."
+                },
+                "fixed": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Fixed",
+                    "additionalProperties": false,
+                    "description": "Provide a fixed value for the field."
+                },
+                "hash": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Hash",
+                    "additionalProperties": false,
+                    "description": "Hash the field value, optionally with a seed. The exact algorithm is platform-specific."
+                },
+                "sql_statement": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.SqlStatement",
+                    "additionalProperties": false,
+                    "description": "Execute a SQL statement to transform the field value. The exact syntax is platform-specific."
+                },
+                "nullify": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Nullify",
+                    "additionalProperties": false,
+                    "description": "Make the field value null."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Transform"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Fixed": {
+            "properties": {
+                "value": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Fixed"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Hash": {
+            "properties": {
+                "seed": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Hash"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Identity": {
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Identity"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Nullify": {
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Nullify"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Regexp": {
+            "properties": {
+                "regexp": {
+                    "type": "string"
+                },
+                "replacement": {
+                    "type": "string",
+                    "description": "If the replacement is left empty, the regexp match result (full match or first capturing group) is used."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Regexp"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.SqlStatement": {
+            "properties": {
+                "statement": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Sql Statement"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter": {
+            "properties": {
+                "conditions": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.Condition"
+                    },
+                    "additionalProperties": false,
+                    "type": "array",
+                    "description": "The last condition in the list must have 0 principals, as this acts as the default / else condition."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Filter"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.Condition": {
+            "properties": {
+                "principals": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.Principal"
+                    },
+                    "additionalProperties": false,
+                    "type": "array",
+                    "description": "The principals (e.g. groups) that apply to this condition."
+                },
+                "condition": {
+                    "type": "string",
+                    "description": "A (platform-specific) SQL expression. If it evaluates to true, the principals are allowed to access the data."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Condition"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.Source": {
+            "properties": {
+                "ref": {
+                    "type": "string",
+                    "description": "The ref is an identifier for the source, unique at the source platform level."
+                },
+                "fields": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.Field"
+                    },
+                    "additionalProperties": false,
+                    "type": "array",
+                    "description": "A representation of the source data schema. Nested fields are supported."
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Source"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.Target": {
+            "properties": {
+                "type": {
+                    "enum": [
+                        "TARGET_TYPE_UNSPECIFIED",
+                        0,
+                        "SQL_VIEW",
+                        1
+                    ],
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "title": "Target Type"
+                },
+                "fullname": {
+                    "type": "string",
+                    "description": "The full and unique name to be used in the target platform. E.g. the view name."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Target"
+        }
+    }
+}

@@ -1,17 +1,23 @@
 package com.getstrm.pace.plugins.data_policy_generators
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.plugins.data_policy_generators.v1alpha.OpenAIDataPolicyGeneratorPayload
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.getstrm.pace.config.PluginConfiguration
+import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.util.toYaml
+import com.google.protobuf.InvalidProtocolBufferException
+import com.google.rpc.BadRequest
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import com.google.protobuf.Any as ProtoAny
+
 
 @Component
 @ConditionalOnProperty("app.plugins.openai.api-key")
@@ -26,13 +32,57 @@ class OpenAIDataPolicyGenerator(
     )
 
     override suspend fun generate(payload: ProtoAny): DataPolicy {
-        if (payload.typeUrl == typeUrl) {
-            println("hello")
+        if (payload.typeUrl != typeUrl) {
+            throw BadRequestException(
+                BadRequestException.Code.INVALID_ARGUMENT,
+                BadRequest.newBuilder()
+                    .addFieldViolations(
+                        BadRequest.FieldViolation.newBuilder()
+                            .setField("payload")
+                            .setDescription("Unsupported payload type: ${payload.typeUrl}")
+                            .build()
+                    )
+                    .build()
+            )
         }
-        TODO()
+
+        try {
+            val generatorPayload = payload.unpack(OpenAIDataPolicyGeneratorPayload::class.java)
+
+            return when (generatorPayload.dataPolicyCase) {
+                OpenAIDataPolicyGeneratorPayload.DataPolicyCase.INITIAL_DATA_POLICY ->
+                    generate(generatorPayload.instructions, generatorPayload.initialDataPolicy)
+
+                OpenAIDataPolicyGeneratorPayload.DataPolicyCase.DATAPOLICY_NOT_SET, null -> {
+                    throw BadRequestException(
+                        BadRequestException.Code.INVALID_ARGUMENT,
+                        BadRequest.newBuilder()
+                            .addFieldViolations(
+                                BadRequest.FieldViolation.newBuilder()
+                                    .setField("payload")
+                                    .setDescription("Invalid payload: data policy not set")
+                                    .build()
+                            )
+                            .build()
+                    )
+                }
+            }
+        } catch (e: InvalidProtocolBufferException) {
+            throw BadRequestException(
+                BadRequestException.Code.INVALID_ARGUMENT,
+                BadRequest.newBuilder()
+                    .addFieldViolations(
+                        BadRequest.FieldViolation.newBuilder()
+                            .setField("payload")
+                            .setDescription("Invalid payload: ${e.message}")
+                            .build()
+                    )
+                    .build()
+            )
+        }
     }
 
-    suspend fun generateYaml(instructions: String) {
+    private suspend fun generate(instructions: String, dataPolicy: DataPolicy): DataPolicy {
         val systemMessage = ChatMessage(
             role = ChatRole.System,
             content = "Your task is to create YAML file based on a JSON Schema and instructions by the end user. Ensure that you only respond with the YAML as plain text, do not provide any other details.",
@@ -47,7 +97,7 @@ class OpenAIDataPolicyGenerator(
             role = ChatRole.User,
             content = """
                 Use the following blueprint data policy as a starting point, and add a single rule set to it based on the instructions provided.
-                $blueprintDataPolicy
+                ${dataPolicy.toYaml()}
             """.trimIndent()
         )
 

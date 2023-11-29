@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/GetBarePolicyRequest",
+    "definitions": {
+        "GetBarePolicyRequest": {
+            "properties": {
+                "catalog_id": {
+                    "type": "string"
+                },
+                "database_id": {
+                    "type": "string"
+                },
+                "schema_id": {
+                    "type": "string"
+                },
+                "table_id": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Get Bare Policy Request"
+        }
+    }
+}

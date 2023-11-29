@@ -6,7 +6,7 @@ SHELL := /bin/bash
 git_branch := $(shell git rev-parse --abbrev-ref HEAD)
 descriptor_file := "rest/descriptor.binpb"
 
-buf-publish-current-branch:
+buf-publish-current-branch: copy-json-schema-to-resources
 	[[ "$$OSTYPE" == "darwin"* ]] && SED=gsed || SED=sed && \
 	commit_hash=$$(cd protos > /dev/null && buf push --branch "${git_branch}") && \
 	[ ! -z "$$commit_hash" ] && commit_hash_short=$$(echo "$$commit_hash" | cut -c1-12) && $$SED -i "s|generatedBufDependencyVersion=.*|generatedBufDependencyVersion=00000000000000.$$commit_hash_short|g" gradle.properties || echo "No changes to protos, gradle.properties not updated"
@@ -29,3 +29,7 @@ run-rest-proxy-localhost: buf-create-descriptor-binpb /tmp/envoy.yaml
 
 json-schema:
 	(cd protos; buf generate)
+
+copy-json-schema-to-resources: json-schema
+	@ mkdir -p app/src/main/resources/jsonschema
+	@ cp -r protos/json-schema/* app/src/main/resources/jsonschema

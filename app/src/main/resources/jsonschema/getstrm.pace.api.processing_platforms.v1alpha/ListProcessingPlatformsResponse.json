@@ -1,0 +1,56 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ListProcessingPlatformsResponse",
+    "definitions": {
+        "ListProcessingPlatformsResponse": {
+            "properties": {
+                "processing_platforms": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform"
+                    },
+                    "additionalProperties": false,
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "List Processing Platforms Response"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform": {
+            "properties": {
+                "platform_type": {
+                    "enum": [
+                        "PLATFORM_TYPE_UNSPECIFIED",
+                        0,
+                        "DATABRICKS",
+                        1,
+                        "SNOWFLAKE",
+                        2,
+                        "BIGQUERY",
+                        3,
+                        "POSTGRES",
+                        4,
+                        "SYNAPSE",
+                        5
+                    ],
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "title": "Platform Type"
+                },
+                "id": {
+                    "type": "string",
+                    "description": "An arbitrary but unique identifier for the platform. This matches the id from the PACE app configuration."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Processing Platform"
+        }
+    }
+}

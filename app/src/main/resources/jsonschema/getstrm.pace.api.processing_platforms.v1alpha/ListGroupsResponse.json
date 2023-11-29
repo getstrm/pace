@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ListGroupsResponse",
+    "definitions": {
+        "ListGroupsResponse": {
+            "properties": {
+                "groups": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "List Groups Response"
+        }
+    }
+}
