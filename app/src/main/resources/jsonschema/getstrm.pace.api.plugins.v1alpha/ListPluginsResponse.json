@@ -19,10 +19,29 @@
         "getstrm.pace.api.plugins.v1alpha.Plugin": {
             "properties": {
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "The unique identifier for this plugin"
                 },
-                "type": {
-                    "type": "string"
+                "implementation": {
+                    "type": "string",
+                    "description": "The canonical class name of the implementation of this plugin"
+                },
+                "plugin_type": {
+                    "enum": [
+                        "PLUGIN_TYPE_UNSPECIFIED",
+                        0,
+                        "DATA_POLICY_GENERATOR",
+                        1
+                    ],
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "title": "Plugin Type"
                 }
             },
             "additionalProperties": false,

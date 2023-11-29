@@ -5,7 +5,8 @@
         "InvokeDataPolicyGeneratorRequest": {
             "properties": {
                 "plugin_id": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "The identifier of the plugin to invoke. If only one implementation of the plugin type exists, that will be invoked implicitly. The plugin should be of type DATA_POLICY_GENERATOR."
                 },
                 "payload": {
                     "properties": {

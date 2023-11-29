@@ -81,10 +81,12 @@ dependencies {
     implementation("com.aallam.openai:openai-client:3.6.1")
     implementation(platform("io.ktor:ktor-bom:2.3.6"))
     runtimeOnly("io.ktor:ktor-client-okhttp")
-    implementation("io.ktor:ktor-client-logging-jvm")
+    implementation("io.ktor:ktor-client-logging")
 
     // Test dependencies
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "com.vaadin.external.google", module = "android-json")
+    }
     testImplementation("io.kotest:kotest-assertions-core-jvm:5.7.2")
     testImplementation("io.kotest:kotest-runner-junit5:5.7.2")
     testImplementation("io.mockk:mockk:1.13.8")

@@ -35,10 +35,6 @@ class OpenAIDataPolicyGenerator(
 
     override val id = "openai-data-policy-generator"
 
-    init {
-        log.info("Initialized OpenAI Data Policy Generator")
-    }
-
     override suspend fun generate(payload: ProtoAny): DataPolicy {
         if (payload.typeUrl != TYPE_URL) {
             throw BadRequestException(

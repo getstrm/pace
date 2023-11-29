@@ -13,23 +13,23 @@ option java_package = "com.getstrm.pace.api.plugins.v1alpha";
 
 
 service PluginsService {
-
-  rpc InvokeDataPolicyGenerator(InvokeDataPolicyGeneratorRequest) returns (InvokeDataPolicyGeneratorResponse) {
-    option (google.api.http) = {
-      post: "/v1alpha/plugins/data-policy-generator/{plugin_id}"
-      body: "*"
-    };
-  }
-
   rpc ListPlugins(ListPluginsRequest) returns (ListPluginsResponse) {
     option (google.api.http) = {
       get: "/v1alpha/plugins"
     };
   }
+
+  rpc InvokeDataPolicyGenerator(InvokeDataPolicyGeneratorRequest) returns (InvokeDataPolicyGeneratorResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha/plugins/data-policy-generators/{plugin_id}"
+      body: "*"
+    };
+  }
 }
 
 message InvokeDataPolicyGeneratorRequest {
-  string plugin_id = 1 [(buf.validate.field).string.min_len = 1];
+  // The identifier of the plugin to invoke. If only one implementation of the plugin type exists, that will be invoked implicitly. The plugin should be of type DATA_POLICY_GENERATOR.
+  optional string plugin_id = 1;
   google.protobuf.Any payload = 2 [(buf.validate.field).required = true];
 }
 
@@ -45,6 +45,15 @@ message ListPluginsResponse {
 }
 
 message Plugin {
+  // The unique identifier for this plugin
   string id = 1;
-  string type = 2;
+  // The canonical class name of the implementation of this plugin
+  string implementation = 2;
+  // The type / category of this plugin
+  PluginType plugin_type = 3;
+}
+
+enum PluginType {
+  PLUGIN_TYPE_UNSPECIFIED = 0;
+  DATA_POLICY_GENERATOR = 1;
 }

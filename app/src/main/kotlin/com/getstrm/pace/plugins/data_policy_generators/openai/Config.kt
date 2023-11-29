@@ -20,7 +20,7 @@ class Config {
         ) {
             install(Logging) {
                 logger = Logger.DEFAULT
-                level = LogLevel.NONE
+//                level = LogLevel.ALL
             }
         }
         return OpenAIDataPolicyGenerator(openAI)

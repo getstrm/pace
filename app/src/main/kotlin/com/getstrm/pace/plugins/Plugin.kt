@@ -1,6 +1,8 @@
 package com.getstrm.pace.plugins
 
-interface Plugin {
+import build.buf.gen.getstrm.pace.api.plugins.v1alpha.PluginType
 
+interface Plugin {
     val id: String
+    val type: PluginType
 }
