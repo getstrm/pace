@@ -18,20 +18,12 @@ For this example we will use a very small sample data set:
 
 ## Get blueprint policy
 
-Let the id of your connected `Processing Platform` be `pace-pp` and the source reference be `pace-db.pace-schema.
-pace-table`. Getting a blueprint policy yields a nearly empty `Data Policy` with populated source fields, thus defining 
-the structure of your source data. In this example we will use both the [`pace cli`](https://github.com/getstrm/cli) 
-and call the [REST API](../reference/api-reference.
-md#processing-platforms-platformid-tables-table\_id-blueprint-policy) using `curl`. The request has two variables, 
-`platform-id` and `table-id`. The CLI makes use of gRPC. We assume here that the instance is running on localhost, 
-the gRPC port is 50051 and the envoy proxy is listening on port 9090 as per the defaults. For the CLI holds, that if 
-you specify the processing platform and the reference to the table, the corresponding blueprint policy is returned. 
-Requesting a blueprint policy then yields:
+Let the id of your connected `Processing Platform` be `pace-pp` and the source reference be `pace-db.pace-schema. pace-table`. Getting a blueprint policy yields a nearly empty `Data Policy` with populated source fields, thus defining the structure of your source data. In this example we will use both the [`pace cli`](https://github.com/getstrm/cli) and call the \[REST API]\(../reference/api-reference. md#processing-platforms-platformid-tables-table\_id-blueprint-policy) using `curl`. The request has two variables, `platform-id` and `table-id`. The CLI makes use of gRPC. We assume here that the instance is running on localhost, the gRPC port is 50051 and the envoy proxy is listening on port 9090 as per the defaults. For the CLI holds, that if you specify the processing platform and the reference to the table, the corresponding blueprint policy is returned. Requesting a blueprint policy then yields:
 
 {% tabs %}
 {% tab title="CLI" %}
 ```bash
-pace get data-policy -p pace-pp pace-db.pace-schema.pace-table
+pace get data-policy --blueprint -p pace-pp pace-db.pace-schema.pace-table
 ```
 {% endtab %}
 
@@ -131,8 +123,7 @@ data_policy:
 
 As you can see, the [`Rule Sets`](../data-policy/rule-set/) are empty and only the refs and `source.fields` have been populated. This dataset consists of 2 columns: `email`, `age`. Now that we know our data's structure, the next step is populating the yaml with a `Rule Set`.
 
-If you do not have a `Processing Platform` or `Data Catalog` connected yet, use the blueprint policy from above to 
-define the structure of your data by hand.
+If you do not have a `Processing Platform` or `Data Catalog` connected yet, use the blueprint policy from above to define the structure of your data by hand.
 
 ## Define Rule Sets
 
@@ -594,7 +585,7 @@ Assuming we have saved the policy as `data_policy.json` or `data_policy.yaml` in
 {% tabs %}
 {% tab title="CLI" %}
 ```bash
-pace upsert data-policy ./data_policy.yaml
+pace upsert data-policy ./data_policy.yaml --apply
 ```
 {% endtab %}
 
@@ -606,6 +597,14 @@ curl -X POST -H "Content-Type: application/json" -d @./data_policy.json localhos
 {% endcode %}
 {% endtab %}
 {% endtabs %}
+
+{% hint style="info" %}
+By adding the `--apply` flag, the Data Policy is applied immediately, and so is therefore the corresponding SQL view. It is possible to first upsert and only later apply a policy, in which case the ID and platform of the upserted policy must be provided:
+
+```
+pace apply data-policy your-data-policy-id -p your-platform-id
+```
+{% endhint %}
 
 ## View data
 

@@ -10,7 +10,7 @@ The goal of this tutorial is to create a Data Policy that detokenizes previously
 
 ## Context
 
-We approach this tutorial from the perspective of a use case of an imaginary global payment card provider, which we'll name **PCP**.&#x20;
+We approach this tutorial from the perspective of a use case of an imaginary global payment card provider, which we'll name **PCP**.
 
 PCP has a strong data-driven culture with by-default access to transaction data for every employee. To comply with upcoming stricter European legislation, they need to take measures to restrict data usage of especially European card holders. Their global fraud and risk team should however still be able to access the data they need to ensure safe and proper usage of PCP's services, most notably in case of reasonable suspicions of fraud.
 
@@ -233,7 +233,7 @@ We can use the PACE CLI to retrieve a blueprint policy for the `transactions` ta
 
 {% code fullWidth="false" %}
 ```
-pace get data-policy --processing-platform detokenization-example-connection public.transactions
+pace get data-policy --blueprint --processing-platform detokenization-example-connection public.transactions
 ```
 {% endcode %}
 
@@ -377,7 +377,7 @@ The `detokenize` transform references the `tokens` table and specifies which fie
 The `data-policy.yaml` file in the `detokenization` directory contains the same policy. To apply it and create the `transactions_view`, we can use the PACE CLI again:
 
 ```bash
-pace upsert data-policy data-policy.yaml
+pace upsert data-policy data-policy.yaml --apply
 ```
 
 The `pace list data-policies` command will now return it.
@@ -439,7 +439,5 @@ That wraps up this detokenization tutorial. To clean up all resources, run the f
 ```bash
 docker compose down
 ```
-
-
 
 Any questions or comments? Please ask them on [GitHub discussions](https://github.com/getstrm/pace/discussions).
