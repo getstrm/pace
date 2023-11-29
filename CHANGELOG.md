@@ -1,3 +1,10 @@
+# [1.0.0-alpha.33](https://github.com/getstrm/pace/compare/v1.0.0-alpha.32...v1.0.0-alpha.33) (2023-11-29)
+
+
+### Bug Fixes
+
+* prefix gRPC REST paths with v1alpha ([01614eb](https://github.com/getstrm/pace/commit/01614ebe89ba6caface1285d6753d9bd37861f4a))
+
 # [1.0.0-alpha.32](https://github.com/getstrm/pace/compare/v1.0.0-alpha.31...v1.0.0-alpha.32) (2023-11-25)
 
 
