@@ -10,7 +10,7 @@ import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 
-@TestPropertySource(locations = ["classpath:openai.yaml"])
+@TestPropertySource(locations = ["classpath:openai.properties"])
 @ExtendWith(SpringExtension::class)
 class OpenAIDataPolicyGeneratorTest {
     @Value("\${app.plugins.openai.api-key}")

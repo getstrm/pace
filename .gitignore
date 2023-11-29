@@ -17,4 +17,4 @@ protos/openapi.yaml
 integration-test/pace.log
 integration-test/awk
 integration-test/cut
-app/src/test/resources/openai.yaml
+app/src/test/resources/openai.properties
