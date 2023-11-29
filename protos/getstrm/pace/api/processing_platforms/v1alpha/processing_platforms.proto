@@ -14,19 +14,19 @@ service ProcessingPlatformsService {
     // Lists all configured processing platforms.
     rpc ListProcessingPlatforms (ListProcessingPlatformsRequest) returns (ListProcessingPlatformsResponse) {
         option (google.api.http) = {
-            get: "/processing-platforms"
+          get: "/v1alpha/processing-platforms"
         };
     };
     // Lists all available table names for the given platform.
     rpc ListTables (ListTablesRequest) returns (ListTablesResponse) {
         option (google.api.http) = {
-            get: "/processing-platforms/{platform_id}/tables"
+          get: "/v1alpha/processing-platforms/{platform_id}/tables"
         };
     };
     // Lists all available user groups for the given platform.
     rpc ListGroups (ListGroupsRequest) returns (ListGroupsResponse) {
         option (google.api.http) = {
-            get: "/processing-platforms/{platform_id}/groups"
+          get: "/v1alpha/processing-platforms/{platform_id}/groups"
         };
     };
     // Returns a data policy without any rule sets, based on the given table's data structure in the platform.
@@ -34,7 +34,7 @@ service ProcessingPlatformsService {
     // Use the UpsertDataPolicy endpoint to save and enforce the policy.
     rpc GetBlueprintPolicy (GetBlueprintPolicyRequest) returns (GetBlueprintPolicyResponse) {
         option (google.api.http) = {
-            get: "/processing-platforms/{platform_id}/tables/{table_id}/blueprint-policy"
+          get: "/v1alpha/processing-platforms/{platform_id}/tables/{table_id}/blueprint-policy"
         };
     };
 }
