@@ -45,7 +45,7 @@ dependencies {
     // Dependencies managed by Spring
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     // TODO remove once we upgrade Spring: override SnakeYAML dependency, as the one managed by Spring is too old and is vulnerable
-    implementation("org.yaml:snakeyaml:2.0")
+    implementation("org.yaml:snakeyaml:2.2")
     implementation("org.flywaydb:flyway-core")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.postgresql:postgresql")
