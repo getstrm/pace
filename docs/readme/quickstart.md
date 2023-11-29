@@ -165,6 +165,8 @@ There should be quite a bit of logging, ending in the banner of the PACE app boo
 
 #### As `standalone`
 
+In a new terminal window run:
+
 ```bash
 psql postgresql://standalone:standalone@localhost:5431/standalone
 ```
@@ -196,7 +198,7 @@ This is the raw data, which we're able to see, as we're connected to the Postgre
 
 #### As a different user
 
-When connecting to the database using either `mark` or `far`, we won't be able to see the raw data, as the grants have not been configured that way.
+When connecting to the database using either `mark` or `far`, we won't be able to see the raw data, as the grants have not been configured that way. Either exit current `psql` session by pressing `ctrl+D` or open a new terminal window.
 
 ```bash
 psql postgresql://mark:mark@localhost:5431/standalone
@@ -216,6 +218,8 @@ By default, the CLI connects to `localhost:50051`, as it uses the gRPC interface
 {% hint style="success" %}
 **Tip**: set up the [CLI](https://github.com/getstrm/cli) and try out the autocomplete on arguments and flags, e.g. `--processing-platform <tab>` to see the available options for your PACE deployment.
 {% endhint %}
+
+Run the following commands in a new terminal window or tab.
 
 ```bash
 pace list groups --processing-platform standalone-sample-connection
@@ -250,7 +254,7 @@ tables:
 We start with a blueprint policy (without any rule sets) by reading the description of a table on the processing platform.
 
 ```bash
-pace get data-policy --processing-platform standalone-sample-connection public.demo
+pace get data-policy --blueprint --processing-platform standalone-sample-connection public.demo
 ```
 
 This results in the following YAML.
@@ -360,7 +364,7 @@ For the final Data Policy, please have a look at the [file here](https://github.
 Make sure your current working directory is the same as where the `data-policy.yaml` file resides. Next, run:
 
 ```bash
-pace upsert data-policy data-policy.yaml
+pace upsert data-policy data-policy.yaml --apply
 ```
 
 This will create a view with the name `public.demo_view` in the **postgres\_processing\_platform**.
