@@ -6,7 +6,7 @@ import "buf/validate/validate.proto";
 import "getstrm/pace/api/entities/v1alpha/entities.proto";
 import "google/api/annotations.proto";
 
-option go_package = "github.com/getstrm/pace/protos/global_transforms;global_transforms";
+option go_package = "github.com/getstrm/pace/protos/api/global_transforms;global_transforms";
 option java_multiple_files = true;
 option java_package = "com.getstrm.pace.api.global_transforms.v1alpha";
 

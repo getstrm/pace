@@ -6,7 +6,7 @@ import "buf/validate/validate.proto";
 import "getstrm/pace/api/entities/v1alpha/entities.proto";
 import "google/api/annotations.proto";
 
-option go_package = "github.com/getstrm/pace/protos/data_policies;data_policies";
+option go_package = "github.com/getstrm/pace/protos/api/data_policies;data_policies";
 option java_multiple_files = true;
 option java_package = "com.getstrm.pace.api.data_policies.v1alpha";
 

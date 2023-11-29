@@ -6,7 +6,7 @@ import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/getstrm/pace/protos/entities;entities";
+option go_package = "github.com/getstrm/pace/protos/api/entities;entities";
 option java_multiple_files = true;
 option java_package = "com.getstrm.pace.api.entities.v1alpha";
 

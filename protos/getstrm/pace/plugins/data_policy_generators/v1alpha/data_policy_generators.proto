@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package getstrm.pace.plugins.data_policy_generators.v1alpha;
+
+import "buf/validate/validate.proto";
+import "getstrm/pace/api/entities/v1alpha/entities.proto";
+
+option go_package = "github.com/getstrm/pace/protos/plugins/data_policy_generators;data_policy_generators";
+option java_multiple_files = true;
+option java_package = "com.getstrm.pace.plugins.data_policy_generators.v1alpha";
+
+
+message OpenAIDataPolicyGeneratorPayload {
+  // Todo: these validations are probably not evaluated since the message is packed in an Any.
+  string instructions = 1 [(buf.validate.field).string = {min_len: 1, max_len: 5000}];
+  oneof data_policy {
+    pace.api.entities.v1alpha.DataPolicy initial_data_policy = 2;
+  }
+}

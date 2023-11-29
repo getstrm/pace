@@ -78,8 +78,9 @@ dependencies {
 
     implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
 
-    implementation("com.aallam.openai:openai-client:3.6.1")
-    runtimeOnly("io.ktor:ktor-client-java:2.3.6")
+    implementation(platform("com.aallam.openai:openai-client-bom:3.6.1"))
+    implementation("com.aallam.openai:openai-client")
+    runtimeOnly("io.ktor:ktor-client-okhttp")
 
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")

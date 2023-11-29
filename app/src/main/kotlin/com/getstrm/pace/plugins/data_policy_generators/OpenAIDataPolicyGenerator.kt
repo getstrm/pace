@@ -1,5 +1,6 @@
-package com.getstrm.pace.service
+package com.getstrm.pace.plugins.data_policy_generators
 
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
@@ -10,16 +11,26 @@ import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
+import com.google.protobuf.Any as ProtoAny
 
 @Component
 @ConditionalOnProperty("app.plugins.openai.api-key")
 class OpenAIDataPolicyGenerator(
     private val pluginConfiguration: PluginConfiguration
-) {
+) : DataPolicyGeneratorPlugin {
+    override val id: String = "openai-data-policy-generator"
+
     private val openai = OpenAI(
         token = pluginConfiguration.openai!!.apiKey,
 //        timeout = Timeout(request = 10.seconds)
     )
+
+    override suspend fun generate(payload: ProtoAny): DataPolicy {
+        if (payload.typeUrl == typeUrl) {
+            println("hello")
+        }
+        TODO()
+    }
 
     suspend fun generateYaml(instructions: String) {
         val systemMessage = ChatMessage(
@@ -71,6 +82,9 @@ class OpenAIDataPolicyGenerator(
 
     companion object {
         private val log by lazy { LoggerFactory.getLogger(OpenAIDataPolicyGenerator::class.java) }
+
+        private val typeUrl =
+            "type.googleapis.com/getstrm.pace.plugins.data_policy_generators.v1alpha.OpenAIDataPolicyGeneratorPayload"
 
         @Language("yaml")
         private val blueprintDataPolicy = """

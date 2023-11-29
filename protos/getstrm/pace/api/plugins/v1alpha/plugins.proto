@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package getstrm.pace.api.plugins.v1alpha;
+
+import "buf/validate/validate.proto";
+import "getstrm/pace/api/entities/v1alpha/entities.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+
+option go_package = "github.com/getstrm/pace/protos/api/plugins;plugins";
+option java_multiple_files = true;
+option java_package = "com.getstrm.pace.api.plugins.v1alpha";
+
+
+service PluginsService {
+
+  rpc InvokeDataPolicyGenerator(InvokeDataPolicyGeneratorRequest) returns (InvokeDataPolicyGeneratorResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha/plugins/data-policy-generator/{plugin_id}"
+      body: "*"
+    };
+  }
+
+  rpc ListPlugins(ListPluginsRequest) returns (ListPluginsResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha/plugins"
+    };
+  }
+}
+
+message InvokeDataPolicyGeneratorRequest {
+  string plugin_id = 1 [(buf.validate.field).string.min_len = 1];
+  google.protobuf.Any payload = 2 [(buf.validate.field).required = true];
+}
+
+message InvokeDataPolicyGeneratorResponse {
+  pace.api.entities.v1alpha.DataPolicy data_policy = 1;
+}
+
+message ListPluginsRequest {
+}
+
+message ListPluginsResponse {
+  repeated Plugin plugins = 1;
+}
+
+message Plugin {
+  string id = 1;
+  string type = 2;
+}
