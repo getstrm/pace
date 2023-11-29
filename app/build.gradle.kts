@@ -73,7 +73,7 @@ dependencies {
 
     implementation("build.buf.gen:getstrm_pace_grpc_java:1.59.0.2.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.4.1.1.$generatedBufDependencyVersion")
-    implementation("build.buf.gen:getstrm_pace_protocolbuffers_java:24.4.0.1.$generatedBufDependencyVersion")
+    implementation("build.buf.gen:getstrm_pace_protocolbuffers_java:25.1.0.1.$generatedBufDependencyVersion")
     implementation("build.buf:protovalidate:0.1.6")
 
     implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
