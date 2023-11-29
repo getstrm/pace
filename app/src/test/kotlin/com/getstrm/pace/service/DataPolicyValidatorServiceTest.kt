@@ -1,9 +1,7 @@
 package com.getstrm.pace.service
 
 import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.util.parseDataPolicy
-import com.getstrm.pace.util.yaml2json
 import com.google.rpc.BadRequest
 import io.grpc.Status
 import io.kotest.assertions.throwables.shouldThrow
@@ -88,7 +86,7 @@ rule_sets:
         conditions:
           - principals: []
             condition: "transactionAmount < 10"
-        """.yaml2json().parseDataPolicy()
+        """.parseDataPolicy()
 
         assertDoesNotThrow {
             underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
@@ -165,7 +163,7 @@ rule_sets:
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
-          """.yaml2json().parseDataPolicy()
+          """.parseDataPolicy()
 
         val exception = shouldThrow<BadRequestException> {
             underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
@@ -252,7 +250,7 @@ rule_sets:
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
-          """.yaml2json().parseDataPolicy()
+          """.parseDataPolicy()
 
         val exception = shouldThrow<BadRequestException> {
             underTest.validate(dataPolicy, setOf("marketing", "fraud-and-risk", "admin"))
@@ -337,7 +335,7 @@ rule_sets:
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
-          """.yaml2json().parseDataPolicy()
+          """.parseDataPolicy()
 
         val exception = shouldThrow<BadRequestException> {
             underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
@@ -422,7 +420,7 @@ rule_sets:
         conditions:
           - principals: []
             condition: "transactionAmount < 10"
-          """.yaml2json().parseDataPolicy()
+          """.parseDataPolicy()
 
         val exception = shouldThrow<BadRequestException> {
             underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
@@ -496,7 +494,7 @@ rule_sets:
                       - principals: []
                         identity: {}
 
-        """.trimIndent().yaml2json().parseDataPolicy()
+        """.trimIndent().parseDataPolicy()
         runBlocking {
             val exception = shouldThrow<BadRequestException> {
                 underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))

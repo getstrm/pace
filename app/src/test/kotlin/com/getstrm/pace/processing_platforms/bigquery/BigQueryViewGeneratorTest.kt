@@ -8,7 +8,6 @@ import com.getstrm.pace.namedField
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
 import com.getstrm.pace.util.parseDataPolicy
-import com.getstrm.pace.util.yaml2json
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.intellij.lang.annotations.Language
@@ -381,7 +380,7 @@ info:
   version: "1.0.0"
   create_time: "2023-09-26T16:33:51.150Z"
   update_time: "2023-09-26T16:33:51.150Z"
-          """.yaml2json().parseDataPolicy()
+          """.parseDataPolicy()
 
         @Language("yaml")
         val singleDetokenizePolicy = """
@@ -430,7 +429,7 @@ info:
                             name_parts: [ userid ]
                       - principals: []
                         identity: {}
-        """.trimIndent().yaml2json().parseDataPolicy()
+        """.trimIndent().parseDataPolicy()
 
         @Language("yaml")
         val multiDetokenizePolicy = """
@@ -492,6 +491,6 @@ info:
                       - principals: []
                         identity: {}
 
-        """.trimIndent().yaml2json().parseDataPolicy()
+        """.trimIndent().parseDataPolicy()
     }
 }

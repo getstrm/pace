@@ -50,20 +50,23 @@ fun GeneratedMessageV3.toYaml(): String =
     ObjectMapper(YAMLFactory()).writeValueAsString(ObjectMapper().readTree(toJsonWithDefaults()))
 
 fun String.parseDataPolicy(): DataPolicy = let {
+    val json = this.yamlToJson() ?: this
     val builder = DataPolicy.newBuilder()
-    JsonFormat.parser().ignoringUnknownFields().merge(this, builder)
+    JsonFormat.parser().ignoringUnknownFields().merge(json, builder)
     builder.build()
 }
 
 fun String.parseTransforms(): List<GlobalTransform> = let {
+    val json = this.yamlToJson() ?: this
     val builder = ListGlobalTransformsResponse.newBuilder()
-    JsonFormat.parser().merge(this.yaml2json(), builder)
+    JsonFormat.parser().merge(json, builder)
     builder.build().globalTransformsList
 }
 
 fun String.parseTransform(): GlobalTransform = let {
+    val json = this.yamlToJson() ?: this
     val builder = GlobalTransform.newBuilder()
-    JsonFormat.parser().ignoringUnknownFields().merge(this, builder)
+    JsonFormat.parser().ignoringUnknownFields().merge(json, builder)
     builder.build()
 }
 

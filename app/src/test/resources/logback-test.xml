@@ -12,4 +12,6 @@
     <logger name="org.jooq.tools" level="INFO"/>
     <!-- Turn off the 'Thank you for using Jooq message' -->
     <logger name="org.jooq.Constants" level="OFF"/>
+
+    <logger name="com.getstrm.pace" level="DEBUG"/>
 </configuration>

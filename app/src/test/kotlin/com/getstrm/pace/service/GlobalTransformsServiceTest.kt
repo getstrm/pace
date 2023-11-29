@@ -5,7 +5,10 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.Transform
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.dao.GlobalTransformsDao
-import com.getstrm.pace.util.*
+import com.getstrm.pace.util.parseDataPolicy
+import com.getstrm.pace.util.parseTransforms
+import com.getstrm.pace.util.refAndType
+import com.getstrm.pace.util.toJsonbWithDefaults
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -45,7 +48,7 @@ class GlobalTransformsServiceTest {
                   tags: [ email ]
                 - name_parts: [description]
                   type: varchar
-          """.yaml2json().parseDataPolicy()
+          """.parseDataPolicy()
 
         runBlocking {
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)
@@ -90,7 +93,7 @@ class GlobalTransformsServiceTest {
                       identity: {}
                     - fixed: {value: "****"}
             """
-            policyWithRulesets shouldBe result.yaml2json().parseDataPolicy()
+            policyWithRulesets shouldBe result.parseDataPolicy()
         }
     }
 
@@ -115,7 +118,7 @@ class GlobalTransformsServiceTest {
                   tags: [ email, overlap ]
                 - name_parts: [description]
                   type: varchar
-          """.yaml2json().parseDataPolicy()
+          """.parseDataPolicy()
 
         runBlocking {
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)
@@ -165,7 +168,7 @@ class GlobalTransformsServiceTest {
                 - principals: [ {group: analytics} ]
                   hash: {seed: "3" }
                 - fixed: {value: "****" }
-         """.trimIndent().yaml2json().parseDataPolicy()
+         """.trimIndent().parseDataPolicy()
 
             policyWithRulesets shouldBe expected
         }
@@ -192,7 +195,7 @@ class GlobalTransformsServiceTest {
                   tags: [ overlap, email ]
                 - name_parts: [description]
                   type: varchar
-          """.yaml2json().parseDataPolicy()
+          """.parseDataPolicy()
 
         runBlocking {
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)
@@ -243,7 +246,7 @@ class GlobalTransformsServiceTest {
                 - principals: [ {group: fraud-and-risk} ]
                   nullify: {}
                 - fixed: {value: "fixed-value" }
-            """.trimIndent().yaml2json().parseDataPolicy()
+            """.trimIndent().parseDataPolicy()
 
             policyWithRulesets shouldBe expected
         }

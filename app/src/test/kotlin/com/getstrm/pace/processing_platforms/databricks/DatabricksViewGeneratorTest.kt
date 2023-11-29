@@ -7,7 +7,6 @@ import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
 import com.getstrm.pace.util.parseDataPolicy
-import com.getstrm.pace.util.yaml2json
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.intellij.lang.annotations.Language
@@ -472,7 +471,7 @@ from mycatalog.my_schema.gddemo;"""
       version: "1.0.0"
       create_time: "2023-09-26T16:33:51.150Z"
       update_time: "2023-09-26T16:33:51.150Z"
-              """.yaml2json().parseDataPolicy()
+              """.parseDataPolicy()
 
         @Language("yaml")
         val singleRetentionPolicy = """
@@ -522,7 +521,7 @@ from mycatalog.my_schema.gddemo;"""
                         - principals: [] 
                           period:
                             days: 10
-        """.trimIndent().yaml2json().parseDataPolicy()
+        """.trimIndent().parseDataPolicy()
 
         @Language("yaml")
         val multipleRetentionPolicy = """
@@ -589,6 +588,6 @@ from mycatalog.my_schema.gddemo;"""
                         - principals: [] 
                           period:
                             days: 0
-        """.trimIndent().yaml2json().parseDataPolicy()
+        """.trimIndent().parseDataPolicy()
     }
 }

@@ -1,7 +1,6 @@
 package com.getstrm.pace.util
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
@@ -28,15 +27,14 @@ private fun getFirstPaceStatusException(throwable: Throwable): PaceStatusExcepti
     return throwable.cause?.let { getFirstPaceStatusException(it) }
 }
 
-
-fun String.yaml2json(): String {
+fun String.yamlToJson(): String? {
     val yamlReader = ObjectMapper(YAMLFactory())
     return try {
         val obj = yamlReader.readValue(this, Any::class.java)
         val jsonWriter = ObjectMapper()
         jsonWriter.writeValueAsString(obj)
     } catch (e: JsonProcessingException) {
-        throw RuntimeException(e)
+        null
     }
 }
 

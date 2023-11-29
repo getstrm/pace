@@ -6,14 +6,12 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldT
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
 import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.namedField
 import com.getstrm.pace.processing_platforms.databricks.SynapseViewGenerator
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
 import com.getstrm.pace.util.parseDataPolicy
-import com.getstrm.pace.util.yaml2json
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
@@ -573,7 +571,7 @@ from my_schema.gddemo;"""
       version: "1.0.0"
       create_time: "2023-09-26T16:33:51.150Z"
       update_time: "2023-09-26T16:33:51.150Z"
-              """.yaml2json().parseDataPolicy()
+              """.parseDataPolicy()
 
         val policyWithoutRegexes: DataPolicy = dataPolicy.toBuilder().apply {
             val fieldTransforms = this.ruleSetsBuilderList.first().fieldTransformsList.map { fieldTransform ->
@@ -648,7 +646,7 @@ from my_schema.gddemo;"""
                         - principals: [] 
                           period:
                             days: 10
-        """.trimIndent().yaml2json().parseDataPolicy()
+        """.trimIndent().parseDataPolicy()
 
         @Language("yaml")
         val multipleRetentionPolicy = """
@@ -715,7 +713,7 @@ from my_schema.gddemo;"""
                         - principals: [] 
                           period:
                             days: 0
-        """.trimIndent().yaml2json().parseDataPolicy()
+        """.trimIndent().parseDataPolicy()
     }
 
 

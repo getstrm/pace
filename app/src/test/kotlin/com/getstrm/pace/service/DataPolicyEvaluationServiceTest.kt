@@ -3,7 +3,6 @@ package com.getstrm.pace.service
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.util.parseDataPolicy
-import com.getstrm.pace.util.yaml2json
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -217,7 +216,7 @@ rule_sets:
           - principals: [ ]
             sql_statement:
               statement: "CASE WHEN brand = 'Macbook' THEN 'Apple' ELSE 'Other' END"
-    """.yaml2json().parseDataPolicy()
+    """.parseDataPolicy()
 
         private val csvInput = """
         transactionid,userid,email,age,transactionamount,brand
@@ -416,7 +415,7 @@ rule_sets:
             - principals: [] 
               period:
                 days: 5
-""".yaml2json().parseDataPolicy()
+""".parseDataPolicy()
         private fun generateRetentionCsvInput(): String {
             val header = "transactionid,ts\n"
             val rows = (0..20).mapTo(mutableListOf()) { i ->
@@ -449,6 +448,6 @@ rule_sets:
           - principals: [ ]
             sql_statement:
                 statement: "some_unknown_function(transactionid)"
-""".yaml2json().parseDataPolicy()
+""".parseDataPolicy()
     }
 }

@@ -1,7 +1,7 @@
 package com.getstrm.pace.dao
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Nullify.*
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Nullify.getDefaultInstance
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.TagTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.TransformCase.TAG_TRANSFORM
@@ -9,7 +9,10 @@ import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.pace.AbstractDatabaseTest
 import com.getstrm.pace.config.GlobalTransformsConfiguration
 import com.getstrm.pace.config.TagTransforms
-import com.getstrm.pace.util.*
+import com.getstrm.pace.util.parseTransform
+import com.getstrm.pace.util.refAndType
+import com.getstrm.pace.util.toGlobalTransform
+import com.getstrm.pace.util.toJsonbWithDefaults
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
@@ -185,7 +188,7 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
                 - principals: []
                   fixed:
                     value: "***@***.***"
-            """.trimIndent().yaml2json().parseTransform()
+            """.trimIndent().parseTransform()
 
         @Language("yaml")
         private val nameTransform = """
@@ -195,7 +198,7 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
               transforms:
                 - principals: []
                   nullify: {}
-            """.trimIndent().yaml2json().parseTransform()
+            """.trimIndent().parseTransform()
 
         private fun GlobalTransform.toRecord(): GlobalTransformsRecord {
             val record = GlobalTransformsRecord()

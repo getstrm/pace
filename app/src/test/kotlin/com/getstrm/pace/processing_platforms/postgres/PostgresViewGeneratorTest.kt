@@ -1,22 +1,16 @@
 package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
-import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.namedField
-import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
 import com.getstrm.pace.util.parseDataPolicy
-import com.getstrm.pace.util.yaml2json
-import com.google.rpc.BadRequest
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class PostgresViewGeneratorTest {
     private val underTest = PostgresViewGenerator(dataPolicy)
@@ -438,7 +432,7 @@ grant SELECT on public.demo_view to "marketing";"""
                       - principals: []
                         sql_statement:
                           statement: "CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END"
-        """.trimIndent().yaml2json().parseDataPolicy()
+        """.trimIndent().parseDataPolicy()
 
         @Language("yaml")
         val singleDetokenizePolicy = """
@@ -487,7 +481,7 @@ grant SELECT on public.demo_view to "marketing";"""
                             name_parts: [ userid ]
                       - principals: []
                         identity: {}
-        """.trimIndent().yaml2json().parseDataPolicy()
+        """.trimIndent().parseDataPolicy()
 
         @Language("yaml")
         val multiDetokenizePolicy = """
@@ -548,7 +542,7 @@ grant SELECT on public.demo_view to "marketing";"""
                             name_parts: [ transactionid ]
                       - principals: []
                         identity: {}
-        """.trimIndent().yaml2json().parseDataPolicy()
+        """.trimIndent().parseDataPolicy()
 
         @Language("yaml")
         val singleRetentionPolicy = """
@@ -598,7 +592,7 @@ grant SELECT on public.demo_view to "marketing";"""
                         - principals: [] 
                           period:
                             days: 10
-        """.trimIndent().yaml2json().parseDataPolicy()
+        """.trimIndent().parseDataPolicy()
 
         @Language("yaml")
         val multipleRetentionPolicy = """
@@ -665,6 +659,6 @@ grant SELECT on public.demo_view to "marketing";"""
                         - principals: [] 
                           period:
                             days: 0
-        """.trimIndent().yaml2json().parseDataPolicy()
+        """.trimIndent().parseDataPolicy()
     }
 }
