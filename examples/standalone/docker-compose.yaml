@@ -48,6 +48,7 @@ services:
         condition: service_healthy
     container_name: pace
     image: ${IMAGE:-ghcr.io/getstrm/pace:latest-alpha}
+    pull_policy: ${PULL_POLICY:-always}
     volumes:
       - ./config/:/app/config/
 
