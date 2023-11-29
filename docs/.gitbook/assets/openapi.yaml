@@ -689,10 +689,30 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.32
+  version: 1.0.0-alpha.33
 openapi: 3.0.3
 paths:
-  /catalogs:
+  /data-policies:
+    get:
+      description: Lists all DataPolicies for all platforms.
+      operationId: DataPoliciesService_ListDataPolicies
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDataPoliciesResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: ListDataPolicies
+      tags:
+      - DataPoliciesService
+  /v1alpha/catalogs:
     get:
       description: Lists all configured catalogs.
       operationId: DataCatalogsService_ListCatalogs
@@ -712,7 +732,7 @@ paths:
       summary: ListCatalogs
       tags:
       - DataCatalogsService
-  /catalogs/{catalogId}/blueprint-policy:
+  /v1alpha/catalogs/{catalogId}/blueprint-policy:
     get:
       description: "Returns a data policy without any rule sets, based on the given\
         \ table's data structure in the catalog.\n Extend this blueprint policy with\
@@ -753,7 +773,7 @@ paths:
       summary: GetBlueprintPolicy
       tags:
       - DataCatalogsService
-  /catalogs/{catalogId}/databases:
+  /v1alpha/catalogs/{catalogId}/databases:
     get:
       description: Lists all databases for the given catalog.
       operationId: DataCatalogsService_ListDatabases
@@ -779,7 +799,7 @@ paths:
       summary: ListDatabases
       tags:
       - DataCatalogsService
-  /catalogs/{catalogId}/schemas:
+  /v1alpha/catalogs/{catalogId}/schemas:
     get:
       description: Lists all schemas (for a given database, if applicable).
       operationId: DataCatalogsService_ListSchemas
@@ -809,7 +829,7 @@ paths:
       summary: ListSchemas
       tags:
       - DataCatalogsService
-  /catalogs/{catalogId}/tables:
+  /v1alpha/catalogs/{catalogId}/tables:
     get:
       description: Lists all tables (for a given schema and database, if applicable).
       operationId: DataCatalogsService_ListTables
@@ -843,26 +863,7 @@ paths:
       summary: ListTables
       tags:
       - DataCatalogsService
-  /data-policies:
-    get:
-      description: Lists all DataPolicies for all platforms.
-      operationId: DataPoliciesService_ListDataPolicies
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ListDataPoliciesResponse'
-          description: OK
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Status'
-          description: Default error response
-      summary: ListDataPolicies
-      tags:
-      - DataPoliciesService
+  /v1alpha/data-policies:
     post:
       description: Creates or updates a DataPolicy in PACE and optionally applies
         it to the processing platform.
@@ -889,7 +890,7 @@ paths:
       summary: UpsertDataPolicy
       tags:
       - DataPoliciesService
-  /data-policies/{dataPolicyId}/{platformId}:
+  /v1alpha/data-policies/{dataPolicyId}/{platformId}:
     get:
       description: Returns the latest policy for a given id and platform.
       operationId: DataPoliciesService_GetDataPolicy
@@ -950,7 +951,7 @@ paths:
       summary: ApplyDataPolicy
       tags:
       - DataPoliciesService
-  /data-policies/{dataPolicyId}/{platformId}/evaluate:
+  /v1alpha/data-policies/{dataPolicyId}/{platformId}/evaluate:
     post:
       description: "Evaluates a previously upserted DataPolicy against a provided\
         \ data sample. Platform-specific data types, transforms\n and nested fields\
@@ -989,7 +990,7 @@ paths:
       summary: EvaluateDataPolicy
       tags:
       - DataPoliciesService
-  /global-transforms:
+  /v1alpha/global-transforms:
     get:
       operationId: GlobalTransformsService_ListGlobalTransforms
       parameters:
@@ -1039,7 +1040,7 @@ paths:
       summary: UpsertGlobalTransform
       tags:
       - GlobalTransformsService
-  /global-transforms/{ref}/{type}:
+  /v1alpha/global-transforms/{ref}/{type}:
     delete:
       operationId: GlobalTransformsService_DeleteGlobalTransform
       parameters:
@@ -1112,7 +1113,7 @@ paths:
       summary: GetGlobalTransform
       tags:
       - GlobalTransformsService
-  /processing-platforms:
+  /v1alpha/processing-platforms:
     get:
       description: Lists all configured processing platforms.
       operationId: ProcessingPlatformsService_ListProcessingPlatforms
@@ -1132,7 +1133,7 @@ paths:
       summary: ListProcessingPlatforms
       tags:
       - ProcessingPlatformsService
-  /processing-platforms/{platformId}/groups:
+  /v1alpha/processing-platforms/{platformId}/groups:
     get:
       description: Lists all available user groups for the given platform.
       operationId: ProcessingPlatformsService_ListGroups
@@ -1158,7 +1159,7 @@ paths:
       summary: ListGroups
       tags:
       - ProcessingPlatformsService
-  /processing-platforms/{platformId}/tables:
+  /v1alpha/processing-platforms/{platformId}/tables:
     get:
       description: Lists all available table names for the given platform.
       operationId: ProcessingPlatformsService_ListTables
@@ -1184,7 +1185,7 @@ paths:
       summary: ListTables
       tags:
       - ProcessingPlatformsService
-  /processing-platforms/{platformId}/tables/{tableId}/blueprint-policy:
+  /v1alpha/processing-platforms/{platformId}/tables/{tableId}/blueprint-policy:
     get:
       description: "Returns a data policy without any rule sets, based on the given\
         \ table's data structure in the platform.\n Extend this blueprint policy with\
