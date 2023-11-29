@@ -3,6 +3,7 @@ name: buf.build/getstrm/pace
 deps:
   - buf.build/googleapis/googleapis
   - buf.build/bufbuild/protovalidate
+  - buf.build/robstar/jsonschema-options
 breaking:
   use:
     - FILE

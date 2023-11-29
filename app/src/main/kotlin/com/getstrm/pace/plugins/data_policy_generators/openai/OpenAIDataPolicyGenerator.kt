@@ -14,6 +14,7 @@ import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.plugins.data_policy_generators.DataPolicyGeneratorPlugin
 import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.util.toYaml
+import com.google.protobuf.Descriptors
 import com.google.protobuf.InvalidProtocolBufferException
 import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
@@ -33,6 +34,7 @@ class OpenAIDataPolicyGenerator(
         javaClass.getResource("/jsonschema/getstrm.pace.api.entities.v1alpha/DataPolicy.json")?.readText()
     ) { "Could not load JSON Schema for DataPolicy" }
 
+    override val payloadDescriptor: Descriptors.Descriptor = OpenAIDataPolicyGeneratorPayload.getDescriptor()
     override val id = "openai-data-policy-generator"
 
     override suspend fun generate(payload: ProtoAny): DataPolicy {

@@ -6,17 +6,16 @@ import "buf/validate/validate.proto";
 import "getstrm/pace/api/entities/v1alpha/entities.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/descriptor.proto";
+import "protoc/gen/jsonschema/options.proto";
 
 option go_package = "github.com/getstrm/pace/protos/api/plugins;plugins";
 option java_multiple_files = true;
 option java_package = "com.getstrm.pace.api.plugins.v1alpha";
 
-
 service PluginsService {
   rpc ListPlugins(ListPluginsRequest) returns (ListPluginsResponse) {
-    option (google.api.http) = {
-      get: "/v1alpha/plugins"
-    };
+    option (google.api.http) = {get: "/v1alpha/plugins"};
   }
 
   rpc InvokeDataPolicyGenerator(InvokeDataPolicyGeneratorRequest) returns (InvokeDataPolicyGeneratorResponse) {
@@ -24,6 +23,10 @@ service PluginsService {
       post: "/v1alpha/plugins/data-policy-generators/{plugin_id}"
       body: "*"
     };
+  }
+
+  rpc GetPayloadDescriptor(GetPayloadDescriptorRequest) returns (GetPayloadDescriptorResponse) {
+    option (google.api.http) = {get: "/v1alpha/plugins/{plugin_id}/payload-descriptor"};
   }
 }
 
@@ -37,11 +40,20 @@ message InvokeDataPolicyGeneratorResponse {
   pace.api.entities.v1alpha.DataPolicy data_policy = 1;
 }
 
-message ListPluginsRequest {
-}
+message ListPluginsRequest {}
 
 message ListPluginsResponse {
   repeated Plugin plugins = 1;
+}
+
+message GetPayloadDescriptorRequest {
+  // The identifier of the plugin to get the payload descriptor for
+  string plugin_id = 1;
+}
+
+message GetPayloadDescriptorResponse {
+  // The payload descriptor for the plugin
+  google.protobuf.DescriptorProto payload_descriptor = 1 [(protoc.gen.jsonschema.field_options).ignore = true];
 }
 
 message Plugin {

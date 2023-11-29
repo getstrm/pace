@@ -11,7 +11,7 @@ import net.devh.boot.grpc.server.service.GrpcService
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.Plugin as ApiPlugin
 
 @GrpcService
-class PluginsApi(plugins: List<Plugin>) : PluginsServiceGrpcKt.PluginsServiceCoroutineImplBase() {
+class PluginsApi(private val plugins: List<Plugin>) : PluginsServiceGrpcKt.PluginsServiceCoroutineImplBase() {
     private val apiPlugins = plugins.map {
         ApiPlugin.newBuilder()
             .setId(it.id)
@@ -21,11 +21,20 @@ class PluginsApi(plugins: List<Plugin>) : PluginsServiceGrpcKt.PluginsServiceCor
     }
 
     private val pluginsByType = plugins.groupBy { it.type }
+    private val pluginsById = plugins.associateBy { it.id }
 
     override suspend fun listPlugins(request: ListPluginsRequest): ListPluginsResponse =
         ListPluginsResponse.newBuilder()
             .addAllPlugins(apiPlugins)
             .build()
+
+    override suspend fun getPayloadDescriptor(request: GetPayloadDescriptorRequest): GetPayloadDescriptorResponse {
+        val plugin = pluginsById[request.pluginId] ?: throw pluginNotFoundException(pluginId = request.pluginId)
+
+        return GetPayloadDescriptorResponse.newBuilder()
+            .setPayloadDescriptor(plugin.payloadDescriptor.toProto())
+            .build()
+    }
 
     override suspend fun invokeDataPolicyGenerator(request: InvokeDataPolicyGeneratorRequest): InvokeDataPolicyGeneratorResponse {
         return pluginsByType[PluginType.DATA_POLICY_GENERATOR]?.let { plugins ->
@@ -60,7 +69,7 @@ class PluginsApi(plugins: List<Plugin>) : PluginsServiceGrpcKt.PluginsServiceCor
         }
     } ?: throw pluginNotFoundException(PluginType.DATA_POLICY_GENERATOR, request.pluginId)
 
-    private fun pluginNotFoundException(pluginType: PluginType, pluginId: String? = null) =
+    private fun pluginNotFoundException(pluginType: PluginType? = null, pluginId: String? = null) =
         PreconditionFailedException(
             PreconditionFailedException.Code.FAILED_PRECONDITION,
             PreconditionFailure.newBuilder()
@@ -68,7 +77,11 @@ class PluginsApi(plugins: List<Plugin>) : PluginsServiceGrpcKt.PluginsServiceCor
                     PreconditionFailure.Violation.newBuilder()
                         .setType("plugin")
                         .apply { pluginId?.let { setSubject(it) } }
-                        .setDescription("Plugin not found or configured. Ensure that your PACE instance has an implementation for ${pluginType.name}.")
+                        .setDescription(
+                            "Plugin not found or configured." + pluginType?.let {
+                                " Ensure that your PACE instance has an implementation for ${it.name}."
+                            }.orEmpty()
+                        )
                         .build()
                 )
                 .build()
