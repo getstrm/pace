@@ -14,25 +14,25 @@ service DataCatalogsService {
     // Lists all configured catalogs.
     rpc ListCatalogs (ListCatalogsRequest) returns (ListCatalogsResponse) {
         option (google.api.http) = {
-            get: "/catalogs"
+          get: "/v1alpha/catalogs"
         };
     };
     // Lists all databases for the given catalog.
     rpc ListDatabases (ListDatabasesRequest) returns (ListDatabasesResponse) {
         option (google.api.http) = {
-            get: "/catalogs/{catalog_id}/databases"
+          get: "/v1alpha/catalogs/{catalog_id}/databases"
         };
     }
     // Lists all schemas (for a given database, if applicable).
     rpc ListSchemas (ListSchemasRequest) returns (ListSchemasResponse) {
         option (google.api.http) = {
-            get: "/catalogs/{catalog_id}/schemas"
+          get: "/v1alpha/catalogs/{catalog_id}/schemas"
         };
     }
     // Lists all tables (for a given schema and database, if applicable).
     rpc ListTables (ListTablesRequest) returns (ListTablesResponse) {
         option (google.api.http) = {
-            get: "/catalogs/{catalog_id}/tables"
+          get: "/v1alpha/catalogs/{catalog_id}/tables"
         };
     };
     // Returns a data policy without any rule sets, based on the given table's data structure in the catalog.
@@ -40,7 +40,7 @@ service DataCatalogsService {
     // Use the UpsertDataPolicy endpoint to save and enforce the policy.
     rpc GetBlueprintPolicy (GetBlueprintPolicyRequest) returns (GetBlueprintPolicyResponse) {
         option (google.api.http) = {
-            get: "/catalogs/{catalog_id}/blueprint-policy"
+          get: "/v1alpha/catalogs/{catalog_id}/blueprint-policy"
         };
     };
 }

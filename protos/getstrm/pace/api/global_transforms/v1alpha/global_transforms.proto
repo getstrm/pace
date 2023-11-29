@@ -15,21 +15,21 @@ option java_package = "com.getstrm.pace.api.global_transforms.v1alpha";
 service GlobalTransformsService {
   rpc GetGlobalTransform(GetGlobalTransformRequest) returns (GetGlobalTransformResponse) {
     option (google.api.http) = {
-      get: "/global-transforms/{ref}/{type}"
+      get: "/v1alpha/global-transforms/{ref}/{type}"
     };
   }
   rpc ListGlobalTransforms(ListGlobalTransformsRequest) returns (ListGlobalTransformsResponse) {
-    option (google.api.http) = {get: "/global-transforms"};
+    option (google.api.http) = {get: "/v1alpha/global-transforms"};
   }
   rpc UpsertGlobalTransform(UpsertGlobalTransformRequest) returns (UpsertGlobalTransformResponse) {
     option (google.api.http) = {
-      post: "/global-transforms"
+      post: "/v1alpha/global-transforms"
       body: "*"
     };
   }
   rpc DeleteGlobalTransform(DeleteGlobalTransformRequest) returns (DeleteGlobalTransformResponse) {
     option (google.api.http) = {
-      delete: "/global-transforms/{ref}/{type}"
+      delete: "/v1alpha/global-transforms/{ref}/{type}"
       body: "*"
     };
   }

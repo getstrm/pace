@@ -19,24 +19,24 @@ service DataPoliciesService {
   // and nested fields are not supported.
   rpc EvaluateDataPolicy(EvaluateDataPolicyRequest) returns (EvaluateDataPolicyResponse) {
     option (google.api.http) = {
-      post: "/data-policies/{data_policy_id}/{platform_id}/evaluate"
+      post: "/v1alpha/data-policies/{data_policy_id}/{platform_id}/evaluate"
       body: "*"
     };
   }
   // Creates or updates a DataPolicy in PACE and optionally applies it to the processing platform.
   rpc UpsertDataPolicy(UpsertDataPolicyRequest) returns (UpsertDataPolicyResponse) {
     option (google.api.http) = {
-      post: "/data-policies"
+      post: "/v1alpha/data-policies"
       body: "*"
     };
   }
   // Applies an existing DataPolicy to the processing platform.
   rpc ApplyDataPolicy(ApplyDataPolicyRequest) returns (ApplyDataPolicyResponse) {
-    option (google.api.http) = {post: "/data-policies/{data_policy_id}/{platform_id}"};
+    option (google.api.http) = {post: "/v1alpha/data-policies/{data_policy_id}/{platform_id}"};
   }
   // Returns the latest policy for a given id and platform.
   rpc GetDataPolicy(GetDataPolicyRequest) returns (GetDataPolicyResponse) {
-    option (google.api.http) = {get: "/data-policies/{data_policy_id}/{platform_id}"};
+    option (google.api.http) = {get: "/v1alpha/data-policies/{data_policy_id}/{platform_id}"};
   }
 }
 
