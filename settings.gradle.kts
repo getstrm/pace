@@ -14,7 +14,7 @@ pluginManagement {
         id("nu.studer.jooq") version "8.2.1"
         id("org.openapi.generator") version "7.1.0"
         id("com.bmuschko.docker-remote-api") version "9.3.7"
-        id("org.flywaydb.flyway") version "9.22.3"
+        id("org.flywaydb.flyway") version "10.1.0"
     }
 }
 
