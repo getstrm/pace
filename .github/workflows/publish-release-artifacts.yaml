@@ -42,8 +42,18 @@ jobs:
           buf beta registry tag create "buf.build/getstrm/pace:${buf_commit_hash}" ${{ env.TAG }}
           buf_dependency_version=$(buf alpha sdk maven-version --module=buf.build/getstrm/pace:${{ env.TAG }} --plugin=buf.build/protocolbuffers/java:v24.4 | sed "s/24.4.0.1.//")
           echo "BUF_DEPENDENCY_VERSION=${buf_dependency_version}" >> "$GITHUB_ENV"
+      - name: Generate JSON Schema
+        env:
+          BUF_TOKEN: ${{ secrets.BUF_TOKEN }}
+        run: |
+          cd protos
+          buf generate
+      - name: Copy JSON Schema
+        run: |
+          find app/src/main/resources/jsonschema -type d -maxdepth 1 -mindepth 1 | xargs -I{} rm -rf {}
+          mkdir -p app/src/main/resources/jsonschema
+          cp -r protos/json-schema/* app/src/main/resources/jsonschema
 
-      # TODO ensure that the json schemas in app/src/main/resources/jsonschemas are updated with the latest generated protobuf files
       # JVM artifact
       - uses: actions/setup-java@v3
         with:
