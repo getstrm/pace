@@ -21,6 +21,7 @@ val postgresPort: Int by rootProject.extra
 val jooqSchema = rootProject.extra["schema"] as String
 val jooqMigrationDir = "$projectDir/src/main/resources/db/migration/postgresql"
 val jooqVersion = rootProject.ext["jooqVersion"] as String
+val kotestVersion = rootProject.ext["kotestVersion"] as String
 val openDataDiscoveryOpenApiDir = layout.buildDirectory.dir("generated/source/odd").get()
 project.version = if (gradle.startParameter.taskNames.any { it.lowercase() == "builddocker" }) {
     "${project.version}-SNAPSHOT"
@@ -39,6 +40,7 @@ plugins {
     id("org.flywaydb.flyway")
     id("org.openapi.generator")
 }
+
 
 dependencies {
     // Dependencies managed by Spring
@@ -87,8 +89,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "com.vaadin.external.google", module = "android-json")
     }
-    testImplementation("io.kotest:kotest-assertions-core-jvm:5.7.2")
-    testImplementation("io.kotest:kotest-runner-junit5:5.7.2")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.mockk:mockk:1.13.8")
     testImplementation("io.zonky.test:embedded-postgres:2.0.4")
 }
