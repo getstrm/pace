@@ -5,9 +5,7 @@ package getstrm.pace.api.plugins.v1alpha;
 import "buf/validate/validate.proto";
 import "getstrm/pace/api/entities/v1alpha/entities.proto";
 import "google/api/annotations.proto";
-import "google/protobuf/any.proto";
 import "google/protobuf/descriptor.proto";
-import "protoc/gen/jsonschema/options.proto";
 
 option go_package = "github.com/getstrm/pace/protos/api/plugins;plugins";
 option java_multiple_files = true;
@@ -25,15 +23,16 @@ service PluginsService {
     };
   }
 
-  rpc GetPayloadDescriptor(GetPayloadDescriptorRequest) returns (GetPayloadDescriptorResponse) {
-    option (google.api.http) = {get: "/v1alpha/plugins/{plugin_id}/payload-descriptor"};
+  rpc GetPayloadJSONSchema(GetPayloadJSONSchemaRequest) returns (GetPayloadJSONSchemaResponse) {
+    option (google.api.http) = {get: "/v1alpha/plugins/{plugin_id}/payload-json-schema"};
   }
 }
 
 message InvokeDataPolicyGeneratorRequest {
   // The identifier of the plugin to invoke. If only one implementation of the plugin type exists, that will be invoked implicitly. The plugin should be of type DATA_POLICY_GENERATOR.
   optional string plugin_id = 1;
-  google.protobuf.Any payload = 2 [(buf.validate.field).required = true];
+  // The base64 encoded version of the JSON representation of the payload that is required for this plugin
+  string payload = 2 [(buf.validate.field).required = true];
 }
 
 message InvokeDataPolicyGeneratorResponse {
@@ -46,14 +45,14 @@ message ListPluginsResponse {
   repeated Plugin plugins = 1;
 }
 
-message GetPayloadDescriptorRequest {
-  // The identifier of the plugin to get the payload descriptor for
+message GetPayloadJSONSchemaRequest {
+  // The identifier of the plugin to get the payload json schema for
   string plugin_id = 1;
 }
 
-message GetPayloadDescriptorResponse {
-  // The payload descriptor for the plugin
-  google.protobuf.DescriptorProto payload_descriptor = 1 [(protoc.gen.jsonschema.field_options).ignore = true];
+message GetPayloadJSONSchemaResponse {
+  // The payload json schema for the plugin
+  string schema = 1;
 }
 
 message Plugin {

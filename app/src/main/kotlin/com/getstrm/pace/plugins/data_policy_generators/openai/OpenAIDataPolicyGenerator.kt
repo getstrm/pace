@@ -12,7 +12,9 @@ import com.aallam.openai.client.OpenAI
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.plugins.data_policy_generators.DataPolicyGeneratorPlugin
+import com.getstrm.pace.util.getJSONSchema
 import com.getstrm.pace.util.parseDataPolicy
+import com.getstrm.pace.util.toProto
 import com.getstrm.pace.util.toYaml
 import com.google.protobuf.Descriptors
 import com.google.protobuf.InvalidProtocolBufferException
@@ -34,58 +36,63 @@ class OpenAIDataPolicyGenerator(
         javaClass.getResource("/jsonschema/getstrm.pace.api.entities.v1alpha/DataPolicy.json")?.readText()
     ) { "Could not load JSON Schema for DataPolicy" }
 
-    override val payloadDescriptor: Descriptors.Descriptor = OpenAIDataPolicyGeneratorPayload.getDescriptor()
+    override val payloadJsonSchema: String = OpenAIDataPolicyGeneratorPayload.getDescriptor().getJSONSchema()
     override val id = "openai-data-policy-generator"
 
-    override suspend fun generate(payload: ProtoAny): DataPolicy {
-        if (payload.typeUrl != TYPE_URL) {
-            throw BadRequestException(
-                BadRequestException.Code.INVALID_ARGUMENT,
-                BadRequest.newBuilder()
-                    .addFieldViolations(
-                        BadRequest.FieldViolation.newBuilder()
-                            .setField("payload")
-                            .setDescription("Unsupported payload type: ${payload.typeUrl}")
-                            .build()
-                    )
-                    .build()
-            )
-        }
+    override suspend fun generate(payload: String): DataPolicy {
+        val data = payload.toProto<OpenAIDataPolicyGeneratorPayload>()
 
-        try {
-            val generatorPayload = payload.unpack(OpenAIDataPolicyGeneratorPayload::class.java)
+        log.info("Data: {}", data.toYaml())
 
-            return when (generatorPayload.dataPolicyCase) {
-                OpenAIDataPolicyGeneratorPayload.DataPolicyCase.INITIAL_DATA_POLICY ->
-                    generate(generatorPayload.instructions, generatorPayload.initialDataPolicy)
-
-                OpenAIDataPolicyGeneratorPayload.DataPolicyCase.DATAPOLICY_NOT_SET, null -> {
-                    throw BadRequestException(
-                        BadRequestException.Code.INVALID_ARGUMENT,
-                        BadRequest.newBuilder()
-                            .addFieldViolations(
-                                BadRequest.FieldViolation.newBuilder()
-                                    .setField("payload")
-                                    .setDescription("Invalid payload: data policy not set")
-                                    .build()
-                            )
-                            .build()
-                    )
-                }
-            }
-        } catch (e: InvalidProtocolBufferException) {
-            throw BadRequestException(
-                BadRequestException.Code.INVALID_ARGUMENT,
-                BadRequest.newBuilder()
-                    .addFieldViolations(
-                        BadRequest.FieldViolation.newBuilder()
-                            .setField("payload")
-                            .setDescription("Invalid payload: ${e.message}")
-                            .build()
-                    )
-                    .build()
-            )
-        }
+        return DataPolicy.getDefaultInstance()
+//        if (payload.typeUrl != TYPE_URL) {
+//            throw BadRequestException(
+//                BadRequestException.Code.INVALID_ARGUMENT,
+//                BadRequest.newBuilder()
+//                    .addFieldViolations(
+//                        BadRequest.FieldViolation.newBuilder()
+//                            .setField("payload")
+//                            .setDescription("Unsupported payload type: ${payload.typeUrl}")
+//                            .build()
+//                    )
+//                    .build()
+//            )
+//        }
+//
+//        try {
+//            val generatorPayload = payload.unpack(OpenAIDataPolicyGeneratorPayload::class.java)
+//
+//            return when (generatorPayload.dataPolicyCase) {
+//                OpenAIDataPolicyGeneratorPayload.DataPolicyCase.INITIAL_DATA_POLICY ->
+//                    generate(generatorPayload.instructions, generatorPayload.initialDataPolicy)
+//
+//                OpenAIDataPolicyGeneratorPayload.DataPolicyCase.DATAPOLICY_NOT_SET, null -> {
+//                    throw BadRequestException(
+//                        BadRequestException.Code.INVALID_ARGUMENT,
+//                        BadRequest.newBuilder()
+//                            .addFieldViolations(
+//                                BadRequest.FieldViolation.newBuilder()
+//                                    .setField("payload")
+//                                    .setDescription("Invalid payload: data policy not set")
+//                                    .build()
+//                            )
+//                            .build()
+//                    )
+//                }
+//            }
+//        } catch (e: InvalidProtocolBufferException) {
+//            throw BadRequestException(
+//                BadRequestException.Code.INVALID_ARGUMENT,
+//                BadRequest.newBuilder()
+//                    .addFieldViolations(
+//                        BadRequest.FieldViolation.newBuilder()
+//                            .setField("payload")
+//                            .setDescription("Invalid payload: ${e.message}")
+//                            .build()
+//                    )
+//                    .build()
+//            )
+//        }
     }
 
     private suspend fun generate(instructions: String, dataPolicy: DataPolicy): DataPolicy {

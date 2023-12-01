@@ -8,17 +8,23 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.exceptions.InternalException
+import com.google.protobuf.Descriptors
 import com.google.protobuf.GeneratedMessageV3
 import com.google.protobuf.Message
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.JsonFormat
 import com.google.protobuf.util.Timestamps
 import com.google.rpc.BadRequest
+import com.google.rpc.DebugInfo
 import org.jooq.JSONB
+import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+
+private val log by lazy { LoggerFactory.getLogger("ProtoUtils") }
 
 
 fun <T : Message.Builder> T.merge(jsonb: JSONB): T =
@@ -48,6 +54,12 @@ fun GeneratedMessageV3.toJsonWithDefaults(): String = JsonFormat.printer()
 
 fun GeneratedMessageV3.toYaml(): String =
     ObjectMapper(YAMLFactory()).writeValueAsString(ObjectMapper().readTree(toJsonWithDefaults()))
+
+inline fun <reified T : GeneratedMessageV3 > String.toProto(): T  {
+    val builder = T::class.constructors.first().call().toBuilder()
+    JsonFormat.parser().ignoringUnknownFields().merge(this, builder)
+    return builder.build() as T
+}
 
 fun String.parseDataPolicy(): DataPolicy = let {
     val json = this.yamlToJson() ?: this
@@ -139,3 +151,15 @@ fun GlobalTransform.refAndType(): Pair<String, GlobalTransform.TransformCase> = 
         )
     }, transformCase
 )
+
+fun Descriptors.Descriptor.getJSONSchema(): String {
+    val directory = this.fullName.replace(".${this.name}", "")
+    val file = "${this.name}.json"
+
+    return object {}.javaClass.getResource("/jsonschema/$directory/$file")?.readText() ?: throw InternalException(
+            InternalException.Code.INTERNAL,
+            DebugInfo.newBuilder()
+                .setDetail("Could not load JSON Schema for DataPolicy")
+                .build()
+        )
+}

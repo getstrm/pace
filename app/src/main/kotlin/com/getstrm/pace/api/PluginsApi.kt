@@ -1,6 +1,7 @@
 package com.getstrm.pace.api
 
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.*
+import build.buf.gen.getstrm.pace.plugins.data_policy_generators.v1alpha.OpenAIDataPolicyGeneratorPayload
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.PreconditionFailedException
 import com.getstrm.pace.plugins.Plugin
@@ -28,11 +29,11 @@ class PluginsApi(private val plugins: List<Plugin>) : PluginsServiceGrpcKt.Plugi
             .addAllPlugins(apiPlugins)
             .build()
 
-    override suspend fun getPayloadDescriptor(request: GetPayloadDescriptorRequest): GetPayloadDescriptorResponse {
+    override suspend fun getPayloadJSONSchema(request: GetPayloadJSONSchemaRequest): GetPayloadJSONSchemaResponse {
         val plugin = pluginsById[request.pluginId] ?: throw pluginNotFoundException(pluginId = request.pluginId)
 
-        return GetPayloadDescriptorResponse.newBuilder()
-            .setPayloadDescriptor(plugin.payloadDescriptor.toProto())
+        return GetPayloadJSONSchemaResponse.newBuilder()
+            .setSchema(plugin.payloadJsonSchema)
             .build()
     }
 
