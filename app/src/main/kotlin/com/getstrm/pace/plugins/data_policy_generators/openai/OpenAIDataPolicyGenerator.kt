@@ -9,7 +9,6 @@ import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.plugins.data_policy_generators.DataPolicyGeneratorPlugin
 import com.getstrm.pace.util.getJSONSchema
-import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.util.toProto
 import com.getstrm.pace.util.toYaml
 import com.google.protobuf.InvalidProtocolBufferException
@@ -117,7 +116,7 @@ class OpenAIDataPolicyGenerator(
         return when (val messageContent = response.choices.first().message.messageContent) {
             is TextContent -> {
                 try {
-                    messageContent.content.parseDataPolicy().also {
+                    messageContent.content.toProto<DataPolicy>().also {
                         log.debug("Parsed DataPolicy: {}", it)
                     }
                 } catch (e: Exception) {

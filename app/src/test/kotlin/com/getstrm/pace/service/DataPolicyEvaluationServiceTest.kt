@@ -1,8 +1,9 @@
 package com.getstrm.pace.service
 
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.toPrincipal
-import com.getstrm.pace.util.parseDataPolicy
+import com.getstrm.pace.util.toProto
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -144,79 +145,79 @@ class DataPolicyEvaluationServiceTest {
     companion object {
         @Language("yaml")
         private val dataPolicy = """
-metadata:
-  description: ""
-  version: 1
-  title: public.demo
-source:
-  fields:
-    - name_parts:
-        - transactionid
-      required: true
-      type: integer
-    - name_parts:
-        - userid
-      required: true
-      type: integer
-    - name_parts:
-        - email
-      required: true
-      type: varchar
-    - name_parts:
-        - age
-      required: true
-      type: integer
-    - name_parts:
-        - brand
-      required: true
-      type: varchar
-    - name_parts:
-        - transactionamount
-      required: true
-      type: integer
-  ref: public.demo
-rule_sets:
-  - target:
-      fullname: public.demo_view
-    filters:
-      - generic_filter:
-          conditions:
-            - principals: [ { group: administrator }, { group: fraud_and_risk } ]
-              condition: "true"
-            - principals: [ ]
-              condition: "age > 8"
-    field_transforms:
-      - field:
-          name_parts: [ userid ]
-        transforms:
-          - principals: [ { group: fraud_and_risk }, { group: administrator } ]
-            identity: { }
-          - principals: [ ]
-            fixed:
-              value: "0000"
-      - field:
-          name_parts: [ email ]
-        transforms:
-          - principals: [ { group: administrator } ]
-            identity: { }
-          - principals: [ { group: marketing } ]
-            regexp:
-              regexp: "^.*(@.*)${'$'}"
-              replacement: "****${'$'}1"
-          - principals: [ { group: fraud_and_risk } ]
-            identity: { }
-          - principals: [ ]
-            fixed:
-              value: "****"
-      - field:
-          name_parts: [ brand ]
-        transforms:
-          - principals: [ { group: administrator } ]
-            identity: { }
-          - principals: [ ]
-            sql_statement:
-              statement: "CASE WHEN brand = 'Macbook' THEN 'Apple' ELSE 'Other' END"
-    """.parseDataPolicy()
+    metadata:
+      description: ""
+      version: 1
+      title: public.demo
+    source:
+      fields:
+        - name_parts:
+            - transactionid
+          required: true
+          type: integer
+        - name_parts:
+            - userid
+          required: true
+          type: integer
+        - name_parts:
+            - email
+          required: true
+          type: varchar
+        - name_parts:
+            - age
+          required: true
+          type: integer
+        - name_parts:
+            - brand
+          required: true
+          type: varchar
+        - name_parts:
+            - transactionamount
+          required: true
+          type: integer
+      ref: public.demo
+    rule_sets:
+      - target:
+          fullname: public.demo_view
+        filters:
+          - generic_filter:
+              conditions:
+                - principals: [ { group: administrator }, { group: fraud_and_risk } ]
+                  condition: "true"
+                - principals: [ ]
+                  condition: "age > 8"
+        field_transforms:
+          - field:
+              name_parts: [ userid ]
+            transforms:
+              - principals: [ { group: fraud_and_risk }, { group: administrator } ]
+                identity: { }
+              - principals: [ ]
+                fixed:
+                  value: "0000"
+          - field:
+              name_parts: [ email ]
+            transforms:
+              - principals: [ { group: administrator } ]
+                identity: { }
+              - principals: [ { group: marketing } ]
+                regexp:
+                  regexp: "^.*(@.*)${'$'}"
+                  replacement: "****${'$'}1"
+              - principals: [ { group: fraud_and_risk } ]
+                identity: { }
+              - principals: [ ]
+                fixed:
+                  value: "****"
+          - field:
+              name_parts: [ brand ]
+            transforms:
+              - principals: [ { group: administrator } ]
+                identity: { }
+              - principals: [ ]
+                sql_statement:
+                  statement: "CASE WHEN brand = 'Macbook' THEN 'Apple' ELSE 'Other' END"
+        """.toProto<DataPolicy>()
 
         private val csvInput = """
         transactionid,userid,email,age,transactionamount,brand
@@ -384,38 +385,39 @@ rule_sets:
 
         @Language("yaml")
         private val retentionPolicy = """
-metadata:
-  description: ""
-  version: 1
-  title: public.demo
-source:
-  fields:
-    - name_parts:
-        - transactionid
-      required: true
-      type: integer
-    - name_parts:
-        - ts
-      required: true
-      type: timestamptz
-  ref: public.demo
-rule_sets:
-  - target:
-      fullname: public.retention_view
-    filters:
-      - retention_filter:
-          field:
-            name_parts:
-              - ts
-          conditions:
-            - principals: [ {group: marketing} ]
-              period:
-                days: 10
-            - principals: [ {group: fraud_and_risk} ]
-            - principals: [] 
-              period:
-                days: 5
-""".parseDataPolicy()
+    metadata:
+      description: ""
+      version: 1
+      title: public.demo
+    source:
+      fields:
+        - name_parts:
+            - transactionid
+          required: true
+          type: integer
+        - name_parts:
+            - ts
+          required: true
+          type: timestamptz
+      ref: public.demo
+    rule_sets:
+      - target:
+          fullname: public.retention_view
+        filters:
+          - retention_filter:
+              field:
+                name_parts:
+                  - ts
+              conditions:
+                - principals: [ {group: marketing} ]
+                  period:
+                    days: 10
+                - principals: [ {group: fraud_and_risk} ]
+                - principals: [] 
+                  period:
+                    days: 5
+    """.toProto<DataPolicy>()
+
         private fun generateRetentionCsvInput(): String {
             val header = "transactionid,ts\n"
             val rows = (0..20).mapTo(mutableListOf()) { i ->
@@ -427,27 +429,27 @@ rule_sets:
 
         @Language("yaml")
         private val incompatiblePolicy = """
-metadata:
-  description: ""
-  version: 1
-  title: public.demo
-source:
-  fields:
-    - name_parts:
-        - transactionid
-      required: true
-      type: integer
-  ref: public.demo
-rule_sets:
-  - target:
-      fullname: public.demo_view
-    field_transforms:
-      - field:
-          name_parts: [ transactionid ]
-        transforms:
-          - principals: [ ]
-            sql_statement:
-                statement: "some_unknown_function(transactionid)"
-""".parseDataPolicy()
+    metadata:
+      description: ""
+      version: 1
+      title: public.demo
+    source:
+      fields:
+        - name_parts:
+            - transactionid
+          required: true
+          type: integer
+      ref: public.demo
+    rule_sets:
+      - target:
+          fullname: public.demo_view
+        field_transforms:
+          - field:
+              name_parts: [ transactionid ]
+            transforms:
+              - principals: [ ]
+                sql_statement:
+                    statement: "some_unknown_function(transactionid)"
+    """.toProto<DataPolicy>()
     }
 }

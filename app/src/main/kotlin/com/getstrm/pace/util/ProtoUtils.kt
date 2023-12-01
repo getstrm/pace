@@ -2,11 +2,6 @@ package com.getstrm.pace.util
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
-import build.buf.gen.getstrm.pace.api.global_transforms.v1alpha.ListGlobalTransformsResponse
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
-import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ProtoValidator
@@ -19,16 +14,12 @@ import com.google.protobuf.util.Timestamps
 import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
 import org.jooq.JSONB
-import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.*
 import kotlin.reflect.jvm.javaConstructor
-
-private val log by lazy { LoggerFactory.getLogger("ProtoUtils") }
-
 
 fun <T : Message.Builder> T.merge(jsonb: JSONB): T =
     this.also {
@@ -44,25 +35,43 @@ fun GeneratedMessageV3.toJsonbWithDefaults(): JSONB {
     return JSONB.valueOf(toJsonWithDefaults())
 }
 
+/**
+ * Convert a Proto Message to a JSON string, and exclude default values (Proto default values are not included by default)
+ */
 fun GeneratedMessageV3.toJson(): String = JsonFormat.printer()
     .omittingInsignificantWhitespace()
     .preservingProtoFieldNames()
     .print(this)
 
+
+/**
+ * Convert a Proto Message to a JSON string, and include default values (Proto default values are not included by default)
+ */
 fun GeneratedMessageV3.toJsonWithDefaults(): String = JsonFormat.printer()
     .omittingInsignificantWhitespace()
     .includingDefaultValueFields()
     .preservingProtoFieldNames()
     .print(this)
 
+/**
+ * Convert a Proto Message to a YAML string, and include default values (Proto default values are not included by default)
+ */
 fun GeneratedMessageV3.toYaml(): String =
-    ObjectMapper(YAMLFactory()).writeValueAsString(ObjectMapper().readTree(toJsonWithDefaults()))
+    YAML_MAPPER.writeValueAsString(JSON_MAPPER.readTree(toJsonWithDefaults()))
 
+/**
+ * Validate the message using the Protovalidate options that were configured for this message.
+ */
 fun Message.validate() {
     ProtoValidator.validate(this)?.let { throw it }
 }
 
+/**
+ * Accepts JSON, YAML, or base64 encoded JSON or YAML, and converts it into a Proto Message of type [T]
+ */
 inline fun <reified T : GeneratedMessageV3> String.toProto(validate: Boolean = true): T {
+    // To be able to create a builder from type T, we need an instance of T
+    // As the constructors of generated proto messages are private, we need to set it accessible first
     val constructor = T::class.constructors.first { it.parameters.isEmpty() }
     constructor.javaConstructor?.trySetAccessible()
     val builder = constructor.call().toBuilder()
@@ -98,27 +107,6 @@ fun String.toJsonString(): String {
     }
 }
 
-fun String.parseDataPolicy(): DataPolicy = let {
-    val json = this.yamlToJson() ?: this
-    val builder = DataPolicy.newBuilder()
-    JsonFormat.parser().ignoringUnknownFields().merge(json, builder)
-    builder.build()
-}
-
-fun String.parseTransforms(): List<GlobalTransform> = let {
-    val json = this.yamlToJson() ?: this
-    val builder = ListGlobalTransformsResponse.newBuilder()
-    JsonFormat.parser().merge(json, builder)
-    builder.build().globalTransformsList
-}
-
-fun String.parseTransform(): GlobalTransform = let {
-    val json = this.yamlToJson() ?: this
-    val builder = GlobalTransform.newBuilder()
-    JsonFormat.parser().ignoringUnknownFields().merge(json, builder)
-    builder.build()
-}
-
 fun Long.toTimestamp(): Timestamp {
     val offsetDateTime = OffsetDateTime.ofInstant(Instant.ofEpochMilli(this), ZoneId.systemDefault())
     return Timestamp.newBuilder()
@@ -136,16 +124,7 @@ fun OffsetDateTime.toTimestamp() = Timestamp.newBuilder()
     .setNanos(nano)
     .build()
 
-fun DataPoliciesRecord.toApiDataPolicy(): DataPolicy = this.policy!!.let {
-    with(DataPolicy.newBuilder()) {
-        JsonFormat.parser().ignoringUnknownFields().merge(it.data(), this)
-        build()
-    }
-}
-
 fun DataPolicy.Field.pathString() = this.namePartsList.joinToString(separator = ".")
-
-fun GlobalTransformsRecord.toGlobalTransform() = GlobalTransform.newBuilder().merge(this.transform!!).build()
 
 fun DataPolicy.Field.fullName(): String = this.namePartsList.joinToString(".")
 
@@ -162,7 +141,7 @@ fun String.toTransformCase(): GlobalTransform.TransformCase = let {
                         BadRequest.FieldViolation.newBuilder()
                             .setDescription(
                                 "type '${this}' is not in ${
-                                    GlobalTransform.TransformCase.values().joinToString()
+                                    GlobalTransform.TransformCase.entries.joinToString()
                                 } "
                             )
                             .build()

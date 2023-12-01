@@ -9,10 +9,7 @@ import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.pace.AbstractDatabaseTest
 import com.getstrm.pace.config.GlobalTransformsConfiguration
 import com.getstrm.pace.config.TagTransforms
-import com.getstrm.pace.util.parseTransform
-import com.getstrm.pace.util.refAndType
-import com.getstrm.pace.util.toGlobalTransform
-import com.getstrm.pace.util.toJsonbWithDefaults
+import com.getstrm.pace.util.*
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
@@ -181,24 +178,24 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
     companion object {
         @Language("yaml")
         private val emailTransform = """
-            description: "A default transform that should be applied to fields tagged with 'email'."
-            tag_transform:
-              tag_content: email
-              transforms:
-                - principals: []
-                  fixed:
-                    value: "***@***.***"
-            """.trimIndent().parseTransform()
+                description: "A default transform that should be applied to fields tagged with 'email'."
+                tag_transform:
+                  tag_content: email
+                  transforms:
+                    - principals: []
+                      fixed:
+                        value: "***@***.***"
+                """.trimIndent().toProto<GlobalTransform>()
 
         @Language("yaml")
         private val nameTransform = """
-            description: "A default transform that should be applied to fields tagged with 'name'."
-            tag_transform:
-              tag_content: name
-              transforms:
-                - principals: []
-                  nullify: {}
-            """.trimIndent().parseTransform()
+                description: "A default transform that should be applied to fields tagged with 'name'."
+                tag_transform:
+                  tag_content: name
+                  transforms:
+                    - principals: []
+                      nullify: {}
+                """.trimIndent().toProto<GlobalTransform>()
 
         private fun GlobalTransform.toRecord(): GlobalTransformsRecord {
             val record = GlobalTransformsRecord()

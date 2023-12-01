@@ -1,8 +1,9 @@
 package com.getstrm.pace.plugins.data_policy_generators.openai
 
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.plugins.data_policy_generators.v1alpha.OpenAIDataPolicyGeneratorPayload
-import com.getstrm.pace.util.parseDataPolicy
 import com.getstrm.pace.util.toJson
+import com.getstrm.pace.util.toProto
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
@@ -29,7 +30,7 @@ class OpenAIDataPolicyGeneratorIT {
     fun `OpenAI should generate a valid Data Policy`() {
         runBlocking {
             // Given
-            val initialDataPolicy = blueprintDataPolicy.parseDataPolicy()
+            val initialDataPolicy = blueprintDataPolicy.toProto<DataPolicy>()
             val instructions = """
         For the group administrators, do not filter the data. For all other users, only show records with emails ending with google.com.
         For the group administrators, replace the username with a fixed value of "omitted". For the group analytics, hash the organization with a seed of 42. For all other users, use a regex pattern to only show the domain of the email field.
