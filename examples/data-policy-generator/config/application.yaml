@@ -10,4 +10,4 @@ app:
   plugins:
     data-policy-generators:
       openai:
-        api-key: "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"
+        api-key: "..."
