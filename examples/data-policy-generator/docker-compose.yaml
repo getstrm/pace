@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres_pace:
+    container_name: postgres_pace
+    image: postgres
+    environment:
+      POSTGRES_USER: pace
+      POSTGRES_PASSWORD: pace
+      PGDATA: /data/postgres
+      PGUSER: pace # Required for health check
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres_pace
+
+  pace_app:
+    depends_on:
+      postgres_pace:
+        condition: service_healthy
+    container_name: pace
+    image: ${IMAGE:-ghcr.io/getstrm/pace:latest-alpha}
+    volumes:
+      - ./config/:/app/config/
+
+    ports:
+      - "8080:8080" # Spring Boot
+      - "9090:9090" # Envoy JSON / gRPC Proxy
+      - "50051:50051" # gRPC
+    networks:
+      - postgres_pace
+
+networks:
+  postgres_pace:
+    name: postgres_pace
+    driver: bridge
