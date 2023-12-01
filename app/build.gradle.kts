@@ -66,7 +66,7 @@ dependencies {
     implementation("com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre11")
 
     implementation("com.nimbusds:nimbus-jose-jwt:9.37.1")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.76")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.77")
 
     implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.27.0"))
     implementation("com.google.cloud:google-cloud-bigquery")
