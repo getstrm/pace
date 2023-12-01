@@ -27,14 +27,14 @@ private fun getFirstPaceStatusException(throwable: Throwable): PaceStatusExcepti
     return throwable.cause?.let { getFirstPaceStatusException(it) }
 }
 
-fun String.yamlToJson(): String? {
+fun String.yamlToJson(shouldThrow: Boolean = false): String? {
     val yamlReader = ObjectMapper(YAMLFactory())
     return try {
         val obj = yamlReader.readValue(this, Any::class.java)
         val jsonWriter = ObjectMapper()
         jsonWriter.writeValueAsString(obj)
     } catch (e: JsonProcessingException) {
-        null
+        if (shouldThrow) throw e else null
     }
 }
 

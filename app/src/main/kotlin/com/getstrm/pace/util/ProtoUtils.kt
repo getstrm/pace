@@ -9,6 +9,7 @@ import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
+import com.getstrm.pace.exceptions.ProtoValidator
 import com.google.protobuf.Descriptors
 import com.google.protobuf.GeneratedMessageV3
 import com.google.protobuf.Message
@@ -23,6 +24,8 @@ import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.util.*
+import kotlin.reflect.jvm.javaConstructor
 
 private val log by lazy { LoggerFactory.getLogger("ProtoUtils") }
 
@@ -55,10 +58,44 @@ fun GeneratedMessageV3.toJsonWithDefaults(): String = JsonFormat.printer()
 fun GeneratedMessageV3.toYaml(): String =
     ObjectMapper(YAMLFactory()).writeValueAsString(ObjectMapper().readTree(toJsonWithDefaults()))
 
-inline fun <reified T : GeneratedMessageV3 > String.toProto(): T  {
-    val builder = T::class.constructors.first().call().toBuilder()
-    JsonFormat.parser().ignoringUnknownFields().merge(this, builder)
-    return builder.build() as T
+fun Message.validate() {
+    ProtoValidator.validate(this)?.let { throw it }
+}
+
+inline fun <reified T : GeneratedMessageV3> String.toProto(validate: Boolean = true): T {
+    val constructor = T::class.constructors.first { it.parameters.isEmpty() }
+    constructor.javaConstructor?.trySetAccessible()
+    val builder = constructor.call().toBuilder()
+    JsonFormat.parser().ignoringUnknownFields().merge(toJsonString(), builder)
+    return (builder.build() as T).also { if (validate) it.validate() }
+}
+
+/**
+ * Accepts JSON, YAML, or base64 encoded JSON or YAML
+ * and converts it to a JSON string
+ */
+fun String.toJsonString(): String {
+    return try {
+        when {
+            // JSON
+            this.startsWith("{") -> this
+            // YAML
+            this.contains("\n") -> this.yamlToJson(true)!! // null is only returned upon exceptions
+            // Base64 encoded JSON or YAML
+            else -> Base64.getDecoder().decode(this).toString(Charsets.UTF_8).toJsonString()
+        }
+    } catch (e: Exception) {
+        throw BadRequestException(
+            BadRequestException.Code.INVALID_ARGUMENT,
+            BadRequest.newBuilder()
+                .addFieldViolations(
+                    BadRequest.FieldViolation.newBuilder()
+                        .setDescription("Could not parse payload as JSON, YAML or base64 encoded JSON or YAML: ${e.message}")
+                        .build()
+                )
+                .build()
+        )
+    }
 }
 
 fun String.parseDataPolicy(): DataPolicy = let {
@@ -157,9 +194,9 @@ fun Descriptors.Descriptor.getJSONSchema(): String {
     val file = "${this.name}.json"
 
     return object {}.javaClass.getResource("/jsonschema/$directory/$file")?.readText() ?: throw InternalException(
-            InternalException.Code.INTERNAL,
-            DebugInfo.newBuilder()
-                .setDetail("Could not load JSON Schema for DataPolicy")
-                .build()
-        )
+        InternalException.Code.INTERNAL,
+        DebugInfo.newBuilder()
+            .setDetail("Could not load JSON Schema for ${this.fullName}")
+            .build()
+    )
 }

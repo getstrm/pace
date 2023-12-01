@@ -17,6 +17,7 @@ management:
 logging:
   level:
     org.jooq.Constants: off
+    io.ktor.client.HttpClient: off
 
 app:
   default-view-suffix: "_pace_view"

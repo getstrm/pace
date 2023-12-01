@@ -2,6 +2,7 @@ package com.getstrm.pace.plugins.data_policy_generators.openai
 
 import build.buf.gen.getstrm.pace.plugins.data_policy_generators.v1alpha.OpenAIDataPolicyGeneratorPayload
 import com.getstrm.pace.util.parseDataPolicy
+import com.getstrm.pace.util.toJson
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
@@ -13,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import com.google.protobuf.Any as ProtoAny
 
 @TestPropertySource(locations = ["classpath:openai.properties"])
 @ExtendWith(SpringExtension::class)
@@ -37,12 +37,10 @@ class OpenAIDataPolicyGeneratorIT {
 
             // When
             val result = underTest.generate(
-                ProtoAny.pack(
-                    OpenAIDataPolicyGeneratorPayload.newBuilder()
-                        .setInitialDataPolicy(initialDataPolicy)
-                        .setInstructions(instructions)
-                        .build()
-                )
+                OpenAIDataPolicyGeneratorPayload.newBuilder()
+                    .setInitialDataPolicy(initialDataPolicy)
+                    .setInstructions(instructions)
+                    .build().toJson()
             )
 
             // Then
