@@ -14,10 +14,12 @@ import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
 import com.google.rpc.PreconditionFailure
 import org.springframework.stereotype.Component
+import kotlin.reflect.KClass
+import kotlin.reflect.cast
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.Plugin as ApiPlugin
 
 @Component
-class PluginsService(private val plugins: List<Plugin>) {
+class PluginsService(plugins: List<Plugin>) {
     private val pluginsByType = plugins.groupBy { it.type }
     private val pluginsById = plugins.associateBy { it.id }
 
@@ -42,7 +44,7 @@ class PluginsService(private val plugins: List<Plugin>) {
 
         return when (pluginType) {
             PluginType.DATA_POLICY_GENERATOR -> {
-                val plugin = getPlugin(request.pluginId, pluginsForType, DataPolicyGeneratorPlugin::class.java)
+                val plugin = getPlugin(request.pluginId, pluginsForType, DataPolicyGeneratorPlugin::class)
                 val dataPolicy = plugin.generate(request.dataPolicyGeneratorParameters.payload)
 
                 responseBuilder.setDataPolicyGeneratorResult(
@@ -62,7 +64,7 @@ class PluginsService(private val plugins: List<Plugin>) {
     private fun <T : Plugin> getPlugin(
         pluginId: String?,
         plugins: List<Plugin>,
-        clazz: Class<T>
+        clazz: KClass<T>
     ) = if (!pluginId.isNullOrEmpty()) {
         clazz.cast(plugins.firstOrNull { it.id == pluginId })
     } else {
@@ -101,17 +103,4 @@ class PluginsService(private val plugins: List<Plugin>) {
                 )
                 .build()
         )
-
-    private fun PluginType.pluginClass(): Class<out Plugin> {
-
-        return when (this) {
-            PluginType.DATA_POLICY_GENERATOR -> DataPolicyGeneratorPlugin::class.java
-            else -> throw InternalException(
-                InternalException.Code.INTERNAL,
-                DebugInfo.newBuilder()
-                    .setDetail("No mapping configured for plugin type $name to a plugin class.")
-                    .build()
-            )
-        }
-    }
 }
