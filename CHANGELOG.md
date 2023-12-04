@@ -1,3 +1,10 @@
+# [1.0.0-alpha.34](https://github.com/getstrm/pace/compare/v1.0.0-alpha.33...v1.0.0-alpha.34) (2023-12-04)
+
+
+### Features
+
+* **pace-69:** setup plugin system and add openai gpt4 based data policy generator ([#91](https://github.com/getstrm/pace/issues/91)) ([46c8baf](https://github.com/getstrm/pace/commit/46c8baf63adfa7cd3b7264eb447e6b6d5f4f0d24))
+
 # [1.0.0-alpha.33](https://github.com/getstrm/pace/compare/v1.0.0-alpha.32...v1.0.0-alpha.33) (2023-11-29)
 
 
