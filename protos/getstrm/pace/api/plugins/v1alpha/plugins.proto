@@ -6,6 +6,7 @@ import "buf/validate/validate.proto";
 import "getstrm/pace/api/entities/v1alpha/entities.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/descriptor.proto";
+import "getstrm/pace/api/plugins/v1alpha/entities.proto";
 
 option go_package = "github.com/getstrm/pace/protos/api/plugins;plugins";
 option java_multiple_files = true;
@@ -16,9 +17,9 @@ service PluginsService {
     option (google.api.http) = {get: "/v1alpha/plugins"};
   }
 
-  rpc InvokeDataPolicyGenerator(InvokeDataPolicyGeneratorRequest) returns (InvokeDataPolicyGeneratorResponse) {
+  rpc InvokePlugin(InvokePluginRequest) returns (InvokePluginResponse) {
     option (google.api.http) = {
-      post: "/v1alpha/plugins/data-policy-generators/{plugin_id}"
+      post: "/v1alpha/plugins/{plugin_id}"
       body: "*"
     };
   }
@@ -28,15 +29,18 @@ service PluginsService {
   }
 }
 
-message InvokeDataPolicyGeneratorRequest {
-  // The identifier of the plugin to invoke. If only one implementation of the plugin type exists, that will be invoked implicitly. The plugin should be of type DATA_POLICY_GENERATOR.
+message InvokePluginRequest {
+  // The identifier of the plugin to invoke. If only one implementation of the plugin type exists, that will be invoked implicitly.
   optional string plugin_id = 1;
-  // The base64 encoded version of the JSON representation of the payload that is required for this plugin
-  string payload = 2 [(buf.validate.field).required = true];
+  oneof parameters {
+    DataPolicyGeneratorParameters data_policy_generator_parameters = 2;
+  }
 }
 
-message InvokeDataPolicyGeneratorResponse {
-  pace.api.entities.v1alpha.DataPolicy data_policy = 1;
+message InvokePluginResponse {
+  oneof result {
+    DataPolicyGeneratorResult data_policy_generator_result = 1;
+  }
 }
 
 message ListPluginsRequest {}
@@ -55,16 +59,5 @@ message GetPayloadJSONSchemaResponse {
   string schema = 1;
 }
 
-message Plugin {
-  // The unique identifier for this plugin
-  string id = 1;
-  // The canonical class name of the implementation of this plugin
-  string implementation = 2;
-  // The type / category of this plugin
-  PluginType plugin_type = 3;
-}
 
-enum PluginType {
-  PLUGIN_TYPE_UNSPECIFIED = 0;
-  DATA_POLICY_GENERATOR = 1;
-}
+

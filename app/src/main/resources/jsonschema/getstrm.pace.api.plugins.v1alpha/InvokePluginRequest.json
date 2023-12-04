@@ -1,0 +1,32 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/InvokePluginRequest",
+    "definitions": {
+        "InvokePluginRequest": {
+            "properties": {
+                "plugin_id": {
+                    "type": "string",
+                    "description": "The identifier of the plugin to invoke. If only one implementation of the plugin type exists, that will be invoked implicitly."
+                },
+                "data_policy_generator_parameters": {
+                    "$ref": "#/definitions/getstrm.pace.api.plugins.v1alpha.DataPolicyGeneratorParameters",
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Invoke Plugin Request"
+        },
+        "getstrm.pace.api.plugins.v1alpha.DataPolicyGeneratorParameters": {
+            "properties": {
+                "payload": {
+                    "type": "string",
+                    "description": "The (base64 encoded) version of the JSON representation of the payload that is required for this plugin"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Data Policy Generator Parameters"
+        }
+    }
+}

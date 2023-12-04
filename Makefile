@@ -32,6 +32,7 @@ run-rest-proxy-localhost: buf-create-descriptor-binpb /tmp/envoy.yaml
 	docker run --net=host -p 9090:9090 -p 9000:9000 -v /tmp/envoy.yaml:/etc/envoy/envoy.yaml -v $$(pwd)/${descriptor_file}:/tmp/envoy/descriptor.binpb envoyproxy/envoy:v1.28-latest
 
 json-schema:
+	@ rm -rf protos/json-schema
 	@ (cd protos; buf generate)
 
 copy-json-schema-to-resources: json-schema

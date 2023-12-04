@@ -1,17 +1,17 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$ref": "#/definitions/GetBarePolicyResponse",
+    "$ref": "#/definitions/InvokePluginResponse",
     "definitions": {
-        "GetBarePolicyResponse": {
+        "InvokePluginResponse": {
             "properties": {
-                "data_policy": {
-                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy",
+                "data_policy_generator_result": {
+                    "$ref": "#/definitions/getstrm.pace.api.plugins.v1alpha.DataPolicyGeneratorResult",
                     "additionalProperties": false
                 }
             },
             "additionalProperties": false,
             "type": "object",
-            "title": "Get Bare Policy Response"
+            "title": "Invoke Plugin Response"
         },
         "getstrm.pace.api.entities.v1alpha.DataPolicy": {
             "properties": {
@@ -95,6 +95,11 @@
                         "type": "string"
                     },
                     "type": "array"
+                },
+                "last_apply_time": {
+                    "type": "string",
+                    "description": "The last time the policy was applied to the target(s).",
+                    "format": "date-time"
                 }
             },
             "additionalProperties": false,
@@ -124,7 +129,9 @@
                         "BIGQUERY",
                         3,
                         "POSTGRES",
-                        4
+                        4,
+                        "SYNAPSE",
+                        5
                     ],
                     "oneOf": [
                         {
@@ -204,7 +211,7 @@
                 "regexp": {
                     "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Regexp",
                     "additionalProperties": false,
-                    "description": "Extract and optionally replace a value in a field using a regular expression. Use the syntax matching the processing platform."
+                    "description": "Extract and optionally replace a value in a field using a regular expression."
                 },
                 "identity": {
                     "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Identity",
@@ -230,11 +237,42 @@
                     "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Nullify",
                     "additionalProperties": false,
                     "description": "Make the field value null."
+                },
+                "detokenize": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Detokenize",
+                    "additionalProperties": false,
+                    "description": "Replaces a tokenized field value with its original value, looked up in a token source. If no value is found, the tokenized value is left as-is."
+                },
+                "numeric_rounding": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding",
+                    "additionalProperties": false,
+                    "description": "Round a numeric value with the specified rounding."
                 }
             },
             "additionalProperties": false,
             "type": "object",
             "title": "Transform"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Detokenize": {
+            "properties": {
+                "token_source_ref": {
+                    "type": "string",
+                    "description": "Full reference to the token source, e.g. a fully qualified table name."
+                },
+                "token_field": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.Field",
+                    "additionalProperties": false,
+                    "description": "The field in the token source that contains the token. Only the name parts are required."
+                },
+                "value_field": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.Field",
+                    "additionalProperties": false,
+                    "description": "The field in the token source that contains the value. Only the name parts are required."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Detokenize"
         },
         "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Fixed": {
             "properties": {
@@ -266,6 +304,61 @@
             "type": "object",
             "title": "Nullify"
         },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding": {
+            "properties": {
+                "ceil": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Ceil",
+                    "additionalProperties": false,
+                    "description": "Round the value to the nearest integer (e.g. 1.5 becomes 2), respecting the divisor."
+                },
+                "floor": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Floor",
+                    "additionalProperties": false,
+                    "description": "Round the value down to the nearest integer (e.g. 1.5 becomes 1), respecting the divisor."
+                },
+                "round": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Round",
+                    "additionalProperties": false,
+                    "description": "Use regular natural rounding (e.g. 1.5 becomes 2, 1.4 becomes 1), respecting the precision."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Numeric Rounding"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Ceil": {
+            "properties": {
+                "divisor": {
+                    "type": "number",
+                    "description": "The divisor to use when applying integer division. Values \u003c 1 allow for rounding to decimal places."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Ceil"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Floor": {
+            "properties": {
+                "divisor": {
+                    "type": "number",
+                    "description": "The divisor to use when applying integer division. Values \u003c 1 allow for rounding to decimal places."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Floor"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Round": {
+            "properties": {
+                "precision": {
+                    "type": "integer",
+                    "description": "The precision to use for rounding. When positive, the value is rounded to the nearest decimal place. When negative, the value is rounded to the nearest power of 10."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Round"
+        },
         "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Regexp": {
             "properties": {
                 "regexp": {
@@ -273,7 +366,7 @@
                 },
                 "replacement": {
                     "type": "string",
-                    "description": "If the replacement is left empty, the regexp match result (full match or first capturing group) is used."
+                    "description": "Use dollar signs to reference capturing groups in the replacement, e.g. \"my-replacement-$1-$2\". If the replacement is left empty, the regexp match result (full match or first capturing group) is used."
                 }
             },
             "additionalProperties": false,
@@ -292,9 +385,24 @@
         },
         "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter": {
             "properties": {
+                "retention_filter": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter",
+                    "additionalProperties": false
+                },
+                "generic_filter": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter",
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Filter"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter": {
+            "properties": {
                 "conditions": {
                     "items": {
-                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.Condition"
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter.Condition"
                     },
                     "additionalProperties": false,
                     "type": "array",
@@ -303,9 +411,9 @@
             },
             "additionalProperties": false,
             "type": "object",
-            "title": "Filter"
+            "title": "Generic Filter"
         },
-        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.Condition": {
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter.Condition": {
             "properties": {
                 "principals": {
                     "items": {
@@ -323,6 +431,57 @@
             "additionalProperties": false,
             "type": "object",
             "title": "Condition"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter": {
+            "properties": {
+                "field": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.Field",
+                    "additionalProperties": false,
+                    "description": "The field of type SQL date with timestamp."
+                },
+                "conditions": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter.Condition"
+                    },
+                    "additionalProperties": false,
+                    "type": "array",
+                    "description": "The last condition in the list must have 0 principals, as this acts as the default / else condition."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Retention Filter"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter.Condition": {
+            "properties": {
+                "principals": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.Principal"
+                    },
+                    "additionalProperties": false,
+                    "type": "array",
+                    "description": "The principals (e.g. groups) that apply to this condition."
+                },
+                "period": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter.Period",
+                    "additionalProperties": false,
+                    "description": "The retention period for the data measured in days after creation. If empty or null, defaults to infinite retention period."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Condition"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter.Period": {
+            "properties": {
+                "days": {
+                    "type": "string",
+                    "description": "Number of days since the creation date."
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Period"
         },
         "getstrm.pace.api.entities.v1alpha.DataPolicy.Source": {
             "properties": {
@@ -376,6 +535,17 @@
             "additionalProperties": false,
             "type": "object",
             "title": "Target"
+        },
+        "getstrm.pace.api.plugins.v1alpha.DataPolicyGeneratorResult": {
+            "properties": {
+                "data_policy": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy",
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Data Policy Generator Result"
         }
     }
 }
