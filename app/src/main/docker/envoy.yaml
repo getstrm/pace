@@ -29,15 +29,7 @@ static_resources:
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_json_transcoder.v3.GrpcJsonTranscoder
                       proto_descriptor: "/app/descriptor.binpb"
-                      # TODO Leaving this hardcoded for now, as we only have a few service at the moment
-                      # In order to dynamically determine the list of services, we can use the following command
-                      # buf build -o -#format=json | jq -r '.file | map(select(.name | startswith("getstrm"))) | map(select(.service > 0) | (.package + "." + .service[].name))[] | ("- " + .)'
-                      # With the `copyDocker` command in the gradle build file, this could be expanded as a variable in this file
-                      services:
-                      - "getstrm.pace.api.data_catalogs.v1alpha.DataCatalogsService"
-                      - "getstrm.pace.api.data_policies.v1alpha.DataPoliciesService"
-                      - "getstrm.pace.api.processing_platforms.v1alpha.ProcessingPlatformsService"
-                      - "getstrm.pace.api.global_transforms.v1alpha.GlobalTransformsService"
+                      services: ${grpcServices}
                       auto_mapping: false
                       convert_grpc_status: true
                       request_validation_options:

@@ -2,24 +2,26 @@ package com.getstrm.pace.util
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
-import build.buf.gen.getstrm.pace.api.global_transforms.v1alpha.ListGlobalTransformsResponse
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
-import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
+import build.buf.gen.getstrm.pace.api.plugins.v1alpha.InvokePluginRequest.ParametersCase
+import build.buf.gen.getstrm.pace.api.plugins.v1alpha.PluginType
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.exceptions.InternalException
+import com.getstrm.pace.exceptions.ProtoValidator
+import com.google.protobuf.Descriptors
 import com.google.protobuf.GeneratedMessageV3
 import com.google.protobuf.Message
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.JsonFormat
 import com.google.protobuf.util.Timestamps
 import com.google.rpc.BadRequest
+import com.google.rpc.DebugInfo
 import org.jooq.JSONB
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
-
+import java.util.*
+import kotlin.reflect.jvm.javaConstructor
 
 fun <T : Message.Builder> T.merge(jsonb: JSONB): T =
     this.also {
@@ -35,36 +37,76 @@ fun GeneratedMessageV3.toJsonbWithDefaults(): JSONB {
     return JSONB.valueOf(toJsonWithDefaults())
 }
 
+/**
+ * Convert a Proto Message to a JSON string, and exclude default values (Proto default values are not included by default)
+ */
 fun GeneratedMessageV3.toJson(): String = JsonFormat.printer()
     .omittingInsignificantWhitespace()
     .preservingProtoFieldNames()
     .print(this)
 
+
+/**
+ * Convert a Proto Message to a JSON string, and include default values (Proto default values are not included by default)
+ */
 fun GeneratedMessageV3.toJsonWithDefaults(): String = JsonFormat.printer()
     .omittingInsignificantWhitespace()
     .includingDefaultValueFields()
     .preservingProtoFieldNames()
     .print(this)
 
+/**
+ * Convert a Proto Message to a YAML string, and include default values (Proto default values are not included by default)
+ */
 fun GeneratedMessageV3.toYaml(): String =
-    ObjectMapper(YAMLFactory()).writeValueAsString(ObjectMapper().readTree(toJsonWithDefaults()))
+    YAML_MAPPER.writeValueAsString(JSON_MAPPER.readTree(toJsonWithDefaults()))
 
-fun String.parseDataPolicy(): DataPolicy = let {
-    val builder = DataPolicy.newBuilder()
-    JsonFormat.parser().ignoringUnknownFields().merge(this, builder)
-    builder.build()
+/**
+ * Validate the message using the Protovalidate options that were configured for this message.
+ */
+fun Message.validate() {
+    ProtoValidator.validate(this)?.let { throw it }
 }
 
-fun String.parseTransforms(): List<GlobalTransform> = let {
-    val builder = ListGlobalTransformsResponse.newBuilder()
-    JsonFormat.parser().merge(this.yaml2json(), builder)
-    builder.build().globalTransformsList
+/**
+ * Accepts JSON, YAML, or base64 encoded JSON or YAML, and converts it into a Proto Message of type [T]
+ */
+inline fun <reified T : GeneratedMessageV3> String.toProto(validate: Boolean = true): T {
+    // To be able to create a builder from type T, we need an instance of T
+    // As the constructors of generated proto messages are private, we need to set it accessible first
+    val constructor = T::class.constructors.first { it.parameters.isEmpty() }
+    constructor.javaConstructor?.trySetAccessible()
+    val builder = constructor.call().toBuilder()
+    JsonFormat.parser().ignoringUnknownFields().merge(toJsonString(), builder)
+    return (builder.build() as T).also { if (validate) it.validate() }
 }
 
-fun String.parseTransform(): GlobalTransform = let {
-    val builder = GlobalTransform.newBuilder()
-    JsonFormat.parser().ignoringUnknownFields().merge(this, builder)
-    builder.build()
+/**
+ * Accepts JSON, YAML, or base64 encoded JSON or YAML
+ * and converts it to a JSON string
+ */
+fun String.toJsonString(): String {
+    return try {
+        when {
+            // JSON
+            this.startsWith("{") -> this
+            // YAML
+            this.contains("\n") -> this.yamlToJson(true)!! // null is only returned upon exceptions
+            // Base64 encoded JSON or YAML
+            else -> Base64.getDecoder().decode(this).toString(Charsets.UTF_8).toJsonString()
+        }
+    } catch (e: Exception) {
+        throw BadRequestException(
+            BadRequestException.Code.INVALID_ARGUMENT,
+            BadRequest.newBuilder()
+                .addFieldViolations(
+                    BadRequest.FieldViolation.newBuilder()
+                        .setDescription("Could not parse payload as JSON, YAML or base64 encoded JSON or YAML: ${e.message}")
+                        .build()
+                )
+                .build()
+        )
+    }
 }
 
 fun Long.toTimestamp(): Timestamp {
@@ -84,16 +126,7 @@ fun OffsetDateTime.toTimestamp() = Timestamp.newBuilder()
     .setNanos(nano)
     .build()
 
-fun DataPoliciesRecord.toApiDataPolicy(): DataPolicy = this.policy!!.let {
-    with(DataPolicy.newBuilder()) {
-        JsonFormat.parser().ignoringUnknownFields().merge(it.data(), this)
-        build()
-    }
-}
-
 fun DataPolicy.Field.pathString() = this.namePartsList.joinToString(separator = ".")
-
-fun GlobalTransformsRecord.toGlobalTransform() = GlobalTransform.newBuilder().merge(this.transform!!).build()
 
 fun DataPolicy.Field.fullName(): String = this.namePartsList.joinToString(".")
 
@@ -110,7 +143,7 @@ fun String.toTransformCase(): GlobalTransform.TransformCase = let {
                         BadRequest.FieldViolation.newBuilder()
                             .setDescription(
                                 "type '${this}' is not in ${
-                                    GlobalTransform.TransformCase.values().joinToString()
+                                    GlobalTransform.TransformCase.entries.joinToString()
                                 } "
                             )
                             .build()
@@ -136,3 +169,29 @@ fun GlobalTransform.refAndType(): Pair<String, GlobalTransform.TransformCase> = 
         )
     }, transformCase
 )
+
+fun Descriptors.Descriptor.getJSONSchema(): String {
+    val directory = this.fullName.replace(".${this.name}", "")
+    val file = "${this.name}.json"
+
+    return object {}.javaClass.getResource("/jsonschema/$directory/$file")?.readText() ?: throw InternalException(
+        InternalException.Code.INTERNAL,
+        DebugInfo.newBuilder()
+            .setDetail("Could not load JSON Schema for ${this.fullName}")
+            .build()
+    )
+}
+
+fun ParametersCase.toPluginType(): PluginType {
+    val parametersCaseName = this.name.replace("_PARAMETERS", "")
+    return try {
+        PluginType.valueOf(parametersCaseName)
+    } catch (e: IllegalArgumentException) {
+        throw InternalException(
+            InternalException.Code.INTERNAL,
+            DebugInfo.newBuilder()
+                .setDetail("Could not convert the oneof enum for ParametersCase to PluginType: $parametersCaseName. Ensure that the PluginType name is the same as the ParametersCase name, but without the _parameters suffix.")
+                .build()
+        )
+    }
+}

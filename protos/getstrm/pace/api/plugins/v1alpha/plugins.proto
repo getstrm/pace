@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package getstrm.pace.api.plugins.v1alpha;
+
+import "buf/validate/validate.proto";
+import "getstrm/pace/api/entities/v1alpha/entities.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/descriptor.proto";
+import "getstrm/pace/api/plugins/v1alpha/entities.proto";
+
+option go_package = "github.com/getstrm/pace/protos/api/plugins;plugins";
+option java_multiple_files = true;
+option java_package = "com.getstrm.pace.api.plugins.v1alpha";
+
+service PluginsService {
+  rpc ListPlugins(ListPluginsRequest) returns (ListPluginsResponse) {
+    option (google.api.http) = {get: "/v1alpha/plugins"};
+  }
+
+  rpc InvokePlugin(InvokePluginRequest) returns (InvokePluginResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha/plugins/{plugin_id}"
+      body: "*"
+    };
+  }
+
+  rpc GetPayloadJSONSchema(GetPayloadJSONSchemaRequest) returns (GetPayloadJSONSchemaResponse) {
+    option (google.api.http) = {get: "/v1alpha/plugins/{plugin_id}/payload-json-schema"};
+  }
+}
+
+message InvokePluginRequest {
+  // The identifier of the plugin to invoke. If only one implementation of the plugin type exists, that will be invoked implicitly.
+  optional string plugin_id = 1;
+  oneof parameters {
+    DataPolicyGeneratorParameters data_policy_generator_parameters = 2;
+  }
+}
+
+message InvokePluginResponse {
+  oneof result {
+    DataPolicyGeneratorResult data_policy_generator_result = 1;
+  }
+}
+
+message ListPluginsRequest {}
+
+message ListPluginsResponse {
+  repeated Plugin plugins = 1;
+}
+
+message GetPayloadJSONSchemaRequest {
+  // The identifier of the plugin to get the payload json schema for
+  string plugin_id = 1;
+}
+
+message GetPayloadJSONSchemaResponse {
+  // The payload json schema for the plugin
+  string schema = 1;
+}
+
+
+

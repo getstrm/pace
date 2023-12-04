@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres_pace:5432/pace
+    hikari:
+      username: pace
+      password: pace
+      schema: public
+
+app:
+  plugins:
+    data-policy-generators:
+      openai:
+        api-key: "..."

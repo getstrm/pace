@@ -1,0 +1,47 @@
+---
+instructions: "For the group administrators, do not filter the data. For all other\
+  \ users, only show records with emails ending with google.com.\nFor the group administrators,\
+  \ replace the username with a fixed value of \"omitted\". For the group analytics,\
+  \ only show records for age older than 18. For all other users, use a regex pattern\
+  \ to only show the domain of the email field. For all users only include records that are no older than 30 days."
+initial_data_policy:
+  id: ""
+  metadata:
+    title: "generator.users"
+    description: "Users of the data policy generator example"
+    version: 3
+    tags: []
+  source:
+    ref: "generator.users"
+    fields:
+      - name_parts:
+          - "email"
+        type: "varchar"
+        required: true
+        tags: []
+      - name_parts:
+          - "username"
+        type: "varchar"
+        required: true
+        tags: []
+      - name_parts:
+          - "organization"
+        type: "varchar"
+        required: true
+        tags: []
+      - name_parts:
+          - "age"
+        type: "int"
+        required: true
+        tags: [ ]
+      - name_parts:
+          - "date"
+        type: "timestamp"
+        required: true
+        tags: [ ]
+    tags: []
+  platform:
+    id: data-policy-generator-sample-connection
+    platform_type: POSTGRES
+  rule_sets: []
+

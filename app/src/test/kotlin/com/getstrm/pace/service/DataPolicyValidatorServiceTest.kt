@@ -1,9 +1,8 @@
 package com.getstrm.pace.service
 
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.processing_platforms.Group
-import com.getstrm.pace.util.parseDataPolicy
-import com.getstrm.pace.util.yaml2json
+import com.getstrm.pace.util.toProto
 import com.google.rpc.BadRequest
 import io.grpc.Status
 import io.kotest.assertions.throwables.shouldThrow
@@ -88,7 +87,7 @@ rule_sets:
         conditions:
           - principals: []
             condition: "transactionAmount < 10"
-        """.yaml2json().parseDataPolicy()
+        """.toProto<DataPolicy>()
 
         assertDoesNotThrow {
             underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
@@ -165,7 +164,7 @@ rule_sets:
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
-          """.yaml2json().parseDataPolicy()
+          """.toProto<DataPolicy>(false)
 
         val exception = shouldThrow<BadRequestException> {
             underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
@@ -252,7 +251,7 @@ rule_sets:
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
-          """.yaml2json().parseDataPolicy()
+          """.toProto<DataPolicy>(false)
 
         val exception = shouldThrow<BadRequestException> {
             underTest.validate(dataPolicy, setOf("marketing", "fraud-and-risk", "admin"))
@@ -337,7 +336,7 @@ rule_sets:
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
-          """.yaml2json().parseDataPolicy()
+          """.toProto<DataPolicy>(false)
 
         val exception = shouldThrow<BadRequestException> {
             underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
@@ -422,7 +421,7 @@ rule_sets:
         conditions:
           - principals: []
             condition: "transactionAmount < 10"
-          """.yaml2json().parseDataPolicy()
+          """.toProto<DataPolicy>()
 
         val exception = shouldThrow<BadRequestException> {
             underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
@@ -439,64 +438,64 @@ rule_sets:
     fun `validate duplicate token source refs`() {
         @Language("yaml")
         val dataPolicy = """
-            metadata:
-              description: ""
-              version: 1
-              title: public.demo
-            platform:
-              id: platform-id
-              platform_type: POSTGRES
-            source:
-              fields:
-                - name_parts:
-                    - transactionid
-                  required: true
-                  type: integer
-                - name_parts:
-                    - userid
-                  required: true
-                  type: integer
-                - name_parts:
-                    - transactionamount
-                  required: true
-                  type: integer
-              ref: public.demo_tokenized
-            rule_sets:
-              - target:
-                  fullname: public.demo_view
-                filters:
-                  - conditions:
-                      - principals: [ {group: fraud_and_risk} ]
-                        condition: "true"
-                      - principals : []
-                        condition: "transactionamount < 10"
-                field_transforms:
-                  - field:
-                      name_parts: [ userid ]
-                    transforms:
-                      - principals: [ {group: fraud_and_risk} ]
-                        detokenize:
-                          token_source_ref: tokens.all_tokens
-                          token_field:
-                            name_parts: [ token ]
-                          value_field:
-                            name_parts: [ value ]
-                      - principals: []
-                        identity: {}
-                  - field:
-                      name_parts: [ transactionid ]
-                    transforms:
-                      - principals: [ {group: fraud_and_risk} ]
-                        detokenize:
-                          token_source_ref: tokens.all_tokens
-                          token_field:
-                            name_parts: [ token ]
-                          value_field:
-                            name_parts: [ value ]
-                      - principals: []
-                        identity: {}
-
-        """.trimIndent().yaml2json().parseDataPolicy()
+                metadata:
+                  description: ""
+                  version: 1
+                  title: public.demo
+                platform:
+                  id: platform-id
+                  platform_type: POSTGRES
+                source:
+                  fields:
+                    - name_parts:
+                        - transactionid
+                      required: true
+                      type: integer
+                    - name_parts:
+                        - userid
+                      required: true
+                      type: integer
+                    - name_parts:
+                        - transactionamount
+                      required: true
+                      type: integer
+                  ref: public.demo_tokenized
+                rule_sets:
+                  - target:
+                      fullname: public.demo_view
+                    filters:
+                      - conditions:
+                          - principals: [ {group: fraud_and_risk} ]
+                            condition: "true"
+                          - principals : []
+                            condition: "transactionamount < 10"
+                    field_transforms:
+                      - field:
+                          name_parts: [ userid ]
+                        transforms:
+                          - principals: [ {group: fraud_and_risk} ]
+                            detokenize:
+                              token_source_ref: tokens.all_tokens
+                              token_field:
+                                name_parts: [ token ]
+                              value_field:
+                                name_parts: [ value ]
+                          - principals: []
+                            identity: {}
+                      - field:
+                          name_parts: [ transactionid ]
+                        transforms:
+                          - principals: [ {group: fraud_and_risk} ]
+                            detokenize:
+                              token_source_ref: tokens.all_tokens
+                              token_field:
+                                name_parts: [ token ]
+                              value_field:
+                                name_parts: [ value ]
+                          - principals: []
+                            identity: {}
+    
+            """.trimIndent().toProto<DataPolicy>(false)
         runBlocking {
             val exception = shouldThrow<BadRequestException> {
                 underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
@@ -544,5 +543,4 @@ source:
       type: timestamp
     - name_parts: [purpose]
       type: bigint
-    
 """

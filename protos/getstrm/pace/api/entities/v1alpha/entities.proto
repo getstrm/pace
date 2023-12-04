@@ -3,10 +3,9 @@ syntax = "proto3";
 package getstrm.pace.api.entities.v1alpha;
 
 import "buf/validate/validate.proto";
-import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/getstrm/pace/protos/entities;entities";
+option go_package = "github.com/getstrm/pace/protos/api/entities;entities";
 option java_multiple_files = true;
 option java_package = "com.getstrm.pace.api.entities.v1alpha";
 
@@ -15,7 +14,7 @@ message DataPolicy {
   Metadata metadata = 2;
   Source source = 3;
   ProcessingPlatform platform = 4;
-  repeated RuleSet rule_sets = 5 [(buf.validate.field).repeated.min_items = 1];
+  repeated RuleSet rule_sets = 5;
 
   message Metadata {
     string title = 1 [(buf.validate.field).string.min_len = 3];

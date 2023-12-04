@@ -1,0 +1,17 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/GetPayloadJSONSchemaRequest",
+    "definitions": {
+        "GetPayloadJSONSchemaRequest": {
+            "properties": {
+                "plugin_id": {
+                    "type": "string",
+                    "description": "The identifier of the plugin to get the payload json schema for"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Get Payload JSON Schema Request"
+        }
+    }
+}

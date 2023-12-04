@@ -1,0 +1,52 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ListPluginsResponse",
+    "definitions": {
+        "ListPluginsResponse": {
+            "properties": {
+                "plugins": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.plugins.v1alpha.Plugin"
+                    },
+                    "additionalProperties": false,
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "List Plugins Response"
+        },
+        "getstrm.pace.api.plugins.v1alpha.Plugin": {
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "The unique identifier for this plugin"
+                },
+                "implementation": {
+                    "type": "string",
+                    "description": "The canonical class name of the implementation of this plugin"
+                },
+                "plugin_type": {
+                    "enum": [
+                        "PLUGIN_TYPE_UNSPECIFIED",
+                        0,
+                        "DATA_POLICY_GENERATOR",
+                        1
+                    ],
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "title": "Plugin Type"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Plugin"
+        }
+    }
+}

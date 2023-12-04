@@ -1,0 +1,160 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/ListTablesResponse",
+    "definitions": {
+        "ListTablesResponse": {
+            "properties": {
+                "tables": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataCatalog.Table"
+                    },
+                    "additionalProperties": false,
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "List Tables Response"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataCatalog": {
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "An arbitrary but unique identifier for the catalog. This matches the id from the PACE app configuration."
+                },
+                "type": {
+                    "enum": [
+                        "TYPE_UNSPECIFIED",
+                        0,
+                        "COLLIBRA",
+                        1,
+                        "ODD",
+                        2,
+                        "DATAHUB",
+                        3
+                    ],
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "title": "Type"
+                },
+                "databases": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataCatalog.Database"
+                    },
+                    "additionalProperties": false,
+                    "type": "array",
+                    "description": "A top-most level of the catalog. This is typically a database."
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Data Catalog"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataCatalog.Database": {
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "The id used by the catalog."
+                },
+                "type": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "catalog": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataCatalog",
+                    "additionalProperties": false,
+                    "description": "The parent catalog to which this database belongs."
+                },
+                "schemas": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataCatalog.Schema"
+                    },
+                    "additionalProperties": false,
+                    "type": "array",
+                    "description": "The schemas in this database."
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Database"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataCatalog.Schema": {
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "The id used by the catalog."
+                },
+                "name": {
+                    "type": "string",
+                    "description": "The parent database to which this schema belongs."
+                },
+                "database": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataCatalog.Database",
+                    "additionalProperties": false
+                },
+                "tables": {
+                    "items": {
+                        "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataCatalog.Table"
+                    },
+                    "additionalProperties": false,
+                    "type": "array",
+                    "description": "The tables in this schema."
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Schema"
+        },
+        "getstrm.pace.api.entities.v1alpha.DataCatalog.Table": {
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "The id used by the catalog."
+                },
+                "name": {
+                    "type": "string"
+                },
+                "schema": {
+                    "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataCatalog.Schema",
+                    "additionalProperties": false,
+                    "description": "The parent schema to which this table belongs."
+                },
+                "tags": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Table"
+        }
+    }
+}

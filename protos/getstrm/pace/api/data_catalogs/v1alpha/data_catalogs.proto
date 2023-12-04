@@ -6,7 +6,7 @@ import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
 import "google/rpc/error_details.proto";
 
-option go_package = "github.com/getstrm/pace/protos/data_catalogs;data_catalogs";
+option go_package = "github.com/getstrm/pace/protos/api/data_catalogs;data_catalogs";
 option java_package = "com.getstrm.pace.api.data_catalogs.v1alpha";
 option java_multiple_files = true;
 

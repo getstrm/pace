@@ -6,6 +6,7 @@ import nu.studer.gradle.jooq.JooqGenerate
 import org.flywaydb.gradle.task.FlywayMigrateTask
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.springframework.boot.gradle.tasks.bundling.BootJar
+import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 import java.net.Socket
 import java.time.Instant
@@ -21,6 +22,7 @@ val postgresPort: Int by rootProject.extra
 val jooqSchema = rootProject.extra["schema"] as String
 val jooqMigrationDir = "$projectDir/src/main/resources/db/migration/postgresql"
 val jooqVersion = rootProject.ext["jooqVersion"] as String
+val kotestVersion = rootProject.ext["kotestVersion"] as String
 val openDataDiscoveryOpenApiDir = layout.buildDirectory.dir("generated/source/odd").get()
 project.version = if (gradle.startParameter.taskNames.any { it.lowercase() == "builddocker" }) {
     "${project.version}-SNAPSHOT"
@@ -44,7 +46,7 @@ dependencies {
     // Dependencies managed by Spring
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     // TODO remove once we upgrade Spring: override SnakeYAML dependency, as the one managed by Spring is too old and is vulnerable
-    implementation("org.yaml:snakeyaml:2.0")
+    implementation("org.yaml:snakeyaml:2.2")
     implementation("org.flywaydb:flyway-core")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.postgresql:postgresql")
@@ -60,28 +62,35 @@ dependencies {
 
     // Self-managed dependencies
     implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
-    implementation("com.databricks:databricks-sdk-java:0.10.0")
+    implementation("com.databricks:databricks-sdk-java:0.13.0")
     implementation("com.github.drapostolos:type-parser:0.8.1")
-    implementation("com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre8")
+    implementation("com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre11")
 
-    implementation("com.nimbusds:nimbus-jose-jwt:9.37")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.76")
+    implementation("com.nimbusds:nimbus-jose-jwt:9.37.1")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.77")
 
-    implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.24.0"))
+    implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.27.0"))
     implementation("com.google.cloud:google-cloud-bigquery")
     implementation("com.google.cloud:google-cloud-datacatalog")
 
     implementation("build.buf.gen:getstrm_pace_grpc_java:1.59.0.2.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.4.1.1.$generatedBufDependencyVersion")
-    implementation("build.buf.gen:getstrm_pace_protocolbuffers_java:24.4.0.1.$generatedBufDependencyVersion")
-    implementation("build.buf:protovalidate:0.1.6")
+    implementation("build.buf.gen:getstrm_pace_protocolbuffers_java:25.1.0.1.$generatedBufDependencyVersion")
+    implementation("build.buf:protovalidate:0.1.8")
 
     implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
 
+    implementation("com.aallam.openai:openai-client:3.6.1")
+    implementation(platform("io.ktor:ktor-bom:2.3.6"))
+    runtimeOnly("io.ktor:ktor-client-okhttp")
+    implementation("io.ktor:ktor-client-logging")
+
     // Test dependencies
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("io.kotest:kotest-assertions-core-jvm:5.7.2")
-    testImplementation("io.kotest:kotest-runner-junit5:5.7.2")
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "com.vaadin.external.google", module = "android-json")
+    }
+    testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.mockk:mockk:1.13.8")
     testImplementation("io.zonky.test:embedded-postgres:2.0.4")
 }
@@ -308,11 +317,27 @@ val createProtoDescriptor =
 val copyDocker =
     tasks.register<Copy>("copyDocker") {
         group = "docker"
+        val grpcServices: String = ByteArrayOutputStream().use { outputStream ->
+            project.exec {
+                workingDir("$rootDir/protos")
+
+                commandLine(
+                    "bash",
+                    "-c",
+                    "buf build -o -#format=json | jq -rc '.file | map(select(.name | startswith(\"getstrm\"))) | map(select(.service > 0) | (.package + \".\" + .service[].name))'"
+                )
+                standardOutput = outputStream
+            }
+
+            outputStream.toString()
+        }
+
         from("src/main/docker")
         include("*")
         into("build/docker")
         expand(
             "version" to project.version,
+            "grpcServices" to grpcServices,
         )
     }
 

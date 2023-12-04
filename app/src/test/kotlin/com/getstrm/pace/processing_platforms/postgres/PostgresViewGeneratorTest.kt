@@ -1,22 +1,16 @@
 package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
-import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.namedField
-import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
-import com.getstrm.pace.util.parseDataPolicy
-import com.getstrm.pace.util.yaml2json
-import com.google.rpc.BadRequest
+import com.getstrm.pace.util.toProto
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class PostgresViewGeneratorTest {
     private val underTest = PostgresViewGenerator(dataPolicy)
@@ -363,308 +357,308 @@ grant SELECT on public.demo_view to "marketing";"""
     companion object {
         @Language("yaml")
         val dataPolicy = """
-            metadata:
-              description: ""
-              version: 5
-              title: public.demo
-            platform:
-              id: platform-id
-              platform_type: POSTGRES
-            source:
-              fields:
-                - name_parts:
-                    - transactionid
-                  required: true
-                  type: integer
-                - name_parts:
-                    - userid
-                  required: true
-                  type: integer
-                - name_parts:
-                    - email
-                  required: true
-                  type: varchar
-                - name_parts:
-                    - age
-                  required: true
-                  type: integer
-                - name_parts:
-                    - brand
-                  required: true
-                  type: varchar
-                - name_parts:
-                    - transactionamount
-                  required: true
-                  type: integer
-              ref: public.demo
-            rule_sets:
-              - target:
-                  fullname: public.demo_view
-                filters:
-                  - generic_filter:
-                      conditions:
-                        - principals: [ {group: fraud_and_risk} ]
-                          condition: "true"
-                        - principals: []
-                          condition: "age > 8"
-                  - generic_filter:
-                      conditions:
-                        - principals : []
-                          condition: "transactionamount < 10"
-                field_transforms:
-                  - field:
-                      name_parts: [ userid ]
-                    transforms:
-                      - principals: [ {group: fraud_and_risk} ]
-                        identity: {}
-                      - principals: []
-                        fixed:
-                          value: 123
-                  - field:
-                      name_parts: [ email ]
-                    transforms:
-                      - principals: [ {group: marketing} ]
-                        regexp:
-                          regexp: "^.*(@.*)${'$'}"
-                          replacement: '****$1'
-                      - principals: [ {group: fraud_and_risk} ]
-                        identity: {}
-                      - principals: []
-                        fixed:
-                          value: "****"
-                  - field:
-                      name_parts: [ brand ]
-                    transforms:
-                      - principals: []
-                        sql_statement:
-                          statement: "CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END"
-        """.trimIndent().yaml2json().parseDataPolicy()
+                metadata:
+                  description: ""
+                  version: 5
+                  title: public.demo
+                platform:
+                  id: platform-id
+                  platform_type: POSTGRES
+                source:
+                  fields:
+                    - name_parts:
+                        - transactionid
+                      required: true
+                      type: integer
+                    - name_parts:
+                        - userid
+                      required: true
+                      type: integer
+                    - name_parts:
+                        - email
+                      required: true
+                      type: varchar
+                    - name_parts:
+                        - age
+                      required: true
+                      type: integer
+                    - name_parts:
+                        - brand
+                      required: true
+                      type: varchar
+                    - name_parts:
+                        - transactionamount
+                      required: true
+                      type: integer
+                  ref: public.demo
+                rule_sets:
+                  - target:
+                      fullname: public.demo_view
+                    filters:
+                      - generic_filter:
+                          conditions:
+                            - principals: [ {group: fraud_and_risk} ]
+                              condition: "true"
+                            - principals: []
+                              condition: "age > 8"
+                      - generic_filter:
+                          conditions:
+                            - principals : []
+                              condition: "transactionamount < 10"
+                    field_transforms:
+                      - field:
+                          name_parts: [ userid ]
+                        transforms:
+                          - principals: [ {group: fraud_and_risk} ]
+                            identity: {}
+                          - principals: []
+                            fixed:
+                              value: 123
+                      - field:
+                          name_parts: [ email ]
+                        transforms:
+                          - principals: [ {group: marketing} ]
+                            regexp:
+                              regexp: "^.*(@.*)${'$'}"
+                              replacement: '****$1'
+                          - principals: [ {group: fraud_and_risk} ]
+                            identity: {}
+                          - principals: []
+                            fixed:
+                              value: "****"
+                      - field:
+                          name_parts: [ brand ]
+                        transforms:
+                          - principals: []
+                            sql_statement:
+                              statement: "CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END"
+            """.trimIndent().toProto<DataPolicy>()
 
         @Language("yaml")
         val singleDetokenizePolicy = """
-            metadata:
-              description: ""
-              version: 1
-              title: public.demo
-            platform:
-              id: platform-id
-              platform_type: POSTGRES
-            source:
-              fields:
-                - name_parts:
-                    - transactionid
-                  required: true
-                  type: integer
-                - name_parts:
-                    - userid
-                  required: true
-                  type: integer
-                - name_parts:
-                    - transactionamount
-                  required: true
-                  type: integer
-              ref: public.demo_tokenized
-            rule_sets:
-              - target:
-                  fullname: public.demo_view
-                filters:
-                  - generic_filter:
-                      conditions:
-                        - principals: [ {group: fraud_and_risk} ]
-                          condition: "true"
-                        - principals : []
-                          condition: "transactionamount < 10"
-                field_transforms:
-                  - field:
-                      name_parts: [ userid ]
-                    transforms:
-                      - principals: [ {group: fraud_and_risk} ]
-                        detokenize:
-                          token_source_ref: tokens.userid_tokens
-                          token_field:
-                            name_parts: [ token ]
-                          value_field:
-                            name_parts: [ userid ]
-                      - principals: []
-                        identity: {}
-        """.trimIndent().yaml2json().parseDataPolicy()
+                metadata:
+                  description: ""
+                  version: 1
+                  title: public.demo
+                platform:
+                  id: platform-id
+                  platform_type: POSTGRES
+                source:
+                  fields:
+                    - name_parts:
+                        - transactionid
+                      required: true
+                      type: integer
+                    - name_parts:
+                        - userid
+                      required: true
+                      type: integer
+                    - name_parts:
+                        - transactionamount
+                      required: true
+                      type: integer
+                  ref: public.demo_tokenized
+                rule_sets:
+                  - target:
+                      fullname: public.demo_view
+                    filters:
+                      - generic_filter:
+                          conditions:
+                            - principals: [ {group: fraud_and_risk} ]
+                              condition: "true"
+                            - principals : []
+                              condition: "transactionamount < 10"
+                    field_transforms:
+                      - field:
+                          name_parts: [ userid ]
+                        transforms:
+                          - principals: [ {group: fraud_and_risk} ]
+                            detokenize:
+                              token_source_ref: tokens.userid_tokens
+                              token_field:
+                                name_parts: [ token ]
+                              value_field:
+                                name_parts: [ userid ]
+                          - principals: []
+                            identity: {}
+            """.trimIndent().toProto<DataPolicy>()
 
         @Language("yaml")
         val multiDetokenizePolicy = """
-            metadata:
-              description: ""
-              version: 1
-              title: public.demo
-            platform:
-              id: platform-id
-              platform_type: POSTGRES
-            source:
-              fields:
-                - name_parts:
-                    - transactionid
-                  required: true
-                  type: integer
-                - name_parts:
-                    - userid
-                  required: true
-                  type: integer
-                - name_parts:
-                    - transactionamount
-                  required: true
-                  type: integer
-              ref: public.demo_tokenized
-            rule_sets:
-              - target:
-                  fullname: public.demo_view
-                filters:
-                  - generic_filter:
-                      conditions:
-                        - principals: [ {group: fraud_and_risk} ]
-                          condition: "true"
-                        - principals : []
-                          condition: "transactionamount < 10"
-                field_transforms:
-                  - field:
-                      name_parts: [ userid ]
-                    transforms:
-                      - principals: [ {group: fraud_and_risk} ]
-                        detokenize:
-                          token_source_ref: tokens.userid_tokens
-                          token_field:
-                            name_parts: [ token ]
-                          value_field:
-                            name_parts: [ userid ]
-                      - principals: []
-                        identity: {}
-                  - field:
-                      name_parts: [ transactionid ]
-                    transforms:
-                      - principals: [ {group: fraud_and_risk} ]
-                        detokenize:
-                          token_source_ref: tokens.transactionid_tokens
-                          token_field:
-                            name_parts: [ token ]
-                          value_field:
-                            name_parts: [ transactionid ]
-                      - principals: []
-                        identity: {}
-        """.trimIndent().yaml2json().parseDataPolicy()
+                metadata:
+                  description: ""
+                  version: 1
+                  title: public.demo
+                platform:
+                  id: platform-id
+                  platform_type: POSTGRES
+                source:
+                  fields:
+                    - name_parts:
+                        - transactionid
+                      required: true
+                      type: integer
+                    - name_parts:
+                        - userid
+                      required: true
+                      type: integer
+                    - name_parts:
+                        - transactionamount
+                      required: true
+                      type: integer
+                  ref: public.demo_tokenized
+                rule_sets:
+                  - target:
+                      fullname: public.demo_view
+                    filters:
+                      - generic_filter:
+                          conditions:
+                            - principals: [ {group: fraud_and_risk} ]
+                              condition: "true"
+                            - principals : []
+                              condition: "transactionamount < 10"
+                    field_transforms:
+                      - field:
+                          name_parts: [ userid ]
+                        transforms:
+                          - principals: [ {group: fraud_and_risk} ]
+                            detokenize:
+                              token_source_ref: tokens.userid_tokens
+                              token_field:
+                                name_parts: [ token ]
+                              value_field:
+                                name_parts: [ userid ]
+                          - principals: []
+                            identity: {}
+                      - field:
+                          name_parts: [ transactionid ]
+                        transforms:
+                          - principals: [ {group: fraud_and_risk} ]
+                            detokenize:
+                              token_source_ref: tokens.transactionid_tokens
+                              token_field:
+                                name_parts: [ token ]
+                              value_field:
+                                name_parts: [ transactionid ]
+                          - principals: []
+                            identity: {}
+            """.trimIndent().toProto<DataPolicy>()
 
         @Language("yaml")
         val singleRetentionPolicy = """
-            metadata:
-              description: ""
-              version: 1
-              title: public.demo
-            platform:
-              id: platform-id
-              platform_type: POSTGRES
-            source:
-              fields:
-                - name_parts:
-                    - ts
-                  required: true
-                  type: timestamp
-                - name_parts:
-                    - userid
-                  required: true
-                  type: integer
-                - name_parts:
-                    - transactionamount
-                  required: true
-                  type: integer
-              ref: public.demo_tokenized
-            rule_sets:
-              - target:
-                  fullname: public.demo_view
-                filters:
-                  - generic_filter:
-                      conditions:
-                        - principals: [ {group: fraud_and_risk} ]
-                          condition: "true"
-                        - principals : []
-                          condition: "transactionamount < 10"
-                  - retention_filter:
-                      field:
-                        name_parts:
-                          - ts
-                        required: true
-                        type: timestamp
-                      conditions:
-                        - principals: [ {group: marketing} ]
-                          period:
-                            days: 5
-                        - principals: [ {group: fraud_and_risk} ]
-                        - principals: [] 
-                          period:
-                            days: 10
-        """.trimIndent().yaml2json().parseDataPolicy()
+                metadata:
+                  description: ""
+                  version: 1
+                  title: public.demo
+                platform:
+                  id: platform-id
+                  platform_type: POSTGRES
+                source:
+                  fields:
+                    - name_parts:
+                        - ts
+                      required: true
+                      type: timestamp
+                    - name_parts:
+                        - userid
+                      required: true
+                      type: integer
+                    - name_parts:
+                        - transactionamount
+                      required: true
+                      type: integer
+                  ref: public.demo_tokenized
+                rule_sets:
+                  - target:
+                      fullname: public.demo_view
+                    filters:
+                      - generic_filter:
+                          conditions:
+                            - principals: [ {group: fraud_and_risk} ]
+                              condition: "true"
+                            - principals : []
+                              condition: "transactionamount < 10"
+                      - retention_filter:
+                          field:
+                            name_parts:
+                              - ts
+                            required: true
+                            type: timestamp
+                          conditions:
+                            - principals: [ {group: marketing} ]
+                              period:
+                                days: 5
+                            - principals: [ {group: fraud_and_risk} ]
+                            - principals: [] 
+                              period:
+                                days: 10
+            """.trimIndent().toProto<DataPolicy>()
 
         @Language("yaml")
         val multipleRetentionPolicy = """
-            metadata:
-              description: ""
-              version: 1
-              title: public.demo
-            platform:
-              id: platform-id
-              platform_type: POSTGRES
-            source:
-              fields:
-                - name_parts:
-                    - ts
-                  required: true
-                  type: timestamp
-                - name_parts:
-                    - validThrough
-                  required: true
-                  type: timestamp
-                - name_parts:
-                    - userid
-                  required: true
-                  type: integer
-                - name_parts:
-                    - transactionamount
-                  required: true
-                  type: integer
-              ref: public.demo_tokenized
-            rule_sets:
-              - target:
-                  fullname: public.demo_view
-                filters:
-                  - generic_filter:
-                      conditions:
-                        - principals: [ {group: fraud_and_risk} ]
-                          condition: "true"
-                        - principals : []
-                          condition: "transactionamount < 10"
-                  - retention_filter:
-                      field:
-                        name_parts:
-                          - ts
-                        required: true
-                        type: timestamp
-                      conditions:
-                        - principals: [ {group: marketing} ]
-                          period:
-                            days: 5
-                        - principals: [ {group: fraud_and_risk} ]
-                        - principals: [] 
-                          period:
-                            days: 10
-                  - retention_filter:
-                      field:
-                        name_parts:
-                          - validThrough
-                        required: true
-                        type: timestamp
-                      conditions:
-                        - principals: [ {group: fraud_and_risk} ]
-                          period:
-                            days: 365
-                        - principals: [] 
-                          period:
-                            days: 0
-        """.trimIndent().yaml2json().parseDataPolicy()
+                metadata:
+                  description: ""
+                  version: 1
+                  title: public.demo
+                platform:
+                  id: platform-id
+                  platform_type: POSTGRES
+                source:
+                  fields:
+                    - name_parts:
+                        - ts
+                      required: true
+                      type: timestamp
+                    - name_parts:
+                        - validThrough
+                      required: true
+                      type: timestamp
+                    - name_parts:
+                        - userid
+                      required: true
+                      type: integer
+                    - name_parts:
+                        - transactionamount
+                      required: true
+                      type: integer
+                  ref: public.demo_tokenized
+                rule_sets:
+                  - target:
+                      fullname: public.demo_view
+                    filters:
+                      - generic_filter:
+                          conditions:
+                            - principals: [ {group: fraud_and_risk} ]
+                              condition: "true"
+                            - principals : []
+                              condition: "transactionamount < 10"
+                      - retention_filter:
+                          field:
+                            name_parts:
+                              - ts
+                            required: true
+                            type: timestamp
+                          conditions:
+                            - principals: [ {group: marketing} ]
+                              period:
+                                days: 5
+                            - principals: [ {group: fraud_and_risk} ]
+                            - principals: [] 
+                              period:
+                                days: 10
+                      - retention_filter:
+                          field:
+                            name_parts:
+                              - validThrough
+                            required: true
+                            type: timestamp
+                          conditions:
+                            - principals: [ {group: fraud_and_risk} ]
+                              period:
+                                days: 365
+                            - principals: [] 
+                              period:
+                                days: 0
+            """.trimIndent().toProto<DataPolicy>()
     }
 }
