@@ -18,3 +18,5 @@ integration-test/pace.log
 integration-test/awk
 integration-test/cut
 app/src/test/resources/openai.properties
+
+rest/envoy-local.yaml

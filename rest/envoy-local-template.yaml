@@ -29,12 +29,7 @@ static_resources:
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_json_transcoder.v3.GrpcJsonTranscoder
                       proto_descriptor: "/tmp/envoy/descriptor.binpb"
-                      # Note: Make sure to update this list when adding new services!
-                      services:
-                        - "getstrm.pace.api.data_catalogs.v1alpha.DataCatalogsService"
-                        - "getstrm.pace.api.data_policies.v1alpha.DataPoliciesService"
-                        - "getstrm.pace.api.processing_platforms.v1alpha.ProcessingPlatformsService"
-                        - "getstrm.pace.api.global_transforms.v1alpha.GlobalTransformsService"
+                      services: ${GRPC_SERVICES}
                       auto_mapping: false
                       convert_grpc_status: true
                       request_validation_options:

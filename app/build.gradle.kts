@@ -6,6 +6,7 @@ import nu.studer.gradle.jooq.JooqGenerate
 import org.flywaydb.gradle.task.FlywayMigrateTask
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.springframework.boot.gradle.tasks.bundling.BootJar
+import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 import java.net.Socket
 import java.time.Instant
@@ -316,11 +317,27 @@ val createProtoDescriptor =
 val copyDocker =
     tasks.register<Copy>("copyDocker") {
         group = "docker"
+        val grpcServices: String = ByteArrayOutputStream().use { outputStream ->
+            project.exec {
+                workingDir("$rootDir/protos")
+
+                commandLine(
+                    "bash",
+                    "-c",
+                    "buf build -o -#format=json | jq -rc '.file | map(select(.name | startswith(\"getstrm\"))) | map(select(.service > 0) | (.package + \".\" + .service[].name))'"
+                )
+                standardOutput = outputStream
+            }
+
+            outputStream.toString()
+        }
+
         from("src/main/docker")
         include("*")
         into("build/docker")
         expand(
             "version" to project.version,
+            "grpcServices" to grpcServices,
         )
     }
 
