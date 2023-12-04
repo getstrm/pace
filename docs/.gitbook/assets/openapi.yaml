@@ -129,6 +129,18 @@ components:
         source:
           $ref: '#/components/schemas/DataPolicy_Source'
       type: object
+    DataPolicyGeneratorParameters:
+      properties:
+        payload:
+          description: The (base64 encoded) version of the JSON representation of
+            the payload that is required for this plugin
+          type: string
+      type: object
+    DataPolicyGeneratorResult:
+      properties:
+        dataPolicy:
+          $ref: '#/components/schemas/DataPolicy'
+      type: object
     DataPolicy_Field:
       properties:
         nameParts:
@@ -404,6 +416,12 @@ components:
         transform:
           $ref: '#/components/schemas/GlobalTransform'
       type: object
+    GetPayloadJSONSchemaResponse:
+      properties:
+        schema:
+          description: The payload json schema for the plugin
+          type: string
+      type: object
     GlobalTransform:
       description: 'If the specified transform is incompatible with the field data
         type to which this global transform is connected with,
@@ -441,6 +459,20 @@ components:
           description: The type of the serialized message.
           type: string
       type: object
+    InvokePluginRequest:
+      properties:
+        dataPolicyGeneratorParameters:
+          $ref: '#/components/schemas/DataPolicyGeneratorParameters'
+        pluginId:
+          description: The identifier of the plugin to invoke. If only one implementation
+            of the plugin type exists, that will be invoked implicitly.
+          type: string
+      type: object
+    InvokePluginResponse:
+      properties:
+        dataPolicyGeneratorResult:
+          $ref: '#/components/schemas/DataPolicyGeneratorResult'
+      type: object
     ListCatalogsResponse:
       properties:
         catalogs:
@@ -474,6 +506,13 @@ components:
         groups:
           items:
             type: string
+          type: array
+      type: object
+    ListPluginsResponse:
+      properties:
+        plugins:
+          items:
+            $ref: '#/components/schemas/Plugin'
           type: array
       type: object
     ListProcessingPlatformsResponse:
@@ -523,6 +562,22 @@ components:
             to the nearest power of 10.
           format: int32
           type: integer
+      type: object
+    Plugin:
+      properties:
+        id:
+          description: The unique identifier for this plugin
+          type: string
+        implementation:
+          description: The canonical class name of the implementation of this plugin
+          type: string
+        pluginType:
+          description: The type / category of this plugin
+          enum:
+          - PLUGIN_TYPE_UNSPECIFIED
+          - DATA_POLICY_GENERATOR
+          format: enum
+          type: string
       type: object
     RetentionFilter_Condition:
       properties:
@@ -689,7 +744,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.33
+  version: 1.0.0-alpha.34
 openapi: 3.0.3
 paths:
   /data-policies:
@@ -1113,6 +1168,84 @@ paths:
       summary: GetGlobalTransform
       tags:
       - GlobalTransformsService
+  /v1alpha/plugins:
+    get:
+      operationId: PluginsService_ListPlugins
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListPluginsResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: ListPlugins
+      tags:
+      - PluginsService
+  /v1alpha/plugins/{pluginId}:
+    post:
+      operationId: PluginsService_InvokePlugin
+      parameters:
+      - description: The identifier of the plugin to invoke. If only one implementation
+          of the plugin type exists, that will be invoked implicitly.
+        in: path
+        name: pluginId
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvokePluginRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvokePluginResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: InvokePlugin
+      tags:
+      - PluginsService
+  /v1alpha/plugins/{pluginId}/payload-json-schema:
+    get:
+      operationId: PluginsService_GetPayloadJSONSchema
+      parameters:
+      - description: The identifier of the plugin to get the payload json schema for
+        in: path
+        name: pluginId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPayloadJSONSchemaResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: GetPayloadJSONSchema
+      tags:
+      - PluginsService
   /v1alpha/processing-platforms:
     get:
       description: Lists all configured processing platforms.
@@ -1224,4 +1357,5 @@ tags:
 - name: DataPoliciesService
 - description: "TODO HTTP paths should be defined\n TODO add validations"
   name: GlobalTransformsService
+- name: PluginsService
 - name: ProcessingPlatformsService

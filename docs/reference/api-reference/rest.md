@@ -56,6 +56,18 @@
 [openapi.yaml](../../.gitbook/assets/openapi.yaml)
 {% endswagger %}
 
+{% swagger src="../../.gitbook/assets/openapi.yaml" path="/v1alpha/plugins" method="get" expanded="true" %}
+[openapi.yaml](../../.gitbook/assets/openapi.yaml)
+{% endswagger %}
+
+{% swagger src="../../.gitbook/assets/openapi.yaml" path="/v1alpha/plugins/{pluginId}" method="post" expanded="true" %}
+[openapi.yaml](../../.gitbook/assets/openapi.yaml)
+{% endswagger %}
+
+{% swagger src="../../.gitbook/assets/openapi.yaml" path="/v1alpha/plugins/{pluginId}/payload-json-schema" method="get" expanded="true" %}
+[openapi.yaml](../../.gitbook/assets/openapi.yaml)
+{% endswagger %}
+
 {% swagger src="../../.gitbook/assets/openapi.yaml" path="/v1alpha/processing-platforms" method="get" expanded="true" %}
 [openapi.yaml](../../.gitbook/assets/openapi.yaml)
 {% endswagger %}

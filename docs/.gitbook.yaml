@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.33
+    version: 1.0.0-alpha.34
 paths:
     /data-policies:
         get:
@@ -409,6 +409,80 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /v1alpha/plugins:
+        get:
+            tags:
+                - PluginsService
+            operationId: PluginsService_ListPlugins
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListPluginsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1alpha/plugins/{pluginId}:
+        post:
+            tags:
+                - PluginsService
+            operationId: PluginsService_InvokePlugin
+            parameters:
+                - name: pluginId
+                  in: path
+                  description: The identifier of the plugin to invoke. If only one implementation of the plugin type exists, that will be invoked implicitly.
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/InvokePluginRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/InvokePluginResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1alpha/plugins/{pluginId}/payload-json-schema:
+        get:
+            tags:
+                - PluginsService
+            operationId: PluginsService_GetPayloadJSONSchema
+            parameters:
+                - name: pluginId
+                  in: path
+                  description: The identifier of the plugin to get the payload json schema for
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetPayloadJSONSchemaResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /v1alpha/processing-platforms:
         get:
             tags:
@@ -661,6 +735,17 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/DataPolicy_RuleSet'
+        DataPolicyGeneratorParameters:
+            type: object
+            properties:
+                payload:
+                    type: string
+                    description: The (base64 encoded) version of the JSON representation of the payload that is required for this plugin
+        DataPolicyGeneratorResult:
+            type: object
+            properties:
+                dataPolicy:
+                    $ref: '#/components/schemas/DataPolicy'
         DataPolicy_Field:
             type: object
             properties:
@@ -916,6 +1001,12 @@ components:
             properties:
                 transform:
                     $ref: '#/components/schemas/GlobalTransform'
+        GetPayloadJSONSchemaResponse:
+            type: object
+            properties:
+                schema:
+                    type: string
+                    description: The payload json schema for the plugin
         GlobalTransform:
             type: object
             properties:
@@ -947,6 +1038,19 @@ components:
                     description: The type of the serialized message.
             additionalProperties: true
             description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        InvokePluginRequest:
+            type: object
+            properties:
+                pluginId:
+                    type: string
+                    description: The identifier of the plugin to invoke. If only one implementation of the plugin type exists, that will be invoked implicitly.
+                dataPolicyGeneratorParameters:
+                    $ref: '#/components/schemas/DataPolicyGeneratorParameters'
+        InvokePluginResponse:
+            type: object
+            properties:
+                dataPolicyGeneratorResult:
+                    $ref: '#/components/schemas/DataPolicyGeneratorResult'
         ListCatalogsResponse:
             type: object
             properties:
@@ -982,6 +1086,13 @@ components:
                     type: array
                     items:
                         type: string
+        ListPluginsResponse:
+            type: object
+            properties:
+                plugins:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Plugin'
         ListProcessingPlatformsResponse:
             type: object
             properties:
@@ -1027,6 +1138,22 @@ components:
                     type: integer
                     description: The precision to use for rounding. When positive, the value is rounded to the nearest decimal place. When negative, the value is rounded to the nearest power of 10.
                     format: int32
+        Plugin:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The unique identifier for this plugin
+                implementation:
+                    type: string
+                    description: The canonical class name of the implementation of this plugin
+                pluginType:
+                    enum:
+                        - PLUGIN_TYPE_UNSPECIFIED
+                        - DATA_POLICY_GENERATOR
+                    type: string
+                    description: The type / category of this plugin
+                    format: enum
         RetentionFilter_Condition:
             type: object
             properties:
@@ -1182,4 +1309,5 @@ tags:
       description: |-
         TODO HTTP paths should be defined
          TODO add validations
+    - name: PluginsService
     - name: ProcessingPlatformsService
