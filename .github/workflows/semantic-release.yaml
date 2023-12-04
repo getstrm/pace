@@ -13,7 +13,7 @@ jobs:
   semantic-release:
     name: Release
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'chore(release)')"
+    if: "!contains(github.event.head_commit.message, 'chore(release)') && !contains(github.event.head_commit.message, 'chore(deps)')"
     # based on: https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers#running-jobs-directly-on-the-runner-machine
     services:
       postgres:
