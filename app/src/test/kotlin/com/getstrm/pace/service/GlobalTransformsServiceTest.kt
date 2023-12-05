@@ -23,7 +23,7 @@ class GlobalTransformsServiceTest {
 
     @BeforeEach
     fun setUp() {
-        underTest = GlobalTransformsService(AppConfiguration("_view"), globalTransformsDao)
+        underTest = GlobalTransformsService(AppConfiguration(defaultViewSuffix = "_view"), globalTransformsDao)
     }
 
     @Test
