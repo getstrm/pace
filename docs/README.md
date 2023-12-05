@@ -39,5 +39,5 @@ PACE currently [supports](integrations-and-reference/integrations/) Collibra, Da
 
 To install and use PACE, you need:
 
-* The [PACE app ](https://github.com/getstrm/pace)(as Spring Boot app or Docker image)
+* The [PACE app ](https://github.com/getstrm/pace) (as Spring Boot app or Docker image)
 * The PACE [CLI](https://github.com/getstrm/cli) to interact with your deployment
