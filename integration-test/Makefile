@@ -115,7 +115,7 @@ launch-pace: app.jar
 	@ nc -z localhost 5433
 	@ echo checking that port 50051 is free
 	@ ! nc -z localhost 50051
-	@ java -jar app.jar > pace.log& echo $$! > $@
+	@ java -jar app.jar -Dapp.expose-application-exceptions=true > pace.log& echo $$! > $@
 	@ echo launched local pace app.jar and stored pid $$(cat $@) in $@
 	@ ./wait-for-port.sh
 	@ echo port 50051 is open

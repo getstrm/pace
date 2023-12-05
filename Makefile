@@ -1,5 +1,5 @@
 .PHONY: clean-common-protos, buf-create-descriptor-binpb, run-rest-proxy, run-docker-local \
-    json-schema
+    json-schema integration-test
 
 SHELL := /bin/bash
 

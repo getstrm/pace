@@ -21,3 +21,4 @@ logging:
 
 app:
   default-view-suffix: "_pace_view"
+  expose-application-exceptions: false

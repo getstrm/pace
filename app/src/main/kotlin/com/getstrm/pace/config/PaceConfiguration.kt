@@ -9,9 +9,11 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @ConfigurationPropertiesScan("com.getstrm.pace.config")
-class PaceConfiguration {
+class PaceConfiguration(
+    private val appConfiguration: AppConfiguration,
+) {
     @GrpcGlobalServerInterceptor
-    fun exceptionInterceptor() = ExceptionHandlerInterceptor(false)
+    fun exceptionInterceptor() = ExceptionHandlerInterceptor(appConfiguration.exposeApplicationExceptions)
 
     @GrpcGlobalServerInterceptor
     fun validationInterceptor() = ValidationInterceptor()
