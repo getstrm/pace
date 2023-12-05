@@ -54,14 +54,12 @@ rule_sets:
       - field:
           name_parts: [ email ]
         transforms:
-          - principals: [ { group: administrator } ]
+          - principals: [ { group: fraud_and_risk }, { group: administrator } ]
             identity: { }
           - principals: [ { group: marketing } ]
             regexp:
               regexp: "^.*(@.*)$"
               replacement: "****$1"
-          - principals: [ { group: fraud_and_risk } ]
-            identity: { }
           - principals: [ ]
             fixed:
               value: "****"
