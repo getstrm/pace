@@ -6,7 +6,6 @@ SHELL = /bin/bash
 # we don't check for the os type (Darwin for instance) because only github actions will use
 # this local `pace` cli.
 export PATH := .:${PATH}
-CLI_URL          = https://github.com/getstrm/cli/releases/latest/download/pace_linux_amd64.tar.gz
 
 PSQL             = PGPASSFILE=pgpass psql -h localhost -q
 PP               = standalone-sample-connection # the processing platform
@@ -103,7 +102,7 @@ kill-pace:
 
 pace:
 	@ echo downloading latest pace cli release
-	@ curl --silent -L -o - ${CLI_URL} | tar xz > $@ && chmod +x $@
+	@ ./download-cli.sh
 	@ echo pace version: $$(pace version)
 
 app.jar:
