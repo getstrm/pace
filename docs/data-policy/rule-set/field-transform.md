@@ -173,8 +173,8 @@ sql_statement:
 {% endtabs %}
 
 | before    | after   |
-| --------- | ------- |
-| `Macbook` | `Apple` |
+|-----------|---------|
+| `MacBook` | `Apple` |
 | `Lenovo`  | `Other` |
 | `HP`      | `Other` |
 | `Acer`    | `Other` |
@@ -537,7 +537,7 @@ Below you will find raw data and sample outputs for different (sets of) principa
 
 {% tabs %}
 {% tab title="RAW Data" %}
-<table data-full-width="true"><thead><tr><th>userId</th><th>card_number</th><th>email</th><th data-type="number">age</th><th>brand</th></tr></thead><tbody><tr><td>123</td><td>TOKEN_123</td><td>alice@store.com</td><td>33</td><td>Macbook</td></tr><tr><td>456</td><td>TOKEN_456</td><td>bob@company.com</td><td>26</td><td>Lenovo</td></tr><tr><td>789</td><td>TOKEN_789</td><td>carol@domain.com</td><td>11</td><td>HP</td></tr></tbody></table>
+<table data-full-width="true"><thead><tr><th>userId</th><th>card_number</th><th>email</th><th data-type="number">age</th><th>brand</th></tr></thead><tbody><tr><td>123</td><td>TOKEN_123</td><td>alice@store.com</td><td>33</td><td>MacBook</td></tr><tr><td>456</td><td>TOKEN_456</td><td>bob@company.com</td><td>26</td><td>Lenovo</td></tr><tr><td>789</td><td>TOKEN_789</td><td>carol@domain.com</td><td>11</td><td>HP</td></tr></tbody></table>
 {% endtab %}
 
 {% tab title="my_schema.token_table" %}

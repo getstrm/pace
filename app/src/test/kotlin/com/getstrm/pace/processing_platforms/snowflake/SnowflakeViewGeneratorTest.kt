@@ -238,7 +238,7 @@ select
   end email,
   age,
   size,
-  case when brand = 'Macbook' then 'Apple' else 'Other' end brand,
+  case when brand = 'MacBook' then 'Apple' else 'Other' end brand,
   transactionAmount,
   null items,
   itemCount,
@@ -336,7 +336,7 @@ grant SELECT on my_database.my_schema.gddemo_public to ADMIN;"""
           transforms:
             - principals: []
               sql_statement:
-                statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
+                statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
       filters:
         - generic_filter:
             field:

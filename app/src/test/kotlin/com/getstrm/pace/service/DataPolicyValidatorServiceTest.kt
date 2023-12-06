@@ -61,7 +61,7 @@ rule_sets:
       transforms:
         - principals: []
           sql_statement:
-            statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
+            statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
   filters:
     - generic_filter:
         field:
@@ -141,7 +141,7 @@ rule_sets:
       transforms:
         - principals: []
           sql_statement:
-            statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
+            statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
   filters:
     - field:
         name_parts: [ age ]
@@ -228,7 +228,7 @@ rule_sets:
       transforms:
         - principals: []
           sql_statement:
-            statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
+            statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
   filters:
     - field:
         name_parts: [ age ]
@@ -313,7 +313,7 @@ rule_sets:
       transforms:
         - principals: []
           sql_statement:
-            statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
+            statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
   filters:
     - field:
         name_parts: [ age ]
@@ -395,7 +395,7 @@ rule_sets:
       transforms:
         - principals: []
           sql_statement:
-            statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
+            statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
   filters:
     - generic_filter:
         field:

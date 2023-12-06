@@ -216,30 +216,30 @@ class DataPolicyEvaluationServiceTest {
                 identity: { }
               - principals: [ ]
                 sql_statement:
-                  statement: "CASE WHEN brand = 'Macbook' THEN 'Apple' ELSE 'Other' END"
+                  statement: "CASE WHEN brand = 'MacBook' THEN 'Apple' ELSE 'Other' END"
         """.toProto<DataPolicy>()
 
         private val csvInput = """
         transactionid,userid,email,age,transactionamount,brand
         861200791,533445,jeffreypowell@hotmail.com,33,123,Lenovo
-        733970993,468355,forbeserik@gmail.com,16,46,Macbook
+        733970993,468355,forbeserik@gmail.com,16,46,MacBook
         494723158,553892,wboone@gmail.com,64,73,Lenovo
         208276802,774142,oliverjulie@yahoo.com,12,16,Lenovo
-        699389675,267574,debra64@hotmail.com,79,186,Macbook
+        699389675,267574,debra64@hotmail.com,79,186,MacBook
         174740434,844701,blewis@yahoo.com,44,232,HP
         970093468,839306,smartin@yahoo.com,32,130,Lenovo
         517552942,257977,tmaynard@hotmail.com,82,259,Lenovo
         537925988,517692,vrice@yahoo.com,23,134,Lenovo
-        132876492,460057,robertflowers@hotmail.com,8,186,Macbook
+        132876492,460057,robertflowers@hotmail.com,8,186,MacBook
         560312781,423577,danielle87@hotmail.com,94,162,Lenovo
         961847769,573171,tfleming@hotmail.com,21,46,Acer
         423973835,722699,obennett@hotmail.com,66,179,Lenovo
         719567603,403972,goodmangail@hotmail.com,86,29,HP
         298794071,160160,twalker@yahoo.com,69,56,Lenovo
-        739934738,657878,heathercollins@yahoo.com,33,226,Macbook
+        739934738,657878,heathercollins@yahoo.com,33,226,MacBook
         741524747,213949,omartin@yahoo.com,55,92,Acer
         473108992,779506,kennethreid@yahoo.com,55,196,HP
-        601886496,393471,kthompson@gmail.com,42,190,Macbook
+        601886496,393471,kthompson@gmail.com,42,190,MacBook
         270057253,285843,lyonsluis@hotmail.com,7,12,HP
         458977536,740948,stevencarr@yahoo.com,75,65,Acer
         800416138,883485,allenrobert@gmail.com,15,77,Lenovo
@@ -256,24 +256,24 @@ class DataPolicyEvaluationServiceTest {
         private val administratorResult = """
         transactionid,userid,email,age,brand,transactionamount
         861200791,533445,jeffreypowell@hotmail.com,33,Lenovo,123
-        733970993,468355,forbeserik@gmail.com,16,Macbook,46
+        733970993,468355,forbeserik@gmail.com,16,MacBook,46
         494723158,553892,wboone@gmail.com,64,Lenovo,73
         208276802,774142,oliverjulie@yahoo.com,12,Lenovo,16
-        699389675,267574,debra64@hotmail.com,79,Macbook,186
+        699389675,267574,debra64@hotmail.com,79,MacBook,186
         174740434,844701,blewis@yahoo.com,44,HP,232
         970093468,839306,smartin@yahoo.com,32,Lenovo,130
         517552942,257977,tmaynard@hotmail.com,82,Lenovo,259
         537925988,517692,vrice@yahoo.com,23,Lenovo,134
-        132876492,460057,robertflowers@hotmail.com,8,Macbook,186
+        132876492,460057,robertflowers@hotmail.com,8,MacBook,186
         560312781,423577,danielle87@hotmail.com,94,Lenovo,162
         961847769,573171,tfleming@hotmail.com,21,Acer,46
         423973835,722699,obennett@hotmail.com,66,Lenovo,179
         719567603,403972,goodmangail@hotmail.com,86,HP,29
         298794071,160160,twalker@yahoo.com,69,Lenovo,56
-        739934738,657878,heathercollins@yahoo.com,33,Macbook,226
+        739934738,657878,heathercollins@yahoo.com,33,MacBook,226
         741524747,213949,omartin@yahoo.com,55,Acer,92
         473108992,779506,kennethreid@yahoo.com,55,HP,196
-        601886496,393471,kthompson@gmail.com,42,Macbook,190
+        601886496,393471,kthompson@gmail.com,42,MacBook,190
         270057253,285843,lyonsluis@hotmail.com,7,HP,12
         458977536,740948,stevencarr@yahoo.com,75,Acer,65
         800416138,883485,allenrobert@gmail.com,15,Lenovo,77

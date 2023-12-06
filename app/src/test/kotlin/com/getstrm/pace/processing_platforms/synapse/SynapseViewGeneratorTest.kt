@@ -319,7 +319,7 @@ select
   end email,
   age,
   size,
-  case when brand = 'Macbook' then 'Apple' else 'Other' end brand,
+  case when brand = 'MacBook' then 'Apple' else 'Other' end brand,
   transactionAmount,
   null items,
   itemCount,
@@ -400,7 +400,7 @@ select
   end email,
   age,
   size,
-  case when brand = 'Macbook' then 'Apple' else 'Other' end brand,
+  case when brand = 'MacBook' then 'Apple' else 'Other' end brand,
   transactionAmount,
   null items,
   itemCount,
@@ -545,7 +545,7 @@ from my_schema.gddemo;"""
               transforms:
                 - principals: []
                   sql_statement:
-                    statement: "case when brand = 'Macbook' then 'Apple' else 'Other' end"
+                    statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
           filters:
             - generic_filter:
                 conditions:

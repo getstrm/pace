@@ -189,7 +189,7 @@ standalone=# select * from public.demo limit 3;
  transactionid | userid |           email           | age |  brand  | transactionamount
 ---------------+--------+---------------------------+-----+---------+-------------------
      861200791 | 533445 | jeffreypowell@hotmail.com |  33 | Lenovo  |               123
-     733970993 | 468355 | forbeserik@gmail.com      |  16 | Macbook |                46
+     733970993 | 468355 | forbeserik@gmail.com      |  16 | MacBook |                46
      494723158 | 553892 | wboone@gmail.com          |  64 | Lenovo  |                73
 (3 rows)
 ```
@@ -388,7 +388,7 @@ standalone=> select * from public.demo_view limit 3;
  transactionid | userid |           email           | age |  brand  | transactionamount
 ---------------+--------+---------------------------+-----+---------+-------------------
      861200791 | 533445 | jeffreypowell@hotmail.com |  33 | Lenovo  |               123
-     733970993 | 468355 | forbeserik@gmail.com      |  16 | Macbook |                46
+     733970993 | 468355 | forbeserik@gmail.com      |  16 | MacBook |                46
      494723158 | 553892 | wboone@gmail.com          |  64 | Lenovo  |                73
 (3 rows)
 ```

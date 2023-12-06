@@ -72,4 +72,4 @@ rule_sets:
             identity: { }
           - principals: [ ]
             sql_statement:
-              statement: "CASE WHEN brand = 'Macbook' THEN 'Apple' ELSE 'Other' END"
+              statement: "CASE WHEN brand = 'MacBook' THEN 'Apple' ELSE 'Other' END"
