@@ -124,7 +124,7 @@ class DatabricksTable(
         val response = databricksClient.executeStatement(statement)
         return when (response.status.state) {
             StatementState.SUCCEEDED -> {
-                return response.result.dataArray.map { it.toList()}
+                return response.result.dataArray.orEmpty().map { it.toList() }
                     .groupBy {it[0]}
                     .mapValues { tags -> tags.value.map {it[1]} }
             }
