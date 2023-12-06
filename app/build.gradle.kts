@@ -59,6 +59,8 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.h2database:h2")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    // TODO Remove once this bug is fixed: https://github.com/Kotlin/kotlinx.coroutines/issues/3958
+    runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
     // Self-managed dependencies
     implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")

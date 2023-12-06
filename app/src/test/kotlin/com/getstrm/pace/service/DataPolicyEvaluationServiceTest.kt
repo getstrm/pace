@@ -138,7 +138,7 @@ class DataPolicyEvaluationServiceTest {
             cause should beInstanceOf<JdbcSQLSyntaxErrorException>()
             debugInfo.detail shouldBe "Error while evaluating data policy. If caused by platform-specific statements, please test the data policy on the platform itself. Details: Function \"some_unknown_function\" not found"
             message shouldBe "org.h2.jdbc.JdbcSQLSyntaxErrorException: Function \"some_unknown_function\" not found; SQL statement:\n" +
-                "select some_unknown_function(transactionid) \"transactionid\" from input [90022-214]"
+                "select some_unknown_function(transactionid) \"transactionid\" from input [90022-224]"
         }
     }
 

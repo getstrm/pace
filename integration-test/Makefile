@@ -6,7 +6,6 @@ SHELL = /bin/bash
 # we don't check for the os type (Darwin for instance) because only github actions will use
 # this local `pace` cli.
 export PATH := .:${PATH}
-CLI_URL          = https://github.com/getstrm/cli/releases/latest/download/pace_linux_amd64.tar.gz
 
 PSQL             = PGPASSFILE=pgpass psql -h localhost -q
 PP               = standalone-sample-connection # the processing platform
@@ -103,7 +102,7 @@ kill-pace:
 
 pace:
 	@ echo downloading latest pace cli release
-	@ curl --silent -L -o - ${CLI_URL} | tar xz > $@ && chmod +x $@
+	@ ./download-cli.sh
 	@ echo pace version: $$(pace version)
 
 app.jar:
@@ -116,7 +115,7 @@ launch-pace: app.jar
 	@ nc -z localhost 5433
 	@ echo checking that port 50051 is free
 	@ ! nc -z localhost 50051
-	@ java -jar app.jar > pace.log& echo $$! > $@
+	@ java -jar app.jar -Dapp.expose-application-exceptions=true > pace.log& echo $$! > $@
 	@ echo launched local pace app.jar and stored pid $$(cat $@) in $@
 	@ ./wait-for-port.sh
 	@ echo port 50051 is open
@@ -127,6 +126,8 @@ clean:
 	@ rm -f *.csv
 	@ rm -f load-db-data pace
 	@ rm -f awk cut
+	@ rm -f app.jar
+	@ rm -f pace.log
 	@ ${PSQL} -U pace -c 'truncate table data_policies' -S -p 5433 pace 2> /dev/null || true
 	@ ${PSQL} -U standalone -c "drop view if exists ${VIEW}" ${STANDALONE_FLAGS} 2> /dev/null
 	@ ${PSQL} -U standalone -c "drop table if exists ${REF}" ${STANDALONE_FLAGS} 2> /dev/null

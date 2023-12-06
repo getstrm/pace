@@ -1,5 +1,5 @@
 .PHONY: clean-common-protos, buf-create-descriptor-binpb, run-rest-proxy, run-docker-local \
-    json-schema
+    json-schema integration-test
 
 SHELL := /bin/bash
 
@@ -39,3 +39,7 @@ copy-json-schema-to-resources: json-schema
 	@ find app/src/main/resources/jsonschema -type d -maxdepth 1 -mindepth 1 | xargs -I{} rm -rf {}
 	@ mkdir -p app/src/main/resources/jsonschema
 	@ cp -r protos/json-schema/* app/src/main/resources/jsonschema
+
+integration-test:
+	@ chmod go-rw integration-test/pgpass
+	@ make -C integration-test clean pace all

@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "app")
 data class AppConfiguration(
+    val exposeApplicationExceptions: Boolean = false,
     val defaultViewSuffix: String = "",
     val catalogs: List<CatalogConfiguration> = emptyList(),
 )
