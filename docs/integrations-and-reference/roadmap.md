@@ -9,7 +9,7 @@ description: >-
 
 **Integrations**
 
-* Fabric as data platform to support Azure
+* Synapse and Fabric as data platform to support Azure, Redshift for AWS.
 * JDBC supported platforms and databases
 * PowerBI, Looker
 * Data.world, Atlan as catalogs
@@ -21,8 +21,10 @@ description: >-
 * Using data contract standards to define Pace rulesets (like SodaCL)
 * A way to (re-)use dbt transforms
 * Hotword/deny lists for filtering
-* Mapping and grouping for user groups and and values
+* Mapping and grouping for user groups and values
 * Policy versioning and schema change detection&#x20;
+
+
 
 **Governance and compliance**
 

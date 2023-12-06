@@ -6,12 +6,12 @@ description: Welcome to the PACE docs!
 
 **About PACE**
 
-PACE is the **P**olicy **A**nd **C**ontract **E**ngine. It helps you to programmatically create and apply a data policy to a processing platform (like Databricks, Snowflake, BigQuery or Synapse). Through a data contract, you can apply filters, field transforms and access settings to create a view inside a data platform.
+PACE is the **P**olicy **A**s **C**ode **E**ngine. It helps you to programmatically create and apply a data policy to a processing platform (like Databricks, Snowflake or BigQuery). Through a data contract, you can apply filters, field transforms and access settings to create a view inside a data platform.
 
 _`Data policy IN, dynamic view OUT`_ is the easiest way to describe it.
 
 {% hint style="info" %}
-PACE is currently in closed alpha. [Request access!](https://pace-alpha.framer.ai/)&#x20;
+PACE is currently in closed alpha. [Request access!](https://pace-alpha.framer.ai/)
 {% endhint %}
 
 **ProblemsPACE**
@@ -27,17 +27,17 @@ If (one of) these sound familiar and you are using one of the currently supporte
 
 **Positioning**
 
-Once installed, PACE sits between your data definitions (often a [catalog](cli-docs/pace\_list\_catalogs.md)) and [processing platform](cli-docs/pace\_list\_processing-platforms.md):
+Once installed, PACE sits on top of or between your data definitions (often a [catalog](cli-docs/pace\_list\_catalogs.md)) and [processing platform](cli-docs/pace\_list\_processing-platforms.md):
 
 <figure><img src=".gitbook/assets/PACE-process-2.0@2x+interlace (1).png" alt=""><figcaption></figcaption></figure>
 
 **Supported platforms**
 
-PACE currently [supports](integrations-and-reference/integrations/) Collibra, Datahub and Open Data Discovery on the catalog side, connecting to Snowflake, Databricks, Google BigQuery and PostgreSQL for creating your dynamic views.
+PACE currently [supports](integrations-and-reference/integrations/) Collibra, Datahub and Open Data Discovery on the catalog side, connecting to Snowflake, Databricks, Synapse, Google BigQuery and PostgreSQL for creating your dynamic views.
 
 **Let's go**
 
 To install and use PACE, you need:
 
-* The [PACE app ](https://github.com/getstrm/pace) (as Spring Boot app or Docker image)
+* The [PACE app ](https://github.com/getstrm/pace)(as Spring Boot app or Docker image)
 * The PACE [CLI](https://github.com/getstrm/cli) to interact with your deployment
