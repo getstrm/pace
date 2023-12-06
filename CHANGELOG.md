@@ -1,3 +1,10 @@
+# [1.0.0-alpha.35](https://github.com/getstrm/pace/compare/v1.0.0-alpha.34...v1.0.0-alpha.35) (2023-12-06)
+
+
+### Bug Fixes
+
+* **databricks:** handle case when no tags are set on a table ([de18c3e](https://github.com/getstrm/pace/commit/de18c3e52d21b41ffc987961f071307e0aac8fda))
+
 # [1.0.0-alpha.34](https://github.com/getstrm/pace/compare/v1.0.0-alpha.33...v1.0.0-alpha.34) (2023-12-04)
 
 
