@@ -1,4 +1,4 @@
-# Policy And Contract Engine APIs
+# Policy As Code Engine APIs
 
 Common entities can be found in the `entities` package, and other packages should be considered services.
 

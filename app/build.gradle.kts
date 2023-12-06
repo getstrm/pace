@@ -151,7 +151,7 @@ tasks.named<BootJar>("bootJar") {
     mainClass = "com.getstrm.pace.PaceApplicationKt"
     archiveFileName = "app.jar"
     manifest {
-        attributes["Implementation-Title"] = "Policy and Contract Engine"
+        attributes["Implementation-Title"] = "Policy As Code Engine"
 
         attributes["Implementation-Version"] = if (project.version.toString().endsWith("-SNAPSHOT")) {
             "${project.version} (built at $buildTimestamp)"
