@@ -126,6 +126,8 @@ clean:
 	@ rm -f *.csv
 	@ rm -f load-db-data pace
 	@ rm -f awk cut
+	@ rm -f app.jar
+	@ rm -f pace.log
 	@ ${PSQL} -U pace -c 'truncate table data_policies' -S -p 5433 pace 2> /dev/null || true
 	@ ${PSQL} -U standalone -c "drop view if exists ${VIEW}" ${STANDALONE_FLAGS} 2> /dev/null
 	@ ${PSQL} -U standalone -c "drop table if exists ${REF}" ${STANDALONE_FLAGS} 2> /dev/null
