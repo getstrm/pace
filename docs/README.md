@@ -10,10 +10,6 @@ PACE is the **P**olicy **A**s **C**ode **E**ngine. It helps you to programmatica
 
 _`Data policy IN, dynamic view OUT`_ is the easiest way to describe it.
 
-{% hint style="info" %}
-PACE is currently in closed alpha. [Request access!](https://pace-alpha.framer.ai/)
-{% endhint %}
-
 **ProblemsPACE**
 
 PACE is designed to remove friction and cost from using data in real-world organizational settings. In other words: define and implement a policy to "just build" with data, instead of jumping through hoop after hoop.
