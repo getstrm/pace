@@ -57,7 +57,7 @@ Since PostgreSQL has no "native" support for tags on columns, we've come up with
 
 The compose file defines three services:
 
-* **pace\_app** with [ports](https://github.com/getstrm/pace/blob/standalone/examples/standalone/docker-compose.yaml#L42) for all different interfaces exposed to the host:
+* **pace\_app** with [ports](../../examples/global-tag-transforms/docker-compose.yaml) for all different interfaces exposed to the host:
   * `8080` -> Spring Boot Actuator.
   * `9090` -> Envoy JSON / gRPC REST Transcoding proxy.
   * `50051` -> gRPC.
@@ -74,7 +74,7 @@ The compose file defines three services:
 
 The PostgreSQL initialization SQL script that is run on startup for the `postgres_processing_platform` container. The database is configured to use the `public` schema (the default), with the following data:
 
-* A table called `public.demo`, for the data schema, please see the [file contents](https://github.com/getstrm/pace/blob/standalone/examples/standalone/data.sql).
+* A table called `public.demo`, for the data schema, please see the [file contents](../../examples/global-tag-transforms/data.sql).
 * A comment on the `email` field of the `public.demo` table, that includes the tag `pace::pii-email`.
 
 </details>
@@ -354,4 +354,4 @@ That wraps up the global transforms example. To clean up all resources, run the 
 docker compose down
 ```
 
-Any questions or comments? Please ask them on [Slack](https://join.slack.com/t/pace-getstrm/shared_invite/zt-27egzg7ye-iGANVdQZO6ov6ZMVzmsA4Q).
+Any questions or comments? Please ask them on [Slack](https://join.slack.com/t/pace-getstrm/shared\_invite/zt-27egzg7ye-iGANVdQZO6ov6ZMVzmsA4Q).
