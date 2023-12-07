@@ -1,8 +1,8 @@
 <p align="center" style="margin-top: 250px">
   <a href="https://github.com/getstrm/pace">
    <img src="./assets/svg/pace-logo-orange-filled.svg" alt="Logo">
-   <img src="./assets/svg/pace-logo-black.svg" alt="Logo">
-   <img src="./assets/svg/pace-logo-orange-outline.svg" alt="Logo">
+<!--    <img src="./assets/svg/pace-logo-black.svg" alt="Logo">
+   <img src="./assets/svg/pace-logo-orange-outline.svg" alt="Logo"> -->
   </a>
 
 <h3 align="center">PACE &#8212; Policy As Code Engine</h3>
@@ -90,8 +90,7 @@ To install and use PACE, you need:
 
 ## Learn more
 
-Head over to the [docs](https://pace.getstrm.com/docs/readme/quickstart) for more info and reach out to
-the [STRM](https://getstrm.com) team for more info and/or to test and implement PACE together.
+Head over to the [docs](https://pace.getstrm.com/docs/readme/quickstart) for more info, [join on Slack](https://join.slack.com/t/pace-getstrm/shared_invite/zt-27egzg7ye-iGANVdQZO6ov6ZMVzmsA4Q) to discuss or reach out to the [STRM](https://getstrm.com/contact) team for more info and/or to test and implement PACE together.
 
 ## Deep dive
 
