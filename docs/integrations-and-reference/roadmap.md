@@ -9,22 +9,20 @@ description: >-
 
 **Integrations**
 
-* Synapse and Fabric as data platform to support Azure, Redshift for AWS.
+* ~~Synapse and~~ Fabric as data platform to support Azure, Redshift for AWS.
 * JDBC supported platforms and databases
-* PowerBI, Looker
+* PowerBI, Looker to match table permissions and presentation to downstream reporting
 * Data.world, Atlan as catalogs
 
 **PACE Engine**
 
-* Dryrun API, to simulate and how policies play out pre-apply
-* A simpler way to define UDF's as transforms
+* ~~Dryrun API, to simulate and how policies play out pre-apply~~
+* ~~A simpler way to define UDF's as transforms~~
 * Using data contract standards to define Pace rulesets (like SodaCL)
 * A way to (re-)use dbt transforms
 * Hotword/deny lists for filtering
 * Mapping and grouping for user groups and values
 * Policy versioning and schema change detection&#x20;
-
-
 
 **Governance and compliance**
 
