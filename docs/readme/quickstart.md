@@ -16,7 +16,7 @@ The goal of this tutorial is to run the standalone example, create a Data Policy
 The source of the standalone example can be found in the [GitHub repository](https://github.com/getstrm/pace/tree/standalone/examples/standalone).
 
 {% hint style="info" %}
-Make sure you have everything setup according to the [GitHub authentication](github-authentication.md) and [installation](../getting-started/installation.md) steps.
+Make sure you have everything setup according to the [GitHub authentication](broken-reference) and [installation](../getting-started/installation.md) steps.
 {% endhint %}
 
 ## Prerequisites
@@ -483,6 +483,6 @@ That wraps up the standalone example. To clean up all resources, run the followi
 docker compose down
 ```
 
-Any questions or comments? Please ask them on [Slack](https://join.slack.com/t/pace-getstrm/shared_invite/zt-27egzg7ye-iGANVdQZO6ov6ZMVzmsA4Q).
+Any questions or comments? Please ask them on [Slack](https://join.slack.com/t/pace-getstrm/shared\_invite/zt-27egzg7ye-iGANVdQZO6ov6ZMVzmsA4Q).
 
 [^1]: Configuration should be mounted under the container path `/app/config`, which will be automatically included by the Spring Boot application.

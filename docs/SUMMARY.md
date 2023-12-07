@@ -2,7 +2,6 @@
 
 * [Getting Started](README.md)
   * [Quickstart](readme/quickstart.md)
-  * [GitHub Authentication](readme/github-authentication.md)
   * [Installation](getting-started/installation.md)
   * [Connect a Processing Platform](getting-started/connect-a-processing-platform.md)
   * [Connect a Data Catalog](getting-started/connect-a-data-catalog.md)

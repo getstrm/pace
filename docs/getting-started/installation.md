@@ -20,7 +20,7 @@ Before you get started, make sure you've installed the following tools:
 The relative location of the files created in the rest of this document can be seen as titles in the respective code blocks.
 {% endhint %}
 
-Follow the steps in the [Github Authentication](../readme/github-authentication.md) docs to get access to the repo and the docker images.
+Follow the steps in the [Github Authentication](broken-reference) docs to get access to the repo and the docker images.
 
 #### Create a basic PACE configuration
 
@@ -39,7 +39,7 @@ spring:
 {% endcode %}
 
 {% hint style="info" %}
-If you're not familiar with JVM / Spring Boot applications, [`hikari`](https://github.com/brettwooldridge/HikariCP) is a widely adopted connection pooling library.&#x20;
+If you're not familiar with JVM / Spring Boot applications, [`hikari`](https://github.com/brettwooldridge/HikariCP) is a widely adopted connection pooling library.
 {% endhint %}
 
 #### Create a Docker Compose setup
@@ -47,7 +47,7 @@ If you're not familiar with JVM / Spring Boot applications, [`hikari`](https://g
 Create the following `docker-compose.yaml` in the parent directory of where you created `config/application.yaml`.
 
 {% hint style="info" %}
-Extra Spring Boot configuration is configured to be read from an**`/app/config`**volume. Be sure to add all relevant Spring Boot configuration files there. The below setup mounts the config dir to this volume.
+Extra Spring Boot configuration is configured to be read from an\*\*`/app/config`\*\*volume. Be sure to add all relevant Spring Boot configuration files there. The below setup mounts the config dir to this volume.
 {% endhint %}
 
 {% code title="docker-compose.yaml" lineNumbers="true" %}
@@ -95,7 +95,7 @@ volumes:
 
 #### Authenticate with the GitHub container registry (ghcr.io)
 
-If you are already logged in to ghcr.io with Docker, you can skip this step. If not, or if you get an _unauthorized_ exception during the next step, you most likely need to do follow the [github-authentication.md](../readme/github-authentication.md "mention") instructions.
+If you are already logged in to ghcr.io with Docker, you can skip this step. If not, or if you get an _unauthorized_ exception during the next step, you most likely need to do follow the [Broken link](broken-reference "mention") instructions.
 
 #### Start interacting with your PACE instance
 
