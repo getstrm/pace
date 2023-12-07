@@ -42,7 +42,7 @@
 > transforms, tag-based conditions and access settings to create a view inside a data platform. With Pace, you can enforce
 > policies to data to ensure that data is only used by those allowed and in the way it was intended to be used.
 
-Follow the [quickstart](https://pace.getstrm.com/docs/readme/quickstart) if you want to dive right in.
+Follow the [quickstart](https://pace.getstrm.com/docs/readme/quickstart) if you want to dive right in, [join on Slack](https://join.slack.com/t/pace-getstrm/shared_invite/zt-27egzg7ye-iGANVdQZO6ov6ZMVzmsA4Q) to discuss and use issues and PR's if you want to contribute or miss a feature!
 
 ## Motivation and problem
 
