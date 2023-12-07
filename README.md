@@ -140,3 +140,12 @@ team.
 > Want to learn more about how to facilitate this cooperation between various teams? Navigate
 > to https://pace.getstrm.com to see how we can help you!
 
+### Brand assets
+Looking for a visual of PACE to include somewhere (preferably the blog you're writing about that awesome PACE use case!)? Please use one of the variations of the PACE logo to match your brand style and include the link to this repo:
+<p align="center">
+  <a href="https://github.com/getstrm/pace">
+   <img src="./assets/svg/pace-logo-orange-filled.svg" alt="Logo">
+   <img src="./assets/svg/pace-logo-black.svg" alt="Logo">
+   <img src="./assets/svg/pace-logo-orange-outline.svg" alt="Logo">
+  </a>
+</p>
