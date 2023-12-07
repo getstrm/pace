@@ -440,4 +440,4 @@ That wraps up this detokenization tutorial. To clean up all resources, run the f
 docker compose down
 ```
 
-Any questions or comments? Please ask them on [GitHub discussions](https://github.com/getstrm/pace/discussions).
+Any questions or comments? Please ask them on [Slack](https://join.slack.com/t/pace-getstrm/shared_invite/zt-27egzg7ye-iGANVdQZO6ov6ZMVzmsA4Q).

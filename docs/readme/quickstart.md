@@ -483,6 +483,6 @@ That wraps up the standalone example. To clean up all resources, run the followi
 docker compose down
 ```
 
-Any questions or comments? Please ask them on [GitHub discussions](https://github.com/getstrm/pace/discussions).
+Any questions or comments? Please ask them on [Slack](https://join.slack.com/t/pace-getstrm/shared_invite/zt-27egzg7ye-iGANVdQZO6ov6ZMVzmsA4Q).
 
 [^1]: Configuration should be mounted under the container path `/app/config`, which will be automatically included by the Spring Boot application.

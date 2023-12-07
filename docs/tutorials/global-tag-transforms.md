@@ -354,4 +354,4 @@ That wraps up the global transforms example. To clean up all resources, run the 
 docker compose down
 ```
 
-Any questions or comments? Please ask them on [GitHub discussions](https://github.com/getstrm/pace/discussions).
+Any questions or comments? Please ask them on [Slack](https://join.slack.com/t/pace-getstrm/shared_invite/zt-27egzg7ye-iGANVdQZO6ov6ZMVzmsA4Q).
