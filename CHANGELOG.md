@@ -1,3 +1,10 @@
+# [1.0.0-alpha.36](https://github.com/getstrm/pace/compare/v1.0.0-alpha.35...v1.0.0-alpha.36) (2023-12-07)
+
+
+### Features
+
+* added brand assets as section ([a99e649](https://github.com/getstrm/pace/commit/a99e6499423aa22badf2728ad0adeaf805cdb1c9))
+
 # [1.0.0-alpha.35](https://github.com/getstrm/pace/compare/v1.0.0-alpha.34...v1.0.0-alpha.35) (2023-12-06)
 
 
