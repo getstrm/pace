@@ -13,7 +13,7 @@ This document helps you to set up a standalone example for PACE. This includes:
 
 The goal of this tutorial is to run the standalone example, create a Data Policy based on the data schema of the sample data table, and view the data as the different users that we will define.
 
-The source of the standalone example can be found in the [GitHub repository](https://github.com/getstrm/pace/tree/standalone/examples/standalone).
+The source of the standalone example can be found in the [GitHub repository](https://github.com/getstrm/pace/tree/alpha/examples/standalone/).
 
 {% hint style="info" %}
 Make sure you have everything setup according to the [GitHub authentication](broken-reference) and [installation](../getting-started/installation.md) steps.
@@ -50,7 +50,7 @@ standalone
 └── data-policy.yaml
 ```
 
-Grab the contents of the files from the [GitHub repository](https://github.com/getstrm/pace/tree/alpha/examples/standalone).
+Grab the contents of the files from the [GitHub repository](https://github.com/getstrm/pace/tree/standalone/examples/standalone).
 {% endtab %}
 {% endtabs %}
 
@@ -72,7 +72,7 @@ The compose file is set up without any persistence of data across different star
 
 The compose file contains three services, matching the introduction section of this document:
 
-* **pace\_app** with all [ports](https://github.com/getstrm/pace/blob/standalone/examples/standalone/docker-compose.yaml#L42) exposed to the host for all different interfaces (REST, gRPC, and directly to the [Spring Boot app](#user-content-fn-1)[^1]):
+* **pace\_app** with all [ports](https://github.com/getstrm/pace/blob/alpha/examples/standalone/docker-compose.yaml#L18) exposed to the host for all different interfaces (REST, gRPC, and directly to the [Spring Boot app](#user-content-fn-1)[^1]):
   * `8080` -> Spring Boot Actuator
   * `9090` -> Envoy JSON / gRPC Transcoding proxy
   * `50051` -> gRPC
@@ -89,7 +89,7 @@ The compose file contains three services, matching the introduction section of t
 
 The PostgreSQL initialization SQL script that is run on startup for the `postgres_processing_platform` container. The database is configured to use the `public` schema (the default), with the following data:
 
-* A table called `public.demo`, for the data schema, please see the [file contents](https://github.com/getstrm/pace/blob/standalone/examples/standalone/data.sql).
+* A table called `public.demo`, for the data schema, please see the [file contents](https://raw.githubusercontent.com/getstrm/pace/alpha/examples/standalone/data.sql).
 * Several users:
   * `standalone` (password = `standalone`) - this is the user we're using to connect PACE to PostgreSQL as a Processing Platform
   * `mark` (password = `mark`)
