@@ -42,7 +42,7 @@
 > transforms, tag-based conditions and access settings to create a view inside a data platform. With Pace, you can enforce
 > policies to data to ensure that data is only used by those allowed and in the way it was intended to be used.
 
-Follow the [quickstart](https://pace.getstrm.com/docs/readme/quickstart) if you want to dive right in, [join on Slack](https://join.slack.com/t/pace-getstrm/shared_invite/zt-27egzg7ye-iGANVdQZO6ov6ZMVzmsA4Q) to discuss and use issues and PR's if you want to contribute or miss a feature!
+Follow the [quickstart](https://pace.getstrm.com/docs/readme/quickstart) if you want to dive right in, [join on Slack](https://join.slack.com/t/pace-getstrm/shared_invite/zt-27egzg7ye-iGANVdQZO6ov6ZMVzmsA4Q) to discuss with us, and use issues and PR's if you want to contribute or miss a feature!
 
 ## Motivation and problem
 
@@ -72,11 +72,10 @@ Databricks, Google BigQuery, and PostgreSQL for creating your dynamic views.
 It's early for PACE (we're in alpha)|. The following policy methods (called a `rule set` in PACE) are currently
 available:
 
-- Field transforms, e.g. "replace everything before the @ in the column `email`, or "nullify the `phone number`".
-- Access definitions (called _Principals_): who can access this view?
+- Field transforms, e.g. "replace everything before the @ in the column `email`, or "nullify the `phone number`", including access definitions to differentiate between data consumers.
 - Filter conditions, e.g. "analysts in Greece can only see transaction from our Greek stores".
-- Tag-based rules, e.g. "do `something` if data is tagged `Greece`.
-- Global rulesets, e.g. "All data tagged `PII` should always be masked.
+- Tag-based rules, e.g. "do `something` if data is tagged `Greece`".
+- Global rulesets, e.g. "All data tagged `PII` should always be masked".
 
 These policy methods can be layered to create a powerful programmatic interface to define, implement, maintain and
 update policies. Create an issue if you think a valuable policy method is missing!
