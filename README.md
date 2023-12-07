@@ -69,13 +69,13 @@ Databricks, Google BigQuery, and PostgreSQL for creating your dynamic views.
 
 ## Supported policy methods
 
-It's early for PACE (we're in alpha)|. The following policy methods (called a `rule set` in PACE) are currently
-available:
+It's early for PACE (we're in alpha). The following policy methods are currently available,
+and when put together form "rule sets", the basis of data policies in PACE:
 
 - Field transforms, e.g. "replace everything before the @ in the column `email`, or "nullify the `phone number`", including access definitions to differentiate between data consumers.
 - Filter conditions, e.g. "analysts in Greece can only see transaction from our Greek stores".
 - Tag-based rules, e.g. "do `something` if data is tagged `Greece`".
-- Global rulesets, e.g. "All data tagged `PII` should always be masked".
+- Global rule sets, e.g. "All data tagged `PII` should always be masked".
 
 These policy methods can be layered to create a powerful programmatic interface to define, implement, maintain and
 update policies. Create an issue if you think a valuable policy method is missing!
