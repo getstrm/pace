@@ -27,8 +27,9 @@ static_resources:
                         - match:
                             prefix: "/"
                             headers:
-                              - name: content-type
-                                exact_match: application/grpc-web+proto
+                              - name: ":method"
+                                string_match:
+                                  exact: "OPTIONS"
                           route: { cluster: grpc, timeout: 60s }
                       typed_per_filter_config:
                         envoy.filters.http.cors:
