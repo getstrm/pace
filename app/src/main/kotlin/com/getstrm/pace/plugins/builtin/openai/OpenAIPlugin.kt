@@ -131,7 +131,7 @@ class OpenAIPlugin(
                 role = ChatRole.System,
                 content = """
                     You are presented with a DDL query of SQL table. Your task is to generate sample data, using the column names and types.
-                    Only respond with data, presented as CSV. Do not include any formatting. Ensure to properly double quote each field in the CSV.
+                    Only respond with data, presented as CSV. Do not include any formatting. Ensure to properly double quote each field in the CSV. Always include the header with the column names.
                     
                     Additional instructions:
                     

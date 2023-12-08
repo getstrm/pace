@@ -1,19 +1,16 @@
 package com.getstrm.pace.service
 
-import build.buf.gen.getstrm.pace.api.plugins.v1alpha.Action
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.DataPolicyGenerator
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.InvokePluginRequest
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.InvokePluginResponse
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.SampleDataGenerator
 import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PreconditionFailedException
 import com.getstrm.pace.plugins.GenerateDataPolicyAction
 import com.getstrm.pace.plugins.GenerateSampleDataAction
 import com.getstrm.pace.plugins.Plugin
 import com.getstrm.pace.plugins.PluginAction
 import com.google.rpc.BadRequest
-import com.google.rpc.DebugInfo
 import com.google.rpc.PreconditionFailure
 import org.springframework.stereotype.Component
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.Action as ApiAction
@@ -53,6 +50,7 @@ class PluginsService(plugins: List<Plugin>) {
                     DataPolicyGenerator.Result.newBuilder().setDataPolicy(dataPolicy)
                 )
             }
+
             is GenerateSampleDataAction -> {
                 val sampleData = action.invoke(request.sampleDataGeneratorParameters.payload)
 
