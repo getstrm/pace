@@ -23,7 +23,22 @@ static_resources:
                         - match:
                             prefix: "/"
                             grpc: {} # Return 404 instead of 415 if no match is found
-                          route: {cluster: grpc, timeout: 60s}
+                          route: { cluster: grpc, timeout: 60s }
+                        # Next two matches are for CORS preflight requests
+                        - match:
+                            prefix: "/"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  exact: "OPTIONS"
+                          route: { cluster: grpc, timeout: 60s }
+                        - match:
+                            prefix: "/"
+                            headers:
+                              - name: ":method"
+                                string_match:
+                                  exact: "POST"
+                          route: { cluster: grpc, timeout: 60s }
                       typed_per_filter_config:
                         envoy.filters.http.cors:
                           "@type": "type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy"
@@ -34,6 +49,12 @@ static_resources:
                           max_age: "1728000"
                           expose_headers: grpc-status,grpc-message,grpc-status-details-bin
                 http_filters:
+                  - name: envoy.filters.http.grpc_web
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
+                  - name: envoy.filters.http.cors
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
                   - name: envoy.filters.http.grpc_json_transcoder
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_json_transcoder.v3.GrpcJsonTranscoder
@@ -48,12 +69,6 @@ static_resources:
                         always_print_primitive_fields: true
                         always_print_enums_as_ints: false
                         preserve_proto_field_names: false
-                  - name: envoy.filters.http.grpc_web
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
-                  - name: envoy.filters.http.cors
-                    typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
