@@ -179,3 +179,17 @@ fun Descriptors.Descriptor.getJSONSchema(): String {
             .build()
     )
 }
+
+fun DataPolicy.Source.toDDL(): String {
+    val fields = this.fieldsList.joinToString(separator = ",\n") { field ->
+        val name = field.namePartsList.joinToString(separator = ".")
+
+        "$name ${field.type} ${if (field.required) "NOT NULL" else ""}"
+    }
+
+    return """
+        CREATE TABLE ${this.ref} (
+            $fields
+        )
+    """.trimIndent()
+}

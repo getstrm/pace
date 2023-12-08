@@ -45,19 +45,16 @@ class PluginsService(plugins: List<Plugin>) {
         val action = getPluginAction(request.pluginId, request.action)
         val responseBuilder = InvokePluginResponse.newBuilder()
 
-        when (action.type) {
-            Action.Type.GENERATE_DATA_POLICY -> {
-                val dataPolicy =
-                    (action as GenerateDataPolicyAction).invoke(request.dataPolicyGeneratorParameters.payload)
+        when (action) {
+            is GenerateDataPolicyAction -> {
+                val dataPolicy = action.invoke(request.dataPolicyGeneratorParameters.payload)
 
                 responseBuilder.setDataPolicyGeneratorResult(
                     DataPolicyGenerator.Result.newBuilder().setDataPolicy(dataPolicy)
                 )
             }
-
-            Action.Type.GENERATE_SAMPLE_DATA -> {
-                val sampleData =
-                    (action as GenerateSampleDataAction).invoke(request.sampleDataGeneratorParameters.payload)
+            is GenerateSampleDataAction -> {
+                val sampleData = action.invoke(request.sampleDataGeneratorParameters.payload)
 
                 responseBuilder.setSampleDataGeneratorResult(
                     SampleDataGenerator.Result.newBuilder()
@@ -65,16 +62,8 @@ class PluginsService(plugins: List<Plugin>) {
                         .setData(sampleData)
                 )
             }
-
-            Action.Type.ACTION_UNSPECIFIED, Action.Type.UNRECOGNIZED -> {
-                throw InternalException(
-                    InternalException.Code.INTERNAL,
-                    DebugInfo.newBuilder()
-                        .setDetail("Invalid action type '${action.type}'")
-                        .build()
-                )
-            }
         }
+
         return responseBuilder.build()
     }
 

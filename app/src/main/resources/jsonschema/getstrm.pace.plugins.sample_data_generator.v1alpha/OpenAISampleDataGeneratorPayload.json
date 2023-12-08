@@ -4,6 +4,13 @@
     "definitions": {
         "OpenAISampleDataGeneratorPayload": {
             "properties": {
+                "additional_system_instructions": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array",
+                    "description": "Present the OpenAI model with extra instructions"
+                },
                 "source": {
                     "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy.Source",
                     "additionalProperties": false

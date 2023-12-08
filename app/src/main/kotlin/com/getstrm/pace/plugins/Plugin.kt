@@ -8,7 +8,7 @@ interface Plugin {
     val actions: Map<Action.Type, PluginAction>
 }
 
-interface PluginAction {
+sealed interface PluginAction {
     val actionName: String
     val type: Action.Type
     val invokable: Boolean

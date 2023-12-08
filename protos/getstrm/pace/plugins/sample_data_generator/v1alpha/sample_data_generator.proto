@@ -11,8 +11,11 @@ option java_package = "com.getstrm.pace.plugins.sample_data_generators.v1alpha";
 
 
 message OpenAISampleDataGeneratorPayload {
+  // Present the OpenAI model with extra instructions
+  repeated string additional_system_instructions = 1;
+  // TODO ensure to ask for the result format
   oneof source_details {
     option (buf.validate.oneof).required = true;
-    pace.api.entities.v1alpha.DataPolicy.Source source = 1;
+    pace.api.entities.v1alpha.DataPolicy.Source source = 2;
   }
 }

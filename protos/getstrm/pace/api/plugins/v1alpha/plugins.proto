@@ -31,7 +31,7 @@ service PluginsService {
 
 message InvokePluginRequest {
   // The identifier of the plugin to invoke.
-  string plugin_id = 1;
+  string plugin_id = 1 [(buf.validate.field).required = true];
   optional Action action = 2;
   oneof parameters {
     DataPolicyGenerator.Parameters data_policy_generator_parameters = 10;
