@@ -5,7 +5,11 @@
         "InvokePluginResponse": {
             "properties": {
                 "data_policy_generator_result": {
-                    "$ref": "#/definitions/getstrm.pace.api.plugins.v1alpha.DataPolicyGeneratorResult",
+                    "$ref": "#/definitions/getstrm.pace.api.plugins.v1alpha.DataPolicyGenerator.Result",
+                    "additionalProperties": false
+                },
+                "sample_data_generator_result": {
+                    "$ref": "#/definitions/getstrm.pace.api.plugins.v1alpha.SampleDataGenerator.Result",
                     "additionalProperties": false
                 }
             },
@@ -536,7 +540,7 @@
             "type": "object",
             "title": "Target"
         },
-        "getstrm.pace.api.plugins.v1alpha.DataPolicyGeneratorResult": {
+        "getstrm.pace.api.plugins.v1alpha.DataPolicyGenerator.Result": {
             "properties": {
                 "data_policy": {
                     "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy",
@@ -545,7 +549,34 @@
             },
             "additionalProperties": false,
             "type": "object",
-            "title": "Data Policy Generator Result"
+            "title": "Result"
+        },
+        "getstrm.pace.api.plugins.v1alpha.SampleDataGenerator.Result": {
+            "properties": {
+                "data": {
+                    "type": "string"
+                },
+                "format": {
+                    "enum": [
+                        "FORMAT_UNSPECIFIED",
+                        0,
+                        "CSV",
+                        1
+                    ],
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "title": "Format"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "title": "Result"
         }
     }
 }

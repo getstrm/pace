@@ -1,31 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "$ref": "#/definitions/Plugin",
+    "$ref": "#/definitions/Action",
     "definitions": {
-        "Plugin": {
-            "properties": {
-                "id": {
-                    "type": "string",
-                    "description": "The unique identifier for this plugin"
-                },
-                "implementation": {
-                    "type": "string",
-                    "description": "The canonical class name of the implementation of this plugin"
-                },
-                "actions": {
-                    "items": {
-                        "$ref": "#/definitions/getstrm.pace.api.plugins.v1alpha.Action"
-                    },
-                    "additionalProperties": false,
-                    "type": "array",
-                    "description": "Actions that this plugin supports"
-                }
-            },
-            "additionalProperties": false,
-            "type": "object",
-            "title": "Plugin"
-        },
-        "getstrm.pace.api.plugins.v1alpha.Action": {
+        "Action": {
             "properties": {
                 "type": {
                     "enum": [

@@ -1,5 +1,6 @@
 package com.getstrm.pace.service
 
+import build.buf.gen.getstrm.pace.api.plugins.v1alpha.Action
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.DataPolicyGeneratorResult
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.InvokePluginRequest
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.InvokePluginResponse
@@ -24,9 +25,14 @@ class PluginsService(plugins: List<Plugin>) {
     private val pluginsById = plugins.associateBy { it.id }
 
     private val apiPlugins = plugins.map {
-        build.buf.gen.getstrm.pace.api.plugins.v1alpha.Plugin.newBuilder()
+        ApiPlugin.newBuilder()
             .setId(it.id)
-            .setPluginType(it.type)
+            .addAllActions(it.actions.map { action ->
+                Action.newBuilder()
+                    .setType(action.type)
+                    .setInvokable(action.invokable)
+                    .build()
+            })
             .setImplementation(it::class.java.canonicalName)
             .build()
     }

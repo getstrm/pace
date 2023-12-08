@@ -1,4 +1,4 @@
-package com.getstrm.pace.plugins.data_policy_generators.openai
+package com.getstrm.pace.plugins.builtin.openai
 
 import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.client.OpenAI
@@ -15,7 +15,7 @@ class Config {
     @Bean
     fun openAIDataPolicyGenerator(
         @Value("\${app.plugins.data-policy-generators.openai.api-key}") apiKey: String,
-    ): OpenAIDataPolicyGenerator {
+    ): OpenAIPlugin {
         val openAI = OpenAI(
             token = apiKey,
             timeout = Timeout(socket = 60.seconds)
@@ -24,6 +24,6 @@ class Config {
                 logger = Logger.DEFAULT
             }
         }
-        return OpenAIDataPolicyGenerator(openAI)
+        return OpenAIPlugin(openAI)
     }
 }

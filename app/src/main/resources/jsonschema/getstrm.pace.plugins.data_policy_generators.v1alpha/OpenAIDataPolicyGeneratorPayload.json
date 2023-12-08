@@ -5,8 +5,7 @@
         "OpenAIDataPolicyGeneratorPayload": {
             "properties": {
                 "instructions": {
-                    "type": "string",
-                    "description": "Todo: these validations are probably not evaluated since the message is packed in an Any."
+                    "type": "string"
                 },
                 "initial_data_policy": {
                     "$ref": "#/definitions/getstrm.pace.api.entities.v1alpha.DataPolicy",

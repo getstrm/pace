@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package getstrm.pace.plugins.sample_data_generator.v1alpha;
+
+import "buf/validate/validate.proto";
+import "getstrm/pace/api/entities/v1alpha/entities.proto";
+
+option go_package = "github.com/getstrm/pace/protos/plugins/sample_data_generators;sample_data_generators";
+option java_multiple_files = true;
+option java_package = "com.getstrm.pace.plugins.sample_data_generators.v1alpha";
+
+
+message OpenAISampleDataGeneratorPayload {
+  oneof source_details {
+    option (buf.validate.oneof).required = true;
+    pace.api.entities.v1alpha.DataPolicy.Source source = 1;
+  }
+}

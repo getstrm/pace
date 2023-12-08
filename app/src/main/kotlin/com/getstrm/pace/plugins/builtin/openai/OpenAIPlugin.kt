@@ -1,13 +1,17 @@
-package com.getstrm.pace.plugins.data_policy_generators.openai
+package com.getstrm.pace.plugins.builtin.openai
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.plugins.data_policy_generators.v1alpha.OpenAIDataPolicyGeneratorPayload
+import build.buf.gen.getstrm.pace.plugins.sample_data_generator.v1alpha.OpenAISampleDataGeneratorPayload
 import com.aallam.openai.api.chat.*
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
-import com.getstrm.pace.plugins.data_policy_generators.DataPolicyGeneratorPlugin
+import com.getstrm.pace.plugins.GenerateDataPolicyAction
+import com.getstrm.pace.plugins.GenerateSampleDataAction
+import com.getstrm.pace.plugins.Plugin
+import com.getstrm.pace.plugins.PluginAction
 import com.getstrm.pace.util.getJSONSchema
 import com.getstrm.pace.util.toProto
 import com.getstrm.pace.util.toYaml
@@ -16,51 +20,61 @@ import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
 
-class OpenAIDataPolicyGenerator(
+class OpenAIPlugin(
     private val openAI: OpenAI
-) : DataPolicyGeneratorPlugin {
+) : Plugin {
+    private val log by lazy { LoggerFactory.getLogger(OpenAIPlugin::class.java) }
 
-    private val log by lazy { LoggerFactory.getLogger(OpenAIDataPolicyGenerator::class.java) }
+    override val id = "openai"
+    override val actions: List<PluginAction> = listOf(GenerateDataPolicy(), GenerateSampleData())
 
     private val dataPolicyJsonSchema = DataPolicy.getDescriptor().getJSONSchema()
 
-    override val payloadJsonSchema: String = OpenAIDataPolicyGeneratorPayload.getDescriptor().getJSONSchema()
-    override val id = "openai-data-policy-generator"
+    inner class GenerateDataPolicy : GenerateDataPolicyAction {
+        override val payloadJsonSchema: String = OpenAIDataPolicyGeneratorPayload.getDescriptor().getJSONSchema()
 
-    override suspend fun generate(payload: String): DataPolicy {
-        val generatorPayload = payload.toProto<OpenAIDataPolicyGeneratorPayload>()
+        override suspend fun invoke(payload: String): DataPolicy {
+            val generatorPayload = payload.toProto<OpenAIDataPolicyGeneratorPayload>()
 
-        return try {
-            when (generatorPayload.dataPolicyCase) {
-                OpenAIDataPolicyGeneratorPayload.DataPolicyCase.INITIAL_DATA_POLICY ->
-                    generate(generatorPayload.instructions, generatorPayload.initialDataPolicy)
+            return try {
+                when (generatorPayload.dataPolicyCase) {
+                    OpenAIDataPolicyGeneratorPayload.DataPolicyCase.INITIAL_DATA_POLICY ->
+                        generate(generatorPayload.instructions, generatorPayload.initialDataPolicy)
 
-                OpenAIDataPolicyGeneratorPayload.DataPolicyCase.DATAPOLICY_NOT_SET, null -> {
-                    throw BadRequestException(
-                        BadRequestException.Code.INVALID_ARGUMENT,
-                        BadRequest.newBuilder()
-                            .addFieldViolations(
-                                BadRequest.FieldViolation.newBuilder()
-                                    .setField("payload")
-                                    .setDescription("Invalid payload: data policy not set")
-                                    .build()
-                            )
-                            .build()
-                    )
+                    OpenAIDataPolicyGeneratorPayload.DataPolicyCase.DATAPOLICY_NOT_SET, null -> {
+                        throw BadRequestException(
+                            BadRequestException.Code.INVALID_ARGUMENT,
+                            BadRequest.newBuilder()
+                                .addFieldViolations(
+                                    BadRequest.FieldViolation.newBuilder()
+                                        .setField("payload")
+                                        .setDescription("Invalid payload: data policy not set")
+                                        .build()
+                                )
+                                .build()
+                        )
+                    }
                 }
+            } catch (e: InvalidProtocolBufferException) {
+                throw BadRequestException(
+                    BadRequestException.Code.INVALID_ARGUMENT,
+                    BadRequest.newBuilder()
+                        .addFieldViolations(
+                            BadRequest.FieldViolation.newBuilder()
+                                .setField("payload")
+                                .setDescription("Invalid payload: ${e.message}")
+                                .build()
+                        )
+                        .build()
+                )
             }
-        } catch (e: InvalidProtocolBufferException) {
-            throw BadRequestException(
-                BadRequestException.Code.INVALID_ARGUMENT,
-                BadRequest.newBuilder()
-                    .addFieldViolations(
-                        BadRequest.FieldViolation.newBuilder()
-                            .setField("payload")
-                            .setDescription("Invalid payload: ${e.message}")
-                            .build()
-                    )
-                    .build()
-            )
+        }
+    }
+
+    inner class GenerateSampleData : GenerateSampleDataAction {
+        override val payloadJsonSchema: String = OpenAISampleDataGeneratorPayload.getDescriptor().getJSONSchema()
+        override suspend fun invoke(payload: String): String {
+            TODO("Not yet implemented")
         }
     }
 

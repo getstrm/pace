@@ -4,7 +4,6 @@ package getstrm.pace.api.plugins.v1alpha;
 
 import "buf/validate/validate.proto";
 import "getstrm/pace/api/entities/v1alpha/entities.proto";
-import "google/api/annotations.proto";
 import "google/protobuf/descriptor.proto";
 
 option go_package = "github.com/getstrm/pace/protos/api/plugins;plugins";
@@ -16,21 +15,47 @@ message Plugin {
   string id = 1;
   // The canonical class name of the implementation of this plugin
   string implementation = 2;
-  // The type / category of this plugin
-  PluginType plugin_type = 3;
+  // Actions that this plugin supports
+  repeated Action actions = 4;
 }
 
-enum PluginType {
-  PLUGIN_TYPE_UNSPECIFIED = 0;
-  DATA_POLICY_GENERATOR = 1;
+message Action {
+  // The type of action that this plugin supports
+  Type type = 1;
+  // Whether this action can be invoked through the API
+  bool invokable = 2;
+
+  enum Type {
+    ACTION_UNSPECIFIED = 0;
+    GENERATE_DATA_POLICY = 1;
+    GENERATE_SAMPLE_DATA = 2;
+  }
 }
 
-message DataPolicyGeneratorParameters {
-  // The (base64 encoded) version of the JSON representation of the payload that is required for this plugin
-  string payload = 1 [(buf.validate.field).required = true];
+message DataPolicyGenerator {
+  message Parameters {
+    // The (base64 encoded) version of the JSON representation of the payload that is required for this plugin
+    string payload = 1 [(buf.validate.field).required = true];
+  }
+
+  message Result {
+    pace.api.entities.v1alpha.DataPolicy data_policy = 1;
+  }
 }
 
-message DataPolicyGeneratorResult {
-  pace.api.entities.v1alpha.DataPolicy data_policy = 1;
-}
+message SampleDataGenerator {
+  message Parameters {
+    // The (base64 encoded) version of the JSON representation of the payload that is required for this plugin
+    string payload = 1 [(buf.validate.field).required = true];
+  }
 
+  message Result {
+    string data = 1;
+    Format format = 2;
+
+    enum Format {
+      FORMAT_UNSPECIFIED = 0;
+      CSV = 1;
+    }
+  }
+}
