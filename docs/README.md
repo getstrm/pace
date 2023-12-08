@@ -6,7 +6,7 @@ description: Welcome to the PACE docs!
 
 **About PACE**
 
-PACE is the **P**olicy **A**s **C**ode **E**ngine. It helps you to programmatically create and apply a data policy to a processing platform (like Databricks, Snowflake or BigQuery). Through a data contract, you can apply filters, field transforms and access settings to create a view inside a data platform.
+PACE is the **P**olicy **A**s **C**ode **E**ngine. It helps you to programmatically create and apply a data policy to a processing platform (like [Databricks](tutorials/databricks.md), Snowflake or BigQuery). Through a data contract, you can apply filters, field transforms and access settings to create a view inside a data platform.
 
 _`Data policy IN, dynamic view OUT`_ is the easiest way to describe it.
 

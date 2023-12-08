@@ -34,7 +34,9 @@
 * [Detokenization](tutorials/detokenization.md)
 * [Global Tag Transforms](tutorials/global-tag-transforms.md)
 * [User Defined Functions in Python](tutorials/udfs.md)
-* [Data Policy Generator](tutorials/data-policy-generator.md)
+* [Data Policy Generation](tutorials/data-policy-generator.md)
+* [Databricks](tutorials/databricks.md)
+* [PostgreSQL](tutorials/postgresql.md)
 
 ## Integrations & Reference
 
