@@ -24,6 +24,12 @@ static_resources:
                             prefix: "/"
                             grpc: {} # Return 404 instead of 415 if no match is found
                           route: { cluster: grpc, timeout: 60s }
+                        - match:
+                            prefix: "/"
+                            headers:
+                              - name: content-type
+                                exact_match: application/grpc-web+proto
+                          route: { cluster: grpc, timeout: 60s }
                       typed_per_filter_config:
                         envoy.filters.http.cors:
                           "@type": "type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy"

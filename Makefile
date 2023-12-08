@@ -19,6 +19,7 @@ buf-create-descriptor-binpb: # PHONY on purpose, as we want to regenerate every 
 	buf build protos --config ./protos/buf.yaml -o ${descriptor_file}
 
 create-envoy-spec:
+	@ rm -f rest/envoy-local.yaml
 	@ export GRPC_SERVICES=$$(buf build -o -#format=json | jq -rc '.file | map(select(.name | startswith("getstrm"))) | map(select(.service > 0) | (.package + "." + .service[].name))')
 	@ envsubst < rest/envoy-local-template.yaml > rest/envoy-local.yaml
 
