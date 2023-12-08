@@ -10,6 +10,8 @@ PACE is the **P**olicy **A**s **C**ode **E**ngine. It helps you to programmatica
 
 _`Data policy IN, dynamic view OUT`_ is the easiest way to describe it.
 
+Jump right in with our [quickstart](readme/quickstart.md), or read on and watch our 5-minute intro below with the most import principles and concepts.&#x20;
+
 **ProblemsPACE**
 
 PACE is designed to remove friction and cost from using data in real-world organizational settings. In other words: define and implement a policy to "just build" with data, instead of jumping through hoop after hoop.
@@ -37,3 +39,11 @@ To install and use PACE, you need:
 
 * The [PACE app ](https://github.com/getstrm/pace)(as Spring Boot app or Docker image)
 * The PACE [CLI](https://github.com/getstrm/cli) to interact with your deployment
+
+### Intro video
+
+In this 5-minute intro video, our founder Pim explains what a data policy is and how PACE enables you to create, manage, maintain, and enforce data policies in a platform-independent and lightweight way. We'll also discuss how PACE works as a standalone Docker app and how you can deploy it on Kubernetes. Finally we go over a quick example of how a fictional retailer applies PACE to a simple use case. Join me to learn more about PACE and its benefits for your organization.
+
+{% embed url="https://youtu.be/mR19Rv40GmI" %}
+A 5-minute intro to PACE with the most important principles and background.
+{% endembed %}

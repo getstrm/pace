@@ -8,6 +8,7 @@
   * [Create a Data Policy](getting-started/create-a-data-policy.md)
   * [Example configuration file](getting-started/example-configuration-file.md)
   * [Kubernetes Deployment](getting-started/kubernetes-deployment.md)
+  * [Example use case](readme/example-use-case.md)
 
 ## Data policy
 
