@@ -30,8 +30,8 @@ service PluginsService {
 }
 
 message InvokePluginRequest {
-  // The identifier of the plugin to invoke. If only one implementation of the plugin type exists, that will be invoked implicitly.
-  optional string plugin_id = 1;
+  // The identifier of the plugin to invoke.
+  string plugin_id = 1;
   optional Action action = 2;
   oneof parameters {
     DataPolicyGenerator.Parameters data_policy_generator_parameters = 10;

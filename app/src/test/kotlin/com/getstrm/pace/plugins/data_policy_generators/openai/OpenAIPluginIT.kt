@@ -39,7 +39,7 @@ class OpenAIPluginIT {
     """.trimIndent()
 
             // When
-            val result = underTest.generate(
+            val result = underTest.GenerateDataPolicy().invoke(
                 OpenAIDataPolicyGeneratorPayload.newBuilder()
                     .setInitialDataPolicy(initialDataPolicy)
                     .setInstructions(instructions)

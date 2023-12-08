@@ -2,8 +2,6 @@ package com.getstrm.pace.util
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
-import build.buf.gen.getstrm.pace.api.plugins.v1alpha.InvokePluginRequest.ParametersCase
-import build.buf.gen.getstrm.pace.api.plugins.v1alpha.PluginType
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ProtoValidator
@@ -180,18 +178,4 @@ fun Descriptors.Descriptor.getJSONSchema(): String {
             .setDetail("Could not load JSON Schema for ${this.fullName}")
             .build()
     )
-}
-
-fun ParametersCase.toPluginType(): PluginType {
-    val parametersCaseName = this.name.replace("_PARAMETERS", "")
-    return try {
-        PluginType.valueOf(parametersCaseName)
-    } catch (e: IllegalArgumentException) {
-        throw InternalException(
-            InternalException.Code.INTERNAL,
-            DebugInfo.newBuilder()
-                .setDetail("Could not convert the oneof enum for ParametersCase to PluginType: $parametersCaseName. Ensure that the PluginType name is the same as the ParametersCase name, but without the _parameters suffix.")
-                .build()
-        )
-    }
 }

@@ -5,7 +5,7 @@ import build.buf.gen.getstrm.pace.api.plugins.v1alpha.Action
 
 interface Plugin {
     val id: String
-    val actions: List<PluginAction>
+    val actions: Map<Action.Type, PluginAction>
 }
 
 interface PluginAction {

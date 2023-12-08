@@ -6,7 +6,7 @@
             "properties": {
                 "plugin_id": {
                     "type": "string",
-                    "description": "The identifier of the plugin to invoke. If only one implementation of the plugin type exists, that will be invoked implicitly."
+                    "description": "The identifier of the plugin to invoke."
                 },
                 "action": {
                     "$ref": "#/definitions/getstrm.pace.api.plugins.v1alpha.Action",

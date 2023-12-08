@@ -1,9 +1,14 @@
 package com.getstrm.pace.plugins.builtin.openai
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.plugins.v1alpha.Action
 import build.buf.gen.getstrm.pace.plugins.data_policy_generators.v1alpha.OpenAIDataPolicyGeneratorPayload
 import build.buf.gen.getstrm.pace.plugins.sample_data_generator.v1alpha.OpenAISampleDataGeneratorPayload
-import com.aallam.openai.api.chat.*
+import com.aallam.openai.api.chat.ChatCompletion
+import com.aallam.openai.api.chat.ChatCompletionRequest
+import com.aallam.openai.api.chat.ChatMessage
+import com.aallam.openai.api.chat.ChatRole
+import com.aallam.openai.api.chat.TextContent
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.getstrm.pace.exceptions.BadRequestException
@@ -26,7 +31,8 @@ class OpenAIPlugin(
     private val log by lazy { LoggerFactory.getLogger(OpenAIPlugin::class.java) }
 
     override val id = "openai"
-    override val actions: List<PluginAction> = listOf(GenerateDataPolicy(), GenerateSampleData())
+    override val actions: Map<Action.Type, PluginAction> =
+        listOf(GenerateDataPolicy(), GenerateSampleData()).associateBy { it.type }
 
     private val dataPolicyJsonSchema = DataPolicy.getDescriptor().getJSONSchema()
 
