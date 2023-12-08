@@ -24,6 +24,15 @@ static_resources:
                             prefix: "/"
                             grpc: {} # Return 404 instead of 415 if no match is found
                           route: {cluster: grpc, timeout: 60s}
+                      typed_per_filter_config:
+                        envoy.filters.http.cors:
+                          "@type": "type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy"
+                          allow_origin_string_match:
+                            - prefix: "http://localhost:3000"
+                          allow_methods: "POST, OPTIONS"
+                          allow_headers: "keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout,authorization"
+                          max_age: "1728000"
+                          expose_headers: grpc-status,grpc-message,grpc-status-details-bin
                 http_filters:
                   - name: envoy.filters.http.grpc_json_transcoder
                     typed_config:
@@ -39,6 +48,12 @@ static_resources:
                         always_print_primitive_fields: true
                         always_print_enums_as_ints: false
                         preserve_proto_field_names: false
+                  - name: envoy.filters.http.grpc_web
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
+                  - name: envoy.filters.http.cors
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
