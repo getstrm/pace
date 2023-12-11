@@ -91,10 +91,6 @@ volumes:
 ```
 {% endcode %}
 
-#### Authenticate with the GitHub container registry (ghcr.io)
-
-If you are already logged in to ghcr.io with Docker, you can skip this step. If not, or if you get an _unauthorized_ exception during the next step, you most likely need to do follow the [Broken link](broken-reference "mention") instructions.
-
 #### Start interacting with your PACE instance
 
 To start pace, execute `docker compose up` in the directory containing your `docker-compose.yaml` file. You should see the Spring Boot startup logs, which will end with `Started PaceApplicationKt [...]` , if all went well.
