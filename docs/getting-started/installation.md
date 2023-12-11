@@ -20,8 +20,6 @@ Before you get started, make sure you've installed the following tools:
 The relative location of the files created in the rest of this document can be seen as titles in the respective code blocks.
 {% endhint %}
 
-Follow the steps in the [Github Authentication](broken-reference) docs to get access to the repo and the docker images.
-
 #### Create a basic PACE configuration
 
 The following config is used for configuring your PACE application. If you use your own Postgres instance, modify accordingly.
