@@ -1,5 +1,19 @@
 components:
   schemas:
+    Action:
+      properties:
+        invokable:
+          description: Whether this action can be invoked through the API
+          type: boolean
+        type:
+          description: The type of action that this plugin supports
+          enum:
+          - ACTION_UNSPECIFIED
+          - GENERATE_DATA_POLICY
+          - GENERATE_SAMPLE_DATA
+          format: enum
+          type: string
+      type: object
     ApplyDataPolicyResponse:
       properties:
         dataPolicy:
@@ -129,14 +143,14 @@ components:
         source:
           $ref: '#/components/schemas/DataPolicy_Source'
       type: object
-    DataPolicyGeneratorParameters:
+    DataPolicyGenerator_Parameters:
       properties:
         payload:
           description: The (base64 encoded) version of the JSON representation of
             the payload that is required for this plugin
           type: string
       type: object
-    DataPolicyGeneratorResult:
+    DataPolicyGenerator_Result:
       properties:
         dataPolicy:
           $ref: '#/components/schemas/DataPolicy'
@@ -461,17 +475,22 @@ components:
       type: object
     InvokePluginRequest:
       properties:
+        action:
+          $ref: '#/components/schemas/Action'
         dataPolicyGeneratorParameters:
-          $ref: '#/components/schemas/DataPolicyGeneratorParameters'
+          $ref: '#/components/schemas/DataPolicyGenerator_Parameters'
         pluginId:
-          description: The identifier of the plugin to invoke. If only one implementation
-            of the plugin type exists, that will be invoked implicitly.
+          description: The identifier of the plugin to invoke.
           type: string
+        sampleDataGeneratorParameters:
+          $ref: '#/components/schemas/SampleDataGenerator_Parameters'
       type: object
     InvokePluginResponse:
       properties:
         dataPolicyGeneratorResult:
-          $ref: '#/components/schemas/DataPolicyGeneratorResult'
+          $ref: '#/components/schemas/DataPolicyGenerator_Result'
+        sampleDataGeneratorResult:
+          $ref: '#/components/schemas/SampleDataGenerator_Result'
       type: object
     ListCatalogsResponse:
       properties:
@@ -565,18 +584,16 @@ components:
       type: object
     Plugin:
       properties:
+        actions:
+          description: Actions that this plugin supports
+          items:
+            $ref: '#/components/schemas/Action'
+          type: array
         id:
           description: The unique identifier for this plugin
           type: string
         implementation:
           description: The canonical class name of the implementation of this plugin
-          type: string
-        pluginType:
-          description: The type / category of this plugin
-          enum:
-          - PLUGIN_TYPE_UNSPECIFIED
-          - DATA_POLICY_GENERATOR
-          format: enum
           type: string
       type: object
     RetentionFilter_Condition:
@@ -627,6 +644,24 @@ components:
           $ref: '#/components/schemas/Filter_GenericFilter'
         retentionFilter:
           $ref: '#/components/schemas/Filter_RetentionFilter'
+      type: object
+    SampleDataGenerator_Parameters:
+      properties:
+        payload:
+          description: The (base64 encoded) version of the JSON representation of
+            the payload that is required for this plugin
+          type: string
+      type: object
+    SampleDataGenerator_Result:
+      properties:
+        data:
+          type: string
+        format:
+          enum:
+          - FORMAT_UNSPECIFIED
+          - CSV
+          format: enum
+          type: string
       type: object
     Status:
       description: 'The `Status` type defines a logical error model that is suitable
@@ -744,7 +779,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.36
+  version: 1.0.0-alpha.37
 openapi: 3.0.3
 paths:
   /data-policies:
@@ -1187,14 +1222,18 @@ paths:
       summary: ListPlugins
       tags:
       - PluginsService
-  /v1alpha/plugins/{pluginId}:
+  /v1alpha/plugins/{pluginId}/actions/{action.type}:
     post:
       operationId: PluginsService_InvokePlugin
       parameters:
-      - description: The identifier of the plugin to invoke. If only one implementation
-          of the plugin type exists, that will be invoked implicitly.
+      - description: The identifier of the plugin to invoke.
         in: path
         name: pluginId
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: action.type
         required: true
         schema:
           type: string
@@ -1220,7 +1259,7 @@ paths:
       summary: InvokePlugin
       tags:
       - PluginsService
-  /v1alpha/plugins/{pluginId}/payload-json-schema:
+  /v1alpha/plugins/{pluginId}/actions/{action.type}/payload-json-schema:
     get:
       operationId: PluginsService_GetPayloadJSONSchema
       parameters:
@@ -1230,6 +1269,26 @@ paths:
         required: true
         schema:
           type: string
+      - in: path
+        name: action.type
+        required: true
+        schema:
+          type: string
+      - description: The type of action that this plugin supports
+        in: query
+        name: action.type
+        schema:
+          enum:
+          - ACTION_UNSPECIFIED
+          - GENERATE_DATA_POLICY
+          - GENERATE_SAMPLE_DATA
+          format: enum
+          type: string
+      - description: Whether this action can be invoked through the API
+        in: query
+        name: action.invokable
+        schema:
+          type: boolean
       responses:
         '200':
           content:

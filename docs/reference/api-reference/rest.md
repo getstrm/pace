@@ -60,11 +60,11 @@
 [openapi.yaml](../../.gitbook/assets/openapi.yaml)
 {% endswagger %}
 
-{% swagger src="../../.gitbook/assets/openapi.yaml" path="/v1alpha/plugins/{pluginId}" method="post" expanded="true" %}
+{% swagger src="../../.gitbook/assets/openapi.yaml" path="/v1alpha/plugins/{pluginId}/actions/{action.type}" method="post" expanded="true" %}
 [openapi.yaml](../../.gitbook/assets/openapi.yaml)
 {% endswagger %}
 
-{% swagger src="../../.gitbook/assets/openapi.yaml" path="/v1alpha/plugins/{pluginId}/payload-json-schema" method="get" expanded="true" %}
+{% swagger src="../../.gitbook/assets/openapi.yaml" path="/v1alpha/plugins/{pluginId}/actions/{action.type}/payload-json-schema" method="get" expanded="true" %}
 [openapi.yaml](../../.gitbook/assets/openapi.yaml)
 {% endswagger %}
 
