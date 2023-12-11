@@ -394,11 +394,11 @@ Now that the `public.transactions_view` has been created, we can compare the que
 
 {% tabs %}
 {% tab title="Fraud and Risk" %}
-<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption><p>All records are included. <code>card_holder_name</code> is nullified and the other columns are as-is.</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption><p>All records are included. <code>card_holder_name</code> is nullified and the other columns are as-is.</p></figcaption></figure>
 {% endtab %}
 
 {% tab title="Fraud Investigation" %}
-<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption><p>All records are included. <code>card_number</code> is detokenized and the other columns are as-is.</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1) (1).png" alt=""><figcaption><p>All records are included. <code>card_number</code> is detokenized and the other columns are as-is.</p></figcaption></figure>
 {% endtab %}
 
 {% tab title="Other" %}
@@ -440,4 +440,4 @@ That wraps up this detokenization tutorial. To clean up all resources, run the f
 docker compose down
 ```
 
-Any questions or comments? Please ask them on [Slack](https://join.slack.com/t/pace-getstrm/shared_invite/zt-27egzg7ye-iGANVdQZO6ov6ZMVzmsA4Q).
+Any questions or comments? Please ask them on [Slack](https://join.slack.com/t/pace-getstrm/shared\_invite/zt-27egzg7ye-iGANVdQZO6ov6ZMVzmsA4Q).

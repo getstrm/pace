@@ -161,6 +161,12 @@ docker compose up
 
 There should be quite a bit of logging, ending in the banner of the PACE app booting. Once everything has started, try to connect to the **postgres\_processing\_platform** to view the pre-populated data. We'll use `psql` here.
 
+### Tutorial video
+
+In this video version, our engineer Ivan walks you through the steps below. Feel free to watch it and follow along:
+
+{% embed url="https://youtu.be/_t9hGalncvM" %}
+
 ### Viewing the sample data
 
 #### As `standalone`

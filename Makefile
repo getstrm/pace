@@ -1,10 +1,10 @@
-.PHONY: clean-common-protos, buf-create-descriptor-binpb, run-rest-proxy, run-docker-local \
+.PHONY: clean-common-protos, buf-create-descriptor-binpb, run-grpc-proxy, run-docker-local \
     json-schema integration-test copy-json-schema-to-resources
 
 SHELL := /bin/bash
 
 git_branch := $(shell git rev-parse --abbrev-ref HEAD)
-descriptor_file := "rest/descriptor.binpb"
+descriptor_file := "grpc-proxy/descriptor.binpb"
 
 buf-publish-current-branch: copy-json-schema-to-resources
 	@ [[ "$$OSTYPE" == "darwin"* ]] && SED=gsed || SED=sed && \
@@ -19,16 +19,17 @@ buf-create-descriptor-binpb: # PHONY on purpose, as we want to regenerate every 
 	buf build protos --config ./protos/buf.yaml -o ${descriptor_file}
 
 create-envoy-spec:
-	@ export GRPC_SERVICES=$$(buf build -o -#format=json | jq -rc '.file | map(select(.name | startswith("getstrm"))) | map(select(.service > 0) | (.package + "." + .service[].name))')
-	@ envsubst < rest/envoy-local-template.yaml > rest/envoy-local.yaml
+	@ rm -f grpc-proxy/envoy-local.yaml && \
+	export GRPC_SERVICES=$$(buf build -o -#format=json | jq -rc '.file | map(select(.name | startswith("getstrm"))) | map(select(.service > 0) | (.package + "." + .service[].name))')  && \
+	envsubst < grpc-proxy/envoy-local-template.yaml > grpc-proxy/envoy-local.yaml
 
-run-rest-proxy: buf-create-descriptor-binpb create-envoy-spec
-	docker run -p 9090:9090 -p 9000:9000 -v $$(pwd)/rest/envoy-local.yaml:/etc/envoy/envoy.yaml -v $$(pwd)/${descriptor_file}:/tmp/envoy/descriptor.binpb envoyproxy/envoy:v1.28-latest
+run-grpc-proxy: buf-create-descriptor-binpb create-envoy-spec
+	docker run -p 9090:9090 -p 9000:9000 -v $$(pwd)/grpc-proxy/envoy-local.yaml:/etc/envoy/envoy.yaml -v $$(pwd)/${descriptor_file}:/tmp/envoy/descriptor.binpb envoyproxy/envoy:v1.28-latest
 
-/tmp/envoy.yaml: rest/envoy-local.yaml
+/tmp/envoy.yaml: grpc-proxy
 	sed 's/address: host\.docker\.internal/address: localhost/' $< > $@
 
-run-rest-proxy-localhost: buf-create-descriptor-binpb /tmp/envoy.yaml
+run-grpc-proxy-localhost: buf-create-descriptor-binpb /tmp/envoy.yaml
 	docker run --net=host -p 9090:9090 -p 9000:9000 -v /tmp/envoy.yaml:/etc/envoy/envoy.yaml -v $$(pwd)/${descriptor_file}:/tmp/envoy/descriptor.binpb envoyproxy/envoy:v1.28-latest
 
 json-schema:

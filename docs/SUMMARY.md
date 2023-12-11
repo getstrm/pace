@@ -8,6 +8,7 @@
   * [Create a Data Policy](getting-started/create-a-data-policy.md)
   * [Example configuration file](getting-started/example-configuration-file.md)
   * [Kubernetes Deployment](getting-started/kubernetes-deployment.md)
+  * [Example use case](readme/example-use-case.md)
 
 ## Data policy
 
@@ -33,7 +34,9 @@
 * [Detokenization](tutorials/detokenization.md)
 * [Global Tag Transforms](tutorials/global-tag-transforms.md)
 * [User Defined Functions in Python](tutorials/udfs.md)
-* [Data Policy Generator](tutorials/data-policy-generator.md)
+* [Data Policy Generation](tutorials/data-policy-generator.md)
+* [Databricks](tutorials/databricks.md)
+* [PostgreSQL](tutorials/postgresql.md)
 
 ## Integrations & Reference
 

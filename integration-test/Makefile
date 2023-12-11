@@ -21,7 +21,7 @@ CHECKS           = $(addprefix check-, ${USERS})
 
 # default target sets up everything, reads the views from
 # the standalone database table and executes the checks.
-all: ${CHECKS}
+all: ${CHECKS} kill-pace
 
 check-mark: mark.csv demo.csv awk cut
 	@ echo ----- checking marketing with user mark -----

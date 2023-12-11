@@ -15,7 +15,7 @@ ENV APP_VERSION "${version}"
 
 # Spring Boot Actuator
 EXPOSE 8080
-# Envoy gRPC -> REST proxy
+# Envoy gRPC -> gRPC proxy
 EXPOSE 9090
 # gRPC server
 EXPOSE 50051
