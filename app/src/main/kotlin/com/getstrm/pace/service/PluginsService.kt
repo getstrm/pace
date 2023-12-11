@@ -1,92 +1,93 @@
 package com.getstrm.pace.service
 
-import build.buf.gen.getstrm.pace.api.plugins.v1alpha.DataPolicyGeneratorResult
+import build.buf.gen.getstrm.pace.api.plugins.v1alpha.DataPolicyGenerator
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.InvokePluginRequest
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.InvokePluginResponse
-import build.buf.gen.getstrm.pace.api.plugins.v1alpha.PluginType
+import build.buf.gen.getstrm.pace.api.plugins.v1alpha.SampleDataGenerator
 import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PreconditionFailedException
+import com.getstrm.pace.plugins.GenerateDataPolicyAction
+import com.getstrm.pace.plugins.GenerateSampleDataAction
 import com.getstrm.pace.plugins.Plugin
-import com.getstrm.pace.plugins.data_policy_generators.DataPolicyGeneratorPlugin
-import com.getstrm.pace.util.toPluginType
+import com.getstrm.pace.plugins.PluginAction
 import com.google.rpc.BadRequest
-import com.google.rpc.DebugInfo
 import com.google.rpc.PreconditionFailure
 import org.springframework.stereotype.Component
-import kotlin.reflect.KClass
-import kotlin.reflect.cast
+import build.buf.gen.getstrm.pace.api.plugins.v1alpha.Action as ApiAction
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.Plugin as ApiPlugin
 
 @Component
 class PluginsService(plugins: List<Plugin>) {
-    private val pluginsByType = plugins.groupBy { it.type }
     private val pluginsById = plugins.associateBy { it.id }
 
     private val apiPlugins = plugins.map {
-        build.buf.gen.getstrm.pace.api.plugins.v1alpha.Plugin.newBuilder()
+        ApiPlugin.newBuilder()
             .setId(it.id)
-            .setPluginType(it.type)
+            .addAllActions(it.actions.values.map { action ->
+                ApiAction.newBuilder()
+                    .setType(action.type)
+                    .setInvokable(action.invokable)
+                    .build()
+            })
             .setImplementation(it::class.java.canonicalName)
             .build()
     }
 
     fun listPlugins(): List<ApiPlugin> = apiPlugins
 
-    fun getPluginPayloadJsonSchema(pluginId: String): String =
-        (pluginsById[pluginId] ?: throw pluginNotFoundException(pluginId = pluginId)).payloadJsonSchema
+    fun getPluginPayloadJsonSchema(pluginId: String, action: ApiAction): String =
+        getPluginAction(pluginId, action).payloadJsonSchema.orEmpty()
 
     suspend fun invokePlugin(request: InvokePluginRequest): InvokePluginResponse {
-        val pluginType = request.parametersCase.toPluginType()
-        val pluginsForType = pluginsByType[pluginType] ?: throw pluginNotFoundException(pluginType)
-
+        val action = getPluginAction(request.pluginId, request.action)
         val responseBuilder = InvokePluginResponse.newBuilder()
 
-        return when (pluginType) {
-            PluginType.DATA_POLICY_GENERATOR -> {
-                val plugin = getPlugin(request.pluginId, pluginsForType, DataPolicyGeneratorPlugin::class)
-                val dataPolicy = plugin.generate(request.dataPolicyGeneratorParameters.payload)
+        when (action) {
+            is GenerateDataPolicyAction -> {
+                val dataPolicy = action.invoke(request.dataPolicyGeneratorParameters.payload)
 
                 responseBuilder.setDataPolicyGeneratorResult(
-                    DataPolicyGeneratorResult.newBuilder().setDataPolicy(dataPolicy)
+                    DataPolicyGenerator.Result.newBuilder().setDataPolicy(dataPolicy)
                 )
             }
 
-            else -> throw InternalException(
-                InternalException.Code.INTERNAL,
-                DebugInfo.newBuilder()
-                    .setDetail("No mapping configured for plugin type $pluginType to a plugin class.")
-                    .build()
-            )
-        }.build()
+            is GenerateSampleDataAction -> {
+                val sampleData = action.invoke(request.sampleDataGeneratorParameters.payload)
+
+                responseBuilder.setSampleDataGeneratorResult(
+                    SampleDataGenerator.Result.newBuilder()
+                        .setFormat(SampleDataGenerator.Format.CSV)
+                        .setData(sampleData)
+                )
+            }
+        }
+
+        return responseBuilder.build()
     }
 
-    private fun <T : Plugin> getPlugin(
-        pluginId: String?,
-        plugins: List<Plugin>,
-        clazz: KClass<T>
-    ) = if (!pluginId.isNullOrEmpty()) {
-        clazz.cast(plugins.firstOrNull { it.id == pluginId })
-    } else {
-        when (plugins.size) {
-            0 -> null
-            1 -> clazz.cast(plugins.first())
-            else -> throw BadRequestException(
-                BadRequestException.Code.INVALID_ARGUMENT,
-                BadRequest.newBuilder()
-                    .addFieldViolations(
-                        BadRequest.FieldViolation.newBuilder()
-                            .setField("plugin_id")
-                            .setDescription("Multiple plugins found for ${PluginType.DATA_POLICY_GENERATOR.name}. Please specify a plugin ID.")
-                            .build()
-                    )
-                    .build()
-            )
+    private fun getPluginAction(pluginId: String, action: ApiAction?): PluginAction {
+        val plugin = pluginsById[pluginId] ?: throw pluginNotFoundException(pluginId = pluginId)
+        return if (action == null) {
+            if (plugin.actions.size > 1) {
+                throw BadRequestException(
+                    BadRequestException.Code.INVALID_ARGUMENT,
+                    BadRequest.newBuilder()
+                        .addFieldViolations(
+                            BadRequest.FieldViolation.newBuilder()
+                                .setField("action")
+                                .setDescription("Invalid action: must be specified when plugin has more than one action")
+                                .build()
+                        )
+                        .build()
+                )
+            }
+            plugin.actions.values.first()
+        } else {
+            plugin.actions[action.type] ?: throw pluginNotFoundException(action.type, pluginId)
         }
-    } ?: throw pluginNotFoundException(PluginType.DATA_POLICY_GENERATOR, pluginId)
+    }
 
-
-    private fun pluginNotFoundException(pluginType: PluginType? = null, pluginId: String? = null) =
+    private fun pluginNotFoundException(actionType: ApiAction.Type? = null, pluginId: String? = null) =
         PreconditionFailedException(
             PreconditionFailedException.Code.FAILED_PRECONDITION,
             PreconditionFailure.newBuilder()
@@ -95,7 +96,7 @@ class PluginsService(plugins: List<Plugin>) {
                         .setType("plugin")
                         .apply { pluginId?.let { setSubject(it) } }
                         .setDescription(
-                            "Plugin not found or configured." + pluginType?.let {
+                            "Plugin not found or configured." + actionType?.let {
                                 " Ensure that your PACE instance has an implementation for ${it.name}."
                             }.orEmpty()
                         )

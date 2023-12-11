@@ -1,29 +1,39 @@
-package com.getstrm.pace.plugins.data_policy_generators.openai
+package com.getstrm.pace.plugins.builtin.openai
 
 import com.aallam.openai.api.http.Timeout
+import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import io.ktor.client.plugins.logging.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import kotlin.time.Duration.Companion.seconds
 
 @Configuration
-@ConditionalOnProperty("app.plugins.data-policy-generators.openai.api-key")
+@EnableConfigurationProperties(OpenAIConfig::class)
+@ConditionalOnProperty("app.plugins.openai.enabled", havingValue = "true")
 class Config {
     @Bean
     fun openAIDataPolicyGenerator(
-        @Value("\${app.plugins.data-policy-generators.openai.api-key}") apiKey: String,
-    ): OpenAIDataPolicyGenerator {
+        config: OpenAIConfig,
+    ): OpenAIPlugin {
         val openAI = OpenAI(
-            token = apiKey,
+            token = config.apiKey,
             timeout = Timeout(socket = 60.seconds)
         ) {
             install(Logging) {
                 logger = Logger.DEFAULT
             }
         }
-        return OpenAIDataPolicyGenerator(openAI)
+        return OpenAIPlugin(openAI, ModelId(config.model))
     }
 }
+
+@ConfigurationProperties(prefix = "app.plugins.openai")
+class OpenAIConfig(
+    val apiKey: String,
+    val model: String = "gpt-3.5-turbo",
+)

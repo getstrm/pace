@@ -2,6 +2,8 @@ package com.getstrm.pace.plugins.data_policy_generators.openai
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.plugins.data_policy_generators.v1alpha.OpenAIDataPolicyGeneratorPayload
+import com.getstrm.pace.plugins.builtin.openai.Config
+import com.getstrm.pace.plugins.builtin.openai.OpenAIPlugin
 import com.getstrm.pace.util.toJson
 import com.getstrm.pace.util.toProto
 import io.kotest.matchers.shouldBe
@@ -21,10 +23,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @ContextConfiguration(classes = [Config::class])
 // Todo: we have to think about how we will (integration) test (openai) plugins
 @Disabled
-class OpenAIDataPolicyGeneratorIT {
+class OpenAIPluginIT {
 
     @Autowired
-    private lateinit var underTest: OpenAIDataPolicyGenerator
+    private lateinit var underTest: OpenAIPlugin
 
     @Test
     fun `OpenAI should generate a valid Data Policy`() {
@@ -37,7 +39,7 @@ class OpenAIDataPolicyGeneratorIT {
     """.trimIndent()
 
             // When
-            val result = underTest.generate(
+            val result = underTest.GenerateDataPolicy().invoke(
                 OpenAIDataPolicyGeneratorPayload.newBuilder()
                     .setInitialDataPolicy(initialDataPolicy)
                     .setInstructions(instructions)
