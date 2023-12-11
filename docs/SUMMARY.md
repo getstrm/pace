@@ -67,6 +67,7 @@
       * [databases](cli-docs/pace\_list\_databases.md)
       * [global-transforms](cli-docs/pace\_list\_global-transforms.md)
       * [groups](cli-docs/pace\_list\_groups.md)
+      * [plugins](cli-docs/pace\_list\_plugins.md)
       * [processing-platforms](cli-docs/pace\_list\_processing-platforms.md)
       * [schemas](cli-docs/pace\_list\_schemas.md)
       * [tables](cli-docs/pace\_list\_tables.md)

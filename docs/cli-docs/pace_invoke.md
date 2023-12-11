@@ -22,5 +22,5 @@ Invoke a functionality, such as a plugin
 ### SEE ALSO
 
 * [pace](pace.md)	 - PACE CLI dev
-* [pace invoke plugin](pace_invoke_plugin.md)	 - Invoke a plugin with the provided payload (JSON or YAML)
+* [pace invoke plugin](pace_invoke_plugin.md)	 - Invoke an action for a plugin with the provided payload (JSON or YAML)
 

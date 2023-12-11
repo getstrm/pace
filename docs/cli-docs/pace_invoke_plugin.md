@@ -1,20 +1,20 @@
 ## pace invoke plugin
 
-Invoke a plugin with the provided payload (JSON or YAML)
+Invoke an action for a plugin with the provided payload (JSON or YAML)
 
 ### Synopsis
 
-Invoke a plugin with the provided payload (JSON or YAML).
+Invoke an action for a plugin with the provided payload (JSON or YAML).
 The payload file is checked for validity. The result is plugin-dependent.
 
 ```
-pace invoke plugin (plugin-id) --payload (payload-file) [flags]
+pace invoke plugin (plugin-id) (action) --payload (payload-file) [flags]
 ```
 
 ### Examples
 
 ```
-pace invoke plugin openai-data-policy-generator --payload example.yaml
+pace invoke plugin openai GENERATE_DATA_POLICY --payload example.yaml
 ```
 
 ### Options

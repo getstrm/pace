@@ -27,6 +27,7 @@ return 0 or more entities of a certain type
 * [pace list databases](pace_list_databases.md)	 - List Databases
 * [pace list global-transforms](pace_list_global-transforms.md)	 - List Global Transforms
 * [pace list groups](pace_list_groups.md)	 - List Groups
+* [pace list plugins](pace_list_plugins.md)	 - List plugins
 * [pace list processing-platforms](pace_list_processing-platforms.md)	 - List Processing Platforms
 * [pace list schemas](pace_list_schemas.md)	 - List Schemas
 * [pace list tables](pace_list_tables.md)	 - List Tables
