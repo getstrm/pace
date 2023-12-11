@@ -1,3 +1,10 @@
+# [1.0.0-alpha.37](https://github.com/getstrm/pace/compare/v1.0.0-alpha.36...v1.0.0-alpha.37) (2023-12-11)
+
+
+### Features
+
+* **pace-75:** redesign plugin system and introduce sample data generator action ([#112](https://github.com/getstrm/pace/issues/112)) ([39bc8e4](https://github.com/getstrm/pace/commit/39bc8e41e89868f997f60286e8e39e38d62f6dc2))
+
 # [1.0.0-alpha.36](https://github.com/getstrm/pace/compare/v1.0.0-alpha.35...v1.0.0-alpha.36) (2023-12-07)
 
 
