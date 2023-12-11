@@ -9,16 +9,12 @@ interface Plugin {
 }
 
 sealed interface PluginAction {
-    val actionName: String
     val type: Action.Type
     val invokable: Boolean
     val payloadJsonSchema: String?
 }
 
 interface GenerateDataPolicyAction : PluginAction {
-    override val actionName: String
-        get() = "generate-data-policy"
-
     override val type: Action.Type
         get() = Action.Type.GENERATE_DATA_POLICY
 
@@ -29,8 +25,6 @@ interface GenerateDataPolicyAction : PluginAction {
 }
 
 interface GenerateSampleDataAction : PluginAction {
-    override val actionName: String
-        get() = "generate-sample-data"
     override val type: Action.Type
         get() = Action.Type.GENERATE_SAMPLE_DATA
     override val invokable: Boolean

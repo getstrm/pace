@@ -52,10 +52,10 @@ message SampleDataGenerator {
   message Result {
     string data = 1;
     Format format = 2;
+  }
 
-    enum Format {
-      FORMAT_UNSPECIFIED = 0;
-      CSV = 1;
-    }
+  enum Format {
+    FORMAT_UNSPECIFIED = 0;
+    CSV = 1;
   }
 }

@@ -23,7 +23,8 @@ import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
 
 class OpenAIPlugin(
-    private val openAI: OpenAI
+    private val openAI: OpenAI,
+    private val model: ModelId,
 ) : Plugin {
     private val log by lazy { LoggerFactory.getLogger(OpenAIPlugin::class.java) }
 
@@ -80,7 +81,7 @@ class OpenAIPlugin(
             )
 
             val request = ChatCompletionRequest(
-                model = ModelId("gpt-4-1106-preview"),
+                model = model,
                 messages = listOf(
                     systemMessage,
                     jsonSchemaMessage,
@@ -144,7 +145,7 @@ class OpenAIPlugin(
             )
 
             val request = ChatCompletionRequest(
-                model = ModelId("gpt-4-1106-preview"),
+                model = model,
                 messages = listOf(
                     systemMessage,
                     ddlMessage,

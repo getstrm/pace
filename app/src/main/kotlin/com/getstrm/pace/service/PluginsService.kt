@@ -56,7 +56,7 @@ class PluginsService(plugins: List<Plugin>) {
 
                 responseBuilder.setSampleDataGeneratorResult(
                     SampleDataGenerator.Result.newBuilder()
-                        .setFormat(SampleDataGenerator.Result.Format.CSV)
+                        .setFormat(SampleDataGenerator.Format.CSV)
                         .setData(sampleData)
                 )
             }
