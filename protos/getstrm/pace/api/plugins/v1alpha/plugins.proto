@@ -25,7 +25,7 @@ service PluginsService {
   }
 
   rpc GetPayloadJSONSchema(GetPayloadJSONSchemaRequest) returns (GetPayloadJSONSchemaResponse) {
-    option (google.api.http) = {get: "/v1alpha/plugins/{plugin_id}/{action.type}/payload-json-schema"};
+    option (google.api.http) = {get: "/v1alpha/plugins/{plugin_id}/actions/{action.type}/payload-json-schema"};
   }
 }
 

@@ -1,17 +1,1 @@
-{
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "$ref": "#/definitions/GetPayloadJSONSchemaResponse",
-    "definitions": {
-        "GetPayloadJSONSchemaResponse": {
-            "properties": {
-                "schema": {
-                    "type": "string",
-                    "description": "The payload json schema for the plugin"
-                }
-            },
-            "additionalProperties": false,
-            "type": "object",
-            "title": "Get Payload JSON Schema Response"
-        }
-    }
-}
+{"$schema":"http://json-schema.org/draft-04/schema#","$ref":"#/definitions/ListTablesRequest","definitions":{"ListTablesRequest":{"properties":{"catalog_id":{"type":"string"},"database_id":{"type":"string"},"schema_id":{"type":"string"}},"additionalProperties":false,"type":"object","title":"List Tables Request"}}}
