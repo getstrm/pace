@@ -22,6 +22,8 @@
     <a href="https://pace.getstrm.com/docs/">Docs</a>
     ·
     <a href="https://pace.getstrm.com/docs/integrations-and-reference/roadmap">Roadmap</a>
+    ·
+    <a href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ2LEfEsn2MEyofbffgDmtVP32lvvYi209gTuIZ33YOBbTIw9j9KjH90MFrrNXsjAE3nTuLYfUqA">Book a meeting</a>
   </p>
 </p>
 
