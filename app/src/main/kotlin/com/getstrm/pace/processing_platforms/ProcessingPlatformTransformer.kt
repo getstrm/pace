@@ -1,14 +1,10 @@
 package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Detokenize
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Fixed
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Hash
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Regexp
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.SqlStatement
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.*
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
+import com.getstrm.pace.exceptions.PaceStatusException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.sqlDataType
@@ -127,6 +123,28 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
                     .build()
             )
         }
+
+    fun aggregation(field: DataPolicy.Field, aggregation: Aggregation): JooqField<*> {
+        val jooqField = DSL.field(field.fullName(), Float::class.java)
+        val jooqAggregation = when (aggregation.type) {
+            Aggregation.AggregationType.SUM -> DSL.sum(jooqField)
+            Aggregation.AggregationType.AVG -> DSL.avg(jooqField)
+            Aggregation.AggregationType.MIN -> DSL.min(jooqField)
+            Aggregation.AggregationType.MAX -> DSL.max(jooqField)
+            else -> throw InternalException(
+                InternalException.Code.INTERNAL,
+                DebugInfo.newBuilder()
+                    .setDetail("Aggregation type ${aggregation.type} is not supported or does not exist. ${PaceStatusException.UNIMPLEMENTED}")
+                    .build()
+            )
+        }
+
+        return DSL.field(
+            "{0} over({1})",
+            jooqAggregation,
+            DSL.partitionBy(aggregation.groupByList.map { DSL.field(it.fullName()) })
+        )
+    }
 
     companion object {
         private val typeParser: TypeParser = TypeParser.newBuilder().build()

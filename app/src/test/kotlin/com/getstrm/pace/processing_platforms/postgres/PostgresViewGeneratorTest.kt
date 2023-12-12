@@ -359,7 +359,14 @@ select
   end as email,
   age,
   CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END as brand,
-  transactionamount
+  case
+    when ('marketing' IN ( SELECT rolname FROM user_groups )) then avg(transactionamount) over(partition by brand)
+    when ('sales' IN ( SELECT rolname FROM user_groups )) then sum(transactionamount) over(partition by
+      brand,
+      age
+    )
+    else avg(transactionamount) over()
+  end as transactionamount
 from public.demo
 where (
   case
@@ -369,7 +376,8 @@ where (
   and transactionamount < 10
 );
 grant SELECT on public.demo_view to "fraud_and_risk";
-grant SELECT on public.demo_view to "marketing";"""
+grant SELECT on public.demo_view to "marketing";
+grant SELECT on public.demo_view to "sales";"""
             )
     }
 
@@ -451,6 +459,23 @@ grant SELECT on public.demo_view to "marketing";"""
                           - principals: []
                             sql_statement:
                               statement: "CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END"
+                      - field:
+                          name_parts: [ transactionamount ]
+                        transforms:
+                          - principals: [ {group: marketing} ]
+                            aggregation:
+                              type: AVG
+                              group_by:
+                                - name_parts: [ brand ]
+                          - principals: [ {group: sales} ]
+                            aggregation:
+                              type: SUM
+                              group_by:
+                                - name_parts: [ brand ]
+                                - name_parts: [ age ]
+                          - principals: []
+                            aggregation:
+                              type: AVG
             """.trimIndent().toProto<DataPolicy>()
 
         @Language("yaml")

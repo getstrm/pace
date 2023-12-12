@@ -268,4 +268,99 @@ class DefaultProcessingPlatformTransformerTest {
         // Then
         result.toSql() shouldBe "round(transactionamount, -1)"
     }
+
+    @Test
+    fun `aggregation - sum no group by`() {
+        // Given
+        val sumField = namedField("transactionamount", "integer")
+        val sumAggregation = DataPolicy.RuleSet.FieldTransform.Transform.Aggregation.newBuilder()
+            .setType(DataPolicy.RuleSet.FieldTransform.Transform.Aggregation.AggregationType.SUM)
+            .build()
+
+        // When
+        val result = DefaultProcessingPlatformTransformer.aggregation(sumField, sumAggregation)
+
+        // Then
+        result.toSql() shouldBe "sum(transactionamount) over()"
+    }
+
+    @Test
+    fun `aggregation - sum`() {
+        // Given
+        val sumField = namedField("transactionamount", "integer")
+        val groupByFields = listOf(
+            namedField("brand", "varchar"),
+            namedField("age", "integer")
+        )
+        val sumAggregation = DataPolicy.RuleSet.FieldTransform.Transform.Aggregation.newBuilder()
+            .setType(DataPolicy.RuleSet.FieldTransform.Transform.Aggregation.AggregationType.SUM)
+            .addAllGroupBy(groupByFields)
+            .build()
+
+        // When
+        val result = DefaultProcessingPlatformTransformer.aggregation(sumField, sumAggregation)
+
+        // Then
+        result.toSql() shouldBe "sum(transactionamount) over(partition by brand, age)"
+    }
+
+    @Test
+    fun `aggregation - avg`() {
+        // Given
+        val avgField = namedField("transactionamount", "integer")
+        val groupByFields = listOf(
+            namedField("brand", "varchar"),
+            namedField("age", "integer")
+        )
+        val sumAggregation = DataPolicy.RuleSet.FieldTransform.Transform.Aggregation.newBuilder()
+            .setType(DataPolicy.RuleSet.FieldTransform.Transform.Aggregation.AggregationType.AVG)
+            .addAllGroupBy(groupByFields)
+            .build()
+
+        // When
+        val result = DefaultProcessingPlatformTransformer.aggregation(avgField, sumAggregation)
+
+        // Then
+        result.toSql() shouldBe "avg(transactionamount) over(partition by brand, age)"
+    }
+
+    @Test
+    fun `aggregation - min`() {
+        // Given
+        val minField = namedField("transactionamount", "integer")
+        val groupByFields = listOf(
+            namedField("brand", "varchar"),
+            namedField("age", "integer")
+        )
+        val sumAggregation = DataPolicy.RuleSet.FieldTransform.Transform.Aggregation.newBuilder()
+            .setType(DataPolicy.RuleSet.FieldTransform.Transform.Aggregation.AggregationType.MIN)
+            .addAllGroupBy(groupByFields)
+            .build()
+
+        // When
+        val result = DefaultProcessingPlatformTransformer.aggregation(minField, sumAggregation)
+
+        // Then
+        result.toSql() shouldBe "min(transactionamount) over(partition by brand, age)"
+    }
+
+    @Test
+    fun `aggregation - max`() {
+        // Given
+        val maxField = namedField("transactionamount", "integer")
+        val groupByFields = listOf(
+            namedField("brand", "varchar"),
+            namedField("age", "integer")
+        )
+        val sumAggregation = DataPolicy.RuleSet.FieldTransform.Transform.Aggregation.newBuilder()
+            .setType(DataPolicy.RuleSet.FieldTransform.Transform.Aggregation.AggregationType.MAX)
+            .addAllGroupBy(groupByFields)
+            .build()
+
+        // When
+        val result = DefaultProcessingPlatformTransformer.aggregation(maxField, sumAggregation)
+
+        // Then
+        result.toSql() shouldBe "max(transactionamount) over(partition by brand, age)"
+    }
 }

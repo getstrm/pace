@@ -151,10 +151,10 @@ message DataPolicy {
           }
         }
         message Aggregation {
-          // The field to aggregate.
-          Field field = 1;
           // The aggregation to apply.
-          AggregationType aggregation_type = 2;
+          AggregationType type = 1;
+          // The fields to group by.
+          repeated Field group_by = 2;
 
           enum AggregationType {
             AGGREGATION_TYPE_UNSPECIFIED = 0;

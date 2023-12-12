@@ -9,6 +9,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldT
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.NUMERIC_ROUNDING
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.REGEXP
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.SQL_STATEMENT
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.AGGREGATION
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.TRANSFORM_NOT_SET
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER
@@ -232,6 +233,7 @@ abstract class ProcessingPlatformViewGenerator(
                 dataPolicy.source.ref,
             )
             NUMERIC_ROUNDING -> transformer.numericRounding(field, transform.numericRounding)
+            AGGREGATION ->  transformer.aggregation(field, transform.aggregation)
             TRANSFORM_NOT_SET, IDENTITY, null -> transformer.identity(field)
         }
         return memberCheck to (statement as JooqField<Any>)
