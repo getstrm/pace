@@ -110,6 +110,28 @@ class PostgresViewGeneratorTest {
     }
 
     @Test
+    fun `single retention with single condition`() {
+        // Given
+        val retention = RetentionFilter.newBuilder()
+            .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
+            .addConditions(
+                RetentionFilter.Condition.newBuilder()
+                    .addPrincipals(DataPolicy.Principal.getDefaultInstance())
+                    .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
+                    .build()
+            )
+            .build()
+
+        // When
+        val condition = underTest.toCondition(retention)
+
+        // Then
+        condition.toSql() shouldBe """
+            dateadd(day, 10, timestamp) > current_timestamp""".trimIndent()
+    }
+
+
+    @Test
     fun `single retention to condition`() {
         // Given
         val retention = RetentionFilter.newBuilder()
@@ -176,10 +198,7 @@ where (
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
     else (ts + 10 * interval '1 day') > current_timestamp
   end
-  and case
-    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then (validThrough + 365 * interval '1 day') > current_timestamp
-    else (validThrough + 0 * interval '1 day') > current_timestamp
-  end
+  and (validThrough + 365 * interval '1 day') > current_timestamp
 );
 grant SELECT on public.demo_view to "fraud_and_risk";
 grant SELECT on public.demo_view to "marketing";"""
@@ -653,12 +672,9 @@ grant SELECT on public.demo_view to "marketing";"""
                             required: true
                             type: timestamp
                           conditions:
-                            - principals: [ {group: fraud_and_risk} ]
-                              period:
-                                days: 365
                             - principals: [] 
                               period:
-                                days: 0
+                                days: 365
             """.trimIndent().toProto<DataPolicy>()
     }
 }

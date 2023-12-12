@@ -98,6 +98,8 @@ message DataPolicy {
           Detokenize detokenize = 9;
           // Round a numeric value with the specified rounding.
           NumericRounding numeric_rounding = 10;
+          // Aggregate the field value for specified grouping by other fields.
+          Aggregation aggregation = 11;
         }
         message SqlStatement {
           string statement = 1;
@@ -146,6 +148,20 @@ message DataPolicy {
           message Round {
             // The precision to use for rounding. When positive, the value is rounded to the nearest decimal place. When negative, the value is rounded to the nearest power of 10.
             int32 precision = 1;
+          }
+        }
+        message Aggregation {
+          // The field to aggregate.
+          Field field = 1;
+          // The aggregation to apply.
+          AggregationType aggregation_type = 2;
+
+          enum AggregationType {
+            AGGREGATION_TYPE_UNSPECIFIED = 0;
+            SUM = 1;
+            AVG = 2;
+            MIN = 3;
+            MAX = 4;
           }
         }
       }
