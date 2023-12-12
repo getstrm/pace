@@ -1,3 +1,10 @@
+# [1.0.0-alpha.38](https://github.com/getstrm/pace/compare/v1.0.0-alpha.37...v1.0.0-alpha.38) (2023-12-12)
+
+
+### Bug Fixes
+
+* **alpha:** jsonschema minification ([3a168a3](https://github.com/getstrm/pace/commit/3a168a3950adef6552eb1367bf917e9fb6231bef))
+
 # [1.0.0-alpha.37](https://github.com/getstrm/pace/compare/v1.0.0-alpha.36...v1.0.0-alpha.37) (2023-12-11)
 
 

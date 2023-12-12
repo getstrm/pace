@@ -20,3 +20,4 @@ integration-test/cut
 app/src/test/resources/openai.properties
 
 grpc-proxy/envoy-local.yaml
+protos/temp

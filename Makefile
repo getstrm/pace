@@ -39,8 +39,11 @@ json-schema:
 copy-json-schema-to-resources: json-schema
 	@ find app/src/main/resources/jsonschema -type d -maxdepth 1 -mindepth 1 | xargs -I{} rm -rf {}
 	@ mkdir -p app/src/main/resources/jsonschema
-	@ cp -r protos/json-schema/* app/src/main/resources/jsonschema
-	@ find app/src/main/resources/jsonschema -type f -name "*.json" | xargs -I{} sh -c 'export file="{}" && cat {} | jq -r tostring > "$$file.tmp" && mv "$$file.tmp" "$$file"'
+	@ rm -rf protos/temp
+	@ cp -r protos/json-schema protos/temp
+	@ cd protos/json-schema && find . -type f -name "*.json" -exec sh -c "cat {} | jq -r tostring > ../temp/{}" \;
+	@ cp -r protos/temp/* app/src/main/resources/jsonschema
+	@ rm -rf protos/temp
 
 integration-test:
 	@ chmod go-rw integration-test/pgpass
