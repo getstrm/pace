@@ -48,7 +48,7 @@ The compose file is set up without any persistence of data across different star
 {% endhint %}
 
 {% hint style="info" %}
-Since PostgreSQL has no "native" support for tags on columns, we've come up with a syntax [to allow specifying tags in comments on columns](../global-policies/global-transforms/processing-platform-tags/postgresql.md).
+Since PostgreSQL has no "native" support for tags on columns, we've come up with a syntax [to allow specifying tags in comments on columns](../global-actions/global-transforms/processing-platform-tags/postgresql.md).
 {% endhint %}
 
 <details>

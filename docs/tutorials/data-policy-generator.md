@@ -1,12 +1,12 @@
 ---
-description: Generate a Data Policy using OpenAI
+description: Generate a Data Policy using the OpenAI plugin
 ---
 
-# Data Policy Generator
+# Data Policy Generation
 
-Extensibility is an important aspect of PACE. Functionality can be added through _plugins_, the first type of which is the **Data Policy Generator**. More detail on creating your own plugins will follow soon. In this tutorial, we cover our OpenAI Data Policy Generator implementation.
+Extensibility is an important aspect of PACE. Functionality can be added through [_plugins_](../plugins/definition.md), the first type of which is the **Data Policy Generator**. More detail on creating your own plugins will follow soon. In this tutorial, we cover our OpenAI Data Policy Generator implementation.
 
-The OpenAI Data Policy Generator uses the OpenAI Chat API to generate a Rule Set for a given blueprint Data Policy, based on a textual description of filters and field transforms.
+The [OpenAI Data Policy Generator](../plugins/built-in/openai.md) uses the OpenAI Chat API to generate a Rule Set for a given blueprint Data Policy, based on a textual description of filters and field transforms.
 
 {% hint style="warning" %}
 An OpenAI API key is required for this tutorial. You can generate one in the OpenAI platform at [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys). We recommend creating a new API key for this PACE plugin
@@ -36,7 +36,7 @@ data-policy-generator
 └── data-policy.yaml
 ```
 
-Grab the contents of the files from the [GitHub repository](https://github.com/getstrm/pace/tree/alpha/examples/detokenization).
+Grab the contents of the files from the [GitHub repository](https://github.com/getstrm/pace/tree/alpha/examples/data-policy-generator).
 {% endtab %}
 {% endtabs %}
 
@@ -80,9 +80,8 @@ spring:
 
 app:
   plugins:
-    data-policy-generators:
-      openai:
-        api-key: "put-your-api-key-here"
+    openai:
+      api-key: "put-your-api-key-here"
 ```
 
 Make sure to set a valid API key, which you can generate at [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys).
@@ -114,7 +113,7 @@ There should be quite a bit of logging, ending in the banner of the PACE app boo
 In the same directory, execute the following PACE CLI command:
 
 ```bash
-pace invoke plugin openai-data-policy-generator --payload openai-plugin.yaml
+pace invoke plugin openai GENERATE_DATA_POLICY --payload openai-plugin.yaml
 ```
 
 This will take a little while (around 20 seconds during our testing). If OpenAI replied with a valid Data Policy, it will be printed to your terminal. The output should look similar to this:

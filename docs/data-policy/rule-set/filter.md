@@ -12,7 +12,7 @@ When you have dataset that includes, for example, both large and small transacti
 
 A `Generic Filter` contains a list of `Conditions` and each condition consists of a list of `Principals` and the actual condition.
 
-Similar to [`Field Transform`](field-transform.md), the list of `Principal` defines to which groups of users the `Filter` must be applied. The condition is a _SQL expression_ that should match the specified [`Processing Platform`](../../reference/processing-platform-integrations/)'s syntax. In contrast to `Field Transforms`, where each transform is defined for exactly one field, the filter conditions can contain logic regarding multiple fields. If the condition evaluates to true, the set of `Principal` is allowed to view the data, else the rows are omitted in the resulting view.
+Similar to [`Field Transform`](field-transform.md), the list of `Principal` defines to which groups of users the `Filter` must be applied. The condition is a _SQL expression_ that should match the specified [`Processing Platform`](../../reference/integrations/processing-platform-integrations/)'s syntax. In contrast to `Field Transforms`, where each transform is defined for exactly one field, the filter conditions can contain logic regarding multiple fields. If the condition evaluates to true, the set of `Principal` is allowed to view the data, else the rows are omitted in the resulting view.
 
 ### Retention Filter
 

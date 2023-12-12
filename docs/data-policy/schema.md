@@ -6,11 +6,11 @@ description: The source's data structure
 
 ## Introduction
 
-The first step to defining a `Data Policy` is knowing what your source data looks like. This source data most likely will live in a [`Data Platform`](../reference/processing-platform-integrations/) or [`Data Catalog`](../reference/data-catalog-integrations/). But you will also be able to define the structure yourself. Below we demonstrate the different options to define your schema
+The first step to defining a `Data Policy` is knowing what your source data looks like. This source data most likely will live in a [`Data Platform`](../reference/integrations/processing-platform-integrations/) or [`Data Catalog`](../reference/integrations/data-catalog-integrations/). But you will also be able to define the structure yourself. Below we demonstrate the different options to define your schema
 
 ### Blueprint Policy
 
-Below we will talk about getting a _blueprint policy_. A _blueprint policy_ is a `Data Policy` where only the source ref and fields, and potentially a ruleset are populated. This serves as a starting point for defining the rest of the `Data Policy`. A ruleset _can_ be present in the blueprint policy, but this depends on whether [global transforms are defined](../global-policies/global-transforms/). A blueprint policy is retrieved from either a Data Catalog or a Processing Platform
+Below we will talk about getting a _blueprint policy_. A _blueprint policy_ is a `Data Policy` where only the source ref and fields, and potentially a ruleset are populated. This serves as a starting point for defining the rest of the `Data Policy`. A ruleset _can_ be present in the blueprint policy, but this depends on whether [global transforms are defined](../global-actions/global-transforms/). A blueprint policy is retrieved from either a Data Catalog or a Processing Platform
 
 ### Sample Blueprint Policy
 
@@ -151,8 +151,8 @@ data_policy:
 
 ## Data Platform
 
-If your `Data Platform` (or [`Processing Platform`](../reference/processing-platform-integrations/)) has knowledge of the source's data structure, we provide both a \[REST API]\(../reference/api-reference. md#processing-platforms-platformid-tables-table\_id-blueprint-policy) and a CLI to receive a _blueprint policy_. Find out what the minimum required permissions are per `Processing Platform` in our [processing platform integration pages](../reference/processing-platform-integrations/).
+If your `Data Platform` (or [`Processing Platform`](../reference/integrations/processing-platform-integrations/)) has knowledge of the source's data structure, we provide both a \[REST API]\(../reference/api-reference. md#processing-platforms-platformid-tables-table\_id-blueprint-policy) and a CLI to receive a _blueprint policy_. Find out what the minimum required permissions are per `Processing Platform` in our [processing platform integration pages](../reference/integrations/processing-platform-integrations/).
 
 ## Data Catalog
 
-The source's data structure can also be retrieved from a [`Data Catalog`](../reference/data-catalog-integrations/). Here too we provide both a \[REST API]\(../reference/api-reference. md#catalogs-catalogid-databases-databaseid-schemas-schemaid-tables-tableid-blueprint-policy) and a CLI to receive the _blueprint policy_. Find out what the minimum required permissions are per `Data Catalog` in our [data catalog integration pages](../reference/data-catalog-integrations/).
+The source's data structure can also be retrieved from a [`Data Catalog`](../reference/integrations/data-catalog-integrations/). Here too we provide both a \[REST API]\(../reference/api-reference. md#catalogs-catalogid-databases-databaseid-schemas-schemaid-tables-tableid-blueprint-policy) and a CLI to receive the _blueprint policy_. Find out what the minimum required permissions are per `Data Catalog` in our [data catalog integration pages](../reference/integrations/data-catalog-integrations/).

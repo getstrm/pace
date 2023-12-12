@@ -1,16 +1,11 @@
-# PACE Server Configuration
-[spring-config]: https://docs.spring.io/spring-boot/docs/2.1.13.RELEASE/reference/html/boot-features-external-config.html#boot-features-external-config-application-property-files
-[pace-config-src]: https://github.com/getstrm/pace/tree/alpha/app/src/main/kotlin/com/getstrm/pace/config
-[spring-logging]: https://docs.spring.io/spring-boot/docs/2.1.13.RELEASE/reference/html/boot-features-logging.html#boot-features-custom-log-levels
-[hikari-config]: https://github.com/brettwooldridge/HikariCP#gear-configuration-knobs-baby
-[api]: https://github.com/getstrm/pace/blob/alpha/protos/getstrm/pace/api/entities/v1alpha/entities.proto#L237
+# PACE Configuration
 
-PACE is a [Spring Boot Application][spring-config] configured via its standard mechanism. We typically use
-an `application.yaml` in a `/config` subdirectory of the working directory the PACE server was started.
+PACE is a [Spring Boot Application](https://docs.spring.io/spring-boot/docs/2.1.13.RELEASE/reference/html/boot-features-external-config.html#boot-features-external-config-application-property-files) configured via its standard mechanism. We typically use an `application.yaml` in a `/config` subdirectory of the working directory the PACE server was started.
 
-The schema of the configuration file is defined by the [Kotlin source code][pace-config-src].
+The schema of the configuration file is defined by the [Kotlin source code](https://github.com/getstrm/pace/tree/alpha/app/src/main/kotlin/com/getstrm/pace/config).
 
 ## Structure
+
 An outline of the yaml file is as follows.
 
 ```yaml
@@ -37,16 +32,18 @@ app #  This is the actual PACE configuration
     tag-transforms:
       looseTagMatch #  [See here](../global-policies/global-transforms/README.md#tag-value-matching).
 ```
-Hikari configuration: [see here][hikari-config]
+
+Hikari configuration: [see here](https://github.com/brettwooldridge/HikariCP#gear-configuration-knobs-baby)
 
 ## Processing Platforms Configuration
-Each of the supported processing platforms has a different configuration format. Every configuration must have
-a _distinct id_ that can be any non-empty string.
 
-* [PostgreSQL](processing-platform-integrations/postgres.md)
-* [BigQuery](processing-platform-integrations/bigquery.md)
-* [Databricks](processing-platform-integrations/databricks.md)
-* [Snowflake](processing-platform-integrations/snowflake.md)
+Each of the supported processing platforms has a different configuration format. Every configuration must have a _distinct id_ that can be any non-empty string.
+
+* [PostgreSQL](integrations/processing-platform-integrations/postgres.md)
+* [BigQuery](integrations/processing-platform-integrations/bigquery.md)
+* [Databricks](integrations/processing-platform-integrations/databricks.md)
+* [Snowflake](integrations/processing-platform-integrations/snowflake.md)
 
 ## Data Catalogs Configuration
-[See here](data-catalog-integrations/README.md).
+
+[See here](integrations/data-catalog-integrations/).

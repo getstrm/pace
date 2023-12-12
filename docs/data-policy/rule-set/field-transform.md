@@ -52,7 +52,7 @@ regexp:
 | `local-part@domain.com` | `****@domain.com` |
 
 {% hint style="danger" %}
-This transform is not available for [Azure Synapse Analytics](../../integrations-and-reference/integrations/processing-platform-integrations/synapse.md), as Regular Expression (Replacements) are not supported natively in Synapse
+This transform is not available for [Azure Synapse Analytics](../../reference/integrations/processing-platform-integrations/synapse.md), as Regular Expression (Replacements) are not supported natively in Synapse
 {% endhint %}
 
 ### **2. Identity**
@@ -173,14 +173,13 @@ sql_statement:
 {% endtabs %}
 
 | before    | after   |
-|-----------|---------|
+| --------- | ------- |
 | `MacBook` | `Apple` |
 | `Lenovo`  | `Other` |
 | `HP`      | `Other` |
 | `Acer`    | `Other` |
 
-We can use User Defined Functions, using SQL or other languages like Python (depending on the processing platform).
-We explore a trivial Python UDF on the Databricks platform in [this tutorials page](../../tutorials/udfs.md).
+We can use User Defined Functions, using SQL or other languages like Python (depending on the processing platform). We explore a trivial Python UDF on the Databricks platform in [this tutorials page](../../tutorials/udfs.md).
 
 ### **6. Nullify**
 
