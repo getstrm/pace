@@ -223,6 +223,26 @@ end) end))""".trimMargin()
     }
 
     @Test
+    fun `single retention with single condition to SQL-condition`() {
+        // Given
+        val retention = RetentionFilter.newBuilder()
+            .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
+            .addConditions(
+                RetentionFilter.Condition.newBuilder()
+                    .addPrincipals(Principal.getDefaultInstance())
+                    .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
+                    .build()
+            ).build()
+
+        // When
+        val condition = underTest.toCondition(retention)
+
+        // Then
+        condition.toSql() shouldBe """
+            dateadd(day, (10), timestamp) > current_timestamp""".trimIndent()
+    }
+
+    @Test
     fun `full sql view statement with multiple retentions`() {
         // Given
         val viewGenerator = SynapseViewGenerator(multipleRetentionPolicy) { withRenderFormatted(true) }
