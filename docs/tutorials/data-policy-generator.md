@@ -98,6 +98,10 @@ This file contains the blueprint Data Policy and the textual instructions we'll 
 
 ## Generating the Data Policy
 
+### Tutorial video
+
+{% embed url="https://youtu.be/PV94frpUva8" %}
+
 ### Running PACE
 
 Make sure your current working directory is the same as the directory you've set up in the previous section. Start the containers by running:
