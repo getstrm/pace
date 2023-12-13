@@ -1,12 +1,16 @@
 package com.getstrm.pace.service
 
+import build.buf.gen.getstrm.pace.api.data_catalogs.v1alpha.*
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.catalogs.CollibraCatalog
 import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.catalogs.DatahubCatalog
 import com.getstrm.pace.catalogs.OpenDataDiscoveryCatalog
 import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.exceptions.ResourceException
+import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
+import com.getstrm.pace.util.orDefault
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -36,38 +40,43 @@ class DataCatalogsService(
         }
     }.associateBy { it.id }
 
-    fun listCatalogs(): List<ApiCatalog> = catalogs.map { (id, platform) ->
+    fun listCatalogs(request: ListCatalogsRequest): List<ApiCatalog> = catalogs.map { (id, platform) ->
         ApiCatalog.newBuilder()
             .setId(id)
             .setType(platform.type)
             .build()
     }
 
-    suspend fun listDatabases(catalogId: String): List<ApiDatabase> =
-        getCatalog(catalogId).listDatabases().map { it.apiDatabase }
+    suspend fun listDatabases(request: ListDatabasesRequest): List<ApiDatabase> =
+        with(request) {
+            getCatalog(catalogId).listDatabases(pageParametersOrNull.takeIf { it != null } ?: DEFAULT_PAGE_PARAMETERS).map { it.apiDatabase }
+        }
 
-    suspend fun listSchemas(catalogId: String, databaseId: String): List<ApiSchema> {
-        val catalog = getCatalog(catalogId)
-        val database = catalog.listDatabases().firstOrNull { it.id == databaseId }
-            ?: throw ResourceException(
-                ResourceException.Code.NOT_FOUND,
-                ResourceInfo.newBuilder()
-                    .setResourceType("Database")
-                    .setResourceName(databaseId)
-                    .setDescription("Database $databaseId not found in catalog $catalogId")
-                    .setOwner("Catalog: $catalogId")
-                    .build()
-            )
-        val schemas = database.getSchemas()
-        return schemas.map { it.apiSchema }
-    }
+    suspend fun listSchemas(request: ListSchemasRequest): List<ApiSchema> =
+        with(request) {
+            request.hasPageParameters()
+            val catalog = getCatalog(catalogId)
+            val database = catalog.listDatabases(pageParametersOrNull.orDefault()).firstOrNull { it.id == databaseId }
+                ?: throw ResourceException(
+                    ResourceException.Code.NOT_FOUND,
+                    ResourceInfo.newBuilder()
+                        .setResourceType("Database")
+                        .setResourceName(databaseId)
+                        .setDescription("Database $databaseId not found in catalog $catalogId")
+                        .setOwner("Catalog: $catalogId")
+                        .build()
+                )
+            val schemas = database.listSchemas()
+            return@with schemas.map { it.apiSchema }
+        }
 
-    suspend fun listTables(
-        catalogId: String,
-        databaseId: String,
-        schemaId: String,
-    ): List<ApiTable> =
-        getTablesInfo(catalogId, databaseId, schemaId).map { it.apiTable }
+
+
+    suspend fun listTables(request: ListTablesRequest): List<ApiTable> =
+        with(request) {
+            getTablesInfo(catalogId, databaseId, schemaId).map { it.apiTable }
+        }
+
 
     suspend fun getBlueprintPolicy(
         catalogId: String,
@@ -99,6 +108,7 @@ class DataCatalogsService(
         catalogId: String,
         databaseId: String,
         schemaId: String,
+        pageParameters: PageParameters
     ): List<DataCatalog.Table> {
         val catalog = getCatalog(catalogId)
         val database = catalog.listDatabases().firstOrNull { it.id == databaseId }
@@ -111,7 +121,7 @@ class DataCatalogsService(
                     .setOwner("Catalog: $catalogId")
                     .build()
             )
-        val schema = database.getSchemas().firstOrNull { it.id == schemaId } ?: throw ResourceException(
+        val schema = database.listSchemas().firstOrNull { it.id == schemaId } ?: throw ResourceException(
             ResourceException.Code.NOT_FOUND,
             ResourceInfo.newBuilder()
                 .setResourceType("Catalog Database Schema")
@@ -121,7 +131,7 @@ class DataCatalogsService(
                 .build()
         )
 
-        return schema.getTables()
+        return schema.listTables(pageParameters)
     }
 
     private fun getCatalog(id: String): DataCatalog =
@@ -134,3 +144,4 @@ class DataCatalogsService(
                 .build()
         )
 }
+

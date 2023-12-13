@@ -2,6 +2,7 @@ package com.getstrm.pace.util
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ProtoValidator
@@ -20,6 +21,14 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.*
 import kotlin.reflect.jvm.javaConstructor
+
+internal val DEFAULT_PAGE_PARAMETERS = PageParameters.newBuilder()
+    .setPageSize(10)
+    .setSkip(0)
+    .build()
+
+fun PageParameters?.orDefault(): PageParameters =
+    this.takeIf { it != null } ?: DEFAULT_PAGE_PARAMETERS
 
 fun <T : Message.Builder> T.merge(jsonb: JSONB): T =
     this.also {

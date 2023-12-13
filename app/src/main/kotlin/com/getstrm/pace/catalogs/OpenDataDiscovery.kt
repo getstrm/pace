@@ -1,6 +1,7 @@
 package com.getstrm.pace.catalogs
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.util.normalizeType
 import org.opendatadiscovery.generated.api.DataSetApi
@@ -23,7 +24,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
      * that contain at least one dataset. This is because ODD does not provide information
      * of this kind in its api.
      */
-    override suspend fun listDatabases(): List<Database> =
+    override suspend fun listDatabases(pageParameters: PageParameters): List<Database> =
         dataSources.values.filter { dataSource ->
             val searchId = searchDataSetsInDataSource(dataSource).searchId
             // we try for one search result on the first page, we only want to know if there are any.
@@ -42,7 +43,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         /*
             Just returning a hardcoded schema with id 'schema' and name the same as that of the dataSource.
         */
-        override suspend fun getSchemas(): List<Schema> {
+        override suspend fun listSchemas(pageParameters: PageParameters): List<Schema> {
             return listOf(Schema(catalog, this, "schema", dataSource.name))
         }
     }
@@ -54,7 +55,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         id: String,
         name: String,
     ) : DataCatalog.Schema(oddDatabase, id, name) {
-        override suspend fun getTables(): List<DataCatalog.Table> {
+        override suspend fun listTables(pageParameters: PageParameters): List<DataCatalog.Table> {
             val searchId = catalog.searchDataSetsInDataSource(oddDatabase.dataSource).searchId
             return catalog.getAllSearchResults(searchId).map { Table(catalog, this, "${it.id}", it.externalName) }
         }

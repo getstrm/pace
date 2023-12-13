@@ -1,6 +1,7 @@
 package com.getstrm.pace.catalogs
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.apollographql.apollo3.ApolloClient
 import com.collibra.generated.ListPhysicalDataAssetsQuery
 import com.collibra.generated.ListSchemaIdsQuery
@@ -17,16 +18,16 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         client.close()
     }
 
-    override suspend fun listDatabases(): List<DataCatalog.Database> =
-        listPhysicalAssets(AssetTypes.DATABASE).map {
+    override suspend fun listDatabases(pageParameters: PageParameters): List<DataCatalog.Database> =
+        listPhysicalAssets(AssetTypes.DATABASE, pageParameters).map {
             Database(this, it.id.toString(), it.getDataSourceType(), it.displayName?:"")
         }
 
     class Database(override val catalog: CollibraCatalog, id: String, dbType: String, displayName: String) :
         DataCatalog.Database(catalog, id, dbType, displayName) {
             
-        override suspend fun getSchemas(): List<DataCatalog.Schema> {
-            val assets = catalog.client.query(ListSchemaIdsQuery(id)).execute().data!!.assets!!.filterNotNull()
+        override suspend fun listSchemas(pageParameters: PageParameters): List<DataCatalog.Schema> {
+            val assets = catalog.client.query(ListSchemaIdsQuery(id, 0, 10)).execute().data!!.assets!!.filterNotNull()
                 .flatMap { schema ->
                     schema.schemas
                 }
@@ -38,8 +39,8 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
     class Schema(private val catalog: CollibraCatalog, database: DataCatalog.Database, id: String, name: String) :
         DataCatalog.Schema(database, id, name) {
-        override suspend fun getTables(): List<DataCatalog.Table> =
-            catalog.client.query(ListTablesInSchemaQuery(id)).execute().data!!.assets!!.filterNotNull()
+        override suspend fun listTables(pageParameters: PageParameters): List<DataCatalog.Table> =
+            catalog.client.query(ListTablesInSchemaQuery(id, 0, 10)).execute().data!!.assets!!.filterNotNull()
                 .flatMap { table ->
                     table.tables.map { Table(catalog, this, it.target.id.toString(), it.target.fullName) }
                 }
@@ -80,8 +81,8 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             .build()
     }
 
-    private suspend fun listPhysicalAssets(type: AssetTypes): List<ListPhysicalDataAssetsQuery.Asset> =
-        client.query(ListPhysicalDataAssetsQuery(assetType = type.assetName)).execute().data!!.assets?.filterNotNull()
+    private suspend fun listPhysicalAssets(type: AssetTypes, pageParameters: PageParameters?): List<ListPhysicalDataAssetsQuery.Asset> =
+        client.query(ListPhysicalDataAssetsQuery(assetType = type.assetName, skip = pageParameters?.skip ?: 0, pageSize = pageParameters?.pageSize ?: 10)).execute().data!!.assets?.filterNotNull()
             ?: emptyList()
 
     private fun ListPhysicalDataAssetsQuery.Asset.getDataSourceType(): String =

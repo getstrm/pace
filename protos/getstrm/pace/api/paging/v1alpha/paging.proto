@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package getstrm.pace.api.paging.v1alpha;
+
+option go_package = "github.com/getstrm/pace/protos/api/paging;paging";
+option java_multiple_files = true;
+option java_package = "com.getstrm.pace.api.paging.v1alpha";
+
+// The parameters of a request, as provided by the client, intended for RPCs that support paging.
+message PageParameters {
+  // The provided skip value of the request.
+  // skip represents records to skip before returning results.
+  // If empty, skip is 0.
+  int32 skip = 1;
+  // The provided page_size value of the request.
+  // If empty, page_size is 10.
+  int32 page_size = 2;
+}
+
+message PageInfo {
+  // The (estimated) total number of records. If the total is unknown, this value is -1.
+  int32 total = 1;
+}

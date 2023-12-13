@@ -7,6 +7,7 @@ git_branch := $(shell git rev-parse --abbrev-ref HEAD)
 descriptor_file := "grpc-proxy/descriptor.binpb"
 
 buf-publish-current-branch: copy-json-schema-to-resources
+	@ [[ "${git_branch}" == "alpha"* ]] && (echo "Cannot push to BSR from the alpha branch" && exit 1) || true
 	@ [[ "$$OSTYPE" == "darwin"* ]] && SED=gsed || SED=sed && \
 	commit_hash=$$(cd protos > /dev/null && buf push --branch "${git_branch}") && \
 	[ ! -z "$$commit_hash" ] && commit_hash_short=$$(echo "$$commit_hash" | cut -c1-12) && $$SED -i "s|generatedBufDependencyVersion=.*|generatedBufDependencyVersion=00000000000000.$$commit_hash_short|g" gradle.properties && echo $$commit_hash || echo "No changes to protos, gradle.properties not updated"

@@ -1,6 +1,7 @@
 package com.getstrm.pace.catalogs
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.apollographql.apollo3.ApolloClient
 import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.util.normalizeType
@@ -14,7 +15,7 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         client.close()
     }
 
-    override suspend fun listDatabases(): List<Database> {
+    override suspend fun listDatabases(pageParameters: PageParameters): List<Database> {
         return fetchAllDatasets().map {
             val m = urnPattern.matchEntire(it.entity.urn)
             Database(this, it.entity.urn, m?.groupValues?.get(1) ?:"", m?.groupValues?.get(2) ?:"")
@@ -40,7 +41,7 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
     class Database(override val catalog: DatahubCatalog, urn: String, dbType: String, displayName: String) : DataCatalog.Database(
         catalog, urn, dbType, displayName
     ) {
-        override suspend fun getSchemas(): List<DataCatalog.Schema> {
+        override suspend fun listSchemas(pageParameters: PageParameters): List<DataCatalog.Schema> {
             return catalog.client.query(GetDatasetDetailsQuery(id)).execute().data?.dataset?.let { dataset ->
                 val schema = Schema(this, dataset)
                 listOf(schema)
@@ -50,7 +51,7 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
     class Schema(database: Database, private val dataset: GetDatasetDetailsQuery.Dataset) :
         DataCatalog.Schema(database, dataset.urn, dataset.platform.properties?.displayName ?: dataset.urn) {
-        override suspend fun getTables(): List<DataCatalog.Table> = listOf(Table(this, dataset))
+        override suspend fun listTables(pageParameters: PageParameters): List<DataCatalog.Table> = listOf(Table(this, dataset))
     }
 
     class Table(schema: Schema, private val dataset: GetDatasetDetailsQuery.Dataset) :

@@ -12,29 +12,22 @@ class DataCatalogsApi(
 
     override suspend fun listCatalogs(request: ListCatalogsRequest): ListCatalogsResponse =
         ListCatalogsResponse.newBuilder()
-            .addAllCatalogs(dataCatalogsService.listCatalogs())
+            .addAllCatalogs(dataCatalogsService.listCatalogs(request))
             .build()
 
-    override suspend fun listDatabases(request: ListDatabasesRequest): ListDatabasesResponse {
-        val databases = dataCatalogsService.listDatabases(request.catalogId)
-        return ListDatabasesResponse.newBuilder()
-            .addAllDatabases(databases)
+    override suspend fun listDatabases(request: ListDatabasesRequest): ListDatabasesResponse =
+        ListDatabasesResponse.newBuilder()
+            .addAllDatabases(dataCatalogsService.listDatabases(request))
             .build()
-    }
 
-    override suspend fun listSchemas(request: ListSchemasRequest): ListSchemasResponse {
-        val schemas = dataCatalogsService.listSchemas(request.catalogId, request.databaseId)
-        return ListSchemasResponse.newBuilder()
-            .addAllSchemas(schemas)
+    override suspend fun listSchemas(request: ListSchemasRequest): ListSchemasResponse =
+        ListSchemasResponse.newBuilder()
+            .addAllSchemas(dataCatalogsService.listSchemas(request))
             .build()
-    }
 
-    override suspend fun listTables(request: ListTablesRequest): ListTablesResponse {
-        val tables = dataCatalogsService.listTables(request.catalogId, request.databaseId, request.schemaId)
-        return ListTablesResponse.newBuilder()
-            .addAllTables(tables)
-            .build()
-    }
+    override suspend fun listTables(request: ListTablesRequest): ListTablesResponse = ListTablesResponse.newBuilder()
+        .addAllTables(dataCatalogsService.listTables(request))
+        .build()
 
     override suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest): GetBlueprintPolicyResponse {
         val dataPolicy: DataPolicy = dataCatalogsService.getBlueprintPolicy(

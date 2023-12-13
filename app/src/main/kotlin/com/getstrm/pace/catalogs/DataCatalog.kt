@@ -1,7 +1,9 @@
 package com.getstrm.pace.catalogs
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.CatalogConfiguration
+import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Database as ApiDatabase
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Schema as ApiSchema
@@ -20,7 +22,7 @@ abstract class DataCatalog(
     val apiCatalog: ApiCatalog
         get() = ApiCatalog.newBuilder().setId(id).setType(config.type).build()
 
-    abstract suspend fun listDatabases(): List<Database>
+    abstract suspend fun listDatabases(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): List<Database>
 
     /**
      * A table is a collection of columns.
@@ -41,7 +43,7 @@ abstract class DataCatalog(
      * A schema is a collection of tables.
      */
     abstract class Schema(val database: Database, val id: String, val name: String) {
-        open suspend fun getTables(): List<Table> = emptyList()
+        open suspend fun listTables(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): List<Table> = emptyList()
         open suspend fun getTags(): List<String> = emptyList()
         override fun toString(): String = "Schema($id, $name)"
         val apiSchema: ApiSchema
@@ -59,7 +61,7 @@ abstract class DataCatalog(
         val dbType: String? = null,
         val displayName: String? = null
     ) {
-        open suspend fun getSchemas(): List<Schema> = emptyList()
+        open suspend fun listSchemas(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): List<Schema> = emptyList()
         open suspend fun getTags(): List<String> = emptyList()
         override fun toString() = dbType?.let { "Database($id, $dbType, $displayName)" } ?: "Database($id)"
 
