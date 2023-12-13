@@ -150,19 +150,27 @@ message DataPolicy {
             int32 precision = 1;
           }
         }
+
         message Aggregation {
           // The aggregation to apply.
-          AggregationType type = 1;
-          // The fields to group by.
-          repeated Field group_by = 2;
-
-          enum AggregationType {
-            AGGREGATION_TYPE_UNSPECIFIED = 0;
-            SUM = 1;
-            AVG = 2;
-            MIN = 3;
-            MAX = 4;
+          oneof aggregation_type {
+            Sum sum = 1;
+            Avg avg = 2;
+            Min min = 3;
+            Max max = 4;
           }
+          // The fields to partition by.
+          repeated Field partition_by = 5;
+
+          message Sum {}
+          message Avg {
+            // The precision to use for rounding. When empty, the value is not rounded
+            int32 precision = 1;
+            // Type to cast the original field to before applying the aggregation. By default any field will be cast to decimal.
+            string cast_to = 2;
+          }
+          message Min {}
+          message Max {}
         }
       }
     }
@@ -223,12 +231,12 @@ message DataPolicy {
 }
 
 /* If the specified transform is incompatible with the field data type to which this global transform is connected with,
-   then the end user will get an invalid argument, and the blueprint policy with the global transforms applied won't be returned.
+    then the end user will get an invalid argument, and the blueprint policy with the global transforms applied won't be returned.
 
-  Global transforms are identified by an identifier of their [transform]. These are by default loose matching, so that
-  'Email-PII' is matched when 'email pii' is used.
+   Global transforms are identified by an identifier of their [transform]. These are by default loose matching, so that
+   'Email-PII' is matched when 'email pii' is used.
 
- */
+*/
 message GlobalTransform {
   string description = 1;
   oneof transform {

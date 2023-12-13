@@ -451,7 +451,16 @@ from my_schema.gddemo;"""
             )
             .build()
         val sql = underTest.toCondition(f)
-        println(sql.toSql())
+        sql.toSql() shouldBe """(1 = (case when (IS_ROLEMEMBER('fraud_and_risk')=1) then (case
+  when (1=1) then 1
+  else 0
+end) when ((IS_ROLEMEMBER('marketing')=1) or (IS_ROLEMEMBER('sales')=1)) then (case
+  when (transactionamount < 100) then 1
+  else 0
+end) else (case
+  when (transactionamount < 10) then 1
+  else 0
+end) end))"""
     }
 
     @Test
@@ -474,7 +483,14 @@ from my_schema.gddemo;"""
             )
             .build()
         val sql = underTest.toCondition(f)
-        println(sql.toSql())
+        sql.toSql() shouldBe """dateadd(day, (case
+  when (IS_ROLEMEMBER('fraud_and_risk')=1) then 100000
+  when (
+    (IS_ROLEMEMBER('marketing')=1)
+    or (IS_ROLEMEMBER('sales')=1)
+  ) then 3
+  else 10
+end), ts) > current_timestamp"""
     }
 
     companion object {

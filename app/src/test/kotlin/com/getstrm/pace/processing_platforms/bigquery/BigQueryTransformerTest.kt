@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Aggregation
 import com.getstrm.pace.namedField
 import com.getstrm.pace.toSql
 import io.kotest.matchers.shouldBe
@@ -28,6 +29,26 @@ class BigQueryTransformerTest {
 
         // Then
         result.toSql() shouldBe "regexp_extract(my_field, 'foo(bar)')"
+    }
+
+    @Test
+    fun `aggregation - avg`() {
+        // Given
+        val avgField = namedField("transactionamount", "integer")
+        val groupByFields = listOf(
+            namedField("brand", "varchar"),
+            namedField("age", "integer")
+        )
+        val avgAggregation = Aggregation.newBuilder()
+            .setAvg(Aggregation.Avg.getDefaultInstance())
+            .addAllPartitionBy(groupByFields)
+            .build()
+
+        // When
+        val result = underTest.aggregation(avgField, avgAggregation)
+
+        // Then
+        result.toSql() shouldBe "avg(cast(transactionamount as decimal)) over(partition by brand, age)"
     }
 
     @Test

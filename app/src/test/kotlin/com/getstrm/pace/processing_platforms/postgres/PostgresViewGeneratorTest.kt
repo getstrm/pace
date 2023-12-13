@@ -360,13 +360,19 @@ select
   age,
   CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END as brand,
   case
-    when ('marketing' IN ( SELECT rolname FROM user_groups )) then avg(transactionamount) over(partition by brand)
+    when ('marketing' IN ( SELECT rolname FROM user_groups )) then round(
+      cast(avg(cast(transactionamount as decimal)) over(partition by brand) as numeric),
+      2
+    )
     when ('sales' IN ( SELECT rolname FROM user_groups )) then sum(transactionamount) over(partition by
       brand,
       age
     )
-    else avg(transactionamount) over()
-  end as transactionamount
+    else round(
+      cast(avg(cast(transactionamount as float64)) over() as numeric),
+      2
+    )
+  end as transactionamount_AVG
 from public.demo
 where (
   case
@@ -464,18 +470,21 @@ grant SELECT on public.demo_view to "sales";"""
                         transforms:
                           - principals: [ {group: marketing} ]
                             aggregation:
-                              type: AVG
-                              group_by:
+                              avg:
+                                precision: 2
+                              partition_by:
                                 - name_parts: [ brand ]
                           - principals: [ {group: sales} ]
                             aggregation:
-                              type: SUM
-                              group_by:
+                              sum: {}
+                              partition_by:
                                 - name_parts: [ brand ]
                                 - name_parts: [ age ]
                           - principals: []
                             aggregation:
-                              type: AVG
+                              avg:
+                                precision: 2
+                                cast_to: "float64"
             """.trimIndent().toProto<DataPolicy>()
 
         @Language("yaml")

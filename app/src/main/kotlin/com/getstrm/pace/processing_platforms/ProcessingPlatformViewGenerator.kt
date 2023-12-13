@@ -1,38 +1,17 @@
 package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.DETOKENIZE
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.FIXED
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.HASH
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.IDENTITY
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.NULLIFY
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.NUMERIC_ROUNDING
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.REGEXP
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.SQL_STATEMENT
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.AGGREGATION
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.TRANSFORM_NOT_SET
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.*
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER
 import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
-import org.jooq.Condition
-import org.jooq.DSLContext
-import org.jooq.DatePart
-import org.jooq.Queries
-import org.jooq.Record
-import org.jooq.SQLDialect
-import org.jooq.SelectJoinStep
-import org.jooq.SelectSelectStep
+import org.jooq.*
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.condition
-import org.jooq.impl.DSL.currentTimestamp
-import org.jooq.impl.DSL.field
-import org.jooq.impl.DSL.timestampAdd
-import org.jooq.impl.DSL.trueCondition
-import org.jooq.impl.DSL.unquotedName
-import org.jooq.impl.DSL.using
+import org.jooq.impl.DSL.*
 import java.sql.Timestamp
 import org.jooq.Field as JooqField
 
@@ -194,7 +173,7 @@ abstract class ProcessingPlatformViewGenerator(
         if (fieldTransform.transformsList.size == 1) {
             // If there is only one transform it should be the only option
             val (_, queryPart) = toCase(fieldTransform.transformsList.last(), field)
-            return queryPart.`as`(field.fullName())
+            return queryPart.`as`(fieldAlias(field.fullName(), fieldTransform.transformsList.last()))
         }
 
         val caseWhenStatement = fieldTransform.transformsList.headTailFold(
@@ -208,11 +187,22 @@ abstract class ProcessingPlatformViewGenerator(
             },
             tailOperation = { conditionStep, transform ->
                 val (c, q) = toCase(transform, field)
-                conditionStep.otherwise(q).`as`(field.fullName())
+                conditionStep.otherwise(q).`as`(fieldAlias(field.fullName(), transform))
             },
         )
 
         return caseWhenStatement
+    }
+
+    private fun fieldAlias(fullName: String, transform: Transform) = if (transform.hasAggregation()) {
+        field(
+            "{0}_{1}",
+            String::class.java,
+            unquotedName(fullName),
+            unquotedName(transform.aggregation.aggregationTypeCase.name)
+        ).toString()
+    } else {
+        fullName
     }
 
     private fun toCase(
@@ -233,7 +223,7 @@ abstract class ProcessingPlatformViewGenerator(
                 dataPolicy.source.ref,
             )
             NUMERIC_ROUNDING -> transformer.numericRounding(field, transform.numericRounding)
-            AGGREGATION ->  transformer.aggregation(field, transform.aggregation)
+            AGGREGATION -> transformer.aggregation(field, transform.aggregation)
             TRANSFORM_NOT_SET, IDENTITY, null -> transformer.identity(field)
         }
         return memberCheck to (statement as JooqField<Any>)

@@ -15,6 +15,7 @@ import com.google.rpc.DebugInfo
 import org.jooq.Parser
 import org.jooq.impl.DSL
 import org.jooq.impl.ParserException
+import org.jooq.impl.SQLDataType
 import org.jooq.Field as JooqField
 
 val CAPTURING_GROUP_REGEX = Regex("""\$(\d+)""")
@@ -126,24 +127,37 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
 
     fun aggregation(field: DataPolicy.Field, aggregation: Aggregation): JooqField<*> {
         val jooqField = DSL.field(field.fullName(), Float::class.java)
-        val jooqAggregation = when (aggregation.type) {
-            Aggregation.AggregationType.SUM -> DSL.sum(jooqField)
-            Aggregation.AggregationType.AVG -> DSL.avg(jooqField)
-            Aggregation.AggregationType.MIN -> DSL.min(jooqField)
-            Aggregation.AggregationType.MAX -> DSL.max(jooqField)
+
+        val jooqAggregation = when (aggregation.aggregationTypeCase) {
+            Aggregation.AggregationTypeCase.SUM -> DSL.sum(jooqField)
+            Aggregation.AggregationTypeCase.AVG -> DSL.avg(
+                aggregation.avg.castTo.ifEmpty { null }
+                    ?.let { DSL.field("cast({0} as {1})", Float::class.java, jooqField, DSL.unquotedName(it)) }
+                    ?: DSL.cast(
+                        jooqField,
+                        SQLDataType.DECIMAL
+                    )
+            )
+
+            Aggregation.AggregationTypeCase.MIN -> DSL.min(jooqField)
+            Aggregation.AggregationTypeCase.MAX -> DSL.max(jooqField)
             else -> throw InternalException(
                 InternalException.Code.INTERNAL,
                 DebugInfo.newBuilder()
-                    .setDetail("Aggregation type ${aggregation.type} is not supported or does not exist. ${PaceStatusException.UNIMPLEMENTED}")
+                    .setDetail("Aggregation type ${aggregation.aggregationTypeCase.name} is not supported or does not exist. ${PaceStatusException.UNIMPLEMENTED}")
                     .build()
             )
         }
-
-        return DSL.field(
+        val aggregationField = DSL.field(
             "{0} over({1})",
+            Float::class.java,
             jooqAggregation,
-            DSL.partitionBy(aggregation.groupByList.map { DSL.field(it.fullName()) })
+            DSL.partitionBy(aggregation.partitionByList.map { DSL.field(it.fullName()) })
         )
+
+        return aggregation.avg?.precision?.takeIf { it > 0 }?.let {
+            DSL.round(aggregationField, it)
+        } ?: aggregationField
     }
 
     companion object {
