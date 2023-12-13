@@ -196,7 +196,7 @@ abstract class ProcessingPlatformViewGenerator(
         if (fieldTransform.transformsList.size == 1) {
             // If there is only one transform it should be the only option
             val (_, queryPart) = toCase(fieldTransform.transformsList.last(), field)
-            return queryPart.`as`(fieldAlias(field.fullName(), fieldTransform.transformsList.last()))
+            return queryPart.`as`(field.fullName())
         }
 
         val caseWhenStatement = fieldTransform.transformsList.headTailFold(
@@ -210,22 +210,11 @@ abstract class ProcessingPlatformViewGenerator(
             },
             tailOperation = { conditionStep, transform ->
                 val (c, q) = toCase(transform, field)
-                conditionStep.otherwise(q).`as`(fieldAlias(field.fullName(), transform))
+                conditionStep.otherwise(q).`as`(field.fullName())
             },
         )
 
         return caseWhenStatement
-    }
-
-    private fun fieldAlias(fullName: String, transform: Transform) = if (transform.hasAggregation()) {
-        field(
-            "{0}_{1}",
-            String::class.java,
-            unquotedName(fullName),
-            unquotedName(transform.aggregation.aggregationTypeCase.name)
-        ).toString()
-    } else {
-        fullName
     }
 
     private fun toCase(
