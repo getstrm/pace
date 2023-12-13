@@ -138,11 +138,11 @@ class SynapseViewGenerator(
         }
 
         val retentionClause = DSL.field(
-            "{0} > ({1})",
+            "{0} > {1}",
             Boolean::class.java,
             DSL.timestampAdd(
                 DSL.field(DSL.unquotedName(retention.field.fullName()), Timestamp::class.java),
-                retentionCondition,
+                DSL.field("(${retentionCondition})", Int::class.java),
                 DatePart.DAY
             ),
             DSL.currentTimestamp()
