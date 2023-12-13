@@ -6,14 +6,12 @@ import com.getstrm.pace.config.SynapseConfig
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
-import com.getstrm.pace.processing_platforms.databricks.SynapseViewGenerator
 import com.getstrm.pace.util.normalizeType
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jooq.DSLContext
-import org.jooq.Field
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 

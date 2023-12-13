@@ -7,7 +7,6 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.namedField
-import com.getstrm.pace.processing_platforms.databricks.SynapseViewGenerator
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
