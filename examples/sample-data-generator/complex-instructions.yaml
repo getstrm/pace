@@ -1,0 +1,25 @@
+source:
+  ref: generate_sample_demo
+  fields:
+    - name_parts: [ email ]
+      type: varchar
+      required: true
+    - name_parts: [ gebruikersnaam ]
+      type: varchar
+      required: true
+    - name_parts: [ organisatie ]
+      type: varchar
+      required: true
+    - name_parts: [ klantnummber ]
+      type: varchar
+      required: true
+    - name_parts: [ bankrekening ]
+      type: varchar
+      required: false
+
+additional_system_instructions:
+  - don't forget to add the csv column headers
+  - please return 20 result rows
+  - if you recognize something as being an email, please use email domains in europe
+  - if you recognize something as a customer number please generate 7 digits between 1000000 and 2999999
+  - for recognized bank accounts use european style IBAN

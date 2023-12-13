@@ -25,6 +25,7 @@
 * [Global Tag Transforms](tutorials/global-tag-transforms.md)
 * [User Defined Functions in Python](tutorials/udfs.md)
 * [Data Policy Generation](tutorials/data-policy-generator.md)
+* [Random Sample Generation](tutorials/random-sample-generator.md)
 * [Databricks](tutorials/databricks.md)
 * [PostgreSQL](tutorials/postgresql.md)
 
