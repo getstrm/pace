@@ -19,7 +19,7 @@ plugins:
 ```
 This plugin has two actions, we'll explore the GENERATE_SAMPLE_DATA action in this tutorial
 
-The [OpenAI Data Policy Generator](../plugins/built-in/openai.md) uses the OpenAI Chat API to random sample data for a given table definition, that one could create for instance via one of the `pace get data-policy ...` command invocations.
+The [OpenAI Data Policy Generator](../plugins/built-in/openai.md) uses the OpenAI Chat API to create random sample data for a given table definition, that one could create for instance via one of the `pace get data-policy ...` command invocations.
 
 {% hint style="warning" %}
 An OpenAI API key is required for this tutorial. You can generate one in the OpenAI platform at [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys). We recommend creating a new API key for this PACE plugin
