@@ -24,6 +24,7 @@ val jooqMigrationDir = "$projectDir/src/main/resources/db/migration/postgresql"
 val jooqVersion = rootProject.ext["jooqVersion"] as String
 val kotestVersion = rootProject.ext["kotestVersion"] as String
 val openDataDiscoveryOpenApiDir = layout.buildDirectory.dir("generated/source/odd").get()
+val springCloudKubernetesVersion = rootProject.ext["springCloudKubernetesVersion"] as String
 project.version = if (gradle.startParameter.taskNames.any { it.lowercase() == "builddocker" }) {
     "${project.version}-SNAPSHOT"
 } else {
@@ -67,6 +68,8 @@ dependencies {
     implementation("com.databricks:databricks-sdk-java:0.13.0")
     implementation("com.github.drapostolos:type-parser:0.8.1")
     implementation("com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre11")
+
+    implementation("org.springframework.cloud:spring-cloud-starter-kubernetes-fabric8-config:$springCloudKubernetesVersion")
 
     implementation("com.nimbusds:nimbus-jose-jwt:9.37.2")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.77")
