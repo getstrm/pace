@@ -1,19 +1,23 @@
 package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.exceptions.ResourceException
+import com.getstrm.pace.util.THOUSAND_RECORDS
 import com.google.rpc.ResourceInfo
 import org.jooq.Field
 
 interface ProcessingPlatformClient {
     val id: String
     val type: DataPolicy.ProcessingPlatform.PlatformType
-    suspend fun listGroups(): List<Group>
-    suspend fun listTables(): List<Table>
+    suspend fun listGroups(pageParameters: PageParameters): List<Group>
+    suspend fun listTables(pageParameters: PageParameters): List<Table>
     suspend fun applyPolicy(dataPolicy: DataPolicy)
 
-    suspend fun getTable(tableName: String): Table =
-        listTables().find { it.fullName == tableName } ?: throw ResourceException(
+    // TODO Should be overridden by implementations to avoid query size constraints
+    // TODO make more efficient implementation that does not list all the databases
+    open suspend fun getTable(tableName: String): Table =
+        listTables(THOUSAND_RECORDS).find { it.fullName == tableName } ?: throw ResourceException(
             ResourceException.Code.NOT_FOUND,
             ResourceInfo.newBuilder()
                 .setResourceType("Table")

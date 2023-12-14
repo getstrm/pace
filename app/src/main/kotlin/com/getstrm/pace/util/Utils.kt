@@ -1,12 +1,15 @@
 package com.getstrm.pace.util
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.google.cloud.bigquery.Table
 import com.google.cloud.bigquery.TableId
 import org.jooq.*
+import java.util.stream.Collectors
+import kotlin.math.max
 
 internal val YAML_MAPPER = ObjectMapper(YAMLFactory())
 internal val JSON_MAPPER = ObjectMapper()
@@ -53,3 +56,13 @@ private fun DataPolicy.RuleSet.Filter.listPrincipals() = when (this.filterCase) 
     DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER -> this.genericFilter.conditionsList.flatMap { it.principalsList }
     else -> throw IllegalArgumentException("Unsupported filter: ${this.filterCase.name}")
 }
+
+/**
+ * safe page parameters application.
+ * Can't throw an exception
+ */
+fun <T>List<T>.applyPageParameters(p:PageParameters) : List<T> =
+        stream()
+            .skip(max(p.skip, 0).toLong())
+            .limit(max(p.pageSize,0).toLong())
+            .collect(Collectors.toList())

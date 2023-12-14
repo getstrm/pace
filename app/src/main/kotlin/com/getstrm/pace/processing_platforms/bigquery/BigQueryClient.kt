@@ -2,12 +2,14 @@ package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.BIGQUERY
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.BigQueryConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
+import com.getstrm.pace.util.applyPageParameters
 import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.toFullName
 import com.getstrm.pace.util.toTimestamp
@@ -48,11 +50,20 @@ class BigQueryClient(
         polClient = PolicyTagManagerClient.create()
     }
 
-    override suspend fun listTables(): List<Table> {
+    override suspend fun listTables(pageParameters: PageParameters): List<Table> {
+        // TODO need the same hierarchy as for the catalogs!
+        // Issue: PACE-84
+        // It makes no sense that we just list all tables
         val dataSets = bigQuery.listDatasets().iterateAll()
         return dataSets.flatMap { dataSet ->
+            // TODO: bigquery does not support offset (skip).
+            // Options: expose token in api (my preference), and use its optional existence for pagination
+            // loop the call below until we reach the required offset.
+            // for now just ignoring the skip parameter
             bigQuery.listTables(dataSet.datasetId).iterateAll().toList()
-        }.map { table ->
+        }
+            .applyPageParameters(pageParameters)
+            .map { table ->
             BigQueryTable(table.tableId.toFullName(), table, polClient)
         }
     }
@@ -123,12 +134,15 @@ class BigQueryClient(
 
     override val type = BIGQUERY
 
-    override suspend fun listGroups(): List<Group> {
+    override suspend fun listGroups(pageParameters: PageParameters): List<Group> {
         val query = """
             SELECT
               DISTINCT userGroup
             FROM
               $userGroupsTable
+            ORDER BY userGroup
+            LIMIT ${pageParameters.pageSize}
+            OFFSET ${pageParameters.skip}
         """.trimIndent()
         val queryConfig = QueryJobConfiguration.newBuilder(query)
             .setUseLegacySql(false)

@@ -38,8 +38,6 @@ query ListDatabases($skip: Int!, $pageSize: Int!) {
         domain {
             name
         }
-
-
     }
 }
 
@@ -69,6 +67,16 @@ query ListTablesInSchema($schemaId: UUID!, $skip: Int!, $pageSize: Int!) {
     }
 }
 
+query GetSchema($schemaId: UUID!) {
+    assets(
+        where: {id: {eq: $schemaId}}
+    ){
+        id
+        displayName
+        fullName
+    }
+}
+
 query ListSchemaIds($databaseId: UUID!, $skip: Int!, $pageSize: Int!) {
     assets(
         where: {domain: {type: {publicId: {eq: "PhysicalDataDictionary"}}}, id: {eq: $databaseId}, type: {publicId: {eq: "Database"}}}
@@ -90,3 +98,21 @@ query ListSchemaIds($databaseId: UUID!, $skip: Int!, $pageSize: Int!) {
     }
 }
 
+query GetDataBase($databaseId: UUID!) {
+    assets(
+        where: {id: {eq: $databaseId}}
+    ){
+        displayName
+        fullName
+        id
+        domain {
+            name
+        }
+        stringAttributes {
+            stringValue
+            type {
+                publicId
+            }
+        }
+    }
+}

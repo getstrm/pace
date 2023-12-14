@@ -23,7 +23,7 @@ class DataPoliciesApi(
 ) : DataPoliciesServiceGrpcKt.DataPoliciesServiceCoroutineImplBase() {
     override suspend fun listDataPolicies(request: ListDataPoliciesRequest): ListDataPoliciesResponse {
         return ListDataPoliciesResponse.newBuilder()
-            .addAllDataPolicies(dataPolicyService.listDataPolicies())
+            .addAllDataPolicies(dataPolicyService.listDataPolicies(request))
             .build()
     }
 

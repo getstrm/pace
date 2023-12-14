@@ -1,6 +1,7 @@
 package com.getstrm.pace.dao
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.jooq.generated.tables.DataPolicies.Companion.DATA_POLICIES
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.getstrm.pace.exceptions.BadRequestException
@@ -19,9 +20,13 @@ class DataPolicyDao(
     private val jooq: DSLContext,
 ) {
 
-    fun listDataPolicies(): List<DataPoliciesRecord> = jooq.select()
+    fun listDataPolicies(pageParameters: PageParameters): List<DataPoliciesRecord> =
+        jooq.select()
         .from(DATA_POLICIES)
         .where(DATA_POLICIES.ACTIVE.isTrue)
+        .orderBy(DATA_POLICIES.ID, DATA_POLICIES.PLATFORM_ID, DATA_POLICIES.VERSION)
+        .offset(pageParameters.skip)
+        .limit(pageParameters.pageSize)
         .fetchInto(DATA_POLICIES)
 
     fun upsertDataPolicy(dataPolicy: DataPolicy): DataPoliciesRecord {

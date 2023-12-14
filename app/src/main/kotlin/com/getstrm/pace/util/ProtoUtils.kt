@@ -22,13 +22,15 @@ import java.time.ZoneOffset
 import java.util.*
 import kotlin.reflect.jvm.javaConstructor
 
+val THOUSAND_RECORDS = PageParameters.newBuilder().setPageSize(1000).build()
+
 internal val DEFAULT_PAGE_PARAMETERS = PageParameters.newBuilder()
     .setPageSize(10)
     .setSkip(0)
     .build()
 
-fun PageParameters?.orDefault(): PageParameters =
-    this.takeIf { it != null } ?: DEFAULT_PAGE_PARAMETERS
+fun PageParameters.orDefault(): PageParameters =
+    if(this == PageParameters.getDefaultInstance()) DEFAULT_PAGE_PARAMETERS else this
 
 fun <T : Message.Builder> T.merge(jsonb: JSONB): T =
     this.also {

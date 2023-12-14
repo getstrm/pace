@@ -2,12 +2,14 @@ package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SnowflakeConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
+import com.getstrm.pace.util.applyPageParameters
 import com.getstrm.pace.util.normalizeType
 import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
@@ -73,9 +75,16 @@ class SnowflakeClient(
         executeRequest(request)
     }
 
-    override suspend fun listTables(): List<Table> {
+    override suspend fun listTables(pageParameters: PageParameters): List<Table> {
         val statement =
-            "select table_schema, table_name, table_type, created as create_date, last_altered as modify_date from information_schema.tables where table_type = 'BASE TABLE';"
+            """SELECT table_schema, table_name, table_type,
+               created as create_date,
+               last_altered as modify_date
+               FROM information_schema.tables where table_type = 'BASE TABLE'
+               ORDER BY table_name
+               LIMIT ${pageParameters.pageSize}
+               OFFSET ${pageParameters.skip} ;
+            """.trimMargin()
         val request = SnowflakeRequest(
             statement = statement,
             database = config.database,
@@ -103,7 +112,7 @@ class SnowflakeClient(
         return snowflakeResponse.body
     }
 
-    override suspend fun listGroups(): List<Group> {
+    override suspend fun listGroups(pageParameters: PageParameters): List<Group> {
         val request = SnowflakeRequest(
             statement = "SHOW ROLES",
         )
@@ -119,7 +128,7 @@ class SnowflakeClient(
             } else {
                 Group(id = it[1], name = it[1])
             }
-        }
+        }.applyPageParameters(pageParameters)
     }
 
     private fun jsonHeaders() = HttpHeaders().apply {

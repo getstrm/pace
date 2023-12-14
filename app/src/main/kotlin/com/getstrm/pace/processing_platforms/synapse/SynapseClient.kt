@@ -2,6 +2,7 @@ package com.getstrm.pace.processing_platforms.synapse
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SYNAPSE
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SynapseConfig
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
@@ -13,7 +14,6 @@ import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jooq.DSLContext
-import org.jooq.Field
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 
@@ -40,7 +40,7 @@ class SynapseClient(
 
     override val type = SYNAPSE
 
-    override suspend fun listTables(): List<Table> = jooq.meta()
+    override suspend fun listTables(pageParameters: PageParameters): List<Table> = jooq.meta()
         .filterSchemas { !schemasToIgnore.contains(it.name) }
         .tables
         .map { SynapseTable(it) }
@@ -57,7 +57,7 @@ class SynapseClient(
         }
     }
 
-    override suspend fun listGroups(): List<Group> {
+    override suspend fun listGroups(pageParameters: PageParameters): List<Group> {
         val result = withContext(Dispatchers.IO) {
             jooq.select(DSL.field("principal_id", Int::class.java), DSL.field("name", String::class.java))
                 .from(DSL.table("sys.database_principals"))

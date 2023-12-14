@@ -22,12 +22,12 @@ class ProcessingPlatformsApi(
 
     override suspend fun listTables(request: ListTablesRequest): ListTablesResponse =
         ListTablesResponse.newBuilder().addAllTables(
-            processingPlatformsService.listProcessingPlatformTables(request.platformId).map { it.fullName },
+            processingPlatformsService.listProcessingPlatformTables(request).map { it.fullName },
         ).build()
 
     override suspend fun listGroups(request: ListGroupsRequest): ListGroupsResponse =
         ListGroupsResponse.newBuilder().addAllGroups(
-            processingPlatformsService.listProcessingPlatformGroups(request.platformId).map { it.name },
+            processingPlatformsService.listProcessingPlatformGroups(request).map { it.name },
         ).build()
 
     override suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest) =

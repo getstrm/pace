@@ -35,6 +35,7 @@ class GlobalTransformsService(
     fun getTransformOrNull(ref: String, type: TransformCase): GlobalTransform? =
         globalTransformsDao.getTransform(ref, type)?.toGlobalTransform()
 
+    // TODO add paging ?
     fun listTransforms(type: TransformCase? = null) =
         globalTransformsDao.listTransforms(type).map { it.toGlobalTransform() }
 
@@ -127,4 +128,3 @@ fun List<ApiTransform>.combineTransforms(): List<ApiTransform> {
     val (defaults, withPrincipals) = filtered.partition { it.principalsCount == 0 }
     return (withPrincipals + defaults.firstOrNull()).filterNotNull()
 }
-
