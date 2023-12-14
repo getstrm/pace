@@ -66,23 +66,6 @@ rule_sets:
             fixed:
               value: "****"
       - field:
-          name_parts: [ transactionamount ]
-        transforms:
-          - principals: [ { group: administrator } ]
-            identity: { }
-          - principals: [ { group: marketing } ]
-            aggregation:
-              avg:
-                cast_to: float4
-          - principals: [ { group: fraud_and_risk} ]
-            aggregation:
-              avg: {
-                precision: 1
-              }
-          - principals: [ ]
-            aggregation:
-              sum: {}
-      - field:
           name_parts: [ brand ]
         transforms:
           - principals: [ { group: administrator } ]
