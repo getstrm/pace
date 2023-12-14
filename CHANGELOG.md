@@ -1,3 +1,10 @@
+# [1.0.0-alpha.39](https://github.com/getstrm/pace/compare/v1.0.0-alpha.38...v1.0.0-alpha.39) (2023-12-14)
+
+
+### Features
+
+* **pace-78:** add spring kubernetes config support ([#120](https://github.com/getstrm/pace/issues/120)) ([ace2b03](https://github.com/getstrm/pace/commit/ace2b03a1848b90ea8d1530b24be3db05aa76ae1))
+
 # [1.0.0-alpha.38](https://github.com/getstrm/pace/compare/v1.0.0-alpha.37...v1.0.0-alpha.38) (2023-12-12)
 
 
