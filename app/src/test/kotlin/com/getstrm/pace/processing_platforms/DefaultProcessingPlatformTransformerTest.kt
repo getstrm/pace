@@ -346,6 +346,26 @@ class DefaultProcessingPlatformTransformerTest {
     }
 
     @Test
+    fun `aggregation - avg with 0 precision`() {
+        // Given
+        val avgField = namedField("transactionamount", "integer")
+        val partitionByFields = listOf(
+            namedField("brand", "varchar"),
+            namedField("age", "integer")
+        )
+        val avgAggregation = Aggregation.newBuilder()
+            .addAllPartitionBy(partitionByFields)
+            .setAvg(Aggregation.Avg.newBuilder().setPrecision(0))
+            .build()
+
+        // When
+        val result = DefaultProcessingPlatformTransformer.aggregation(avgField, avgAggregation)
+
+        // Then
+        result.toSql() shouldBe "round(avg(cast(transactionamount as decimal)) over(partition by brand, age), 0)"
+    }
+
+    @Test
     fun `aggregation - min`() {
         // Given
         val minField = namedField("transactionamount", "integer")

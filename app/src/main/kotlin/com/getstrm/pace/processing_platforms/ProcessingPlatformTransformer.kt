@@ -161,8 +161,8 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
             DSL.partitionBy(aggregation.partitionByList.map { DSL.field(it.fullName()) })
         )
 
-        return aggregation.avg?.precision?.takeIf { it > 0 }?.let {
-            DSL.round(aggregationField, it)
+        return aggregation.avg?.takeIf { it.hasPrecision() }?.let {
+            DSL.round(aggregationField, it.precision)
         } ?: aggregationField
     }
 

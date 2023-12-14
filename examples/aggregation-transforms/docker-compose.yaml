@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  postgres_pace:
+    container_name: postgres_pace
+    image: postgres
+    environment:
+      POSTGRES_USER: pace
+      POSTGRES_PASSWORD: pace
+      PGDATA: /data/postgres
+      PGUSER: pace # Required for health check
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres_pace
+
+  postgres_processing_platform:
+    container_name: postgres_processing_platform
+    image: postgres
+    environment:
+      POSTGRES_USER: aggregation
+      POSTGRES_PASSWORD: aggregation
+      POSTGRES_DB: aggregation
+      PGDATA: /data/postgres
+      PGUSER: aggregation # Required for health check
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+    volumes:
+      - ./data.sql:/docker-entrypoint-initdb.d/data.sql
+    ports:
+      - "5431:5432"
+    networks:
+      - postgres_processing_platform
+
+  pace_app:
+    depends_on:
+      postgres_pace:
+        condition: service_healthy
+      postgres_processing_platform:
+        condition: service_healthy
+    container_name: pace
+    image: ${IMAGE:-ghcr.io/getstrm/pace:latest-alpha}
+    pull_policy: ${PULL_POLICY:-always}
+    volumes:
+      - ./config/:/app/config/
+
+    ports:
+      - "8080:8080" # Spring Boot
+      - "9090:9090" # Envoy JSON / gRPC Proxy
+      - "50051:50051" # gRPC
+    networks:
+      - postgres_pace
+      - postgres_processing_platform
+
+networks:
+  postgres_pace:
+    name: postgres_pace
+    driver: bridge
+  postgres_processing_platform:
+    name: postgres_processing_platform
+    driver: bridge

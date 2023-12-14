@@ -372,7 +372,7 @@ select
       cast(avg(cast(transactionamount as float64)) over() as numeric),
       2
     )
-  end as transactionamount_AVG
+  end as transactionamount
 from public.demo
 where (
   case
