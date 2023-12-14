@@ -22,7 +22,9 @@ This plugin has two actions, we'll explore the GENERATE_DATA_POLICY action in th
 The [OpenAI Data Policy Generator](../plugins/built-in/openai.md) uses the OpenAI Chat API to generate a Rule Set for a given blueprint Data Policy, based on a textual description of filters and field transforms.
 
 {% hint style="warning" %}
-An OpenAI API key is required for this tutorial. You can generate one in the OpenAI platform at [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys). We recommend creating a new API key for this PACE plugin
+An OpenAI API key is required for this tutorial. You can generate one in the OpenAI platform at [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys). We recommend creating a new API key for this PACE plugin.&#x20;
+
+If you are not using an enterprise API key of OpenAI (i.e. a paid subscription), be very aware of any (sensitive) data you share with OpenAI as you are not opted out of using that data for training.&#x20;
 {% endhint %}
 
 ## File and directory setup
@@ -97,6 +99,7 @@ app:
       enabled: true
       api-key: "put-your-api-key-here"
       # use a gpt-4 model to follow along with the documentation
+      # if you don't have access, use gpt-3.5-turbo, but your results will be poorer
       model: "gpt-4-1106-preview"
 ```
 
