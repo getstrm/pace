@@ -14,6 +14,27 @@ components:
           format: enum
           type: string
       type: object
+    Aggregation_Avg:
+      properties:
+        castTo:
+          description: Type to cast the original field to before applying the aggregation.
+            By default any field will be cast to decimal.
+          type: string
+        precision:
+          description: The precision to use for rounding. When empty, the value is
+            not rounded
+          format: int32
+          type: integer
+      type: object
+    Aggregation_Max:
+      properties: {}
+      type: object
+    Aggregation_Min:
+      properties: {}
+      type: object
+    Aggregation_Sum:
+      properties: {}
+      type: object
     ApplyDataPolicyResponse:
       properties:
         dataPolicy:
@@ -322,6 +343,10 @@ components:
       type: object
     FieldTransform_Transform:
       properties:
+        aggregation:
+          allOf:
+          - $ref: '#/components/schemas/Transform_Aggregation'
+          description: Aggregate the field value for specified grouping by other fields.
         detokenize:
           allOf:
           - $ref: '#/components/schemas/Transform_Detokenize'
@@ -687,6 +712,22 @@ components:
             field, or localized by the client.
           type: string
       type: object
+    Transform_Aggregation:
+      properties:
+        avg:
+          $ref: '#/components/schemas/Aggregation_Avg'
+        max:
+          $ref: '#/components/schemas/Aggregation_Max'
+        min:
+          $ref: '#/components/schemas/Aggregation_Min'
+        partitionBy:
+          description: The fields to partition by.
+          items:
+            $ref: '#/components/schemas/DataPolicy_Field'
+          type: array
+        sum:
+          $ref: '#/components/schemas/Aggregation_Sum'
+      type: object
     Transform_Detokenize:
       properties:
         tokenField:
@@ -779,7 +820,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.39
+  version: 1.0.0-alpha.40
 openapi: 3.0.3
 paths:
   /data-policies:
