@@ -86,7 +86,7 @@ dependencies {
     implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
 
     implementation("com.aallam.openai:openai-client:3.6.1")
-    implementation(platform("io.ktor:ktor-bom:2.3.6"))
+    implementation(platform("io.ktor:ktor-bom:2.3.7"))
     runtimeOnly("io.ktor:ktor-client-okhttp")
     implementation("io.ktor:ktor-client-logging")
 
