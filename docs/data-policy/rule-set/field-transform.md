@@ -337,6 +337,88 @@ Examples of rounding:
 Note that ceiling and floor functions with negative numbers may behave differently based on the processing platform.
 {% endhint %}
 
+### 9. Aggregation
+
+Some data contains sensitive information, but the aggregation might not. Aggregate a column as the `min`, `max`, `average` or `sum`, partitioning by zero or more fields. For the average, optionally specify the precision and the output type.&#x20;
+
+{% tabs %}
+{% tab title="YAML" %}
+`avg`
+
+<pre class="language-yaml"><code class="lang-yaml"><strong>aggregation:
+</strong>  partition_by:
+    - name_parts: [ country ]
+  avg:
+    precision: 0
+    cast_to: "int4"
+</code></pre>
+
+`sum`, `min`, `max`
+
+<pre class="language-yaml"><code class="lang-yaml"><strong>aggregation:
+</strong>  sum: {}
+</code></pre>
+{% endtab %}
+
+{% tab title="JSON" %}
+`avg`
+
+```json
+{
+  "aggregation": {
+    "partition_by": [
+      {
+        "name_parts": [
+          "country"
+        ]
+      }
+    ],
+    "avg": {
+      "precision": 0,
+      "cast_to": "int4"
+    }
+  }
+}
+```
+
+`sum`, `min`, `max`
+
+```json
+{
+  "aggregation": {
+    "sum": {}
+  }
+}
+```
+{% endtab %}
+{% endtabs %}
+
+The example below considers the `avg` aggregation from above.
+
+{% tabs %}
+{% tab title="AVG before" %}
+| userId | country     | salary |
+| ------ | ----------- | ------ |
+| 1      | UK          | 65124  |
+| 2      | UK          | 83412  |
+| 3      | Netherlands | 42256  |
+| 4      | Netherlands | 39964  |
+| 5      | UK          | 46532  |
+{% endtab %}
+
+{% tab title="AVG after" %}
+| userId | country     | salary |
+| ------ | ----------- | ------ |
+| 1      | UK          | 65023  |
+| 2      | UK          | 65023  |
+| 3      | Netherlands | 41105  |
+| 4      | Netherlands | 41105  |
+| 5      | UK          | 65023  |
+{% endtab %}
+{% endtabs %}
+
+For a more extensive example of the aggregations see the Tutorials.
+
 ## Example Field Transform
 
 Below you will find an example of a set of `Field Transforms`. Note that for each set of `Transforms` the last one always is without defined principals.

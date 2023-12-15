@@ -27,6 +27,7 @@
 * [Data Policy Generation](tutorials/data-policy-generator.md)
 * [Databricks](tutorials/databricks.md)
 * [PostgreSQL](tutorials/postgresql.md)
+* [Aggregation](tutorials/aggregation.md)
 
 ## Global Actions
 
