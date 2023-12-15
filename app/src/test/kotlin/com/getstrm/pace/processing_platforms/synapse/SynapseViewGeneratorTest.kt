@@ -7,7 +7,6 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.namedField
-import com.getstrm.pace.processing_platforms.databricks.SynapseViewGenerator
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
@@ -223,6 +222,26 @@ end) end))""".trimMargin()
     }
 
     @Test
+    fun `single retention with single condition to SQL-condition`() {
+        // Given
+        val retention = RetentionFilter.newBuilder()
+            .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
+            .addConditions(
+                RetentionFilter.Condition.newBuilder()
+                    .addPrincipals(Principal.getDefaultInstance())
+                    .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
+                    .build()
+            ).build()
+
+        // When
+        val condition = underTest.toCondition(retention)
+
+        // Then
+        condition.toSql() shouldBe """
+            dateadd(day, (10), timestamp) > current_timestamp""".trimIndent()
+    }
+
+    @Test
     fun `full sql view statement with multiple retentions`() {
         // Given
         val viewGenerator = SynapseViewGenerator(multipleRetentionPolicy) { withRenderFormatted(true) }
@@ -431,7 +450,16 @@ from my_schema.gddemo;"""
             )
             .build()
         val sql = underTest.toCondition(f)
-        println(sql.toSql())
+        sql.toSql() shouldBe """(1 = (case when (IS_ROLEMEMBER('fraud_and_risk')=1) then (case
+  when (1=1) then 1
+  else 0
+end) when ((IS_ROLEMEMBER('marketing')=1) or (IS_ROLEMEMBER('sales')=1)) then (case
+  when (transactionamount < 100) then 1
+  else 0
+end) else (case
+  when (transactionamount < 10) then 1
+  else 0
+end) end))"""
     }
 
     @Test
@@ -454,7 +482,14 @@ from my_schema.gddemo;"""
             )
             .build()
         val sql = underTest.toCondition(f)
-        println(sql.toSql())
+        sql.toSql() shouldBe """dateadd(day, (case
+  when (IS_ROLEMEMBER('fraud_and_risk')=1) then 100000
+  when (
+    (IS_ROLEMEMBER('marketing')=1)
+    or (IS_ROLEMEMBER('sales')=1)
+  ) then 3
+  else 10
+end), ts) > current_timestamp"""
     }
 
     companion object {

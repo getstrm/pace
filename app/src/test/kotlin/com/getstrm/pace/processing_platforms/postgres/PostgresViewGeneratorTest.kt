@@ -110,6 +110,28 @@ class PostgresViewGeneratorTest {
     }
 
     @Test
+    fun `single retention with single condition`() {
+        // Given
+        val retention = RetentionFilter.newBuilder()
+            .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
+            .addConditions(
+                RetentionFilter.Condition.newBuilder()
+                    .addPrincipals(DataPolicy.Principal.getDefaultInstance())
+                    .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
+                    .build()
+            )
+            .build()
+
+        // When
+        val condition = underTest.toCondition(retention)
+
+        // Then
+        condition.toSql() shouldBe """
+            dateadd(day, 10, timestamp) > current_timestamp""".trimIndent()
+    }
+
+
+    @Test
     fun `single retention to condition`() {
         // Given
         val retention = RetentionFilter.newBuilder()
@@ -176,10 +198,7 @@ where (
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
     else (ts + 10 * interval '1 day') > current_timestamp
   end
-  and case
-    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then (validThrough + 365 * interval '1 day') > current_timestamp
-    else (validThrough + 0 * interval '1 day') > current_timestamp
-  end
+  and (validThrough + 365 * interval '1 day') > current_timestamp
 );
 grant SELECT on public.demo_view to "fraud_and_risk";
 grant SELECT on public.demo_view to "marketing";"""
@@ -340,7 +359,20 @@ select
   end as email,
   age,
   CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END as brand,
-  transactionamount
+  case
+    when ('marketing' IN ( SELECT rolname FROM user_groups )) then round(
+      cast(avg(cast(transactionamount as decimal)) over(partition by brand) as numeric),
+      2
+    )
+    when ('sales' IN ( SELECT rolname FROM user_groups )) then sum(transactionamount) over(partition by
+      brand,
+      age
+    )
+    else round(
+      cast(avg(cast(transactionamount as float64)) over() as numeric),
+      2
+    )
+  end as transactionamount
 from public.demo
 where (
   case
@@ -350,7 +382,8 @@ where (
   and transactionamount < 10
 );
 grant SELECT on public.demo_view to "fraud_and_risk";
-grant SELECT on public.demo_view to "marketing";"""
+grant SELECT on public.demo_view to "marketing";
+grant SELECT on public.demo_view to "sales";"""
             )
     }
 
@@ -432,6 +465,26 @@ grant SELECT on public.demo_view to "marketing";"""
                           - principals: []
                             sql_statement:
                               statement: "CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END"
+                      - field:
+                          name_parts: [ transactionamount ]
+                        transforms:
+                          - principals: [ {group: marketing} ]
+                            aggregation:
+                              avg:
+                                precision: 2
+                              partition_by:
+                                - name_parts: [ brand ]
+                          - principals: [ {group: sales} ]
+                            aggregation:
+                              sum: {}
+                              partition_by:
+                                - name_parts: [ brand ]
+                                - name_parts: [ age ]
+                          - principals: []
+                            aggregation:
+                              avg:
+                                precision: 2
+                                cast_to: "float64"
             """.trimIndent().toProto<DataPolicy>()
 
         @Language("yaml")
@@ -653,12 +706,9 @@ grant SELECT on public.demo_view to "marketing";"""
                             required: true
                             type: timestamp
                           conditions:
-                            - principals: [ {group: fraud_and_risk} ]
-                              period:
-                                days: 365
                             - principals: [] 
                               period:
-                                days: 0
+                                days: 365
             """.trimIndent().toProto<DataPolicy>()
     }
 }

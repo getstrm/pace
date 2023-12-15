@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.namedField
 import com.getstrm.pace.toSql
 import io.kotest.matchers.shouldBe
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 
 class PostgresTransformerTest {
@@ -39,5 +40,25 @@ class PostgresTransformerTest {
 
         // Then
         result.toSql() shouldBe "substring(my_field from '@(\\w+).com')"
+    }
+
+    @Test
+    fun `aggregation - avg with 0 precision`() {
+        // Given
+        val avgField = namedField("transactionamount", "integer")
+        val partitionByFields = listOf(
+            namedField("brand", "varchar"),
+            namedField("age", "integer")
+        )
+        val avgAggregation = DataPolicy.RuleSet.FieldTransform.Transform.Aggregation.newBuilder()
+            .addAllPartitionBy(partitionByFields)
+            .setAvg(DataPolicy.RuleSet.FieldTransform.Transform.Aggregation.Avg.newBuilder().setPrecision(0))
+            .build()
+
+        // When
+        val result = underTest.aggregation(avgField, avgAggregation)
+
+        // Then
+        result.toSql() shouldBe "round(avg(cast(transactionamount as decimal)) over(partition by brand, age), 0)"
     }
 }
