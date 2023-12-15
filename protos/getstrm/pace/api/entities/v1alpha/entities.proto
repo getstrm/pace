@@ -98,6 +98,8 @@ message DataPolicy {
           Detokenize detokenize = 9;
           // Round a numeric value with the specified rounding.
           NumericRounding numeric_rounding = 10;
+          // Aggregate the field value for specified grouping by other fields.
+          Aggregation aggregation = 11;
         }
         message SqlStatement {
           string statement = 1;
@@ -147,6 +149,28 @@ message DataPolicy {
             // The precision to use for rounding. When positive, the value is rounded to the nearest decimal place. When negative, the value is rounded to the nearest power of 10.
             int32 precision = 1;
           }
+        }
+
+        message Aggregation {
+          // The aggregation to apply.
+          oneof aggregation_type {
+            Sum sum = 1;
+            Avg avg = 2;
+            Min min = 3;
+            Max max = 4;
+          }
+          // The fields to partition by.
+          repeated Field partition_by = 5;
+
+          message Sum {}
+          message Avg {
+            // The precision to use for rounding. When empty, the value is not rounded
+            optional int32 precision = 1;
+            // Type to cast the original field to before applying the aggregation. By default any field will be cast to decimal.
+            string cast_to = 2;
+          }
+          message Min {}
+          message Max {}
         }
       }
     }
@@ -207,12 +231,12 @@ message DataPolicy {
 }
 
 /* If the specified transform is incompatible with the field data type to which this global transform is connected with,
-   then the end user will get an invalid argument, and the blueprint policy with the global transforms applied won't be returned.
+    then the end user will get an invalid argument, and the blueprint policy with the global transforms applied won't be returned.
 
-  Global transforms are identified by an identifier of their [transform]. These are by default loose matching, so that
-  'Email-PII' is matched when 'email pii' is used.
+   Global transforms are identified by an identifier of their [transform]. These are by default loose matching, so that
+   'Email-PII' is matched when 'email pii' is used.
 
- */
+*/
 message GlobalTransform {
   string description = 1;
   oneof transform {

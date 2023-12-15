@@ -1,4 +1,4 @@
-package com.getstrm.pace.processing_platforms.databricks
+package com.getstrm.pace.processing_platforms.synapse
 
 import SynapseTransformer
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
@@ -114,30 +114,35 @@ class SynapseViewGenerator(
     }
 
     override fun toCondition(retention: DataPolicy.RuleSet.Filter.RetentionFilter): Condition {
-        val whereCondition = retention.conditionsList.headTailFold(
-            headOperation = { condition ->
-                DSL.`when`(
-                    toPrincipalCondition(condition.principalsList),
-                    condition.toSynapseRetentionCondition(),
-                )
-            },
-            bodyOperation = { conditionStep, condition ->
-                conditionStep.`when`(
-                    toPrincipalCondition(condition.principalsList),
-                    condition.toSynapseRetentionCondition(),
-                )
-            },
-            tailOperation = { conditionStep, condition ->
-                conditionStep.otherwise(condition.toSynapseRetentionCondition())
-            },
-        )
+        val retentionCondition = if (retention.conditionsList.size == 1) {
+            // If there is only one filter it should be the only option
+            retention.conditionsList.first().toSynapseRetentionCondition()
+        } else {
+            retention.conditionsList.headTailFold(
+                headOperation = { condition ->
+                    DSL.`when`(
+                        toPrincipalCondition(condition.principalsList),
+                        condition.toSynapseRetentionCondition(),
+                    )
+                },
+                bodyOperation = { conditionStep, condition ->
+                    conditionStep.`when`(
+                        toPrincipalCondition(condition.principalsList),
+                        condition.toSynapseRetentionCondition(),
+                    )
+                },
+                tailOperation = { conditionStep, condition ->
+                    conditionStep.otherwise(condition.toSynapseRetentionCondition())
+                },
+            )
+        }
 
         val retentionClause = DSL.field(
             "{0} > {1}",
             Boolean::class.java,
             DSL.timestampAdd(
                 DSL.field(DSL.unquotedName(retention.field.fullName()), Timestamp::class.java),
-                DSL.field("(${whereCondition})", Int::class.java),
+                DSL.field("(${retentionCondition})", Int::class.java),
                 DatePart.DAY
             ),
             DSL.currentTimestamp()

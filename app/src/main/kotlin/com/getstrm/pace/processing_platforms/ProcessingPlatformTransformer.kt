@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Aggregation
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Detokenize
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Fixed
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Hash
@@ -9,6 +10,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldT
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.SqlStatement
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
+import com.getstrm.pace.exceptions.PaceStatusException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.sqlDataType
@@ -19,6 +21,7 @@ import com.google.rpc.DebugInfo
 import org.jooq.Parser
 import org.jooq.impl.DSL
 import org.jooq.impl.ParserException
+import org.jooq.impl.SQLDataType
 import org.jooq.Field as JooqField
 
 val CAPTURING_GROUP_REGEX = Regex("""\$(\d+)""")
@@ -127,6 +130,41 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
                     .build()
             )
         }
+
+    fun aggregation(field: DataPolicy.Field, aggregation: Aggregation): JooqField<*> {
+        val jooqField = DSL.field(field.fullName(), Float::class.java)
+
+        val jooqAggregation = when (aggregation.aggregationTypeCase) {
+            Aggregation.AggregationTypeCase.SUM -> DSL.sum(jooqField)
+            Aggregation.AggregationTypeCase.AVG -> DSL.avg(
+                aggregation.avg.castTo.ifEmpty { null }
+                    ?.let { DSL.field("cast({0} as {1})", Float::class.java, jooqField, DSL.unquotedName(it)) }
+                    ?: DSL.cast(
+                        jooqField,
+                        SQLDataType.DECIMAL
+                    )
+            )
+
+            Aggregation.AggregationTypeCase.MIN -> DSL.min(jooqField)
+            Aggregation.AggregationTypeCase.MAX -> DSL.max(jooqField)
+            else -> throw InternalException(
+                InternalException.Code.INTERNAL,
+                DebugInfo.newBuilder()
+                    .setDetail("Aggregation type ${aggregation.aggregationTypeCase.name} is not supported or does not exist. ${PaceStatusException.UNIMPLEMENTED}")
+                    .build()
+            )
+        }
+        val aggregationField = DSL.field(
+            "{0} over({1})",
+            Float::class.java,
+            jooqAggregation,
+            DSL.partitionBy(aggregation.partitionByList.map { DSL.field(it.fullName()) })
+        )
+
+        return aggregation.avg?.takeIf { it.hasPrecision() }?.let {
+            DSL.round(aggregationField, it.precision)
+        } ?: aggregationField
+    }
 
     companion object {
         private val typeParser: TypeParser = TypeParser.newBuilder().build()
