@@ -1,6 +1,7 @@
 package com.getstrm.pace.util
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageInfo
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -66,3 +67,15 @@ fun <T>List<T>.applyPageParameters(p:PageParameters) : List<T> =
             .skip(max(p.skip, 0).toLong())
             .limit(max(p.pageSize,0).toLong())
             .collect(Collectors.toList())
+
+
+data class PagedCollection<T>(val data: Collection<T>, val pageInfo: PageInfo){
+    fun <V> map(transform: (T) -> V): PagedCollection<V> = data.map(transform).withPageInfo(pageInfo)
+}
+
+fun <T> Collection<T>.withPageInfo(pageInfo: PageInfo =
+    // the default is a non-paged collection, so we fill in the total with the size of the collection
+                                       PageInfo.newBuilder().setTotal(size).build()) = PagedCollection(this, pageInfo)
+
+fun <T> Collection<T>.withTotal(total: Int) = PagedCollection(this, PageInfo.newBuilder().setTotal(total).build())
+fun <T> Collection<T>.withUnknownTotals() = withTotal(-1)

@@ -5,7 +5,9 @@ import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
+import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.THOUSAND_RECORDS
+import com.getstrm.pace.util.withPageInfo
 import com.google.rpc.ResourceInfo
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Database as ApiDatabase
@@ -25,12 +27,12 @@ abstract class DataCatalog(
     val apiCatalog: ApiCatalog
         get() = ApiCatalog.newBuilder().setId(id).setType(config.type).build()
 
-    abstract suspend fun listDatabases(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): List<Database>
-    
+    abstract suspend fun listDatabases(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): PagedCollection<Database>
+
     // TODO Should be overridden by implementations to avoid query size constraints
     // TODO make more efficient implementation that does not list all the databases
     open suspend fun getDatabase(databaseId: String): Database {
-        return listDatabases(PageParameters.newBuilder().setPageSize(1000).build()).find{it.id == databaseId}?:
+        return listDatabases(THOUSAND_RECORDS).data.find{it.id == databaseId}?:
         throw ResourceException(
             ResourceException.Code.NOT_FOUND,
             ResourceInfo.newBuilder()
@@ -64,7 +66,7 @@ abstract class DataCatalog(
      * A schema is a collection of tables.
      */
     abstract class Schema(val database: Database, val id: String, val name: String) {
-        open suspend fun listTables(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): List<Table> = emptyList()
+        open suspend fun listTables(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): PagedCollection<Table> = emptyList<Table>().withPageInfo()
         open suspend fun getTags(): List<String> = emptyList()
         override fun toString(): String = "Schema($id, $name)"
         val apiSchema: ApiSchema
@@ -76,7 +78,7 @@ abstract class DataCatalog(
         // TODO Should be overridden by implementations to avoid query size constraints
         // TODO make more efficient implementation that does not list all the tables
         open suspend fun getTable(tableId: String): Table {
-            return listTables(PageParameters.newBuilder().setPageSize(1000).build()).firstOrNull { it.id == tableId }
+            return listTables(PageParameters.newBuilder().setPageSize(1000).build()).data.firstOrNull { it.id == tableId }
                 ?: throw ResourceException(
                     ResourceException.Code.NOT_FOUND,
                     ResourceInfo.newBuilder()
@@ -97,14 +99,14 @@ abstract class DataCatalog(
         val dbType: String? = null,
         val displayName: String? = null
     ) {
-        open suspend fun listSchemas(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): List<Schema> = emptyList()
+        open suspend fun listSchemas(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): PagedCollection<Schema> = emptyList<Schema>().withPageInfo()
         open suspend fun getTags(): List<String> = emptyList()
         override fun toString() = dbType?.let { "Database($id, $dbType, $displayName)" } ?: "Database($id)"
 
         // TODO Should be overridden by implementations to avoid query size constraints
         // TODO make more efficient implementation that does not list all the schemas
         open suspend fun getSchema(schemaId: String): Schema {
-            return listSchemas(THOUSAND_RECORDS).firstOrNull { it.id == schemaId } ?: throw ResourceException(
+            return listSchemas(THOUSAND_RECORDS).data.firstOrNull { it.id == schemaId } ?: throw ResourceException(
                 ResourceException.Code.NOT_FOUND,
                 ResourceInfo.newBuilder()
                     .setResourceType("Catalog Database Schema")

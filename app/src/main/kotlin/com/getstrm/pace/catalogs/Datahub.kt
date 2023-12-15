@@ -4,7 +4,10 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.apollographql.apollo3.ApolloClient
 import com.getstrm.pace.config.CatalogConfiguration
+import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.normalizeType
+import com.getstrm.pace.util.withPageInfo
+import com.getstrm.pace.util.withTotal
 import io.datahubproject.generated.GetDatasetDetailsQuery
 import io.datahubproject.generated.ListDatasetsQuery
 
@@ -15,43 +18,47 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         client.close()
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): List<Database> {
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<DataCatalog.Database> {
         return fetchAllDatasets().map {
             val m = urnPattern.matchEntire(it.entity.urn)
             Database(this, it.entity.urn, m?.groupValues?.get(1) ?:"", m?.groupValues?.get(2) ?:"")
         }
     }
 
-    private suspend fun fetchAllDatasets(start: Int = 0): List<ListDatasetsQuery.SearchResult> {
+    private suspend fun fetchAllDatasets(start: Int = 0): PagedCollection<ListDatasetsQuery.SearchResult> {
         val response = client.query(ListDatasetsQuery(start, config.fetchSize ?: 100)).execute()
 
         if (response.hasErrors()) throw RuntimeException("Error fetching databases: ${response.errors}")
 
         val resultSize = response.data?.search?.searchResults?.size ?: 0
 
-        return if (resultSize == 0) {
+        val searchResults = if (resultSize == 0) {
             emptyList()
         } else if (resultSize < (config.fetchSize ?: 1)) {
-            response.data?.search?.searchResults ?: emptyList()
+            (response.data?.search?.searchResults ?: emptyList())
         } else {
-            response.data?.search?.searchResults?.plus(fetchAllDatasets(start + (config.fetchSize ?: 1))) ?: emptyList()
+            response.data?.search?.searchResults?.plus(fetchAllDatasets(start + (config.fetchSize ?: 1)).data) ?:
+            emptyList()
         }
+        return searchResults.withTotal(searchResults.size)
     }
 
     class Database(override val catalog: DatahubCatalog, urn: String, dbType: String, displayName: String) : DataCatalog.Database(
         catalog, urn, dbType, displayName
     ) {
-        override suspend fun listSchemas(pageParameters: PageParameters): List<DataCatalog.Schema> {
-            return catalog.client.query(GetDatasetDetailsQuery(id)).execute().data?.dataset?.let { dataset ->
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<DataCatalog.Schema> {
+            // TODO datahub dataset query paging ?
+            val v = catalog.client.query(GetDatasetDetailsQuery(id)).execute().data?.dataset?.let { dataset ->
                 val schema = Schema(this, dataset)
                 listOf(schema)
             } ?: emptyList()
+            return v.withPageInfo()
         }
     }
 
     class Schema(database: Database, private val dataset: GetDatasetDetailsQuery.Dataset) :
         DataCatalog.Schema(database, dataset.urn, dataset.platform.properties?.displayName ?: dataset.urn) {
-        override suspend fun listTables(pageParameters: PageParameters): List<DataCatalog.Table> = listOf(Table(this, dataset))
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<DataCatalog.Table> = listOf(Table(this, dataset)).withPageInfo()
     }
 
     class Table(schema: Schema, private val dataset: GetDatasetDetailsQuery.Dataset) :

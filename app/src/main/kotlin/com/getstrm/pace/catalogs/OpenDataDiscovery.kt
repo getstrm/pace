@@ -3,7 +3,9 @@ package com.getstrm.pace.catalogs
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.CatalogConfiguration
+import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.normalizeType
+import com.getstrm.pace.util.withPageInfo
 import org.opendatadiscovery.generated.api.DataSetApi
 import org.opendatadiscovery.generated.api.DataSourceApi
 import org.opendatadiscovery.generated.api.SearchApi
@@ -24,14 +26,14 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
      * that contain at least one dataset. This is because ODD does not provide information
      * of this kind in its api.
      */
-    override suspend fun listDatabases(pageParameters: PageParameters): List<Database> =
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<DataCatalog.Database> =
         dataSources.values.filter { dataSource ->
             val searchId = searchDataSetsInDataSource(dataSource).searchId
             // we try for one search result on the first page, we only want to know if there are any.
             searchClient.getSearchResults(searchId, 1, 1).items.isNotEmpty()
         }.map {
             Database(this, it, it.id.toString(), it.namespace?.name ?: "", it.name)
-        }
+        }.withPageInfo()
 
     class Database(
         override val catalog: OpenDataDiscoveryCatalog,
@@ -43,8 +45,8 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         /*
             Just returning a hardcoded schema with id 'schema' and name the same as that of the dataSource.
         */
-        override suspend fun listSchemas(pageParameters: PageParameters): List<Schema> {
-            return listOf(Schema(catalog, this, "schema", dataSource.name))
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<DataCatalog.Schema> {
+            return listOf(Schema(catalog, this, "schema", dataSource.name)).withPageInfo()
         }
     }
 
@@ -55,9 +57,10 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         id: String,
         name: String,
     ) : DataCatalog.Schema(oddDatabase, id, name) {
-        override suspend fun listTables(pageParameters: PageParameters): List<DataCatalog.Table> {
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<DataCatalog.Table> {
             val searchId = catalog.searchDataSetsInDataSource(oddDatabase.dataSource).searchId
-            return catalog.getAllSearchResults(searchId).map { Table(catalog, this, "${it.id}", it.externalName) }
+            val tables = catalog.getAllSearchResults(searchId).map { Table(catalog, this, "${it.id}", it.externalName) }
+            return tables.withPageInfo()
         }
     }
 
@@ -155,6 +158,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
 
     /**
      * recursively get all results for a given search id.
+     * TODO handle paging.
      */
     private fun getAllSearchResults(searchId: UUID, page: Int = 1, size: Int = 100): List<DataEntity> {
         val searchResults = searchClient.getSearchResults(searchId, page, size)

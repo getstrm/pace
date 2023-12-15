@@ -2,14 +2,15 @@ package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.data_catalogs.v1alpha.*
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.catalogs.CollibraCatalog
 import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.catalogs.DatahubCatalog
 import com.getstrm.pace.catalogs.OpenDataDiscoveryCatalog
 import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.exceptions.ResourceException
+import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
+import com.getstrm.pace.util.withPageInfo
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -47,12 +48,13 @@ class DataCatalogsService(
             .build()
     }
 
-    suspend fun listDatabases(request: ListDatabasesRequest): List<ApiDatabase> =
+    suspend fun listDatabases(request: ListDatabasesRequest): PagedCollection<ApiDatabase> =
         with(request) {
-            getCatalog(catalogId).listDatabases(pageParameters.orDefault()).map { it.apiDatabase }
+            val databases = getCatalog(catalogId).listDatabases(pageParameters.orDefault())
+            databases.map { it.apiDatabase }
         }
 
-    suspend fun listSchemas(request: ListSchemasRequest): List<ApiSchema> =
+    suspend fun listSchemas(request: ListSchemasRequest): PagedCollection<ApiSchema> =
         with(request) {
             val schemas = getCatalog(catalogId).getDatabase(databaseId).listSchemas()
             return@with schemas.map { it.apiSchema }
@@ -60,7 +62,7 @@ class DataCatalogsService(
 
 
 
-    suspend fun listTables(request: ListTablesRequest): List<ApiTable> =
+    suspend fun listTables(request: ListTablesRequest): PagedCollection<ApiTable> =
         with(request) {
             val catalog = getCatalog(catalogId)
             val database = catalog.getDatabase(databaseId)

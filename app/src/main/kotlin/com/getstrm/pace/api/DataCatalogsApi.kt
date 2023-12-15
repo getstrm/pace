@@ -15,19 +15,29 @@ class DataCatalogsApi(
             .addAllCatalogs(dataCatalogsService.listCatalogs(request))
             .build()
 
-    override suspend fun listDatabases(request: ListDatabasesRequest): ListDatabasesResponse =
-        ListDatabasesResponse.newBuilder()
-            .addAllDatabases(dataCatalogsService.listDatabases(request))
+    override suspend fun listDatabases(request: ListDatabasesRequest): ListDatabasesResponse {
+        val (databases, pageInfo) = dataCatalogsService.listDatabases(request)
+        return ListDatabasesResponse.newBuilder()
+            .addAllDatabases(databases)
+            .setPageInfo(pageInfo)
             .build()
+    }
 
-    override suspend fun listSchemas(request: ListSchemasRequest): ListSchemasResponse =
-        ListSchemasResponse.newBuilder()
-            .addAllSchemas(dataCatalogsService.listSchemas(request))
+    override suspend fun listSchemas(request: ListSchemasRequest): ListSchemasResponse {
+        val (schemas, pageInfo) = dataCatalogsService.listSchemas(request) 
+        return ListSchemasResponse.newBuilder()
+            .addAllSchemas(schemas)
+            .setPageInfo(pageInfo)
             .build()
+    }
 
-    override suspend fun listTables(request: ListTablesRequest): ListTablesResponse = ListTablesResponse.newBuilder()
-        .addAllTables(dataCatalogsService.listTables(request))
-        .build()
+    override suspend fun listTables(request: ListTablesRequest): ListTablesResponse {
+        val (tables, pageInfo) = dataCatalogsService.listTables(request)
+        return ListTablesResponse.newBuilder()
+            .addAllTables(tables)
+            .setPageInfo(pageInfo)
+            .build()
+    }
 
     override suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest): GetBlueprintPolicyResponse {
         val dataPolicy: DataPolicy = dataCatalogsService.getBlueprintPolicy(
