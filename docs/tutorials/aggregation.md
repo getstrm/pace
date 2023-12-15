@@ -24,7 +24,7 @@ Consider the following snippet of a salary database.
 
 These salaries could be considered sensitive information in itself. But if we were able to present specific principals with an aggregation of the salary field, like the average within a country, then the sensitivity will considerably reduced.
 
-This is where PACE's `aggregation` field transform comes in. In this tutorial we will show how to go enforce this in a data policy.
+This is where PACE's `aggregation` field transform comes in. In this tutorial we will show how to enforce this in a data policy.
 
 ## File and directory setup
 
@@ -164,8 +164,8 @@ pace list data-policies
 Before we dive into the data policy definition, let's have a look at the user group principals (implemented as DB roles) and corresponding users that are configured on the sample database:
 
 * `finance` is a role for the corresponding team that tracks company spending. A DB user named `fin` with password `fin` has been assigned this role.
-* `analytics` is a role to the team responsible for providing statistics about the company. A DB user named `anna` with password `anna` has been assigned this role.
-* `uk_manager` is a role, specifically for any manager located in the UK. A DB user named `ukm` with passowrd `ukm` has been assigned this role.
+* `analytics` is a role for the team responsible for providing statistics about the company. A DB user named `anna` with password `anna` has been assigned this role.
+* `uk_manager` is a role, specifically for any manager located in the UK. A DB user named `ukm` with password `ukm` has been assigned this role.
 * A DB user named `other` with password `other` is also available and hasn't been assigned either of the roles.
 
 We can connect with the sample database on port `5431` on `localhost`, with `aggregation` as database name, with either of the above users. None of these users will be able to read data from the `public.salary` table. Feel free to connect with the database using your favourite SQL client. If you _do_ want to see the data in these tables, you can connect with the user `aggregation` using the password `aggregation`.
@@ -177,7 +177,7 @@ We can connect with the sample database on port `5431` on `localhost`, with `agg
 To illustrate, we can try to retrieve transactions with the `fin` user:
 
 ```bash
-psql postgresql://fin:fin@localhost:5431/aggregation -c "select * from public.salary limit 5"
+psql postgresql://fin:fin@localhost:5431/aggregation -c "select * from public.salary order by employee limit 5"
 ```
 
 Which results in the following output:
@@ -189,19 +189,19 @@ ERROR:  permission denied for table salary
 And using `aggregation` instead:
 
 ```bash
-psql postgresql://aggregation:aggregation@localhost:5431/aggregation -c "select * from public.salary limit 5"
+psql postgresql://aggregation:aggregation@localhost:5431/aggregation -c "select * from public.salary order by employee limit 5"
 ```
 
 Which results in the following output:
 
 ```
-         employee         |   city    |  country  | salary
---------------------------+-----------+-----------+--------
- Courtney Chen            | Singapore | Singapore |  72341
- Isabell Heinrich-Langern | Singapore | Singapore |  84525
- Vincent Regnier          | London    | UK        |  81356
- Kristina Johnson         | Aberdeen  | UK        |  68651
- Timothy Sampson          | Singapore | Singapore |  60218
+     employee     |   city    |   country   | salary
+------------------+-----------+-------------+--------
+ Adrian Shaw      | Rotterdam | Netherlands |  61560
+ Anaïs Lejeune    | London    | UK          |  69575
+ Angela Mueller   | Amsterdam | Netherlands |  81765
+ Benjamin Wilson  | Aberdeen  | UK          |  75709
+ Bernhard Fechner | Singapore | Singapore   |  74503
 ```
 
 </details>
