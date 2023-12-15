@@ -66,6 +66,13 @@ query ListTablesInSchema($schemaId: UUID!, $skip: Int!, $pageSize: Int!) {
         }
     }
 }
+query GetTable($tableId: UUID!) {
+    assets(where: {id: {eq: $tableId}}) {
+        id
+        fullName
+        displayName
+    }
+}
 
 query GetSchema($schemaId: UUID!) {
     assets(

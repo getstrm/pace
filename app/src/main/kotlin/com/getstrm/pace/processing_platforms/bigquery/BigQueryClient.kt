@@ -9,10 +9,7 @@ import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
-import com.getstrm.pace.util.applyPageParameters
-import com.getstrm.pace.util.normalizeType
-import com.getstrm.pace.util.toFullName
-import com.getstrm.pace.util.toTimestamp
+import com.getstrm.pace.util.*
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.*
 import com.google.cloud.datacatalog.v1.PolicyTagManagerClient
@@ -50,13 +47,14 @@ class BigQueryClient(
         polClient = PolicyTagManagerClient.create()
     }
 
-    override suspend fun listTables(pageParameters: PageParameters): List<Table> {
+    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
         // TODO need the same hierarchy as for the catalogs!
         // Issue: PACE-84
         // It makes no sense that we just list all tables
         val dataSets = bigQuery.listDatasets().iterateAll()
-        return dataSets.flatMap { dataSet ->
+        val tables = dataSets.flatMap { dataSet ->
             // TODO: bigquery does not support offset (skip).
+            // https://linear.app/strmprivacy/issue/PACE-85/add-page-token-en-next-page-token
             // Options: expose token in api (my preference), and use its optional existence for pagination
             // loop the call below until we reach the required offset.
             // for now just ignoring the skip parameter
@@ -64,8 +62,9 @@ class BigQueryClient(
         }
             .applyPageParameters(pageParameters)
             .map { table ->
-            BigQueryTable(table.tableId.toFullName(), table, polClient)
-        }
+                BigQueryTable(table.tableId.toFullName(), table, polClient)
+            }
+        return tables.withPageInfo()
     }
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
@@ -134,7 +133,7 @@ class BigQueryClient(
 
     override val type = BIGQUERY
 
-    override suspend fun listGroups(pageParameters: PageParameters): List<Group> {
+    override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
         val query = """
             SELECT
               DISTINCT userGroup
@@ -150,7 +149,7 @@ class BigQueryClient(
         return bigQuery.query(queryConfig).iterateAll().map {
             val groupName = it.get("userGroup").stringValue
             Group(id = groupName, name = groupName)
-        }
+        }.withPageInfo()
     }
 
     companion object {

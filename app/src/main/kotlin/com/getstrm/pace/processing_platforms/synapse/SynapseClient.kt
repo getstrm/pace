@@ -7,7 +7,10 @@ import com.getstrm.pace.config.SynapseConfig
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
+import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.applyPageParameters
 import com.getstrm.pace.util.normalizeType
+import com.getstrm.pace.util.withPageInfo
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
@@ -39,10 +42,13 @@ class SynapseClient(
 
     override val type = SYNAPSE
 
-    override suspend fun listTables(pageParameters: PageParameters): List<Table> = jooq.meta()
+    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> = jooq.meta()
         .filterSchemas { !schemasToIgnore.contains(it.name) }
         .tables
+        .applyPageParameters(pageParameters)
         .map { SynapseTable(it) }
+        .withPageInfo()
+    
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = SynapseViewGenerator(dataPolicy)
@@ -56,17 +62,18 @@ class SynapseClient(
         }
     }
 
-    override suspend fun listGroups(pageParameters: PageParameters): List<Group> {
+    override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
         val result = withContext(Dispatchers.IO) {
             jooq.select(DSL.field("principal_id", Int::class.java), DSL.field("name", String::class.java))
                 .from(DSL.table("sys.database_principals"))
                 .where(
                     DSL.field("type_desc").eq("DATABASE_ROLE")
                 )
+                .limit(pageParameters.pageSize)
+                .offset(pageParameters.skip)
                 .fetch()
         }
-
-        return result.map { (oid, rolname) -> Group(id = oid.toString(), name = rolname) }
+        return result.map { (oid, rolname) -> Group(id = oid.toString(), name = rolname) }.withPageInfo()
     }
 
     companion object {

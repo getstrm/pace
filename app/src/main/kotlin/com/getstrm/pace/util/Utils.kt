@@ -71,6 +71,12 @@ fun <T>List<T>.applyPageParameters(p:PageParameters) : List<T> =
 
 data class PagedCollection<T>(val data: Collection<T>, val pageInfo: PageInfo){
     fun <V> map(transform: (T) -> V): PagedCollection<V> = data.map(transform).withPageInfo(pageInfo)
+    fun firstOrNull() = data.firstOrNull()
+    fun find(predicate: (T) -> Boolean) = data.find(predicate)
+    fun filter(predicate: (T) -> Boolean) = data.filter(predicate).withPageInfo()
+
+    val size
+        get() = data.size
 }
 
 fun <T> Collection<T>.withPageInfo(pageInfo: PageInfo =

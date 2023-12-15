@@ -5,10 +5,7 @@ import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.jooq.generated.tables.DataPolicies.Companion.DATA_POLICIES
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.util.toApiDataPolicy
-import com.getstrm.pace.util.toJsonbWithDefaults
-import com.getstrm.pace.util.toOffsetDateTime
-import com.getstrm.pace.util.toTimestamp
+import com.getstrm.pace.util.*
 import com.google.rpc.BadRequest
 import org.jooq.DSLContext
 import org.springframework.stereotype.Component
@@ -20,7 +17,7 @@ class DataPolicyDao(
     private val jooq: DSLContext,
 ) {
 
-    fun listDataPolicies(pageParameters: PageParameters): List<DataPoliciesRecord> =
+    fun listDataPolicies(pageParameters: PageParameters): PagedCollection<DataPoliciesRecord> =
         jooq.select()
         .from(DATA_POLICIES)
         .where(DATA_POLICIES.ACTIVE.isTrue)
@@ -28,6 +25,7 @@ class DataPolicyDao(
         .offset(pageParameters.skip)
         .limit(pageParameters.pageSize)
         .fetchInto(DATA_POLICIES)
+        .withUnknownTotals()
 
     fun upsertDataPolicy(dataPolicy: DataPolicy): DataPoliciesRecord {
         val id = dataPolicy.id.ifBlank { dataPolicy.source.ref }

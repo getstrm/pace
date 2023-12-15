@@ -9,8 +9,10 @@ import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
+import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.applyPageParameters
 import com.getstrm.pace.util.normalizeType
+import com.getstrm.pace.util.withPageInfo
 import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
@@ -75,7 +77,7 @@ class SnowflakeClient(
         executeRequest(request)
     }
 
-    override suspend fun listTables(pageParameters: PageParameters): List<Table> {
+    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
         val statement =
             """SELECT table_schema, table_name, table_type,
                created as create_date,
@@ -93,7 +95,7 @@ class SnowflakeClient(
         return executeRequest(request).body?.data.orEmpty().map { (schemaName, tableName) ->
             val fullName = "$schemaName.$tableName"
             SnowflakeTable(fullName, config, tableName, schemaName, this)
-        }
+        }.withPageInfo()
     }
 
     fun describeTable(schema: String, table: String): SnowflakeResponse? {
@@ -112,7 +114,7 @@ class SnowflakeClient(
         return snowflakeResponse.body
     }
 
-    override suspend fun listGroups(pageParameters: PageParameters): List<Group> {
+    override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
         val request = SnowflakeRequest(
             statement = "SHOW ROLES",
         )
@@ -129,6 +131,7 @@ class SnowflakeClient(
                 Group(id = it[1], name = it[1])
             }
         }.applyPageParameters(pageParameters)
+            .withPageInfo()
     }
 
     private fun jsonHeaders() = HttpHeaders().apply {

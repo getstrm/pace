@@ -10,7 +10,6 @@ import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
-import com.getstrm.pace.util.withPageInfo
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -78,7 +77,7 @@ class DataCatalogsService(
     ): DataPolicy {
         val schema = getCatalog(catalogId).getDatabase(databaseId).getSchema(schemaId)
         val table = schema.getTable(tableId)
-        return table.getDataPolicy()!!
+        return table.createBlueprint()!!
     }
 
     private fun getCatalog(id: String): DataCatalog =

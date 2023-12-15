@@ -16,9 +16,7 @@ import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
-import com.getstrm.pace.util.applyPageParameters
-import com.getstrm.pace.util.normalizeType
-import com.getstrm.pace.util.toTimestamp
+import com.getstrm.pace.util.*
 import com.google.rpc.DebugInfo
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
@@ -50,26 +48,26 @@ class DatabricksClient(
 
     override val type = DATABRICKS
 
-    override suspend fun listGroups(pageParameters: PageParameters): List<Group> =
+    override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> =
         accountClient.groups().list(ListAccountGroupsRequest().apply{
             startIndex = pageParameters.skip.toLong()
             count = pageParameters.pageSize.toLong()
         }
         ).map { group ->
             Group(id = group.id, name = group.displayName)
-        }
+        }.withPageInfo()
 
-    override suspend fun listTables(pageParameters: PageParameters): List<Table> = listAllTables(pageParameters).map { DatabricksTable(it.fullName, it, this) }
+    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> = listAllTables(pageParameters).map { DatabricksTable(it.fullName, it, this) }
 
     /**
      * Lists all tables (or views) in all schemas that the service principal has access to.
      */
-    private fun listAllTables(pageParameters: PageParameters): List<TableInfo> {
+    private fun listAllTables(pageParameters: PageParameters): PagedCollection<TableInfo> {
         // TODO https://linear.app/strmprivacy/issue/PACE-84/processing-platforms-should-have-table-hierarchy-similar-to-catalogs 
         val catalogNames = workspaceClient.catalogs().list().map { it.name }
         val schemas = catalogNames.flatMap { catalog -> workspaceClient.schemas().list(catalog) }
         val tableInfoList = schemas.flatMap { schema -> workspaceClient.tables().list(schema.catalogName, schema.name) }
-        return tableInfoList.filter { it.owner != "System user" }.applyPageParameters(pageParameters)
+        return tableInfoList.filter { it.owner != "System user" }.applyPageParameters(pageParameters).withPageInfo()
     }
 
     /**

@@ -23,6 +23,7 @@ import java.util.*
 import kotlin.reflect.jvm.javaConstructor
 
 val THOUSAND_RECORDS = PageParameters.newBuilder().setPageSize(1000).build()
+val ONE_RECORD = PageParameters.newBuilder().setPageSize(1).build()
 
 internal val DEFAULT_PAGE_PARAMETERS = PageParameters.newBuilder()
     .setPageSize(10)

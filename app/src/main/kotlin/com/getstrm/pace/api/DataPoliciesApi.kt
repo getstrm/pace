@@ -22,8 +22,10 @@ class DataPoliciesApi(
     private val dataPolicyEvaluationService: DataPolicyEvaluationService,
 ) : DataPoliciesServiceGrpcKt.DataPoliciesServiceCoroutineImplBase() {
     override suspend fun listDataPolicies(request: ListDataPoliciesRequest): ListDataPoliciesResponse {
+        val (policies, pageInfo) = dataPolicyService.listDataPolicies(request)
         return ListDataPoliciesResponse.newBuilder()
-            .addAllDataPolicies(dataPolicyService.listDataPolicies(request))
+            .addAllDataPolicies(policies)
+            .setPageInfo(pageInfo)
             .build()
     }
 

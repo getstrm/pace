@@ -128,3 +128,4 @@ fun List<ApiTransform>.combineTransforms(): List<ApiTransform> {
     val (defaults, withPrincipals) = filtered.partition { it.principalsCount == 0 }
     return (withPrincipals + defaults.firstOrNull()).filterNotNull()
 }
+

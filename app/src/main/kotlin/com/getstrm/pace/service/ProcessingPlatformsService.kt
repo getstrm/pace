@@ -19,6 +19,7 @@ import com.getstrm.pace.processing_platforms.postgres.PostgresClient
 import com.getstrm.pace.processing_platforms.snowflake.SnowflakeClient
 import com.getstrm.pace.processing_platforms.synapse.SynapseClient
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
+import com.getstrm.pace.util.PagedCollection
 import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
@@ -44,11 +45,11 @@ class ProcessingPlatformsService(
         platforms = (databricks + snowflake + bigQuery + postgres + synapse).associateBy { it.id }
     }
 
-    suspend fun listGroups(platformId: String): List<Group> =
+    suspend fun listGroups(platformId: String): PagedCollection<Group> =
         platforms[platformId]?.listGroups(DEFAULT_PAGE_PARAMETERS) ?: throw processingPlatformNotFound(platformId)
 
     suspend fun listGroupNames(platformId: String): Set<String> =
-        listGroups(platformId).map { it.name }.toSet()
+        listGroups(platformId).map { it.name }.data.toSet()
 
     fun getProcessingPlatform(dataPolicy: DataPolicy): ProcessingPlatformClient {
         val processingPlatform = platforms[dataPolicy.platform.id] ?: throw processingPlatformNotFound(
@@ -74,10 +75,10 @@ class ProcessingPlatformsService(
         }
     }
 
-    suspend fun listProcessingPlatformTables(request: ListTablesRequest): List<Table> =
+    suspend fun listProcessingPlatformTables(request: ListTablesRequest): PagedCollection<Table> =
         (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)).listTables(request.pageParameters)
 
-    suspend fun listProcessingPlatformGroups(request: ListGroupsRequest): List<Group> =
+    suspend fun listProcessingPlatformGroups(request: ListGroupsRequest): PagedCollection<Group> =
         (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)).listGroups(request.pageParameters)
 
     suspend fun getBlueprintPolicy(platformId: String, tableName: String): GetBlueprintPolicyResponse {

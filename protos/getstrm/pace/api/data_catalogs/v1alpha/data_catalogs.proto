@@ -14,27 +14,37 @@ option java_package = "com.getstrm.pace.api.data_catalogs.v1alpha";
 
 service DataCatalogsService {
   // Lists all configured catalogs.
-  rpc ListCatalogs(ListCatalogsRequest) returns (ListCatalogsResponse) {
-    option (google.api.http) = {get: "/v1alpha/catalogs"};
-  }
+    rpc ListCatalogs (ListCatalogsRequest) returns (ListCatalogsResponse) {
+        option (google.api.http) = {
+          get: "/v1alpha/catalogs"
+        };
+    };
   // Lists all databases for the given catalog.
-  rpc ListDatabases(ListDatabasesRequest) returns (ListDatabasesResponse) {
-    option (google.api.http) = {get: "/v1alpha/catalogs/{catalog_id}/databases"};
+    rpc ListDatabases (ListDatabasesRequest) returns (ListDatabasesResponse) {
+        option (google.api.http) = {
+          get: "/v1alpha/catalogs/{catalog_id}/databases"
+        };
   }
   // Lists all schemas (for a given database, if applicable).
-  rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse) {
-    option (google.api.http) = {get: "/v1alpha/catalogs/{catalog_id}/schemas"};
+    rpc ListSchemas (ListSchemasRequest) returns (ListSchemasResponse) {
+        option (google.api.http) = {
+          get: "/v1alpha/catalogs/{catalog_id}/schemas"
+        };
   }
   // Lists all tables (for a given schema and database, if applicable).
-  rpc ListTables(ListTablesRequest) returns (ListTablesResponse) {
-    option (google.api.http) = {get: "/v1alpha/catalogs/{catalog_id}/tables"};
-  }
+    rpc ListTables (ListTablesRequest) returns (ListTablesResponse) {
+        option (google.api.http) = {
+          get: "/v1alpha/catalogs/{catalog_id}/tables"
+        };
+    };
   // Returns a data policy without any rule sets, based on the given table's data structure in the catalog.
   // Extend this blueprint policy with field transforms and/or rule sets to create a complete data policy.
   // Use the UpsertDataPolicy endpoint to save and enforce the policy.
-  rpc GetBlueprintPolicy(GetBlueprintPolicyRequest) returns (GetBlueprintPolicyResponse) {
-    option (google.api.http) = {get: "/v1alpha/catalogs/{catalog_id}/blueprint-policy"};
-  }
+    rpc GetBlueprintPolicy (GetBlueprintPolicyRequest) returns (GetBlueprintPolicyResponse) {
+        option (google.api.http) = {
+          get: "/v1alpha/catalogs/{catalog_id}/blueprint-policy"
+        };
+    };
 }
 
 message GetBlueprintPolicyRequest {

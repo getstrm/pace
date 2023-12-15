@@ -6,8 +6,10 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.getstrm.pace.dao.DataPolicyDao
 import com.getstrm.pace.exceptions.ResourceException
+import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
 import com.getstrm.pace.util.toApiDataPolicy
+import com.getstrm.pace.util.withPageInfo
 import com.google.rpc.ResourceInfo
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -18,7 +20,7 @@ class DataPolicyService(
     private val processingPlatforms: ProcessingPlatformsService,
     private val dataPolicyValidatorService: DataPolicyValidatorService
 ) {
-    suspend fun listDataPolicies(request: ListDataPoliciesRequest): List<DataPolicy> =
+    suspend fun listDataPolicies(request: ListDataPoliciesRequest): PagedCollection<DataPolicy> =
         dataPolicyDao.listDataPolicies(request.pageParameters.orDefault()).map { it.toApiDataPolicy() }
 
     @Transactional

@@ -3,12 +3,9 @@ package com.getstrm.pace.catalogs
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.CatalogConfiguration
-import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
-import com.getstrm.pace.util.THOUSAND_RECORDS
 import com.getstrm.pace.util.withPageInfo
-import com.google.rpc.ResourceInfo
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Database as ApiDatabase
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Schema as ApiSchema
@@ -28,31 +25,21 @@ abstract class DataCatalog(
         get() = ApiCatalog.newBuilder().setId(id).setType(config.type).build()
 
     abstract suspend fun listDatabases(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): PagedCollection<Database>
-
-    // TODO Should be overridden by implementations to avoid query size constraints
-    // TODO make more efficient implementation that does not list all the databases
-    open suspend fun getDatabase(databaseId: String): Database {
-        return listDatabases(THOUSAND_RECORDS).data.find{it.id == databaseId}?:
-        throw ResourceException(
-            ResourceException.Code.NOT_FOUND,
-            ResourceInfo.newBuilder()
-                .setResourceType("Database")
-                .setResourceName(databaseId)
-                .setDescription("Database $databaseId not found in catalog $id")
-                .setOwner("Catalog: $id")
-                .build()
-
-
-        )
-    }
+    abstract suspend fun getDatabase(databaseId: String): Database 
     
 
     /**
      * A table is a collection of columns.
      */
     abstract class Table(val schema: Schema, val id: String, val name: String) {
-        abstract suspend fun getDataPolicy(): DataPolicy?
-        open suspend fun getTags(): List<String> = emptyList()
+        /**
+         * create a blueprint from the field information and possible the global transforms.
+         * 
+         * NOTE: do not call this method `get...` (Bean convention) because then the lazy information
+         * gathering for creating blueprints becomes non-lazy. You can see this for
+         * instance with the DataHub implementation
+         */
+        abstract suspend fun createBlueprint(): DataPolicy?
         override fun toString(): String = "Table($id, $name)"
         val apiTable: ApiTable
             get() = ApiTable.newBuilder()
@@ -75,21 +62,7 @@ abstract class DataCatalog(
                 .setName(name)
                 .setDatabase(database.apiDatabase)
                 .build()
-        // TODO Should be overridden by implementations to avoid query size constraints
-        // TODO make more efficient implementation that does not list all the tables
-        open suspend fun getTable(tableId: String): Table {
-            return listTables(PageParameters.newBuilder().setPageSize(1000).build()).data.firstOrNull { it.id == tableId }
-                ?: throw ResourceException(
-                    ResourceException.Code.NOT_FOUND,
-                    ResourceInfo.newBuilder()
-                        .setResourceType("Table")
-                        .setResourceName(tableId)
-                        .setDescription("Table $tableId not found in schema $id")
-                        .setOwner("Schema: $id")
-                        .build()
-                )
-            
-        }
+        abstract suspend fun getTable(tableId: String): Table 
     }
 
     /** meta information database */
@@ -99,23 +72,10 @@ abstract class DataCatalog(
         val dbType: String? = null,
         val displayName: String? = null
     ) {
-        open suspend fun listSchemas(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): PagedCollection<Schema> = emptyList<Schema>().withPageInfo()
-        open suspend fun getTags(): List<String> = emptyList()
+        abstract suspend fun listSchemas(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): PagedCollection<Schema>
         override fun toString() = dbType?.let { "Database($id, $dbType, $displayName)" } ?: "Database($id)"
 
-        // TODO Should be overridden by implementations to avoid query size constraints
-        // TODO make more efficient implementation that does not list all the schemas
-        open suspend fun getSchema(schemaId: String): Schema {
-            return listSchemas(THOUSAND_RECORDS).data.firstOrNull { it.id == schemaId } ?: throw ResourceException(
-                ResourceException.Code.NOT_FOUND,
-                ResourceInfo.newBuilder()
-                    .setResourceType("Catalog Database Schema")
-                    .setResourceName(schemaId)
-                    .setDescription("Schema $schemaId not found in database $id of catalog $catalog.id")
-                    .setOwner("Database: $id")
-                    .build()
-            )
-        }
+        abstract suspend fun getSchema(schemaId: String): Schema 
 
         val apiDatabase: ApiDatabase
             get() = ApiDatabase.newBuilder()
