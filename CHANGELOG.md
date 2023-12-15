@@ -1,3 +1,10 @@
+# [1.0.0-alpha.40](https://github.com/getstrm/pace/compare/v1.0.0-alpha.39...v1.0.0-alpha.40) (2023-12-15)
+
+
+### Features
+
+* **pace-81:** add aggregation field transform ([#116](https://github.com/getstrm/pace/issues/116)) ([9860659](https://github.com/getstrm/pace/commit/9860659749d2a1df8af5e80c3bef59d2cec015b9))
+
 # [1.0.0-alpha.39](https://github.com/getstrm/pace/compare/v1.0.0-alpha.38...v1.0.0-alpha.39) (2023-12-14)
 
 
