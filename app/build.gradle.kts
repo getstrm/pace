@@ -74,7 +74,7 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:9.37.2")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.77")
 
-    implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.27.0"))
+    implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.29.0"))
     implementation("com.google.cloud:google-cloud-bigquery")
     implementation("com.google.cloud:google-cloud-datacatalog")
 
