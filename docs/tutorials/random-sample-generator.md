@@ -17,9 +17,10 @@ plugins:
   id: openai
   implementation: com.getstrm.pace.plugins.builtin.openai.OpenAIPlugin
 ```
-This plugin has two actions, we'll explore the GENERATE_SAMPLE_DATA action in this tutorial
 
-The [OpenAI Data Policy Generator](../plugins/built-in/openai.md) uses the OpenAI Chat API to create random sample data for a given table definition, that one could create for instance via one of the `pace get data-policy ...` command invocations.
+This plugin has two actions, we'll explore the GENERATE\_SAMPLE\_DATA action in this tutorial
+
+The [OpenAI ](../plugins/built-in/openai.md)plugin GENERATE\_SAMPLE\_DATA action uses the OpenAI Chat API to create random sample data for a given table definition, that one could create for instance via one of the `pace get data-policy ...` command invocations.
 
 {% hint style="warning" %}
 An OpenAI API key is required for this tutorial. You can generate one in the OpenAI platform at [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys). We recommend creating a new API key for this PACE plugin
@@ -101,10 +102,13 @@ app:
 ```
 
 Make sure to set a valid API key, which you can generate at [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys).
+
 </details>
 
 <details>
+
 <summary><code>instructions.yaml</code></summary>
+
 Some simple instructions to generate the sample data.
 
 Note: there are some Dutch language column names whose meaning and resulting significance we'll explain below.
@@ -137,7 +141,9 @@ additional_system_instructions:
 </details>
 
 <details>
+
 <summary><code>complex-instructions.yaml</code></summary>
+
 In this file, we've added some more system instructions, to enrich the generated sample data.
 
 Note: there are some Dutch language column names whose meaning and resulting significance we'll explain below.
@@ -169,6 +175,7 @@ additional_system_instructions:
   - if you recognize something as a customer number please generate 7 digits between 1000000 and 2999999
   - for recognized bank accounts use european style IBAN
 ```
+
 </details>
 
 ## Generating the Data Policy
@@ -216,6 +223,7 @@ additional_system_instructions:
 ```
 
 Note the following Dutch column names:
+
 * `gebruikersnaam` = `username`
 * `organisatie` = `organization`
 * `klantnummer` = `customernumber`
@@ -231,7 +239,7 @@ pace  invoke plugin openai GENERATE_SAMPLE_DATA --payload instructions.yaml
 
 This will take a little while (around 20 seconds during our testing). If OpenAI replied within the configured timeout, PACE will print the generated random csv to your terminal. The output should look similar to this:
 
-```text
+```
 "email","gebruikersnaam","organisatie","klantnummer","bankrekening"
 "jane.doe@example.com","janedoe","Example Corp","CUST12345","NL91ABNA0417164300"
 "john.smith@business.com","johnsmith","Business LLC","CUST54321","NL62RABO0300065264"
@@ -247,6 +255,7 @@ This is all still quite experimental, so not all instructions may work as well. 
 #### Enriching the instructions
 
 Adding some more configuration to the instructions:
+
 ```yaml
 additional_system_instructions:
   - don't forget to add the csv column headers
@@ -261,7 +270,8 @@ pace invoke plugin openai GENERATE_SAMPLE_DATA --payload complex-instructions.ya
 ```
 
 This will result in something similar as shown below:
-```text
+
+```
 "email","gebruikersnaam","organisatie","klantnummer","bankrekening"
 "johndoe@example.de","johndoe","Doe Enterprises","1000001","DE89370400440532013000"
 "janedoe@example.fr","janedoe","Doe Industries","1000002","FR7630006000011234567890189"
