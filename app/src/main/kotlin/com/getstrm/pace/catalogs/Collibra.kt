@@ -32,13 +32,13 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                     skip = skip,
                     pageSize = pageSize
                 )
-            ).executeReturnValidData().assets.onlyNonNulls()
+            ).executeOrThrowError().assets.onlyNonNulls()
         }
             .withUnknownTotals()
             .map { Database(this, it.id.toString(), it.getDataSourceType(), it.displayName ?: "") }
 
     override suspend fun getDatabase(databaseId: String): DataCatalog.Database {
-        val database = client.query(GetDataBaseQuery(databaseId)).executeReturnValidData().assets.firstNonNull()
+        val database = client.query(GetDataBaseQuery(databaseId)).executeOrThrowError().assets.firstNonNull()
         return Database(
             catalog = this,
             id = database.id.toString(),
@@ -53,7 +53,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<DataCatalog.Schema> {
             val schemas = pagedCalls(pageParameters) { skip, pageSize ->
                 client.query(ListSchemaIdsQuery(id, skip, pageSize))
-                    .executeReturnValidData().assets.onlyNonNulls().first().schemas
+                    .executeOrThrowError().assets.onlyNonNulls().first().schemas
             }
             return schemas.map {
                 Schema(catalog, this, it.target.id.toString(), it.target.fullName)
@@ -62,7 +62,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
         override suspend fun getSchema(schemaId: String): DataCatalog.Schema {
             val schemaAsset =
-                catalog.client.query(GetSchemaQuery(schemaId)).executeReturnValidData().assets.firstNonNull()
+                catalog.client.query(GetSchemaQuery(schemaId)).executeOrThrowError().assets.firstNonNull()
             return Schema(catalog, this, schemaAsset.id.toString(), schemaAsset.fullName)
         }
     }
@@ -74,15 +74,20 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             val tables = pagedCalls(pageParameters) { skip, pageSize ->
                 // first() refers to the single schema
                 client.query(ListTablesInSchemaQuery(id, skip, pageSize))
-                    .executeReturnValidData().assets.onlyNonNulls().first().tables
+                    .executeOrThrowError().assets.onlyNonNulls().first().tables
             }.map { Table(catalog, this, it.target.id.toString(), it.target.fullName) }
             return tables.withUnknownTotals()
         }
 
         override suspend fun getTable(tableId: String): DataCatalog.Table {
-            val table = catalog.client.query(GetTableQuery(tableId)).executeReturnValidData().assets.onlyNonNulls().firstOrNull() ?:
+            val table = catalog.client.query(GetTableQuery(tableId)).executeOrThrowError().assets.onlyNonNulls().firstOrNull() ?:
             throw BadRequestException(
-                INVALID_ARGUMENT, BadRequest.getDefaultInstance(),
+                INVALID_ARGUMENT, BadRequest.newBuilder()
+                    .addFieldViolations(BadRequest.FieldViolation.newBuilder()
+                        .setDescription("table $tableId not found")
+                    )
+                    .build()
+                ,
                 errorMessage = "table $tableId not found"
             )
             return Table(catalog, this, tableId, table.fullName)
@@ -96,7 +101,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             val columns: List<ColumnTypesAndTagsQuery.Column> = pagedCalls(MILLION_RECORDS)
             { skip, pageSize ->
                 catalog.client.query(ColumnTypesAndTagsQuery(tableId = id, pageSize = pageSize, skip = skip))
-                    .executeReturnValidData().columns.onlyNonNulls()
+                    .executeOrThrowError().columns.onlyNonNulls()
             }
             return with( DataPolicy.newBuilder()) {
                 metadataBuilder.title = name
@@ -137,7 +142,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 /**
  * utility function to provide error handling in grpc compatible format.
  */
-private suspend fun <D : Operation.Data> ApolloCall<D>.executeReturnValidData(): D {
+private suspend fun <D : Operation.Data> ApolloCall<D>.executeOrThrowError(): D {
     val apolloResponse = toFlow().single()
     if(apolloResponse.hasErrors()){
         throw InternalException(
