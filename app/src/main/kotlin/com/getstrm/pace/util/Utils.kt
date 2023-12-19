@@ -61,13 +61,14 @@ private fun DataPolicy.RuleSet.Filter.listPrincipals() = when (this.filterCase) 
 }
 
 /**
- * safe page parameters application.
- * Can't throw an exception
+ * safe page parameters application to a List
+ * Can't throw an exception.
+ * skip and pageSize are protobuf uint32 so can never be negative.
  */
-fun <T>List<T>.applyPageParameters(p:PageParameters) : List<T> =
+fun <T>Collection<T>.applyPageParameters(p:PageParameters) : List<T> =
         stream()
-            .skip(max(p.skip, 0).toLong())
-            .limit(max(p.pageSize,0).toLong())
+            .skip(p.skip.toLong())
+            .limit(p.pageSize.toLong())
             .collect(Collectors.toList())
 
 
@@ -76,14 +77,14 @@ data class PagedCollection<T>(val data: Collection<T>, val pageInfo: PageInfo){
     fun firstOrNull() = data.firstOrNull()
     fun find(predicate: (T) -> Boolean) = data.find(predicate)
     fun filter(predicate: (T) -> Boolean) = data.filter(predicate).withPageInfo()
-
-    val size
-        get() = data.size
+    val size= data.size
 }
 
 fun <T> Collection<T>.withPageInfo(pageInfo: PageInfo =
     // the default is a non-paged collection, so we fill in the total with the size of the collection
-                                       PageInfo.newBuilder().setTotal(size).build()) = PagedCollection(this, pageInfo)
+                                       PageInfo.newBuilder()
+                                           .setTotal(size)
+                                           .build()) = PagedCollection(this, pageInfo)
 
 fun <T> Collection<T>.withTotal(total: Int) = PagedCollection(this, PageInfo.newBuilder().setTotal(total).build())
 fun <T> Collection<T>.withUnknownTotals() = withTotal(-1)

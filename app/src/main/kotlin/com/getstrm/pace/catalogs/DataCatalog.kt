@@ -53,8 +53,7 @@ abstract class DataCatalog(
      * A schema is a collection of tables.
      */
     abstract class Schema(val database: Database, val id: String, val name: String) {
-        open suspend fun listTables(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): PagedCollection<Table> = emptyList<Table>().withPageInfo()
-        open suspend fun getTags(): List<String> = emptyList()
+        abstract suspend fun listTables(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): PagedCollection<Table>
         override fun toString(): String = "Schema($id, $name)"
         val apiSchema: ApiSchema
             get() = ApiSchema.newBuilder()

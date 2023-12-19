@@ -22,7 +22,6 @@ import java.util.*
 class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalog(configuration) {
     private val searchClient = SearchApi(configuration.serverUrl)
     private val datasetsClient = DataSetApi(configuration.serverUrl)
-    private val dataEntityClient = DataEntityApi(configuration.serverUrl)
     private val dataSourceClient = DataSourceApi(configuration.serverUrl)
     // FIXME this will only get all datasource once, during Pace startup
     private val dataSources = getAllDataSources().associateBy { it.id }
@@ -43,8 +42,6 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
 
     // FIXME the ODD model seems broken. See comment with listDatabases.
     override suspend fun getDatabase(databaseId: String): DataCatalog.Database {
-//        val r = dataEntityClient.getDataEntityDetails(databaseId.toLong())
-        
         return listDatabases(THOUSAND_RECORDS).data.find{it.id == databaseId}?:
         throw ResourceException(
             ResourceException.Code.NOT_FOUND,
