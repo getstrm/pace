@@ -1,0 +1,58 @@
+metadata:
+  description: ""
+  version: 1
+  title: public.salary
+platform:
+  id: aggregation-transforms-sample-connection
+  platform_type: POSTGRES
+source:
+  fields:
+    - name_parts:
+        - employee
+      required: true
+      type: varchar
+    - name_parts:
+        - city
+      required: true
+      type: varchar
+    - name_parts:
+        - country
+      required: true
+      type: varchar
+    - name_parts:
+        - salary
+      required: true
+      type: integer
+  ref: public.salary
+rule_sets:
+  - target:
+      fullname: public.salary_view
+    filters:
+      - generic_filter:
+          conditions:
+            - principals: [ { group: uk_manager } ]
+              condition: "country = 'UK'"
+            - principals: [ ]
+              condition: "true"
+    field_transforms:
+      - field:
+          name_parts: [ salary ]
+        transforms:
+          - principals: [ { group: administrator } ]
+            identity: { }
+          - principals: [ { group: finance } ]
+            aggregation:
+              sum: { }
+          - principals: [ { group: uk_manager } ]
+            aggregation:
+              partition_by:
+                - name_parts: [ city ]
+              avg:
+                precision: 0
+                cast_to: "int4"
+          - principals: [ { group: analytics } ]
+            numeric_rounding:
+              round:
+                precision: -4
+          - principals: [ ]
+            nullify: {}

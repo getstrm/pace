@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.39
+    version: 1.0.0-alpha.40
 paths:
     /data-policies:
         get:
@@ -626,6 +626,25 @@ components:
                 invokable:
                     type: boolean
                     description: Whether this action can be invoked through the API
+        Aggregation_Avg:
+            type: object
+            properties:
+                precision:
+                    type: integer
+                    description: The precision to use for rounding. When empty, the value is not rounded
+                    format: int32
+                castTo:
+                    type: string
+                    description: Type to cast the original field to before applying the aggregation. By default any field will be cast to decimal.
+        Aggregation_Max:
+            type: object
+            properties: {}
+        Aggregation_Min:
+            type: object
+            properties: {}
+        Aggregation_Sum:
+            type: object
+            properties: {}
         ApplyDataPolicyResponse:
             type: object
             properties:
@@ -978,6 +997,10 @@ components:
                     allOf:
                         - $ref: '#/components/schemas/Transform_NumericRounding'
                     description: Round a numeric value with the specified rounding.
+                aggregation:
+                    allOf:
+                        - $ref: '#/components/schemas/Transform_Aggregation'
+                    description: Aggregate the field value for specified grouping by other fields.
         Filter_GenericFilter:
             type: object
             properties:
@@ -1277,6 +1300,22 @@ components:
                         $ref: '#/components/schemas/GoogleProtobufAny'
                     description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
             description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+        Transform_Aggregation:
+            type: object
+            properties:
+                sum:
+                    $ref: '#/components/schemas/Aggregation_Sum'
+                avg:
+                    $ref: '#/components/schemas/Aggregation_Avg'
+                min:
+                    $ref: '#/components/schemas/Aggregation_Min'
+                max:
+                    $ref: '#/components/schemas/Aggregation_Max'
+                partitionBy:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/DataPolicy_Field'
+                    description: The fields to partition by.
         Transform_Detokenize:
             type: object
             properties:

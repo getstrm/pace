@@ -1,6 +1,8 @@
 package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.AGGREGATION
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.DETOKENIZE
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.FIXED
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.HASH
@@ -12,7 +14,6 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldT
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.TRANSFORM_NOT_SET
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER
-import com.getstrm.pace.processing_platforms.DefaultProcessingPlatformTransformer.renderName
 import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
@@ -161,6 +162,7 @@ abstract class ProcessingPlatformViewGenerator(
         if (retention.conditionsList.size == 1) {
             // If there is only one filter it should be the only option
             // create retention sql
+            return condition(retention.conditionsList.first().toRetentionCondition(retention.field))
         }
 
         val whereCondition = retention.conditionsList.headTailFold(
@@ -232,7 +234,9 @@ abstract class ProcessingPlatformViewGenerator(
                 transform.detokenize,
                 dataPolicy.source.ref,
             )
+
             NUMERIC_ROUNDING -> transformer.numericRounding(field, transform.numericRounding)
+            AGGREGATION -> transformer.aggregation(field, transform.aggregation)
             TRANSFORM_NOT_SET, IDENTITY, null -> transformer.identity(field)
         }
         return memberCheck to (statement as JooqField<Any>)
