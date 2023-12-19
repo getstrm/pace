@@ -2,6 +2,7 @@ package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.DATABRICKS
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.databricks.sdk.AccountClient
 import com.databricks.sdk.WorkspaceClient
 import com.databricks.sdk.service.catalog.TableInfo
@@ -15,8 +16,7 @@ import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
-import com.getstrm.pace.util.normalizeType
-import com.getstrm.pace.util.toTimestamp
+import com.getstrm.pace.util.*
 import com.google.rpc.DebugInfo
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
@@ -48,21 +48,26 @@ class DatabricksClient(
 
     override val type = DATABRICKS
 
-    override suspend fun listGroups(): List<Group> =
-        accountClient.groups().list(ListAccountGroupsRequest()).map { group ->
-            Group(id = group.id, name = group.displayName)
+    override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> =
+        accountClient.groups().list(ListAccountGroupsRequest().apply{
+            startIndex = pageParameters.skip.toLong()
+            count = pageParameters.pageSize.toLong()
         }
+        ).map { group ->
+            Group(id = group.id, name = group.displayName)
+        }.withPageInfo()
 
-    override suspend fun listTables(): List<Table> = listAllTables().map { DatabricksTable(it.fullName, it, this) }
+    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> = listAllTables(pageParameters).map { DatabricksTable(it.fullName, it, this) }
 
     /**
-     * Lists all tables (or views) in all schemas in all catalogs that the service principal has access to.
+     * Lists all tables (or views) in all schemas that the service principal has access to.
      */
-    private fun listAllTables(): List<TableInfo> {
+    private fun listAllTables(pageParameters: PageParameters): PagedCollection<TableInfo> {
+        // TODO https://linear.app/strmprivacy/issue/PACE-84/processing-platforms-should-have-table-hierarchy-similar-to-catalogs 
         val catalogNames = workspaceClient.catalogs().list().map { it.name }
         val schemas = catalogNames.flatMap { catalog -> workspaceClient.schemas().list(catalog) }
         val tableInfoList = schemas.flatMap { schema -> workspaceClient.tables().list(schema.catalogName, schema.name) }
-        return tableInfoList.filter { it.owner != "System user" }
+        return tableInfoList.filter { it.owner != "System user" }.applyPageParameters(pageParameters).withPageInfo()
     }
 
     /**

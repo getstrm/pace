@@ -2,11 +2,15 @@ package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.POSTGRES
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.PostgresConfig
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
+import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.applyPageParameters
 import com.getstrm.pace.util.normalizeType
+import com.getstrm.pace.util.withPageInfo
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
@@ -41,10 +45,14 @@ class PostgresClient(
 
     override val type = POSTGRES
 
-    override suspend fun listTables(): List<Table> = jooq.meta()
+    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> = jooq.meta()
         .filterSchemas { !schemasToIgnore.contains(it.name) }
         .tables
         .map { PostgresTable(it) }
+        .sortedBy { it.fullName }
+        .applyPageParameters(pageParameters)
+        .withPageInfo()
+    
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = PostgresViewGenerator(dataPolicy)
@@ -55,7 +63,7 @@ class PostgresClient(
         }
     }
 
-    override suspend fun listGroups(): List<Group> {
+    override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
         val result = withContext(Dispatchers.IO) {
             jooq.select(DSL.field("oid", Int::class.java), DSL.field("rolname", String::class.java))
                 .from(DSL.table("pg_roles"))
@@ -63,10 +71,13 @@ class PostgresClient(
                     DSL.field("rolcanlogin").notEqual(true),
                     DSL.field("rolname").notLike("pg_%")
                 )
+                .orderBy(DSL.field("rolname"))
+                .offset(pageParameters.skip)
+                .limit(pageParameters.pageSize)
                 .fetch()
         }
 
-        return result.map { (oid, rolname) -> Group(id = oid.toString(), name = rolname) }
+        return result.map { (oid, rolname) -> Group(id = oid.toString(), name = rolname) }.withPageInfo()
     }
 
     companion object {

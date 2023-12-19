@@ -12,27 +12,30 @@ class DataCatalogsApi(
 
     override suspend fun listCatalogs(request: ListCatalogsRequest): ListCatalogsResponse =
         ListCatalogsResponse.newBuilder()
-            .addAllCatalogs(dataCatalogsService.listCatalogs())
+            .addAllCatalogs(dataCatalogsService.listCatalogs(request))
             .build()
 
     override suspend fun listDatabases(request: ListDatabasesRequest): ListDatabasesResponse {
-        val databases = dataCatalogsService.listDatabases(request.catalogId)
+        val (databases, pageInfo) = dataCatalogsService.listDatabases(request)
         return ListDatabasesResponse.newBuilder()
             .addAllDatabases(databases)
+            .setPageInfo(pageInfo)
             .build()
     }
 
     override suspend fun listSchemas(request: ListSchemasRequest): ListSchemasResponse {
-        val schemas = dataCatalogsService.listSchemas(request.catalogId, request.databaseId)
+        val (schemas, pageInfo) = dataCatalogsService.listSchemas(request) 
         return ListSchemasResponse.newBuilder()
             .addAllSchemas(schemas)
+            .setPageInfo(pageInfo)
             .build()
     }
 
     override suspend fun listTables(request: ListTablesRequest): ListTablesResponse {
-        val tables = dataCatalogsService.listTables(request.catalogId, request.databaseId, request.schemaId)
+        val (tables, pageInfo) = dataCatalogsService.listTables(request)
         return ListTablesResponse.newBuilder()
             .addAllTables(tables)
+            .setPageInfo(pageInfo)
             .build()
     }
 

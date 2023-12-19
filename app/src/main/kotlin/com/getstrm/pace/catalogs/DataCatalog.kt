@@ -1,7 +1,11 @@
 package com.getstrm.pace.catalogs
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.CatalogConfiguration
+import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
+import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.withPageInfo
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Database as ApiDatabase
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Schema as ApiSchema
@@ -20,14 +24,22 @@ abstract class DataCatalog(
     val apiCatalog: ApiCatalog
         get() = ApiCatalog.newBuilder().setId(id).setType(config.type).build()
 
-    abstract suspend fun listDatabases(): List<Database>
+    abstract suspend fun listDatabases(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): PagedCollection<Database>
+    abstract suspend fun getDatabase(databaseId: String): Database 
+    
 
     /**
      * A table is a collection of columns.
      */
     abstract class Table(val schema: Schema, val id: String, val name: String) {
-        abstract suspend fun getDataPolicy(): DataPolicy?
-        open suspend fun getTags(): List<String> = emptyList()
+        /**
+         * create a blueprint from the field information and possible the global transforms.
+         * 
+         * NOTE: do not call this method `get...` (Bean convention) because then the lazy information
+         * gathering for creating blueprints becomes non-lazy. You can see this for
+         * instance with the DataHub implementation
+         */
+        abstract suspend fun createBlueprint(): DataPolicy?
         override fun toString(): String = "Table($id, $name)"
         val apiTable: ApiTable
             get() = ApiTable.newBuilder()
@@ -41,8 +53,7 @@ abstract class DataCatalog(
      * A schema is a collection of tables.
      */
     abstract class Schema(val database: Database, val id: String, val name: String) {
-        open suspend fun getTables(): List<Table> = emptyList()
-        open suspend fun getTags(): List<String> = emptyList()
+        abstract suspend fun listTables(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): PagedCollection<Table>
         override fun toString(): String = "Schema($id, $name)"
         val apiSchema: ApiSchema
             get() = ApiSchema.newBuilder()
@@ -50,6 +61,7 @@ abstract class DataCatalog(
                 .setName(name)
                 .setDatabase(database.apiDatabase)
                 .build()
+        abstract suspend fun getTable(tableId: String): Table 
     }
 
     /** meta information database */
@@ -59,9 +71,10 @@ abstract class DataCatalog(
         val dbType: String? = null,
         val displayName: String? = null
     ) {
-        open suspend fun getSchemas(): List<Schema> = emptyList()
-        open suspend fun getTags(): List<String> = emptyList()
+        abstract suspend fun listSchemas(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): PagedCollection<Schema>
         override fun toString() = dbType?.let { "Database($id, $dbType, $displayName)" } ?: "Database($id)"
+
+        abstract suspend fun getSchema(schemaId: String): Schema 
 
         val apiDatabase: ApiDatabase
             get() = ApiDatabase.newBuilder()

@@ -1,43 +1,45 @@
 syntax = "proto3";
 
 package getstrm.pace.api.data_catalogs.v1alpha;
-import "getstrm/pace/api/entities/v1alpha/entities.proto";
-import "google/api/annotations.proto";
+
 import "buf/validate/validate.proto";
+import "getstrm/pace/api/entities/v1alpha/entities.proto";
+import "getstrm/pace/api/paging/v1alpha/paging.proto";
+import "google/api/annotations.proto";
 import "google/rpc/error_details.proto";
 
 option go_package = "github.com/getstrm/pace/protos/api/data_catalogs;data_catalogs";
-option java_package = "com.getstrm.pace.api.data_catalogs.v1alpha";
 option java_multiple_files = true;
+option java_package = "com.getstrm.pace.api.data_catalogs.v1alpha";
 
 service DataCatalogsService {
-    // Lists all configured catalogs.
+  // Lists all configured catalogs.
     rpc ListCatalogs (ListCatalogsRequest) returns (ListCatalogsResponse) {
         option (google.api.http) = {
           get: "/v1alpha/catalogs"
         };
     };
-    // Lists all databases for the given catalog.
+  // Lists all databases for the given catalog.
     rpc ListDatabases (ListDatabasesRequest) returns (ListDatabasesResponse) {
         option (google.api.http) = {
           get: "/v1alpha/catalogs/{catalog_id}/databases"
         };
-    }
-    // Lists all schemas (for a given database, if applicable).
+  }
+  // Lists all schemas (for a given database, if applicable).
     rpc ListSchemas (ListSchemasRequest) returns (ListSchemasResponse) {
         option (google.api.http) = {
           get: "/v1alpha/catalogs/{catalog_id}/schemas"
         };
-    }
-    // Lists all tables (for a given schema and database, if applicable).
+  }
+  // Lists all tables (for a given schema and database, if applicable).
     rpc ListTables (ListTablesRequest) returns (ListTablesResponse) {
         option (google.api.http) = {
           get: "/v1alpha/catalogs/{catalog_id}/tables"
         };
     };
-    // Returns a data policy without any rule sets, based on the given table's data structure in the catalog.
-    // Extend this blueprint policy with field transforms and/or rule sets to create a complete data policy.
-    // Use the UpsertDataPolicy endpoint to save and enforce the policy.
+  // Returns a data policy without any rule sets, based on the given table's data structure in the catalog.
+  // Extend this blueprint policy with field transforms and/or rule sets to create a complete data policy.
+  // Use the UpsertDataPolicy endpoint to save and enforce the policy.
     rpc GetBlueprintPolicy (GetBlueprintPolicyRequest) returns (GetBlueprintPolicyResponse) {
         option (google.api.http) = {
           get: "/v1alpha/catalogs/{catalog_id}/blueprint-policy"
@@ -46,49 +48,57 @@ service DataCatalogsService {
 }
 
 message GetBlueprintPolicyRequest {
-    string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
-    optional string database_id = 2;
-    optional string schema_id = 3;
-    string table_id = 4 [(buf.validate.field).string = {min_len: 1}];
+  string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
+  optional string database_id = 2;
+  optional string schema_id = 3;
+  string table_id = 4 [(buf.validate.field).string = {min_len: 1}];
 }
 
 message GetBlueprintPolicyResponse {
-    entities.v1alpha.DataPolicy data_policy = 1;
-    google.rpc.BadRequest.FieldViolation violation = 2;
+  entities.v1alpha.DataPolicy data_policy = 1;
+  google.rpc.BadRequest.FieldViolation violation = 2;
 }
 
 message ListCatalogsRequest {
+  api.paging.v1alpha.PageParameters page_parameters = 1;
 }
 
 message ListCatalogsResponse {
-    repeated entities.v1alpha.DataCatalog catalogs = 1;
+  repeated entities.v1alpha.DataCatalog catalogs = 1;
+  api.paging.v1alpha.PageInfo page_info = 2;
 }
 
 message ListDatabasesRequest {
-    string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
+  string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
+  api.paging.v1alpha.PageParameters page_parameters = 2;
 }
 
 message ListDatabasesResponse {
-    repeated entities.v1alpha.DataCatalog.Database databases = 1;
+  repeated entities.v1alpha.DataCatalog.Database databases = 1;
+  api.paging.v1alpha.PageInfo page_info = 2;
 }
 
 message ListSchemasRequest {
-    string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
-    optional string database_id = 2;
+  string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
+  optional string database_id = 2;
+  api.paging.v1alpha.PageParameters page_parameters = 3;
 }
 
 // (-- api-linter: core::0158::response-plural-first-field=disabled
 //     aip.dev/not-precedent: Schemata? Get real. --)
 message ListSchemasResponse {
-    repeated entities.v1alpha.DataCatalog.Schema schemas = 1;
+  repeated entities.v1alpha.DataCatalog.Schema schemas = 1;
+  api.paging.v1alpha.PageInfo page_info = 2;
 }
 
 message ListTablesRequest {
-    string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
-    optional string database_id = 2;
-    optional string schema_id = 3;
+  string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
+  optional string database_id = 2;
+  optional string schema_id = 3;
+  api.paging.v1alpha.PageParameters page_parameters = 4;
 }
 
 message ListTablesResponse {
-    repeated entities.v1alpha.DataCatalog.Table tables = 1;
+  repeated entities.v1alpha.DataCatalog.Table tables = 1;
+  api.paging.v1alpha.PageInfo page_info = 2;
 }

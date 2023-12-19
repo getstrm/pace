@@ -1,6 +1,8 @@
 # Table, Column, Schema, Database
-query ListPhysicalDataAssets($assetType: String!) {
+query ListPhysicalDataAssets($assetType: String!, $skip: Int!, $pageSize: Int!) {
     assets(
+        limit: $pageSize,
+        offset: $skip,
         where: {domain: {type: {publicId: {eq: "PhysicalDataDictionary"}}}, type: {publicId: {eq: $assetType}}}
     ) {
         id
@@ -24,8 +26,10 @@ query ListPhysicalDataAssets($assetType: String!) {
     }
 }
 
-query ListDatabases {
+query ListDatabases($skip: Int!, $pageSize: Int!) {
     assets(
+        limit: $pageSize,
+        offset: $skip,
         where: {domain: {type: {publicId: {eq: "PhysicalDataDictionary"}}}, type: {publicId: {eq: "Database"}}}
     ) {
         displayName
@@ -34,12 +38,10 @@ query ListDatabases {
         domain {
             name
         }
-
-
     }
 }
 
-query ListTablesInSchema($schemaId: UUID!) {
+query ListTablesInSchema($schemaId: UUID!, $skip: Int!, $pageSize: Int!) {
     assets(
         limit: 1
         where: {id: {eq: $schemaId}, domain: {type: {publicId: {eq: "PhysicalDataDictionary"}}}, type: {publicId: {eq: "Schema"}}}
@@ -52,7 +54,10 @@ query ListTablesInSchema($schemaId: UUID!) {
                 publicId
             }
         }
-        tables: outgoingRelations(where: {target: {type: {publicId: {eq: "Table"}}}}) {
+        tables: outgoingRelations(
+            limit: $pageSize,
+            offset: $skip,
+            where: {target: {type: {publicId: {eq: "Table"}}}}) {
             target {
                 id
                 fullName
@@ -61,15 +66,36 @@ query ListTablesInSchema($schemaId: UUID!) {
         }
     }
 }
+query GetTable($tableId: UUID!) {
+    assets(where: {id: {eq: $tableId}}) {
+        id
+        fullName
+        displayName
+    }
+}
 
-query ListSchemaIds($databaseId: UUID!) {
+query GetSchema($schemaId: UUID!) {
+    assets(
+        where: {id: {eq: $schemaId}}
+    ){
+        id
+        displayName
+        fullName
+    }
+}
+
+query ListSchemaIds($databaseId: UUID!, $skip: Int!, $pageSize: Int!) {
     assets(
         where: {domain: {type: {publicId: {eq: "PhysicalDataDictionary"}}}, id: {eq: $databaseId}, type: {publicId: {eq: "Database"}}}
+        offset: 0
+        limit: 1
     ) {
         id
         displayName
         fullName
         schemas: outgoingRelations(
+            limit: $pageSize,
+            offset: $skip,
             where: {target: {type: {publicId: {eq: "Schema"}}}}
         ) {
             target {
@@ -81,3 +107,21 @@ query ListSchemaIds($databaseId: UUID!) {
     }
 }
 
+query GetDataBase($databaseId: UUID!) {
+    assets(
+        where: {id: {eq: $databaseId}}
+    ){
+        displayName
+        fullName
+        id
+        domain {
+            name
+        }
+        stringAttributes {
+            stringValue
+            type {
+                publicId
+            }
+        }
+    }
+}
