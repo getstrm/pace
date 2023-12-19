@@ -107,6 +107,8 @@ Make sure to set a valid API key, which you can generate at [https://platform.op
 <summary><code>instructions.yaml</code></summary>
 Some simple instructions to generate the sample data.
 
+Note: there are some Dutch language column names whose meaning and resulting significance we'll explain below.
+
 ```yaml
 source:
   ref: generate_sample_demo
@@ -137,6 +139,8 @@ additional_system_instructions:
 <details>
 <summary><code>complex-instructions.yaml</code></summary>
 In this file, we've added some more system instructions, to enrich the generated sample data.
+
+Note: there are some Dutch language column names whose meaning and resulting significance we'll explain below.
 
 ```yaml
 source:
@@ -210,16 +214,25 @@ additional_system_instructions:
   - don't forget to add the csv column headers
   - please return 5 result rows
 ```
+
+Note the following Dutch column names:
+* `gebruikersnaam` = `username`
+* `organisatie` = `organization`
+* `klantnummer` = `customernumber`
+* `bankrekening` = `bankaccount`.
+
+Note that we are not explaining this to GPT, nor is there any hard-coded _Dutch_ somewhere inside our source code.
+
 In the same directory, execute the following PACE CLI command:
 
 ```bash
 pace  invoke plugin openai GENERATE_SAMPLE_DATA --payload instructions.yaml
 ```
 
-This will take a little while (around 20 seconds during our testing). If OpenAI replied with a valid Data Policy, it will be printed to your terminal. The output should look similar to this:
+This will take a little while (around 20 seconds during our testing). If OpenAI replied within the configured timeout, PACE will print the generated random csv to your terminal. The output should look similar to this:
 
 ```text
-"email","gebruikersnaam","organisatie","klantnummber","bankrekening"
+"email","gebruikersnaam","organisatie","klantnummer","bankrekening"
 "jane.doe@example.com","janedoe","Example Corp","CUST12345","NL91ABNA0417164300"
 "john.smith@business.com","johnsmith","Business LLC","CUST54321","NL62RABO0300065264"
 "alice.johnson@internet.org","alicej","Internet Org","CUST67890","NL20INGB0001234567"
@@ -227,9 +240,11 @@ This will take a little while (around 20 seconds during our testing). If OpenAI 
 "carol.white@tech.biz","carolwhite","Tech Solutions","CUST13579","NL39RABO0331609111"
 ```
 
-This is all still quite experimental, so not all instructions may work as well. Let us know if you encounter any issues, and we will further explore this thing called GenAI!
+NOTE: GPT figured out that `klantnummer` must relate to a _customer_ hence the `CUST` prefix. Even more interesting it figured out that `bankrekening` should probably be given Dutch style IBAN numbers!
 
-#### enriching the instructions
+This is all still quite experimental, so not all instructions may work as well. We've also frequently encountered OpenAI timeouts, resulting in an Internal Error response to your cli. Let us know if you encounter any issues, and we will further explore this thing called GenAI!
+
+#### Enriching the instructions
 
 Adding some more configuration to the instructions:
 ```yaml
@@ -245,8 +260,9 @@ additional_system_instructions:
 pace  invoke plugin openai GENERATE_SAMPLE_DATA --payload complex-instructions.yaml
 ```
 
+This will result in something similar as shown below:
 ```text
-"email","gebruikersnaam","organisatie","klantnummber","bankrekening"
+"email","gebruikersnaam","organisatie","klantnummer","bankrekening"
 "johndoe@example.de","johndoe","Doe Enterprises","1000001","DE89370400440532013000"
 "janedoe@example.fr","janedoe","Doe Industries","1000002","FR7630006000011234567890189"
 "alice.smith@example.it","alicesmith","Smith Co.","1000003","IT60X0542811101000000123456"
