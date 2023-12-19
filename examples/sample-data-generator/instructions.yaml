@@ -1,0 +1,22 @@
+source:
+  ref: generate_sample_demo
+  fields:
+    - name_parts: [ email ]
+      type: varchar
+      required: true
+    - name_parts: [ gebruikersnaam ]
+      type: varchar
+      required: true
+    - name_parts: [ organisatie ]
+      type: varchar
+      required: true
+    - name_parts: [ klantnummber ]
+      type: varchar
+      required: true
+    - name_parts: [ bankrekening ]
+      type: varchar
+      required: false
+
+additional_system_instructions:
+  - don't forget to add the csv column headers
+  - please return 5 result rows

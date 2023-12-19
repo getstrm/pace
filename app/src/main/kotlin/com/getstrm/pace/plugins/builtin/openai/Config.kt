@@ -22,7 +22,7 @@ class Config {
     ): OpenAIPlugin {
         val openAI = OpenAI(
             token = config.apiKey,
-            timeout = Timeout(socket = 60.seconds)
+            timeout = Timeout(socket = config.timeout.seconds)
         ) {
             install(Logging) {
                 logger = Logger.DEFAULT
@@ -36,4 +36,5 @@ class Config {
 class OpenAIConfig(
     val apiKey: String,
     val model: String = "gpt-3.5-turbo",
+    val timeout: Int = 60
 )
