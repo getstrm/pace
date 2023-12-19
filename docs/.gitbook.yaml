@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.40
+    version: 1.0.0-alpha.41
 paths:
     /data-policies:
         get:
@@ -12,6 +12,24 @@ paths:
                 - DataPoliciesService
             description: Lists all DataPolicies for all platforms.
             operationId: DataPoliciesService_ListDataPolicies
+            parameters:
+                - name: pageParameters.skip
+                  in: query
+                  description: |-
+                    The provided skip value of the request.
+                     skip represents records to skip before returning results.
+                     If empty, skip is 0.
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: pageParameters.pageSize
+                  in: query
+                  description: |-
+                    The provided page_size value of the request.
+                     If empty, page_size is 10.
+                  schema:
+                    type: integer
+                    format: uint32
             responses:
                 "200":
                     description: OK
@@ -31,6 +49,24 @@ paths:
                 - DataCatalogsService
             description: Lists all configured catalogs.
             operationId: DataCatalogsService_ListCatalogs
+            parameters:
+                - name: pageParameters.skip
+                  in: query
+                  description: |-
+                    The provided skip value of the request.
+                     skip represents records to skip before returning results.
+                     If empty, skip is 0.
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: pageParameters.pageSize
+                  in: query
+                  description: |-
+                    The provided page_size value of the request.
+                     If empty, page_size is 10.
+                  schema:
+                    type: integer
+                    format: uint32
             responses:
                 "200":
                     description: OK
@@ -96,6 +132,23 @@ paths:
                   required: true
                   schema:
                     type: string
+                - name: pageParameters.skip
+                  in: query
+                  description: |-
+                    The provided skip value of the request.
+                     skip represents records to skip before returning results.
+                     If empty, skip is 0.
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: pageParameters.pageSize
+                  in: query
+                  description: |-
+                    The provided page_size value of the request.
+                     If empty, page_size is 10.
+                  schema:
+                    type: integer
+                    format: uint32
             responses:
                 "200":
                     description: OK
@@ -125,6 +178,23 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: pageParameters.skip
+                  in: query
+                  description: |-
+                    The provided skip value of the request.
+                     skip represents records to skip before returning results.
+                     If empty, skip is 0.
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: pageParameters.pageSize
+                  in: query
+                  description: |-
+                    The provided page_size value of the request.
+                     If empty, page_size is 10.
+                  schema:
+                    type: integer
+                    format: uint32
             responses:
                 "200":
                     description: OK
@@ -158,6 +228,23 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: pageParameters.skip
+                  in: query
+                  description: |-
+                    The provided skip value of the request.
+                     skip represents records to skip before returning results.
+                     If empty, skip is 0.
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: pageParameters.pageSize
+                  in: query
+                  description: |-
+                    The provided page_size value of the request.
+                     If empty, page_size is 10.
+                  schema:
+                    type: integer
+                    format: uint32
             responses:
                 "200":
                     description: OK
@@ -539,6 +626,23 @@ paths:
                   required: true
                   schema:
                     type: string
+                - name: pageParameters.skip
+                  in: query
+                  description: |-
+                    The provided skip value of the request.
+                     skip represents records to skip before returning results.
+                     If empty, skip is 0.
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: pageParameters.pageSize
+                  in: query
+                  description: |-
+                    The provided page_size value of the request.
+                     If empty, page_size is 10.
+                  schema:
+                    type: integer
+                    format: uint32
             responses:
                 "200":
                     description: OK
@@ -564,6 +668,23 @@ paths:
                   required: true
                   schema:
                     type: string
+                - name: pageParameters.skip
+                  in: query
+                  description: |-
+                    The provided skip value of the request.
+                     skip represents records to skip before returning results.
+                     If empty, skip is 0.
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: pageParameters.pageSize
+                  in: query
+                  description: |-
+                    The provided page_size value of the request.
+                     If empty, page_size is 10.
+                  schema:
+                    type: integer
+                    format: uint32
             responses:
                 "200":
                     description: OK
@@ -1126,6 +1247,8 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/DataCatalog'
+                pageInfo:
+                    $ref: '#/components/schemas/PageInfo'
         ListDataPoliciesResponse:
             type: object
             properties:
@@ -1133,6 +1256,8 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/DataPolicy'
+                pageInfo:
+                    $ref: '#/components/schemas/PageInfo'
         ListDatabasesResponse:
             type: object
             properties:
@@ -1140,6 +1265,8 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/DataCatalog_Database'
+                pageInfo:
+                    $ref: '#/components/schemas/PageInfo'
         ListGlobalTransformsResponse:
             type: object
             properties:
@@ -1154,6 +1281,8 @@ components:
                     type: array
                     items:
                         type: string
+                pageInfo:
+                    $ref: '#/components/schemas/PageInfo'
         ListPluginsResponse:
             type: object
             properties:
@@ -1175,6 +1304,8 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/DataCatalog_Schema'
+                pageInfo:
+                    $ref: '#/components/schemas/PageInfo'
             description: |-
                 (-- api-linter: core::0158::response-plural-first-field=disabled
                      aip.dev/not-precedent: Schemata? Get real. --)
@@ -1185,6 +1316,8 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/DataCatalog_Table'
+                pageInfo:
+                    $ref: '#/components/schemas/PageInfo'
         NumericRounding_Ceil:
             type: object
             properties:
@@ -1205,6 +1338,13 @@ components:
                 precision:
                     type: integer
                     description: The precision to use for rounding. When positive, the value is rounded to the nearest decimal place. When negative, the value is rounded to the nearest power of 10.
+                    format: int32
+        PageInfo:
+            type: object
+            properties:
+                total:
+                    type: integer
+                    description: The (estimated) total number of records. If the total is unknown, this value is -1.
                     format: int32
         Plugin:
             type: object
