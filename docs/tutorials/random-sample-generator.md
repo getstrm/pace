@@ -257,7 +257,7 @@ additional_system_instructions:
 ```
 
 ```bash
-pace  invoke plugin openai GENERATE_SAMPLE_DATA --payload complex-instructions.yaml
+pace invoke plugin openai GENERATE_SAMPLE_DATA --payload complex-instructions.yaml
 ```
 
 This will result in something similar as shown below:
