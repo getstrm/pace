@@ -87,6 +87,8 @@ query GetSchema($schemaId: UUID!) {
 query ListSchemaIds($databaseId: UUID!, $skip: Int!, $pageSize: Int!) {
     assets(
         where: {domain: {type: {publicId: {eq: "PhysicalDataDictionary"}}}, id: {eq: $databaseId}, type: {publicId: {eq: "Database"}}}
+        offset: 0
+        limit: 1
     ) {
         id
         displayName

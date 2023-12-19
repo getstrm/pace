@@ -38,7 +38,7 @@ json-schema:
 	@ (cd protos; buf generate)
 
 copy-json-schema-to-resources: json-schema
-	@ find app/src/main/resources/jsonschema -type d -maxdepth 1 -mindepth 1 | xargs -I{} rm -rf {}
+	@ find app/src/main/resources/jsonschema -maxdepth 1 -mindepth 1 -type d | xargs -I{} rm -rf {}
 	@ mkdir -p app/src/main/resources/jsonschema
 	@ rm -rf protos/temp
 	@ cp -r protos/json-schema protos/temp

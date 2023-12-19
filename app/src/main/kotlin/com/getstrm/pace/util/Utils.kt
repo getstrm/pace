@@ -9,8 +9,10 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.google.cloud.bigquery.Table
 import com.google.cloud.bigquery.TableId
 import org.jooq.*
+import java.util.ArrayList
 import java.util.stream.Collectors
 import kotlin.math.max
+import kotlin.math.min
 
 internal val YAML_MAPPER = ObjectMapper(YAMLFactory())
 internal val JSON_MAPPER = ObjectMapper()
@@ -85,3 +87,43 @@ fun <T> Collection<T>.withPageInfo(pageInfo: PageInfo =
 
 fun <T> Collection<T>.withTotal(total: Int) = PagedCollection(this, PageInfo.newBuilder().setTotal(total).build())
 fun <T> Collection<T>.withUnknownTotals() = withTotal(-1)
+
+
+private const val MAX_PAGE_SIZE = 100
+private const val DEFAULT_PAGE_SIZE = 10
+private const val MAX_PAGE_SIZE_PER_REQUEST = 20
+
+/**
+ * retrieve the requested information via 1 or more calls to a backend.
+ * 
+ * @param pageParameters the requested set of data
+ * @param queryFunction the function that accesses the backend.
+ *        skip: the offset when interacting with the backend.
+ *        pageSize: the number of entries to request from the backend.
+ * @return a List of T with a concatenation of the various call results
+ */
+suspend fun <T> pagedCalls(pageParameters: PageParameters?,
+                           queryFunction: suspend (skip:Int, pageSize: Int)->List<T>) : List<T> {
+    val assets = ArrayList<T>()
+    val totalToRetrieve = min(MAX_PAGE_SIZE, pageParameters?.pageSize.orDefault(DEFAULT_PAGE_SIZE))
+    while(assets.size < totalToRetrieve) {
+        val remaining = totalToRetrieve - assets.size
+        val pageSize = min(remaining, MAX_PAGE_SIZE_PER_REQUEST)
+        val pagedAssets = queryFunction((pageParameters?.skip ?: 0) + assets.size, pageSize)
+        if(pagedAssets.isEmpty()) {
+            break
+        }
+        assets += pagedAssets
+    }
+    return assets
+}
+
+
+fun <T>List<T?>?.onlyNonNulls(): List<T> = orEmpty().filterNotNull()
+fun <T>List<T?>?.firstNonNull(): T = onlyNonNulls().first()
+
+/**
+ * replace 0 or null with default
+ */
+fun <T>T?.orDefault(default: T): T =
+    if(this==0 || this == null) default else this
