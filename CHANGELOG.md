@@ -1,3 +1,10 @@
+# [1.0.0-alpha.42](https://github.com/getstrm/pace/compare/v1.0.0-alpha.41...v1.0.0-alpha.42) (2023-12-20)
+
+
+### Features
+
+* **pace-89:** add optional divisor to NumericRounding.Round ([#124](https://github.com/getstrm/pace/issues/124)) ([663db64](https://github.com/getstrm/pace/commit/663db649a25c0feb47700b480dd41dc545e0f518))
+
 # [1.0.0-alpha.41](https://github.com/getstrm/pace/compare/v1.0.0-alpha.40...v1.0.0-alpha.41) (2023-12-19)
 
 
