@@ -2,6 +2,8 @@ package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyResponse
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListGroupsRequest
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListTablesRequest
 import build.buf.gen.google.rpc.BadRequest.FieldViolation
 import com.getstrm.pace.config.ProcessingPlatformConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
@@ -16,6 +18,8 @@ import com.getstrm.pace.processing_platforms.databricks.DatabricksClient
 import com.getstrm.pace.processing_platforms.postgres.PostgresClient
 import com.getstrm.pace.processing_platforms.snowflake.SnowflakeClient
 import com.getstrm.pace.processing_platforms.synapse.SynapseClient
+import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
+import com.getstrm.pace.util.PagedCollection
 import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
@@ -41,11 +45,12 @@ class ProcessingPlatformsService(
         platforms = (databricks + snowflake + bigQuery + postgres + synapse).associateBy { it.id }
     }
 
-    suspend fun listGroups(platformId: String): List<Group> =
-        platforms[platformId]?.listGroups() ?: throw processingPlatformNotFound(platformId)
+    suspend fun listGroups(platformId: String): PagedCollection<Group> =
+        platforms[platformId]?.listGroups(DEFAULT_PAGE_PARAMETERS)
+            ?: throw processingPlatformNotFound(platformId)
 
     suspend fun listGroupNames(platformId: String): Set<String> =
-        listGroups(platformId).map { it.name }.toSet()
+        listGroups(platformId).map { it.name }.data.toSet()
 
     fun getProcessingPlatform(dataPolicy: DataPolicy): ProcessingPlatformClient {
         val processingPlatform =
@@ -75,11 +80,13 @@ class ProcessingPlatformsService(
         }
     }
 
-    suspend fun listProcessingPlatformTables(platformId: String): List<Table> =
-        (platforms[platformId] ?: throw processingPlatformNotFound(platformId)).listTables()
+    suspend fun listProcessingPlatformTables(request: ListTablesRequest): PagedCollection<Table> =
+        (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
+            .listTables(request.pageParameters)
 
-    suspend fun listProcessingPlatformGroups(platformId: String): List<Group> =
-        (platforms[platformId] ?: throw processingPlatformNotFound(platformId)).listGroups()
+    suspend fun listProcessingPlatformGroups(request: ListGroupsRequest): PagedCollection<Group> =
+        (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
+            .listGroups(request.pageParameters)
 
     suspend fun getBlueprintPolicy(
         platformId: String,

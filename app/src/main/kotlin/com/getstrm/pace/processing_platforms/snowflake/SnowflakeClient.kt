@@ -2,13 +2,17 @@ package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SnowflakeConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.processing_platforms.Table
+import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.applyPageParameters
 import com.getstrm.pace.util.normalizeType
+import com.getstrm.pace.util.withPageInfo
 import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
@@ -77,19 +81,32 @@ class SnowflakeClient(override val id: String, private val config: SnowflakeConf
         executeRequest(request)
     }
 
-    override suspend fun listTables(): List<Table> {
+    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
         val statement =
-            "select table_schema, table_name, table_type, created as create_date, last_altered as modify_date from information_schema.tables where table_type = 'BASE TABLE';"
+            """SELECT table_schema, table_name, table_type,
+               created as create_date,
+               last_altered as modify_date
+               FROM information_schema.tables where table_type = 'BASE TABLE'
+               ORDER BY table_name
+               LIMIT ${pageParameters.pageSize}
+               OFFSET ${pageParameters.skip} ;
+            """
+                .trimMargin()
         val request =
             SnowflakeRequest(
                 statement = statement,
                 database = config.database,
                 warehouse = config.warehouse,
             )
-        return executeRequest(request).body?.data.orEmpty().map { (schemaName, tableName) ->
-            val fullName = "$schemaName.$tableName"
-            SnowflakeTable(fullName, config, tableName, schemaName, this)
-        }
+        return executeRequest(request)
+            .body
+            ?.data
+            .orEmpty()
+            .map { (schemaName, tableName) ->
+                val fullName = "$schemaName.$tableName"
+                SnowflakeTable(fullName, config, tableName, schemaName, this)
+            }
+            .withPageInfo()
     }
 
     fun describeTable(schema: String, table: String): SnowflakeResponse? {
@@ -109,7 +126,7 @@ class SnowflakeClient(override val id: String, private val config: SnowflakeConf
         return snowflakeResponse.body
     }
 
-    override suspend fun listGroups(): List<Group> {
+    override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
         val request =
             SnowflakeRequest(
                 statement = "SHOW ROLES",
@@ -119,14 +136,19 @@ class SnowflakeClient(override val id: String, private val config: SnowflakeConf
         if (response.body?.message != "Statement executed successfully.") {
             throw RuntimeException(response.body?.message)
         }
-        return response.body?.data.orEmpty().mapNotNull {
-            val owner = it[8]
-            if (owner.isEmpty()) {
-                null
-            } else {
-                Group(id = it[1], name = it[1])
+        return response.body
+            ?.data
+            .orEmpty()
+            .mapNotNull {
+                val owner = it[8]
+                if (owner.isEmpty()) {
+                    null
+                } else {
+                    Group(id = it[1], name = it[1])
+                }
             }
-        }
+            .applyPageParameters(pageParameters)
+            .withPageInfo()
     }
 
     private fun jsonHeaders() =

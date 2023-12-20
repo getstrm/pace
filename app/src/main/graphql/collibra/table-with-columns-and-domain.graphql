@@ -1,45 +1,23 @@
 
-query TableWithColumns($id: UUID!) {
-    tables: assets(
-        where: {id: {eq: $id}}
+query ColumnTypesAndTags($tableId: UUID!, $pageSize: Int!, $skip: Int!) {
+    columns: assets(
+        where: { _and: [
+            {type: {publicId: {eq: "Column"}}}
+            {outgoingRelations: {typePublicId: "ColumnIsPartOfTable",
+                all: {target: {id: {eq: $tableId}}}}}
+        ]
+        }
+        # the main advantage of this query is that offset and limit are not on the nested
+        # where statement, so we can loop over the results if needed.
+        # also it seeems like we use less nodes on Collibra, and don't trigger the
+        # node size limit of 100000 so easily.
+        offset: $skip
+        limit: $pageSize
     ) {
         displayName
-
-        schema: incomingRelations(where: {source: {type: {publicId: {eq: "Schema"}}}}) {
-            schemaDetails: source {
-                displayName
-
-                database: incomingRelations(
-                    where: {source: {type: {publicId: {eq: "Database"}}}}
-                ) {
-                    databaseDetails: source {
-                        displayName
-                        domain {
-                            name
-                        }
-                    }
-                }
-            }
+        dataType: stringAttributes(where: {type: {name: {eq: "Technical Data Type"}}}) {
+            value: stringValue
         }
-        columns: incomingRelations(
-            # TODO we need handle paging!
-            limit: 400,
-            where: {type: {publicId: {eq: "ColumnIsPartOfTable"}}}
-        ) {
-            columnDetails: source {
-                displayName
-                dataType: stringAttributes(
-                    where: {type: {name: {eq: "Technical Data Type"}}}
-                ) {
-                    value: stringValue
-                }
-                tags {
-                    name
-                }
-
-
-
-            }
-        }
+        tags { name }
     }
 }

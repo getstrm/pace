@@ -1,3 +1,15 @@
+# [1.0.0-alpha.41](https://github.com/getstrm/pace/compare/v1.0.0-alpha.40...v1.0.0-alpha.41) (2023-12-19)
+
+
+### Features
+
+* **pace-83:** add paging to catalog list rpcs (wip) ([e7f0cf3](https://github.com/getstrm/pace/commit/e7f0cf3429be5ff6826084a42dd957ce50ba6546))
+* **pace-83:** handles collibra paging ([b1ecc30](https://github.com/getstrm/pace/commit/b1ecc306cb3fff53a72878677f84ebf5cb572202))
+* **pace-83:** handles paging ([026ef12](https://github.com/getstrm/pace/commit/026ef12c726f477f7af779972f8f955e2e00de8c))
+* **pace-83:** merged with origin/alpha ([13af381](https://github.com/getstrm/pace/commit/13af38192dd11ad1937405e2cd4f785de13bd939))
+* **pace-83:** paging for catalogs implemented ([d2ccf6d](https://github.com/getstrm/pace/commit/d2ccf6d1efcd9078cd2eee7251323e0e4c00a6bb))
+* **pace-83:** paging implemented in the whole codebase ([7df9157](https://github.com/getstrm/pace/commit/7df91574f61d2bb938186dec205213fa6c1ccbdd))
+
 # [1.0.0-alpha.40](https://github.com/getstrm/pace/compare/v1.0.0-alpha.39...v1.0.0-alpha.40) (2023-12-15)
 
 

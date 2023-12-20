@@ -23,8 +23,10 @@ class DataPoliciesApi(
     override suspend fun listDataPolicies(
         request: ListDataPoliciesRequest
     ): ListDataPoliciesResponse {
+        val (policies, pageInfo) = dataPolicyService.listDataPolicies(request)
         return ListDataPoliciesResponse.newBuilder()
-            .addAllDataPolicies(dataPolicyService.listDataPolicies())
+            .addAllDataPolicies(policies)
+            .setPageInfo(pageInfo)
             .build()
     }
 

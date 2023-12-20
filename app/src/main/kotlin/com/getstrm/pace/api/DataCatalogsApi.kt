@@ -10,22 +10,26 @@ class DataCatalogsApi(private val dataCatalogsService: DataCatalogsService) :
     DataCatalogsServiceGrpcKt.DataCatalogsServiceCoroutineImplBase() {
 
     override suspend fun listCatalogs(request: ListCatalogsRequest): ListCatalogsResponse =
-        ListCatalogsResponse.newBuilder().addAllCatalogs(dataCatalogsService.listCatalogs()).build()
+        ListCatalogsResponse.newBuilder()
+            .addAllCatalogs(dataCatalogsService.listCatalogs(request))
+            .build()
 
     override suspend fun listDatabases(request: ListDatabasesRequest): ListDatabasesResponse {
-        val databases = dataCatalogsService.listDatabases(request.catalogId)
-        return ListDatabasesResponse.newBuilder().addAllDatabases(databases).build()
+        val (databases, pageInfo) = dataCatalogsService.listDatabases(request)
+        return ListDatabasesResponse.newBuilder()
+            .addAllDatabases(databases)
+            .setPageInfo(pageInfo)
+            .build()
     }
 
     override suspend fun listSchemas(request: ListSchemasRequest): ListSchemasResponse {
-        val schemas = dataCatalogsService.listSchemas(request.catalogId, request.databaseId)
-        return ListSchemasResponse.newBuilder().addAllSchemas(schemas).build()
+        val (schemas, pageInfo) = dataCatalogsService.listSchemas(request)
+        return ListSchemasResponse.newBuilder().addAllSchemas(schemas).setPageInfo(pageInfo).build()
     }
 
     override suspend fun listTables(request: ListTablesRequest): ListTablesResponse {
-        val tables =
-            dataCatalogsService.listTables(request.catalogId, request.databaseId, request.schemaId)
-        return ListTablesResponse.newBuilder().addAllTables(tables).build()
+        val (tables, pageInfo) = dataCatalogsService.listTables(request)
+        return ListTablesResponse.newBuilder().addAllTables(tables).setPageInfo(pageInfo).build()
     }
 
     override suspend fun getBlueprintPolicy(

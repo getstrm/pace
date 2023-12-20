@@ -24,23 +24,21 @@ class ProcessingPlatformsApi(
             )
             .build()
 
-    override suspend fun listTables(request: ListTablesRequest): ListTablesResponse =
-        ListTablesResponse.newBuilder()
-            .addAllTables(
-                processingPlatformsService.listProcessingPlatformTables(request.platformId).map {
-                    it.fullName
-                },
-            )
+    override suspend fun listTables(request: ListTablesRequest): ListTablesResponse {
+        val (tables, pageInfo) = processingPlatformsService.listProcessingPlatformTables(request)
+        return ListTablesResponse.newBuilder()
+            .addAllTables(tables.map { it.fullName })
+            .setPageInfo(pageInfo)
             .build()
+    }
 
-    override suspend fun listGroups(request: ListGroupsRequest): ListGroupsResponse =
-        ListGroupsResponse.newBuilder()
-            .addAllGroups(
-                processingPlatformsService.listProcessingPlatformGroups(request.platformId).map {
-                    it.name
-                },
-            )
+    override suspend fun listGroups(request: ListGroupsRequest): ListGroupsResponse {
+        val (groups, pageInfo) = processingPlatformsService.listProcessingPlatformGroups(request)
+        return ListGroupsResponse.newBuilder()
+            .addAllGroups(groups.map { it.name })
+            .setPageInfo(pageInfo)
             .build()
+    }
 
     override suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest) =
         processingPlatformsService.getBlueprintPolicy(request.platformId, request.tableId)

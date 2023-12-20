@@ -1,0 +1,1 @@
+{"$schema":"http://json-schema.org/draft-04/schema#","$ref":"#/definitions/PageInfo","definitions":{"PageInfo":{"properties":{"total":{"type":"integer","description":"The (estimated) total number of records. If the total is unknown, this value is -1."}},"additionalProperties":false,"type":"object","title":"Page Info"}}}
