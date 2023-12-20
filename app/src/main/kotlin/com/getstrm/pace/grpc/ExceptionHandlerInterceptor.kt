@@ -2,9 +2,9 @@ package com.getstrm.pace.grpc
 
 import com.getstrm.pace.exceptions.PaceStatusException
 import io.grpc.*
-import org.slf4j.LoggerFactory
 import java.net.InetAddress
 import java.util.*
+import org.slf4j.LoggerFactory
 
 class ExceptionHandlerInterceptor(private val exposeExceptions: Boolean) : ServerInterceptor {
     override fun <ReqT, RespT> interceptCall(
@@ -34,7 +34,8 @@ class ExceptionHandlerInterceptor(private val exposeExceptions: Boolean) : Serve
              * - ALREADY_EXISTS
              * - ?
              *
-             * [unexpectedExceptionStatuses] contain all status codes that need error handling logic.
+             * [unexpectedExceptionStatuses] contain all status codes that need error handling
+             * logic.
              */
             if (status.code !in unexpectedExceptionStatuses) {
                 return delegate.close(status, trailers)
@@ -46,34 +47,40 @@ class ExceptionHandlerInterceptor(private val exposeExceptions: Boolean) : Serve
 
             val newStatus =
                 if (cause is PaceStatusException) {
-                    val extraTrailers = cause.trailers(
-                        mapOf(
-                            "callName" to callName,
-                            "traceId" to traceId,
-                            "instanceId" to instanceId
+                    val extraTrailers =
+                        cause.trailers(
+                            mapOf(
+                                "callName" to callName,
+                                "traceId" to traceId,
+                                "instanceId" to instanceId
+                            )
                         )
-                    )
                     trailers.merge(extraTrailers)
 
                     cause.status.withDescription(cause.message)
                 } else {
                     if (exposeExceptions) {
-                        Status.INTERNAL.withDescription(
-                            (status.description ?: status.cause?.message).let {
-                                if (traceIdExists) "[$instanceId] $it" else "[$instanceId] $traceId $it"
-                            },
-                        )
-                    } else {
-                        Status.INTERNAL.withDescription("An error occurred in call $callName. Error ID: $traceId.")
-                    }.withCause(null)
+                            Status.INTERNAL.withDescription(
+                                (status.description ?: status.cause?.message).let {
+                                    if (traceIdExists) "[$instanceId] $it"
+                                    else "[$instanceId] $traceId $it"
+                                },
+                            )
+                        } else {
+                            Status.INTERNAL.withDescription(
+                                "An error occurred in call $callName. Error ID: $traceId."
+                            )
+                        }
+                        .withCause(null)
                 }
 
             if (cause !is PaceStatusException) {
-                val messageElements = mutableListOf(
-                    "Call=$callName",
-                    "Trace ID=$traceId",
-                    "Server ID=$instanceId",
-                )
+                val messageElements =
+                    mutableListOf(
+                        "Call=$callName",
+                        "Trace ID=$traceId",
+                        "Server ID=$instanceId",
+                    )
 
                 log.error(
                     "Unexpected error [${messageElements.joinToString(", ")}]",

@@ -13,45 +13,74 @@ import java.util.*
 class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
     val client = apolloClient()
+
     override fun close() {
         client.close()
     }
 
     override suspend fun listDatabases(): List<DataCatalog.Database> =
         listPhysicalAssets(AssetTypes.DATABASE).map {
-            Database(this, it.id.toString(), it.getDataSourceType(), it.displayName?:"")
+            Database(this, it.id.toString(), it.getDataSourceType(), it.displayName ?: "")
         }
 
-    class Database(override val catalog: CollibraCatalog, id: String, dbType: String, displayName: String) :
-        DataCatalog.Database(catalog, id, dbType, displayName) {
-            
+    class Database(
+        override val catalog: CollibraCatalog,
+        id: String,
+        dbType: String,
+        displayName: String
+    ) : DataCatalog.Database(catalog, id, dbType, displayName) {
+
         override suspend fun getSchemas(): List<DataCatalog.Schema> {
-            val assets = catalog.client.query(ListSchemaIdsQuery(id)).execute().data!!.assets!!.filterNotNull()
-                .flatMap { schema ->
-                    schema.schemas
-                }
-            return assets.map {
-                Schema(catalog, this, it.target.id.toString(), it.target.fullName)
-            }
+            val assets =
+                catalog.client
+                    .query(ListSchemaIdsQuery(id))
+                    .execute()
+                    .data!!
+                    .assets!!
+                    .filterNotNull()
+                    .flatMap { schema -> schema.schemas }
+            return assets.map { Schema(catalog, this, it.target.id.toString(), it.target.fullName) }
         }
     }
 
-    class Schema(private val catalog: CollibraCatalog, database: DataCatalog.Database, id: String, name: String) :
-        DataCatalog.Schema(database, id, name) {
+    class Schema(
+        private val catalog: CollibraCatalog,
+        database: DataCatalog.Database,
+        id: String,
+        name: String
+    ) : DataCatalog.Schema(database, id, name) {
         override suspend fun getTables(): List<DataCatalog.Table> =
-            catalog.client.query(ListTablesInSchemaQuery(id)).execute().data!!.assets!!.filterNotNull()
+            catalog.client
+                .query(ListTablesInSchemaQuery(id))
+                .execute()
+                .data!!
+                .assets!!
+                .filterNotNull()
                 .flatMap { table ->
-                    table.tables.map { Table(catalog, this, it.target.id.toString(), it.target.fullName) }
+                    table.tables.map {
+                        Table(catalog, this, it.target.id.toString(), it.target.fullName)
+                    }
                 }
     }
 
-    class Table(private val catalog: CollibraCatalog, schema: DataCatalog.Schema, id: String, name: String) :
-        DataCatalog.Table(schema, id, name) {
+    class Table(
+        private val catalog: CollibraCatalog,
+        schema: DataCatalog.Schema,
+        id: String,
+        name: String
+    ) : DataCatalog.Table(schema, id, name) {
         override suspend fun getDataPolicy(): DataPolicy? {
             val response = catalog.client.query(TableWithColumnsQuery(id = id)).execute()
             return response.data?.tables?.firstOrNull()?.let { table ->
                 val systemName =
-                    table.schema.firstOrNull()?.schemaDetails?.database?.firstOrNull()?.databaseDetails?.domain?.name
+                    table.schema
+                        .firstOrNull()
+                        ?.schemaDetails
+                        ?.database
+                        ?.firstOrNull()
+                        ?.databaseDetails
+                        ?.domain
+                        ?.name
 
                 val builder = DataPolicy.newBuilder()
                 builder.metadataBuilder.title = table.displayName
@@ -73,16 +102,24 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
     }
 
     private fun apolloClient(): ApolloClient {
-        val basicAuth = Base64.getEncoder().encodeToString("${config.userName}:${config.password}".toByteArray())
+        val basicAuth =
+            Base64.getEncoder()
+                .encodeToString("${config.userName}:${config.password}".toByteArray())
         return ApolloClient.Builder()
             .serverUrl(config.serverUrl)
             .addHttpHeader("Authorization", "Basic $basicAuth")
             .build()
     }
 
-    private suspend fun listPhysicalAssets(type: AssetTypes): List<ListPhysicalDataAssetsQuery.Asset> =
-        client.query(ListPhysicalDataAssetsQuery(assetType = type.assetName)).execute().data!!.assets?.filterNotNull()
-            ?: emptyList()
+    private suspend fun listPhysicalAssets(
+        type: AssetTypes
+    ): List<ListPhysicalDataAssetsQuery.Asset> =
+        client
+            .query(ListPhysicalDataAssetsQuery(assetType = type.assetName))
+            .execute()
+            .data!!
+            .assets
+            ?.filterNotNull() ?: emptyList()
 
     private fun ListPhysicalDataAssetsQuery.Asset.getDataSourceType(): String =
         stringAttributes.find { it.type.publicId == "DataSourceType" }?.stringValue ?: "unknown"

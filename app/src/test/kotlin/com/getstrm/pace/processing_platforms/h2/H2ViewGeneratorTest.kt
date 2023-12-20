@@ -18,7 +18,8 @@ class H2ViewGeneratorTest {
     private lateinit var underTest: H2ViewGenerator
     private val analyticsPrincipal = DataPolicy.Principal.newBuilder().setGroup("ANALYTICS").build()
     private val marketingPrincipal = DataPolicy.Principal.newBuilder().setGroup("MARKETING").build()
-    private val fraudAndRiskPrincipal = DataPolicy.Principal.newBuilder().setGroup("FRAUD_AND_RISK").build()
+    private val fraudAndRiskPrincipal =
+        DataPolicy.Principal.newBuilder().setGroup("FRAUD_AND_RISK").build()
 
     @BeforeEach
     fun setUp() {
@@ -80,99 +81,130 @@ class H2ViewGeneratorTest {
         // Given
         underTest = H2ViewGenerator(dataPolicy, fraudAndRiskPrincipal, "source_override")
         val field = namedField("email", "string")
-        val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("ANALYTICS", "MARKETING").toPrincipals())
-            .build()
-        val otherFixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("REDACTED EMAIL"))
-            .addAllPrincipals(listOf("FRAUD_AND_RISK").toPrincipals())
-            .build()
-        val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("stoelpoot"))
-            .build()
-        val fieldTransform = DataPolicy.RuleSet.FieldTransform.newBuilder()
-            .setField(field)
-            .addAllTransforms(listOf(fixed, otherFixed, fallbackTransform))
-            .build()
+        val fixed =
+            DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+                .setFixed(
+                    DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****")
+                )
+                .addAllPrincipals(listOf("ANALYTICS", "MARKETING").toPrincipals())
+                .build()
+        val otherFixed =
+            DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+                .setFixed(
+                    DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder()
+                        .setValue("REDACTED EMAIL")
+                )
+                .addAllPrincipals(listOf("FRAUD_AND_RISK").toPrincipals())
+                .build()
+        val fallbackTransform =
+            DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+                .setFixed(
+                    DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder()
+                        .setValue("stoelpoot")
+                )
+                .build()
+        val fieldTransform =
+            DataPolicy.RuleSet.FieldTransform.newBuilder()
+                .setField(field)
+                .addAllTransforms(listOf(fixed, otherFixed, fallbackTransform))
+                .build()
 
         // When
         val jooqField = underTest.toJooqField(field, fieldTransform)
 
         // Then
-        jooqField.toSql() shouldBe "case when false then '****' when true then 'REDACTED EMAIL' " +
-            "else 'stoelpoot' end \"email\""
+        jooqField.toSql() shouldBe
+            "case when false then '****' when true then 'REDACTED EMAIL' " +
+                "else 'stoelpoot' end \"email\""
     }
 
     @Test
     fun `generic row filter to condition`() {
         // Given
-        val filter = DataPolicy.RuleSet.Filter.newBuilder()
-            .setGenericFilter(
-                DataPolicy.RuleSet.Filter.GenericFilter.newBuilder()
-                    .addAllConditions(
-                        listOf(
-                            DataPolicy.RuleSet.Filter.GenericFilter.Condition.newBuilder()
-                                .addAllPrincipals(listOf("fraud_and_risk").toPrincipals())
-                                .setCondition("true")
-                                .build(),
-                            DataPolicy.RuleSet.Filter.GenericFilter.Condition.newBuilder()
-                                .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
-                                .setCondition("age > 18")
-                                .build(),
-                            DataPolicy.RuleSet.Filter.GenericFilter.Condition.newBuilder()
-                                .setCondition("false")
-                                .build()
+        val filter =
+            DataPolicy.RuleSet.Filter.newBuilder()
+                .setGenericFilter(
+                    DataPolicy.RuleSet.Filter.GenericFilter.newBuilder()
+                        .addAllConditions(
+                            listOf(
+                                DataPolicy.RuleSet.Filter.GenericFilter.Condition.newBuilder()
+                                    .addAllPrincipals(listOf("fraud_and_risk").toPrincipals())
+                                    .setCondition("true")
+                                    .build(),
+                                DataPolicy.RuleSet.Filter.GenericFilter.Condition.newBuilder()
+                                    .addAllPrincipals(
+                                        listOf("analytics", "marketing").toPrincipals()
+                                    )
+                                    .setCondition("age > 18")
+                                    .build(),
+                                DataPolicy.RuleSet.Filter.GenericFilter.Condition.newBuilder()
+                                    .setCondition("false")
+                                    .build()
+                            )
                         )
-                    )
-            )
-            .build()
+                )
+                .build()
 
         // When
         val condition = underTest.toCondition(filter.genericFilter)
 
         // Then
-        condition.toSql() shouldBe "case when false then true when false then age > 18 else false end"
+        condition.toSql() shouldBe
+            "case when false then true when false then age > 18 else false end"
     }
 
     @Test
     fun `retention to condition`() {
         // Given
-        val retention = DataPolicy.RuleSet.Filter.RetentionFilter.newBuilder()
-            .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
-            .addAllConditions(
-                listOf(
-                    DataPolicy.RuleSet.Filter.RetentionFilter.Condition.newBuilder()
-                        .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("MARKETING"))
-                        .setPeriod(DataPolicy.RuleSet.Filter.RetentionFilter.Period.newBuilder().setDays(5))
-                        .build(),
-                    DataPolicy.RuleSet.Filter.RetentionFilter.Condition.newBuilder()
-                        .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("FRAUD_AND_RISK"))
-                        .build(),
-                    DataPolicy.RuleSet.Filter.RetentionFilter.Condition.newBuilder()
-                        .addPrincipals(DataPolicy.Principal.getDefaultInstance())
-                        .setPeriod(DataPolicy.RuleSet.Filter.RetentionFilter.Period.newBuilder().setDays(10))
-                        .build()
+        val retention =
+            DataPolicy.RuleSet.Filter.RetentionFilter.newBuilder()
+                .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
+                .addAllConditions(
+                    listOf(
+                        DataPolicy.RuleSet.Filter.RetentionFilter.Condition.newBuilder()
+                            .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("MARKETING"))
+                            .setPeriod(
+                                DataPolicy.RuleSet.Filter.RetentionFilter.Period.newBuilder()
+                                    .setDays(5)
+                            )
+                            .build(),
+                        DataPolicy.RuleSet.Filter.RetentionFilter.Condition.newBuilder()
+                            .addPrincipals(
+                                DataPolicy.Principal.newBuilder().setGroup("FRAUD_AND_RISK")
+                            )
+                            .build(),
+                        DataPolicy.RuleSet.Filter.RetentionFilter.Condition.newBuilder()
+                            .addPrincipals(DataPolicy.Principal.getDefaultInstance())
+                            .setPeriod(
+                                DataPolicy.RuleSet.Filter.RetentionFilter.Period.newBuilder()
+                                    .setDays(10)
+                            )
+                            .build()
+                    )
                 )
-            ).build()
+                .build()
 
         // When
         val condition = underTest.toCondition(retention)
 
         // Then
-        condition.toSql() shouldBe """
+        condition.toSql() shouldBe
+            """
             case when false then dateadd(day, 5, timestamp) > current_timestamp when false then true else dateadd(day, 10, timestamp) > current_timestamp end
-        """.trimIndent()
+        """
+                .trimIndent()
     }
 
     @Test
     fun `full sql view statement with single retention`() {
         // Given
-        val viewGenerator = SnowflakeViewGenerator(singleRetentionPolicy) { withRenderFormatted(true) }
+        val viewGenerator =
+            SnowflakeViewGenerator(singleRetentionPolicy) { withRenderFormatted(true) }
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL().sql shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe
+            """create or replace view public.demo_view
 as
 select
   ts,
@@ -197,11 +229,13 @@ grant SELECT on public.demo_view to marketing;"""
     @Test
     fun `full sql view statement with multiple retentions`() {
         // Given
-        val viewGenerator = SnowflakeViewGenerator(multipleRetentionPolicy) { withRenderFormatted(true) }
+        val viewGenerator =
+            SnowflakeViewGenerator(multipleRetentionPolicy) { withRenderFormatted(true) }
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL().sql shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe
+            """create or replace view public.demo_view
 as
 select
   ts,
@@ -231,10 +265,13 @@ grant SELECT on public.demo_view to marketing;"""
     @Test
     fun `transform test various transforms - analytics principal`() {
         // Given
-        underTest = H2ViewGenerator(dataPolicy, analyticsPrincipal, "source_override") {
-            withRenderFormatted(true)
-        }
-        underTest.toDynamicViewSQL().sql
+        underTest =
+            H2ViewGenerator(dataPolicy, analyticsPrincipal, "source_override") {
+                withRenderFormatted(true)
+            }
+        underTest
+            .toDynamicViewSQL()
+            .sql
             .shouldBe(
                 """create or replace view my_database.my_schema.gddemo_public
 as
@@ -274,7 +311,8 @@ where (
 
     companion object {
         @Language("yaml")
-        val dataPolicy = """
+        val dataPolicy =
+            """
     source: 
       ref: mydb.my_schema.gddemo
       fields:
@@ -380,10 +418,12 @@ where (
       version: "1.0.0"
       create_time: "2023-09-26T16:33:51.150Z"
       update_time: "2023-09-26T16:33:51.150Z"
-              """.toProto<DataPolicy>()
+              """
+                .toProto<DataPolicy>()
 
         @Language("yaml")
-        val singleRetentionPolicy = """
+        val singleRetentionPolicy =
+            """
                 metadata:
                   description: ""
                   version: 1
@@ -430,10 +470,13 @@ where (
                             - principals: [] 
                               period:
                                 days: 10
-            """.trimIndent().toProto<DataPolicy>()
+            """
+                .trimIndent()
+                .toProto<DataPolicy>()
 
         @Language("yaml")
-        val multipleRetentionPolicy = """
+        val multipleRetentionPolicy =
+            """
                 metadata:
                   description: ""
                   version: 1
@@ -497,6 +540,8 @@ where (
                             - principals: [] 
                               period:
                                 days: 0
-            """.trimIndent().toProto<DataPolicy>()
+            """
+                .trimIndent()
+                .toProto<DataPolicy>()
     }
 }

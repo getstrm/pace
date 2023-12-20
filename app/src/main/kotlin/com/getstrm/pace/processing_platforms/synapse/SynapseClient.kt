@@ -23,7 +23,9 @@ class SynapseClient(
     // single database. If we want to add support for a single client to connect to multiple
     // databases, more info can be found here:
     // https://www.codejava.net/java-se/jdbc/how-to-list-names-of-all-databases-in-java
-    constructor(config: SynapseConfig) : this(
+    constructor(
+        config: SynapseConfig
+    ) : this(
         config.id,
         DSL.using(
             HikariDataSource(
@@ -31,21 +33,25 @@ class SynapseClient(
                     jdbcUrl = config.getJdbcUrl()
                     username = config.userName
                     password = config.password
-                }),
+                }
+            ),
             SQLDialect.DEFAULT
         ),
     )
 
     override val type = SYNAPSE
 
-    override suspend fun listTables(): List<Table> = jooq.meta()
-        .filterSchemas { !schemasToIgnore.contains(it.name) }
-        .tables
-        .map { SynapseTable(it) }
+    override suspend fun listTables(): List<Table> =
+        jooq
+            .meta()
+            .filterSchemas { !schemasToIgnore.contains(it.name) }
+            .tables
+            .map { SynapseTable(it) }
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = SynapseViewGenerator(dataPolicy)
-        // Explicitly dropping the views if they exist first and granting the 'select' to roles is required by Synapse.
+        // Explicitly dropping the views if they exist first and granting the 'select' to roles is
+        // required by Synapse.
         val dropQuery = viewGenerator.dropViewsSQL().queries()
         val query = viewGenerator.toDynamicViewSQL().queries()
         val grantSelectQuery = viewGenerator.grantSelectPrivileges().queries()
@@ -56,14 +62,17 @@ class SynapseClient(
     }
 
     override suspend fun listGroups(): List<Group> {
-        val result = withContext(Dispatchers.IO) {
-            jooq.select(DSL.field("principal_id", Int::class.java), DSL.field("name", String::class.java))
-                .from(DSL.table("sys.database_principals"))
-                .where(
-                    DSL.field("type_desc").eq("DATABASE_ROLE")
-                )
-                .fetch()
-        }
+        val result =
+            withContext(Dispatchers.IO) {
+                jooq
+                    .select(
+                        DSL.field("principal_id", Int::class.java),
+                        DSL.field("name", String::class.java)
+                    )
+                    .from(DSL.table("sys.database_principals"))
+                    .where(DSL.field("type_desc").eq("DATABASE_ROLE"))
+                    .fetch()
+            }
 
         return result.map { (oid, rolname) -> Group(id = oid.toString(), name = rolname) }
     }
@@ -74,17 +83,13 @@ class SynapseClient(
     }
 }
 
-class SynapseTable(
-    val table: org.jooq.Table<*>
-) : Table() {
+class SynapseTable(val table: org.jooq.Table<*>) : Table() {
     override val fullName: String = "${table.schema?.name}.${table.name}"
 
     override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
         return DataPolicy.newBuilder()
             .setMetadata(
-                DataPolicy.Metadata.newBuilder()
-                    .setTitle(fullName)
-                    .setDescription(table.comment)
+                DataPolicy.Metadata.newBuilder().setTitle(fullName).setDescription(table.comment)
             )
             .setPlatform(platform)
             .setSource(
@@ -97,7 +102,8 @@ class SynapseTable(
                                 .setType(field.dataType.typeName)
                                 .addAllTags(field.toTags())
                                 .setRequired(!field.dataType.nullable())
-                                .build().normalizeType()
+                                .build()
+                                .normalizeType()
                         },
                     )
                     .build(),

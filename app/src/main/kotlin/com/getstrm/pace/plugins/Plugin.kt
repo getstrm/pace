@@ -27,6 +27,7 @@ interface GenerateDataPolicyAction : PluginAction {
 interface GenerateSampleDataAction : PluginAction {
     override val type: Action.Type
         get() = Action.Type.GENERATE_SAMPLE_DATA
+
     override val invokable: Boolean
         get() = true
 

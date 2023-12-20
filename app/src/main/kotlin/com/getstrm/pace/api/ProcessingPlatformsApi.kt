@@ -10,25 +10,37 @@ class ProcessingPlatformsApi(
     private val processingPlatformsService: ProcessingPlatformsService,
 ) : ProcessingPlatformsServiceGrpcKt.ProcessingPlatformsServiceCoroutineImplBase() {
 
-    override suspend fun listProcessingPlatforms(request: ListProcessingPlatformsRequest): ListProcessingPlatformsResponse =
-        ListProcessingPlatformsResponse.newBuilder().addAllProcessingPlatforms(
-            processingPlatformsService.platforms.map { (id, platform) ->
-                DataPolicy.ProcessingPlatform.newBuilder()
-                    .setId(id)
-                    .setPlatformType(platform.type)
-                    .build()
-            },
-        ).build()
+    override suspend fun listProcessingPlatforms(
+        request: ListProcessingPlatformsRequest
+    ): ListProcessingPlatformsResponse =
+        ListProcessingPlatformsResponse.newBuilder()
+            .addAllProcessingPlatforms(
+                processingPlatformsService.platforms.map { (id, platform) ->
+                    DataPolicy.ProcessingPlatform.newBuilder()
+                        .setId(id)
+                        .setPlatformType(platform.type)
+                        .build()
+                },
+            )
+            .build()
 
     override suspend fun listTables(request: ListTablesRequest): ListTablesResponse =
-        ListTablesResponse.newBuilder().addAllTables(
-            processingPlatformsService.listProcessingPlatformTables(request.platformId).map { it.fullName },
-        ).build()
+        ListTablesResponse.newBuilder()
+            .addAllTables(
+                processingPlatformsService.listProcessingPlatformTables(request.platformId).map {
+                    it.fullName
+                },
+            )
+            .build()
 
     override suspend fun listGroups(request: ListGroupsRequest): ListGroupsResponse =
-        ListGroupsResponse.newBuilder().addAllGroups(
-            processingPlatformsService.listProcessingPlatformGroups(request.platformId).map { it.name },
-        ).build()
+        ListGroupsResponse.newBuilder()
+            .addAllGroups(
+                processingPlatformsService.listProcessingPlatformGroups(request.platformId).map {
+                    it.name
+                },
+            )
+            .build()
 
     override suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest) =
         processingPlatformsService.getBlueprintPolicy(request.platformId, request.tableId)

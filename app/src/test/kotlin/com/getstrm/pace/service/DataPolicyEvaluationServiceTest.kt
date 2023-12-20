@@ -8,11 +8,11 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
+import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 import org.h2.jdbc.JdbcSQLSyntaxErrorException
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
-import java.time.OffsetDateTime
-import java.time.temporal.ChronoUnit
 
 class DataPolicyEvaluationServiceTest {
 
@@ -26,9 +26,10 @@ class DataPolicyEvaluationServiceTest {
         // Then
         result.ruleSetResultsList.size shouldBe 1
         result.ruleSetResultsList.first().target.fullname shouldBe "public.demo_view"
-        val resultsByPrincipal = result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
-            it.principal?.group
-        }
+        val resultsByPrincipal =
+            result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
+                it.principal?.group
+            }
         resultsByPrincipal.size shouldBe 4
         resultsByPrincipal["administrator"]!!.csv shouldBe administratorResult
         resultsByPrincipal["administrator"]!!.principal shouldBe "administrator".toPrincipal()
@@ -51,13 +52,18 @@ class DataPolicyEvaluationServiceTest {
         // Then
         result.ruleSetResultsList.size shouldBe 1
         result.ruleSetResultsList.first().target.fullname shouldBe "public.retention_view"
-        val resultsByPrincipal = result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
-            it.principal?.group
-        }
+        val resultsByPrincipal =
+            result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
+                it.principal?.group
+            }
         resultsByPrincipal.size shouldBe 3
-        fun expectedResult(maxDays: Int) = "transactionid,ts\n" + retentionCsvInput.lines().drop(1).filter {
-            it.split(",").first().toInt() < maxDays
-        }.joinToString("\n", postfix = "\n")
+        fun expectedResult(maxDays: Int) =
+            "transactionid,ts\n" +
+                retentionCsvInput
+                    .lines()
+                    .drop(1)
+                    .filter { it.split(",").first().toInt() < maxDays }
+                    .joinToString("\n", postfix = "\n")
         resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe retentionCsvInput + "\n"
         resultsByPrincipal["fraud_and_risk"]!!.principal shouldBe "fraud_and_risk".toPrincipal()
         resultsByPrincipal["marketing"]!!.csv shouldBe expectedResult(10)
@@ -69,11 +75,13 @@ class DataPolicyEvaluationServiceTest {
     @Test
     fun `evaluating a policy with mismatching data types results in empty CSVs`() {
         // Given
-        val csv = """
+        val csv =
+            """
             transactionid,ts
             foo,bar
             fizz,buzz
-            """.trimIndent()
+            """
+                .trimIndent()
 
         // When
         val result = underTest.evaluatePolicy(retentionPolicy, csv)
@@ -81,17 +89,20 @@ class DataPolicyEvaluationServiceTest {
         // Then
         result.ruleSetResultsList.size shouldBe 1
         result.ruleSetResultsList.first().target.fullname shouldBe "public.retention_view"
-        val resultsByPrincipal = result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
-            it.principal?.group
-        }
+        val resultsByPrincipal =
+            result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
+                it.principal?.group
+            }
         resultsByPrincipal.size shouldBe 3
         // Identity transforms preserve the null values inserted due to mismatching data types.
-        resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe """
+        resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe
+            """
             transactionid,ts
             ,
             ,
             
-            """.trimIndent()
+            """
+                .trimIndent()
         resultsByPrincipal["fraud_and_risk"]!!.principal shouldBe "fraud_and_risk".toPrincipal()
         resultsByPrincipal["marketing"]!!.csv shouldBe "transactionid,ts\n"
         resultsByPrincipal["marketing"]!!.principal shouldBe "marketing".toPrincipal()
@@ -102,20 +113,23 @@ class DataPolicyEvaluationServiceTest {
     @Test
     fun `evaluating a policy with mismatching headers results in empty CSVs`() {
         // Given
-        val csv = """
+        val csv =
+            """
             foo,bar
             1,2021-01-01T00:00:00Z
             2,2021-01-02T00:00:00Z
-            """.trimIndent()
+            """
+                .trimIndent()
 
         // When
         val result = underTest.evaluatePolicy(retentionPolicy, csv)
 
         // Then
         result.ruleSetResultsList.size shouldBe 1
-        val resultsByPrincipal = result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
-            it.principal?.group
-        }
+        val resultsByPrincipal =
+            result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
+                it.principal?.group
+            }
         resultsByPrincipal.size shouldBe 3
         resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe "transactionid,ts\n"
         resultsByPrincipal["fraud_and_risk"]!!.principal shouldBe "fraud_and_risk".toPrincipal()
@@ -131,20 +145,22 @@ class DataPolicyEvaluationServiceTest {
         val csv = "transactionid\n1\n2\n"
 
         // Then
-        shouldThrow<InternalException> {
-            underTest.evaluatePolicy(incompatiblePolicy, csv)
-        }.apply {
-            code shouldBe InternalException.Code.UNKNOWN
-            cause should beInstanceOf<JdbcSQLSyntaxErrorException>()
-            debugInfo.detail shouldBe "Error while evaluating data policy. If caused by platform-specific statements, please test the data policy on the platform itself. Details: Function \"some_unknown_function\" not found"
-            message shouldBe "org.h2.jdbc.JdbcSQLSyntaxErrorException: Function \"some_unknown_function\" not found; SQL statement:\n" +
-                "select some_unknown_function(transactionid) \"transactionid\" from input [90022-224]"
-        }
+        shouldThrow<InternalException> { underTest.evaluatePolicy(incompatiblePolicy, csv) }
+            .apply {
+                code shouldBe InternalException.Code.UNKNOWN
+                cause should beInstanceOf<JdbcSQLSyntaxErrorException>()
+                debugInfo.detail shouldBe
+                    "Error while evaluating data policy. If caused by platform-specific statements, please test the data policy on the platform itself. Details: Function \"some_unknown_function\" not found"
+                message shouldBe
+                    "org.h2.jdbc.JdbcSQLSyntaxErrorException: Function \"some_unknown_function\" not found; SQL statement:\n" +
+                        "select some_unknown_function(transactionid) \"transactionid\" from input [90022-224]"
+            }
     }
 
     companion object {
         @Language("yaml")
-        private val dataPolicy = """
+        private val dataPolicy =
+            """
     metadata:
       description: ""
       version: 1
@@ -217,9 +233,11 @@ class DataPolicyEvaluationServiceTest {
               - principals: [ ]
                 sql_statement:
                   statement: "CASE WHEN brand = 'MacBook' THEN 'Apple' ELSE 'Other' END"
-        """.toProto<DataPolicy>()
+        """
+                .toProto<DataPolicy>()
 
-        private val csvInput = """
+        private val csvInput =
+            """
         transactionid,userid,email,age,transactionamount,brand
         861200791,533445,jeffreypowell@hotmail.com,33,123,Lenovo
         733970993,468355,forbeserik@gmail.com,16,46,MacBook
@@ -251,9 +269,11 @@ class DataPolicyEvaluationServiceTest {
         994186205,500392,wgolden@yahoo.com,68,160,Lenovo
         217127008,143855,nelsondaniel@hotmail.com,28,263,Lenovo
         142409570,567637,meganriley@gmail.com,56,296,Acer
-    """.trimIndent()
+    """
+                .trimIndent()
 
-        private val administratorResult = """
+        private val administratorResult =
+            """
         transactionid,userid,email,age,brand,transactionamount
         861200791,533445,jeffreypowell@hotmail.com,33,Lenovo,123
         733970993,468355,forbeserik@gmail.com,16,MacBook,46
@@ -286,9 +306,11 @@ class DataPolicyEvaluationServiceTest {
         217127008,143855,nelsondaniel@hotmail.com,28,Lenovo,263
         142409570,567637,meganriley@gmail.com,56,Acer,296
 
-    """.trimIndent()
+    """
+                .trimIndent()
 
-        private val fraudAndRiskResult = """
+        private val fraudAndRiskResult =
+            """
         transactionid,userid,email,age,brand,transactionamount
         861200791,533445,jeffreypowell@hotmail.com,33,Other,123
         733970993,468355,forbeserik@gmail.com,16,Apple,46
@@ -321,9 +343,11 @@ class DataPolicyEvaluationServiceTest {
         217127008,143855,nelsondaniel@hotmail.com,28,Other,263
         142409570,567637,meganriley@gmail.com,56,Other,296
 
-    """.trimIndent()
+    """
+                .trimIndent()
 
-        private val marketingResult = """
+        private val marketingResult =
+            """
         transactionid,userid,email,age,brand,transactionamount
         861200791,0,****@hotmail.com,33,Other,123
         733970993,0,****@gmail.com,16,Apple,46
@@ -351,9 +375,11 @@ class DataPolicyEvaluationServiceTest {
         217127008,0,****@hotmail.com,28,Other,263
         142409570,0,****@gmail.com,56,Other,296
 
-    """.trimIndent()
+    """
+                .trimIndent()
 
-        private val fallbackResult = """
+        private val fallbackResult =
+            """
         transactionid,userid,email,age,brand,transactionamount
         861200791,0,****,33,Other,123
         733970993,0,****,16,Apple,46
@@ -381,10 +407,12 @@ class DataPolicyEvaluationServiceTest {
         217127008,0,****,28,Other,263
         142409570,0,****,56,Other,296
 
-    """.trimIndent()
+    """
+                .trimIndent()
 
         @Language("yaml")
-        private val retentionPolicy = """
+        private val retentionPolicy =
+            """
     metadata:
       description: ""
       version: 1
@@ -416,19 +444,29 @@ class DataPolicyEvaluationServiceTest {
                 - principals: [] 
                   period:
                     days: 5
-    """.toProto<DataPolicy>()
+    """
+                .toProto<DataPolicy>()
 
         private fun generateRetentionCsvInput(): String {
             val header = "transactionid,ts\n"
-            val rows = (0..20).mapTo(mutableListOf()) { i ->
-                val ts = OffsetDateTime.now().minusDays(i.toLong()).truncatedTo(ChronoUnit.MICROS).toString()
-                "$i,$ts"
-            }.apply { shuffle() }.joinToString("\n")
+            val rows =
+                (0..20)
+                    .mapTo(mutableListOf()) { i ->
+                        val ts =
+                            OffsetDateTime.now()
+                                .minusDays(i.toLong())
+                                .truncatedTo(ChronoUnit.MICROS)
+                                .toString()
+                        "$i,$ts"
+                    }
+                    .apply { shuffle() }
+                    .joinToString("\n")
             return header + rows
         }
 
         @Language("yaml")
-        private val incompatiblePolicy = """
+        private val incompatiblePolicy =
+            """
     metadata:
       description: ""
       version: 1
@@ -450,6 +488,7 @@ class DataPolicyEvaluationServiceTest {
               - principals: [ ]
                 sql_statement:
                     statement: "some_unknown_function(transactionid)"
-    """.toProto<DataPolicy>()
+    """
+                .toProto<DataPolicy>()
     }
 }

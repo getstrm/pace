@@ -14,9 +14,10 @@ class H2TransformerTest {
     fun `regexp extract should use regexp_substr`() {
         // Given
         val field = namedField("my_field")
-        val regexp = DataPolicy.RuleSet.FieldTransform.Transform.Regexp.newBuilder()
-            .setRegexp("@\\w+\\.com$")
-            .build()
+        val regexp =
+            DataPolicy.RuleSet.FieldTransform.Transform.Regexp.newBuilder()
+                .setRegexp("@\\w+\\.com$")
+                .build()
 
         // When
         val result = underTest.regexpReplace(field, regexp)
@@ -29,15 +30,17 @@ class H2TransformerTest {
     fun `regexp replace should keep dollar notation`() {
         // Given
         val field = namedField("my_field")
-        val regexp = DataPolicy.RuleSet.FieldTransform.Transform.Regexp.newBuilder()
-            .setRegexp("foo(\\w+) bar(\\w+)")
-            .setReplacement("fizz$1buzz$2baz$")
-            .build()
+        val regexp =
+            DataPolicy.RuleSet.FieldTransform.Transform.Regexp.newBuilder()
+                .setRegexp("foo(\\w+) bar(\\w+)")
+                .setReplacement("fizz$1buzz$2baz$")
+                .build()
 
         // When
         val result = underTest.regexpReplace(field, regexp)
 
         // Then
-        result.toSql() shouldBe """regexp_replace(my_field, 'foo(\w+) bar(\w+)', 'fizz$1buzz$2baz$')"""
+        result.toSql() shouldBe
+            """regexp_replace(my_field, 'foo(\w+) bar(\w+)', 'fizz$1buzz$2baz$')"""
     }
 }

@@ -14,10 +14,16 @@ class DataPolicyValidatorService {
 
     fun validate(dataPolicy: DataPolicy, validGroups: Set<String>) {
         if (dataPolicy.source.ref.isNullOrEmpty()) {
-            throw invalidArgumentException("dataPolicy.source.ref", "DataPolicy source ref is empty")
+            throw invalidArgumentException(
+                "dataPolicy.source.ref",
+                "DataPolicy source ref is empty"
+            )
         }
         if (dataPolicy.platform.id.isNullOrEmpty()) {
-            throw invalidArgumentException("dataPolicy.platform.id", "DataPolicy platform id is empty")
+            throw invalidArgumentException(
+                "dataPolicy.platform.id",
+                "DataPolicy platform id is empty"
+            )
         }
         val validFields = dataPolicy.source.fieldsList.map(DataPolicy.Field::pathString).toSet()
 
@@ -29,7 +35,9 @@ class DataPolicyValidatorService {
                         it.map { principal ->
                             FieldViolation.newBuilder()
                                 .setField("principal")
-                                .setDescription("Principal $principal does not exist in platform ${dataPolicy.platform.id}")
+                                .setDescription(
+                                    "Principal $principal does not exist in platform ${dataPolicy.platform.id}"
+                                )
                                 .build()
                         }
                     )
@@ -71,95 +79,114 @@ class DataPolicyValidatorService {
                     }
                 }
 
-                fieldTransform.transformsList.filter { it.principalsCount == 0 }.let {
-                    if (it.size > 1) {
-                        throw invalidArgumentException(
-                            "fieldTransform",
-                            "FieldTransform ${fieldTransform.field.pathString()} has more than one empty principals list"
-                        )
+                fieldTransform.transformsList
+                    .filter { it.principalsCount == 0 }
+                    .let {
+                        if (it.size > 1) {
+                            throw invalidArgumentException(
+                                "fieldTransform",
+                                "FieldTransform ${fieldTransform.field.pathString()} has more than one empty principals list"
+                            )
+                        }
                     }
-                }
 
                 // check non-overlapping principals within one fieldTransform
                 fieldTransform.transformsList.fold(
                     emptySet<String>(),
                 ) { alreadySeen, transform ->
-                    transform.principalsList.map { it.group }.toSet().let {
-                        if (alreadySeen.intersect(it).isNotEmpty()) {
+                    transform.principalsList
+                        .map { it.group }
+                        .toSet()
+                        .let {
+                            if (alreadySeen.intersect(it).isNotEmpty()) {
+                                throw invalidArgumentException(
+                                    "fieldTransform",
+                                    "FieldTransform ${fieldTransform.field.pathString()} has overlapping principals"
+                                )
+                            }
+
+                            alreadySeen + it
+                        }
+                }
+            }
+
+            // check for every row filter that the principals overlap with groups in the processing
+            // platform
+            // and that the fields exist in the DataPolicy
+            ruleSet.filtersList.forEach { filter ->
+                when (filter.filterCase) {
+                    DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER ->
+                        filter.retentionFilter.conditionsList.map { it.principalsList }
+                    DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER ->
+                        filter.genericFilter.conditionsList.map { it.principalsList }
+                    else ->
+                        throw IllegalArgumentException(
+                            "Unsupported filter: ${filter.filterCase.name}"
+                        )
+                }.forEach { checkPrincipals(it) }
+            }
+            // check non-overlapping fields within one ruleset
+            ruleSet.fieldTransformsList
+                .map { it.field }
+                .fold(
+                    emptySet<String>(),
+                ) { alreadySeen, field ->
+                    field.pathString().let {
+                        if (alreadySeen.contains(it)) {
                             throw invalidArgumentException(
-                                "fieldTransform",
-                                "FieldTransform ${fieldTransform.field.pathString()} has overlapping principals"
+                                listOf(
+                                    FieldViolation.newBuilder()
+                                        .setField("ruleSet")
+                                        .setDescription(
+                                            "RuleSet has overlapping fields, ${field.pathString()} is already present"
+                                        )
+                                        .build()
+                                )
                             )
                         }
 
                         alreadySeen + it
                     }
                 }
-            }
-
-            // check for every row filter that the principals overlap with groups in the processing platform
-            // and that the fields exist in the DataPolicy
-            ruleSet.filtersList.forEach { filter ->
-                when (filter.filterCase) {
-                    DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER -> filter.retentionFilter.conditionsList.map { it.principalsList }
-                    DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER -> filter.genericFilter.conditionsList.map { it.principalsList }
-                    else -> throw IllegalArgumentException("Unsupported filter: ${filter.filterCase.name}")
-                }.forEach {
-                    checkPrincipals(it)
-                }
-            }
-            // check non-overlapping fields within one ruleset
-            ruleSet.fieldTransformsList.map { it.field }.fold(
-                emptySet<String>(),
-            ) { alreadySeen, field ->
-                field.pathString().let {
-                    if (alreadySeen.contains(it)) {
-                        throw invalidArgumentException(
-                            listOf(
-                                FieldViolation.newBuilder()
-                                    .setField("ruleSet")
-                                    .setDescription("RuleSet has overlapping fields, ${field.pathString()} is already present")
-                                    .build()
-                            )
-                        )
-                    }
-
-                    alreadySeen + it
-                }
-            }
 
             // check non-overlapping fields in the retention filters within one ruleset
-            ruleSet.filtersList.filter{ it.hasRetentionFilter()}.map { it.retentionFilter.field }.fold(
-                emptySet<String>(),
-            ) { alreadySeen, field ->
-                field.pathString().let {
-                    if (alreadySeen.contains(it)) {
-                        throw invalidArgumentException(
-                            listOf(
-                                FieldViolation.newBuilder()
-                                    .setField("ruleSet")
-                                    .setDescription("RuleSet.Retention has overlapping fields, ${field.pathString()} is already present")
-                                    .build()
+            ruleSet.filtersList
+                .filter { it.hasRetentionFilter() }
+                .map { it.retentionFilter.field }
+                .fold(
+                    emptySet<String>(),
+                ) { alreadySeen, field ->
+                    field.pathString().let {
+                        if (alreadySeen.contains(it)) {
+                            throw invalidArgumentException(
+                                listOf(
+                                    FieldViolation.newBuilder()
+                                        .setField("ruleSet")
+                                        .setDescription(
+                                            "RuleSet.Retention has overlapping fields, ${field.pathString()} is already present"
+                                        )
+                                        .build()
+                                )
                             )
-                        )
-                    }
+                        }
 
-                    alreadySeen + it
+                        alreadySeen + it
+                    }
                 }
-            }
         }
     }
 
     private fun checkUniqueTokenSources(ruleSet: DataPolicy.RuleSet) {
-        val tokenSources = ruleSet.fieldTransformsList.flatMap { fieldTransform ->
-            fieldTransform.transformsList.mapNotNull { transform ->
-                if (transform.hasDetokenize()) {
-                    transform.detokenize.tokenSourceRef
-                } else {
-                    null
+        val tokenSources =
+            ruleSet.fieldTransformsList.flatMap { fieldTransform ->
+                fieldTransform.transformsList.mapNotNull { transform ->
+                    if (transform.hasDetokenize()) {
+                        transform.detokenize.tokenSourceRef
+                    } else {
+                        null
+                    }
                 }
             }
-        }
         if (tokenSources.toSet().size != tokenSources.size) {
             throw invalidArgumentException(
                 "ruleSet",
@@ -171,18 +198,13 @@ class DataPolicyValidatorService {
     private fun invalidArgumentException(fieldName: String, description: String) =
         invalidArgumentException(
             listOf(
-                FieldViolation.newBuilder()
-                    .setField(fieldName)
-                    .setDescription(description)
-                    .build()
+                FieldViolation.newBuilder().setField(fieldName).setDescription(description).build()
             )
         )
 
     private fun invalidArgumentException(fieldViolations: List<FieldViolation>) =
         BadRequestException(
             BadRequestException.Code.INVALID_ARGUMENT,
-            BadRequest.newBuilder()
-                .addAllFieldViolations(fieldViolations)
-                .build()
+            BadRequest.newBuilder().addAllFieldViolations(fieldViolations).build()
         )
 }

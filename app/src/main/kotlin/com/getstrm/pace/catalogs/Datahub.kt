@@ -17,14 +17,20 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
     override suspend fun listDatabases(): List<Database> {
         return fetchAllDatasets().map {
             val m = urnPattern.matchEntire(it.entity.urn)
-            Database(this, it.entity.urn, m?.groupValues?.get(1) ?:"", m?.groupValues?.get(2) ?:"")
+            Database(
+                this,
+                it.entity.urn,
+                m?.groupValues?.get(1) ?: "",
+                m?.groupValues?.get(2) ?: ""
+            )
         }
     }
 
     private suspend fun fetchAllDatasets(start: Int = 0): List<ListDatasetsQuery.SearchResult> {
         val response = client.query(ListDatasetsQuery(start, config.fetchSize ?: 100)).execute()
 
-        if (response.hasErrors()) throw RuntimeException("Error fetching databases: ${response.errors}")
+        if (response.hasErrors())
+            throw RuntimeException("Error fetching databases: ${response.errors}")
 
         val resultSize = response.data?.search?.searchResults?.size ?: 0
 
@@ -33,15 +39,22 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         } else if (resultSize < (config.fetchSize ?: 1)) {
             response.data?.search?.searchResults ?: emptyList()
         } else {
-            response.data?.search?.searchResults?.plus(fetchAllDatasets(start + (config.fetchSize ?: 1))) ?: emptyList()
+            response.data
+                ?.search
+                ?.searchResults
+                ?.plus(fetchAllDatasets(start + (config.fetchSize ?: 1))) ?: emptyList()
         }
     }
 
-    class Database(override val catalog: DatahubCatalog, urn: String, dbType: String, displayName: String) : DataCatalog.Database(
-        catalog, urn, dbType, displayName
-    ) {
+    class Database(
+        override val catalog: DatahubCatalog,
+        urn: String,
+        dbType: String,
+        displayName: String
+    ) : DataCatalog.Database(catalog, urn, dbType, displayName) {
         override suspend fun getSchemas(): List<DataCatalog.Schema> {
-            return catalog.client.query(GetDatasetDetailsQuery(id)).execute().data?.dataset?.let { dataset ->
+            return catalog.client.query(GetDatasetDetailsQuery(id)).execute().data?.dataset?.let {
+                dataset ->
                 val schema = Schema(this, dataset)
                 listOf(schema)
             } ?: emptyList()
@@ -49,19 +62,32 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
     }
 
     class Schema(database: Database, private val dataset: GetDatasetDetailsQuery.Dataset) :
-        DataCatalog.Schema(database, dataset.urn, dataset.platform.properties?.displayName ?: dataset.urn) {
+        DataCatalog.Schema(
+            database,
+            dataset.urn,
+            dataset.platform.properties?.displayName ?: dataset.urn
+        ) {
         override suspend fun getTables(): List<DataCatalog.Table> = listOf(Table(this, dataset))
     }
 
     class Table(schema: Schema, private val dataset: GetDatasetDetailsQuery.Dataset) :
-        DataCatalog.Table(schema, dataset.urn, dataset.platform.properties?.displayName ?: dataset.urn) {
+        DataCatalog.Table(
+            schema,
+            dataset.urn,
+            dataset.platform.properties?.displayName ?: dataset.urn
+        ) {
         override suspend fun getDataPolicy(): DataPolicy? {
             val policyBuilder = DataPolicy.newBuilder()
 
             // tags don't exist in schemaMetadata but only in editableSchemaMetadata!
-            val addtributeTags = dataset.editableSchemaMetadata?.editableSchemaFieldInfo?.map {
-                it.fieldPath to it.tags?.tags?.map { it.tag.properties?.name.orEmpty() }.orEmpty()
-            }?.toMap() ?: emptyMap()
+            val addtributeTags =
+                dataset.editableSchemaMetadata
+                    ?.editableSchemaFieldInfo
+                    ?.map {
+                        it.fieldPath to
+                            it.tags?.tags?.map { it.tag.properties?.name.orEmpty() }.orEmpty()
+                    }
+                    ?.toMap() ?: emptyMap()
 
             policyBuilder.sourceBuilder.addAllFields(
                 dataset.schemaMetadata?.fields?.map {
@@ -70,11 +96,13 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                         .addAllTags(addtributeTags[it.fieldPath] ?: emptyList())
                         .setType(it.type.rawValue)
                         .setRequired(!it.nullable)
-                        .build().normalizeType()
+                        .build()
+                        .normalizeType()
                 } ?: emptyList(),
             )
 
-            policyBuilder.metadataBuilder.title = dataset.platform.properties?.displayName ?: dataset.urn
+            policyBuilder.metadataBuilder.title =
+                dataset.platform.properties?.displayName ?: dataset.urn
             policyBuilder.metadataBuilder.description = dataset.platform.name
             policyBuilder.metadataBuilder.addAllTags(
                 dataset.tags?.tags?.map { it.tag.properties?.name.orEmpty() }.orEmpty(),
@@ -84,7 +112,9 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         }
 
         /**
-         * Some fieldPaths in the Datahub sample data (e.g. Kafka), contain field paths that match '[version=2.0].[type=boolean].field_bar', which is probably an export format of Kafka. We need to skip the version and type here, as those are not actual path components.
+         * Some fieldPaths in the Datahub sample data (e.g. Kafka), contain field paths that match
+         * '[version=2.0].[type=boolean].field_bar', which is probably an export format of Kafka. We
+         * need to skip the version and type here, as those are not actual path components.
          */
         private fun String.extractPathComponents() = this.replace(stripKafkaPrefix, "").split(".")
 
@@ -93,12 +123,13 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         }
     }
 
-    private fun apolloClient(): ApolloClient = ApolloClient.Builder()
-        .serverUrl(config.serverUrl)
-        .addHttpHeader("Authorization", "Bearer ${config.token}")
-        .build()
+    private fun apolloClient(): ApolloClient =
+        ApolloClient.Builder()
+            .serverUrl(config.serverUrl)
+            .addHttpHeader("Authorization", "Bearer ${config.token}")
+            .build()
+
     companion object {
         val urnPattern = """^urn:li:dataset:\(urn:li:dataPlatform:([^,]*),(.*)\)$""".toRegex()
-        
     }
 }

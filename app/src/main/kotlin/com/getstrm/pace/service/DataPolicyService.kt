@@ -16,7 +16,8 @@ class DataPolicyService(
     private val processingPlatforms: ProcessingPlatformsService,
     private val dataPolicyValidatorService: DataPolicyValidatorService
 ) {
-    suspend fun listDataPolicies(): List<DataPolicy> = dataPolicyDao.listDataPolicies().map { it.toApiDataPolicy() }
+    suspend fun listDataPolicies(): List<DataPolicy> =
+        dataPolicyDao.listDataPolicies().map { it.toApiDataPolicy() }
 
     @Transactional
     suspend fun upsertDataPolicy(request: UpsertDataPolicyRequest): DataPolicy {
@@ -25,9 +26,10 @@ class DataPolicyService(
             processingPlatforms.listGroupNames(request.dataPolicy.platform.id)
         )
 
-        return dataPolicyDao.upsertDataPolicy(request.dataPolicy).also {
-            if (request.apply) applyDataPolicy(it)
-        }.toApiDataPolicy()
+        return dataPolicyDao
+            .upsertDataPolicy(request.dataPolicy)
+            .also { if (request.apply) applyDataPolicy(it) }
+            .toApiDataPolicy()
     }
 
     suspend fun applyDataPolicy(id: String, platformId: String): DataPolicy =
@@ -43,12 +45,13 @@ class DataPolicyService(
         getActiveDataPolicy(id, platformId).toApiDataPolicy()
 
     private fun getActiveDataPolicy(id: String, platformId: String): DataPoliciesRecord =
-        dataPolicyDao.getActiveDataPolicy(id, platformId) ?: throw ResourceException(
-            ResourceException.Code.NOT_FOUND,
-            ResourceInfo.newBuilder()
-                .setResourceType("DataPolicy")
-                .setResourceName(id)
-                .setDescription("DataPolicy $id not found")
-                .build()
-        )
+        dataPolicyDao.getActiveDataPolicy(id, platformId)
+            ?: throw ResourceException(
+                ResourceException.Code.NOT_FOUND,
+                ResourceInfo.newBuilder()
+                    .setResourceType("DataPolicy")
+                    .setResourceName(id)
+                    .setDescription("DataPolicy $id not found")
+                    .build()
+            )
 }

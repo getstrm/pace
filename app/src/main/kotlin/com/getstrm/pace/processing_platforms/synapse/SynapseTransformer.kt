@@ -18,12 +18,18 @@ class SynapseTransformer : ProcessingPlatformTransformer {
                 .addFieldViolations(
                     BadRequest.FieldViolation.newBuilder()
                         .setField("dataPolicy.ruleSetsList.fieldTransformsList.regexpReplace")
-                        .setDescription("regex replace is not available for platform Synapse. ${PaceStatusException.UNIMPLEMENTED}")
+                        .setDescription(
+                            "regex replace is not available for platform Synapse. ${PaceStatusException.UNIMPLEMENTED}"
+                        )
                 )
                 .build()
         )
     }
-    override fun hash(field: DataPolicy.Field, hash: DataPolicy.RuleSet.FieldTransform.Transform.Hash): Field<*> =
+
+    override fun hash(
+        field: DataPolicy.Field,
+        hash: DataPolicy.RuleSet.FieldTransform.Transform.Hash
+    ): Field<*> =
         DSL.field(
             "HASHBYTES('SHA2_512', {0})",
             Any::class.java,

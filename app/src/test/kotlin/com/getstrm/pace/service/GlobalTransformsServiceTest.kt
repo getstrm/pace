@@ -23,7 +23,11 @@ class GlobalTransformsServiceTest {
 
     @BeforeEach
     fun setUp() {
-        underTest = GlobalTransformsService(AppConfiguration(defaultViewSuffix = "_view"), globalTransformsDao)
+        underTest =
+            GlobalTransformsService(
+                AppConfiguration(defaultViewSuffix = "_view"),
+                globalTransformsDao
+            )
     }
 
     @Test
@@ -31,7 +35,8 @@ class GlobalTransformsServiceTest {
         setupGlobalTagTransforms()
 
         @Language("yaml")
-        val dataPolicy = """
+        val dataPolicy =
+            """
                 platform: 
                   platform_type: SNOWFLAKE
                   id: snowflake
@@ -47,13 +52,15 @@ class GlobalTransformsServiceTest {
                       tags: [ email ]
                     - name_parts: [description]
                       type: varchar
-              """.toProto<DataPolicy>()
+              """
+                .toProto<DataPolicy>()
 
         runBlocking {
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)
 
             @Language("yaml")
-            val result = """
+            val result =
+                """
                 source:
                   ref: test1
                   type: SNOWFLAKE
@@ -101,7 +108,8 @@ class GlobalTransformsServiceTest {
         setupGlobalTagTransforms()
 
         @Language("yaml")
-        val dataPolicy = """
+        val dataPolicy =
+            """
                 platform: 
                   platform_type: SNOWFLAKE
                   id: snowflake
@@ -117,13 +125,15 @@ class GlobalTransformsServiceTest {
                       tags: [ email, overlap ]
                     - name_parts: [description]
                       type: varchar
-              """.toProto<DataPolicy>()
+              """
+                .toProto<DataPolicy>()
 
         runBlocking {
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)
 
             @Language("yaml")
-            val expected = """
+            val expected =
+                """
                     source:
                       ref: test1
                       type: SNOWFLAKE
@@ -167,7 +177,9 @@ class GlobalTransformsServiceTest {
                         - principals: [ {group: analytics} ]
                           hash: {seed: "3" }
                         - fixed: {value: "****" }
-                 """.trimIndent().toProto<DataPolicy>()
+                 """
+                    .trimIndent()
+                    .toProto<DataPolicy>()
 
             policyWithRulesets shouldBe expected
         }
@@ -178,7 +190,8 @@ class GlobalTransformsServiceTest {
         setupGlobalTagTransforms()
 
         @Language("yaml")
-        val dataPolicy = """
+        val dataPolicy =
+            """
                 platform: 
                   platform_type: SNOWFLAKE
                   id: snowflake
@@ -194,13 +207,15 @@ class GlobalTransformsServiceTest {
                       tags: [ overlap, email ]
                     - name_parts: [description]
                       type: varchar
-              """.toProto<DataPolicy>()
+              """
+                .toProto<DataPolicy>()
 
         runBlocking {
             val policyWithRulesets = underTest.addRuleSet(dataPolicy)
 
             @Language("yaml")
-            val expected = """
+            val expected =
+                """
                     source:
                       ref: test1
                       type: SNOWFLAKE
@@ -245,7 +260,9 @@ class GlobalTransformsServiceTest {
                         - principals: [ {group: fraud-and-risk} ]
                           nullify: {}
                         - fixed: {value: "fixed-value" }
-                    """.trimIndent().toProto<DataPolicy>()
+                    """
+                    .trimIndent()
+                    .toProto<DataPolicy>()
 
             policyWithRulesets shouldBe expected
         }
@@ -256,7 +273,8 @@ class GlobalTransformsServiceTest {
         // a map of field level tags to a list of Api Transforms that define how the
         // field value gets transformed for which group member
         @Language("yaml")
-        val businessRules = """
+        val businessRules =
+            """
                     global_transforms:
                       - description: email
                         tag_transform:
@@ -295,22 +313,24 @@ class GlobalTransformsServiceTest {
                               nullify: {}
                             # everyone else gets 'fixed-value'
                             - fixed: {value: fixed-value}  
-            """.trimIndent().toProto<ListGlobalTransformsResponse>().globalTransformsList.associate {
-            it.tagTransform.tagContent to it.toRecord()
-        }
+            """
+                .trimIndent()
+                .toProto<ListGlobalTransformsResponse>()
+                .globalTransformsList
+                .associate { it.tagTransform.tagContent to it.toRecord() }
 
         val refSlot = slot<String>()
-        coEvery {
-            globalTransformsDao.getTransform(capture(refSlot), TAG_TRANSFORM)
-        } answers { // ktlint-disable max-line-length
-            businessRules[refSlot.captured] ?: GlobalTransform.newBuilder()
-                .setTagTransform(
-                    GlobalTransform.TagTransform.newBuilder()
-                        .setTagContent(refSlot.captured)
-                )
-                .build()
-                .toRecord()
-        }
+        coEvery { globalTransformsDao.getTransform(capture(refSlot), TAG_TRANSFORM) } answers
+            { // ktlint-disable max-line-length
+                businessRules[refSlot.captured]
+                    ?: GlobalTransform.newBuilder()
+                        .setTagTransform(
+                            GlobalTransform.TagTransform.newBuilder()
+                                .setTagContent(refSlot.captured)
+                        )
+                        .build()
+                        .toRecord()
+            }
     }
 
     companion object {

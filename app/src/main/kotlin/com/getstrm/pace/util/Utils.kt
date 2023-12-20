@@ -24,8 +24,9 @@ fun Table.toFullName() = tableId.toFullName()
 fun TableId.toFullName() = "$project.$dataset.$table"
 
 /**
- * Apply different operations on the head, tail and body of a collection. The head and tail contain a single element,
- * and the body contains the rest of the elements in the collection. Requires at least 2 elements in the collection.
+ * Apply different operations on the head, tail and body of a collection. The head and tail contain
+ * a single element, and the body contains the rest of the elements in the collection. Requires at
+ * least 2 elements in the collection.
  *
  * @param headOperation Operation to apply on the first element
  * @param bodyOperation Operation to apply on all elements except the first and last
@@ -46,10 +47,13 @@ fun <T, Accumulator, Result> List<T>.headTailFold(
 
 fun DataPolicy.RuleSet.uniquePrincipals(): Set<DataPolicy.Principal> =
     fieldTransformsList.flatMap { it.transformsList }.flatMap { it.principalsList }.toSet() +
-            filtersList.flatMap { it.listPrincipals() }.toSet()
+        filtersList.flatMap { it.listPrincipals() }.toSet()
 
-private fun DataPolicy.RuleSet.Filter.listPrincipals() = when (this.filterCase) {
-    DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER -> this.retentionFilter.conditionsList.flatMap { it.principalsList }
-    DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER -> this.genericFilter.conditionsList.flatMap { it.principalsList }
-    else -> throw IllegalArgumentException("Unsupported filter: ${this.filterCase.name}")
-}
+private fun DataPolicy.RuleSet.Filter.listPrincipals() =
+    when (this.filterCase) {
+        DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER ->
+            this.retentionFilter.conditionsList.flatMap { it.principalsList }
+        DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER ->
+            this.genericFilter.conditionsList.flatMap { it.principalsList }
+        else -> throw IllegalArgumentException("Unsupported filter: ${this.filterCase.name}")
+    }

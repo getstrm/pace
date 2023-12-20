@@ -23,7 +23,8 @@ class PostgresClientTest : AbstractDatabaseTest() {
         // Given a table in the database
 
         // When
-        val actual = runBlocking { underTest.listTables() }.filter { !ignoreTables.contains(it.fullName) }
+        val actual =
+            runBlocking { underTest.listTables() }.filter { !ignoreTables.contains(it.fullName) }
         val tableNames = actual.map { it.fullName }
 
         // Then
@@ -38,10 +39,11 @@ class PostgresClientTest : AbstractDatabaseTest() {
         val actual = runBlocking { underTest.listGroups() }.map { it.copy(id = "") }
 
         // Then
-        actual shouldBe listOf(
-            Group("", "marketing"),
-            Group("", "fraud_and_risk"),
-        )
+        actual shouldBe
+            listOf(
+                Group("", "marketing"),
+                Group("", "fraud_and_risk"),
+            )
     }
 
     @Test
@@ -49,9 +51,13 @@ class PostgresClientTest : AbstractDatabaseTest() {
         // Given a table in the database
 
         // When
-        val actual = runBlocking { underTest.listTables() }.filter { !ignoreTables.contains(it.fullName) }
+        val actual =
+            runBlocking { underTest.listTables() }.filter { !ignoreTables.contains(it.fullName) }
         runBlocking {
-            val policy = actual.map { it.toDataPolicy(DataPolicy.ProcessingPlatform.getDefaultInstance()) }.first()
+            val policy =
+                actual
+                    .map { it.toDataPolicy(DataPolicy.ProcessingPlatform.getDefaultInstance()) }
+                    .first()
             val field = policy.source.fieldsList.find { it.pathString() == "email" }!!
             field.tagsList shouldContainExactlyInAnyOrder listOf("pii", "with whitespace", "email")
         }

@@ -1,6 +1,5 @@
 package com.getstrm.pace.api
 
-
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ApplyDataPolicyRequest
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ApplyDataPolicyResponse
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.DataPoliciesServiceGrpcKt
@@ -21,19 +20,25 @@ class DataPoliciesApi(
     private val dataPolicyService: DataPolicyService,
     private val dataPolicyEvaluationService: DataPolicyEvaluationService,
 ) : DataPoliciesServiceGrpcKt.DataPoliciesServiceCoroutineImplBase() {
-    override suspend fun listDataPolicies(request: ListDataPoliciesRequest): ListDataPoliciesResponse {
+    override suspend fun listDataPolicies(
+        request: ListDataPoliciesRequest
+    ): ListDataPoliciesResponse {
         return ListDataPoliciesResponse.newBuilder()
             .addAllDataPolicies(dataPolicyService.listDataPolicies())
             .build()
     }
 
-    override suspend fun upsertDataPolicy(request: UpsertDataPolicyRequest): UpsertDataPolicyResponse {
+    override suspend fun upsertDataPolicy(
+        request: UpsertDataPolicyRequest
+    ): UpsertDataPolicyResponse {
         return UpsertDataPolicyResponse.newBuilder()
             .setDataPolicy(dataPolicyService.upsertDataPolicy(request))
             .build()
     }
 
-    override suspend fun evaluateDataPolicy(request: EvaluateDataPolicyRequest): EvaluateDataPolicyResponse {
+    override suspend fun evaluateDataPolicy(
+        request: EvaluateDataPolicyRequest
+    ): EvaluateDataPolicyResponse {
         val policy = dataPolicyService.getLatestDataPolicy(request.dataPolicyId, request.platformId)
         return EvaluateDataPolicyResponse.newBuilder()
             .setFullEvaluationResult(
@@ -44,13 +49,17 @@ class DataPoliciesApi(
 
     override suspend fun applyDataPolicy(request: ApplyDataPolicyRequest): ApplyDataPolicyResponse {
         return ApplyDataPolicyResponse.newBuilder()
-            .setDataPolicy(dataPolicyService.applyDataPolicy(request.dataPolicyId, request.platformId))
+            .setDataPolicy(
+                dataPolicyService.applyDataPolicy(request.dataPolicyId, request.platformId)
+            )
             .build()
     }
 
     override suspend fun getDataPolicy(request: GetDataPolicyRequest): GetDataPolicyResponse {
         return GetDataPolicyResponse.newBuilder()
-            .setDataPolicy(dataPolicyService.getLatestDataPolicy(request.dataPolicyId, request.platformId))
+            .setDataPolicy(
+                dataPolicyService.getLatestDataPolicy(request.dataPolicyId, request.platformId)
+            )
             .build()
     }
 }

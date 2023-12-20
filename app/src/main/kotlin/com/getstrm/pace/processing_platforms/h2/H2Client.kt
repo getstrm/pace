@@ -8,19 +8,18 @@ import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 
-/**
- * A fully embedded H2 client for (basic) evaluation of data policies on sample data.
- */
+/** A fully embedded H2 client for (basic) evaluation of data policies on sample data. */
 class H2Client {
 
-    private val dataSource: HikariDataSource = HikariDataSource(
-        HikariConfig().apply {
-            jdbcUrl = "jdbc:h2:mem:;DATABASE_TO_UPPER=false"
-            username = "sa"
-            password = ""
-            maximumPoolSize = 1
-        }
-    )
+    private val dataSource: HikariDataSource =
+        HikariDataSource(
+            HikariConfig().apply {
+                jdbcUrl = "jdbc:h2:mem:;DATABASE_TO_UPPER=false"
+                username = "sa"
+                password = ""
+                maximumPoolSize = 1
+            }
+        )
     val jooq: DSLContext = DSL.using(dataSource.connection, SQLDialect.H2)
 
     fun insertCSV(dataPolicy: DataPolicy, csv: String, tableName: String) {
@@ -28,10 +27,7 @@ class H2Client {
         jooq.createTable(tableName).columns(jooqFields).execute()
         // Get an actual instance of this table
         val table = jooq.meta().getTables(tableName).first()
-        jooq.loadInto(table)
-            .loadCSV(csv.byteInputStream(), "utf-8")
-            .fieldsCorresponding()
-            .execute()
+        jooq.loadInto(table).loadCSV(csv.byteInputStream(), "utf-8").fieldsCorresponding().execute()
     }
 
     fun close() {

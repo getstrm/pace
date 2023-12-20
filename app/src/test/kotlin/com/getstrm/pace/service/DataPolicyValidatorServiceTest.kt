@@ -18,7 +18,8 @@ class DataPolicyValidatorServiceTest {
     @Test
     fun `validate complex happy flow`() {
         @Language("yaml")
-        val dataPolicy = """
+        val dataPolicy =
+            """
 $policyBase
 rule_sets: 
 - target:
@@ -87,17 +88,22 @@ rule_sets:
         conditions:
           - principals: []
             condition: "transactionAmount < 10"
-        """.toProto<DataPolicy>()
+        """
+                .toProto<DataPolicy>()
 
         assertDoesNotThrow {
-            underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
+            underTest.validate(
+                dataPolicy,
+                setOf("analytics", "marketing", "fraud-and-risk", "admin")
+            )
         }
     }
 
     @Test
     fun `validate non-empty last`() {
         @Language("yaml")
-        val dataPolicy = """
+        val dataPolicy =
+            """
 $policyBase
 rule_sets: 
 - target:
@@ -164,24 +170,33 @@ rule_sets:
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
-          """.toProto<DataPolicy>(false)
+          """
+                .toProto<DataPolicy>(false)
 
-        val exception = shouldThrow<BadRequestException> {
-            underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
-        }
+        val exception =
+            shouldThrow<BadRequestException> {
+                underTest.validate(
+                    dataPolicy,
+                    setOf("analytics", "marketing", "fraud-and-risk", "admin")
+                )
+            }
 
         exception.code.status shouldBe Status.INVALID_ARGUMENT
         exception.badRequest.fieldViolationsCount shouldBe 1
-        exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
-            .setField("fieldTransform")
-            .setDescription("FieldTransform email does not have an empty principals list as last field")
-            .build()
+        exception.badRequest.fieldViolationsList.first() shouldBe
+            BadRequest.FieldViolation.newBuilder()
+                .setField("fieldTransform")
+                .setDescription(
+                    "FieldTransform email does not have an empty principals list as last field"
+                )
+                .build()
     }
 
     @Test
     fun `validate missing group`() {
         @Language("yaml")
-        val dataPolicy = """
+        val dataPolicy =
+            """
 $policyBase
 rule_sets: 
 - target:
@@ -251,23 +266,27 @@ rule_sets:
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
-          """.toProto<DataPolicy>(false)
+          """
+                .toProto<DataPolicy>(false)
 
-        val exception = shouldThrow<BadRequestException> {
-            underTest.validate(dataPolicy, setOf("marketing", "fraud-and-risk", "admin"))
-        }
+        val exception =
+            shouldThrow<BadRequestException> {
+                underTest.validate(dataPolicy, setOf("marketing", "fraud-and-risk", "admin"))
+            }
         exception.code.status shouldBe Status.INVALID_ARGUMENT
         exception.badRequest.fieldViolationsCount shouldBe 1
-        exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
-            .setField("principal")
-            .setDescription("Principal analytics does not exist in platform snowflake")
-            .build()
+        exception.badRequest.fieldViolationsList.first() shouldBe
+            BadRequest.FieldViolation.newBuilder()
+                .setField("principal")
+                .setDescription("Principal analytics does not exist in platform snowflake")
+                .build()
     }
 
     @Test
     fun `validate overlapping principals`() {
         @Language("yaml")
-        val dataPolicy = """
+        val dataPolicy =
+            """
 $policyBase
 rule_sets: 
 - target:
@@ -336,23 +355,30 @@ rule_sets:
       conditions:
         - principals: []
           condition: "transactionAmount < 10"
-          """.toProto<DataPolicy>(false)
+          """
+                .toProto<DataPolicy>(false)
 
-        val exception = shouldThrow<BadRequestException> {
-            underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
-        }
+        val exception =
+            shouldThrow<BadRequestException> {
+                underTest.validate(
+                    dataPolicy,
+                    setOf("analytics", "marketing", "fraud-and-risk", "admin")
+                )
+            }
         exception.code.status shouldBe Status.INVALID_ARGUMENT
         exception.badRequest.fieldViolationsCount shouldBe 1
-        exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
-            .setField("fieldTransform")
-            .setDescription("FieldTransform email has overlapping principals")
-            .build()
+        exception.badRequest.fieldViolationsList.first() shouldBe
+            BadRequest.FieldViolation.newBuilder()
+                .setField("fieldTransform")
+                .setDescription("FieldTransform email has overlapping principals")
+                .build()
     }
 
     @Test
     fun `validate overlapping fields`() {
         @Language("yaml")
-        val dataPolicy = """
+        val dataPolicy =
+            """
 $policyBase
 rule_sets: 
 - target:
@@ -421,23 +447,30 @@ rule_sets:
         conditions:
           - principals: []
             condition: "transactionAmount < 10"
-          """.toProto<DataPolicy>()
+          """
+                .toProto<DataPolicy>()
 
-        val exception = shouldThrow<BadRequestException> {
-            underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
-        }
+        val exception =
+            shouldThrow<BadRequestException> {
+                underTest.validate(
+                    dataPolicy,
+                    setOf("analytics", "marketing", "fraud-and-risk", "admin")
+                )
+            }
         exception.code.status shouldBe Status.INVALID_ARGUMENT
         exception.badRequest.fieldViolationsCount shouldBe 1
-        exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
-            .setField("ruleSet")
-            .setDescription("RuleSet has overlapping fields, email is already present")
-            .build()
+        exception.badRequest.fieldViolationsList.first() shouldBe
+            BadRequest.FieldViolation.newBuilder()
+                .setField("ruleSet")
+                .setDescription("RuleSet has overlapping fields, email is already present")
+                .build()
     }
 
     @Test
     fun `validate duplicate token source refs`() {
         @Language("yaml")
-        val dataPolicy = """
+        val dataPolicy =
+            """
                 metadata:
                   description: ""
                   version: 1
@@ -495,17 +528,26 @@ rule_sets:
                           - principals: []
                             identity: {}
     
-            """.trimIndent().toProto<DataPolicy>(false)
+            """
+                .trimIndent()
+                .toProto<DataPolicy>(false)
         runBlocking {
-            val exception = shouldThrow<BadRequestException> {
-                underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
-            }
+            val exception =
+                shouldThrow<BadRequestException> {
+                    underTest.validate(
+                        dataPolicy,
+                        setOf("analytics", "marketing", "fraud-and-risk", "admin")
+                    )
+                }
             exception.code.status shouldBe Status.INVALID_ARGUMENT
             exception.badRequest.fieldViolationsCount shouldBe 1
-            exception.badRequest.fieldViolationsList.first() shouldBe BadRequest.FieldViolation.newBuilder()
-                .setField("ruleSet")
-                .setDescription("RuleSet has duplicate token sources: [tokens.all_tokens, tokens.all_tokens]. Each Detokenize transform must have a unique token source.")
-                .build()
+            exception.badRequest.fieldViolationsList.first() shouldBe
+                BadRequest.FieldViolation.newBuilder()
+                    .setField("ruleSet")
+                    .setDescription(
+                        "RuleSet has duplicate token sources: [tokens.all_tokens, tokens.all_tokens]. Each Detokenize transform must have a unique token source."
+                    )
+                    .build()
         }
     }
 }
@@ -513,7 +555,8 @@ rule_sets:
 /*
  * base yaml of policy with happy flow attributes
  */
-const val policyBase = """
+const val policyBase =
+    """
 platform:
   platform_type: SNOWFLAKE
   id: snowflake
