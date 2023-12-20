@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.PagedCollection
@@ -10,7 +11,7 @@ import org.jooq.Field
 
 interface ProcessingPlatformClient {
     val id: String
-    val type: DataPolicy.ProcessingPlatform.PlatformType
+    val type: ProcessingPlatform.PlatformType
     suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group>
     suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table>
     suspend fun applyPolicy(dataPolicy: DataPolicy)
@@ -33,7 +34,7 @@ data class Group(val id: String, val name: String, val description: String? = nu
 
 abstract class Table {
     abstract val fullName: String
-    abstract suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy
+    abstract suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy
     override fun toString(): String = "${javaClass.simpleName}(fullName=$fullName)"
     companion object {
         private val regex = """(?:pace)\:\:((?:\"[\w\s\-\_]+\"|[\w\-\_]+))""".toRegex()

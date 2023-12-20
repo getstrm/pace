@@ -1,7 +1,8 @@
 package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SNOWFLAKE
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.SNOWFLAKE
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SnowflakeConfig
 import com.getstrm.pace.exceptions.InternalException
@@ -161,7 +162,7 @@ class SnowflakeTable(
     private val client: SnowflakeClient,
 ) : Table() {
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
-    override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
+    override suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy {
         return client.describeTable(schema, table)?.toDataPolicy(platform, fullName)
             ?: throw ResourceException(
                 ResourceException.Code.NOT_FOUND,
@@ -174,7 +175,7 @@ class SnowflakeTable(
             )
     }
 
-    private fun SnowflakeResponse.toDataPolicy(platform: DataPolicy.ProcessingPlatform, fullName: String): DataPolicy {
+    private fun SnowflakeResponse.toDataPolicy(platform: ProcessingPlatform, fullName: String): DataPolicy {
         return DataPolicy.newBuilder()
             .setMetadata(
                 DataPolicy.Metadata.newBuilder()

@@ -1,7 +1,8 @@
 package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.DATABRICKS
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.DATABRICKS
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.databricks.sdk.AccountClient
 import com.databricks.sdk.WorkspaceClient
@@ -110,7 +111,7 @@ class DatabricksTable(
 ) : Table() {
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-    override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy =
+    override suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy =
         tableInfo.toDataPolicy(platform, getTags(tableInfo))
 
     /* TODO the current databricks api does not expose column tags! :-(
@@ -142,7 +143,7 @@ class DatabricksTable(
         }
     }
 
-    private fun TableInfo.toDataPolicy(platform: DataPolicy.ProcessingPlatform, tags: Map<String, List<String>>): DataPolicy =
+    private fun TableInfo.toDataPolicy(platform: ProcessingPlatform, tags: Map<String, List<String>>): DataPolicy =
         DataPolicy.newBuilder()
             .setMetadata(
                 DataPolicy.Metadata.newBuilder()

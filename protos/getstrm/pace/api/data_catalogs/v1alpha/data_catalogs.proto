@@ -74,7 +74,7 @@ message ListDatabasesRequest {
 }
 
 message ListDatabasesResponse {
-  repeated entities.v1alpha.DataCatalog.Database databases = 1;
+  repeated entities.v1alpha.Database databases = 1;
   api.paging.v1alpha.PageInfo page_info = 2;
 }
 
@@ -87,7 +87,7 @@ message ListSchemasRequest {
 // (-- api-linter: core::0158::response-plural-first-field=disabled
 //     aip.dev/not-precedent: Schemata? Get real. --)
 message ListSchemasResponse {
-  repeated entities.v1alpha.DataCatalog.Schema schemas = 1;
+  repeated entities.v1alpha.Schema schemas = 1;
   api.paging.v1alpha.PageInfo page_info = 2;
 }
 
@@ -99,6 +99,6 @@ message ListTablesRequest {
 }
 
 message ListTablesResponse {
-  repeated entities.v1alpha.DataCatalog.Table tables = 1;
+  repeated entities.v1alpha.Table tables = 1;
   api.paging.v1alpha.PageInfo page_info = 2;
 }

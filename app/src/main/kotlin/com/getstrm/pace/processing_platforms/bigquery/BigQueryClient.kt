@@ -1,7 +1,8 @@
 package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.BIGQUERY
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.BIGQUERY
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.BigQueryConfig
 import com.getstrm.pace.exceptions.InternalException
@@ -166,11 +167,11 @@ class BigQueryTable(
     private val polClient: PolicyTagManagerClient,
 ) : Table() {
 
-    override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy =
+    override suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy =
         table.toDataPolicy(platform)
 
 
-    private fun BQTable.toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
+    private fun BQTable.toDataPolicy(platform: ProcessingPlatform): DataPolicy {
         // The reload ensures all metadata is fetched, including the schema
         val table = reload()
         // typical tag value =

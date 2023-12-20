@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import com.getstrm.pace.config.SnowflakeConfig
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -40,7 +41,7 @@ class SnowflakeClientTest {
             createdOn = null,
             message = null,
         )
-        val platform = DataPolicy.ProcessingPlatform.newBuilder().setId("test-platform").build()
+        val platform = ProcessingPlatform.newBuilder().setId("test-platform").build()
 
         every { snowflakeClient.describeTable("test_schema", "test_table") } returns snowflakeResponse
 

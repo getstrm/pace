@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import com.databricks.sdk.service.catalog.ColumnInfo
 import com.databricks.sdk.service.catalog.TableInfo
 import com.databricks.sdk.service.sql.ExecuteStatementResponse
@@ -54,7 +55,7 @@ class DatabricksClientTest {
                 )))
         val table = DatabricksTable(tableInfo.name, tableInfo, client)
 
-        val platform = DataPolicy.ProcessingPlatform.newBuilder().setId("test-platform").build()
+        val platform = ProcessingPlatform.newBuilder().setId("test-platform").build()
 
         // When
         val policy = runBlocking { table.toDataPolicy(platform) }

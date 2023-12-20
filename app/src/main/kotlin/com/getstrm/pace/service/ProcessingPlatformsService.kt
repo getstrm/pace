@@ -1,6 +1,7 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyResponse
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListGroupsRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListTablesRequest
@@ -85,7 +86,7 @@ class ProcessingPlatformsService(
         val processingPlatformInterface = platforms[platformId] ?: throw processingPlatformNotFound(platformId)
         val table = processingPlatformInterface.getTable(tableName)
         val baseDataPolicy = table.toDataPolicy(
-            DataPolicy.ProcessingPlatform.newBuilder().setId(platformId)
+            ProcessingPlatform.newBuilder().setId(platformId)
                 .setPlatformType(processingPlatformInterface.type).build()
         )
 

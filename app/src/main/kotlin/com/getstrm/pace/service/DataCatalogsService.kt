@@ -14,9 +14,9 @@ import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Database as ApiDatabase
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Schema as ApiSchema
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Table as ApiTable
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database as ApiDatabase
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema as ApiSchema
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
 
 @Component
 class DataCatalogsService(

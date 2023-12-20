@@ -1,7 +1,8 @@
 package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.POSTGRES
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.POSTGRES
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.PostgresConfig
 import com.getstrm.pace.processing_platforms.Group
@@ -91,7 +92,7 @@ class PostgresTable(
 ) : Table() {
     override val fullName: String = "${table.schema?.name}.${table.name}"
 
-    override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
+    override suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy {
         return DataPolicy.newBuilder()
             .setMetadata(
                 DataPolicy.Metadata.newBuilder()

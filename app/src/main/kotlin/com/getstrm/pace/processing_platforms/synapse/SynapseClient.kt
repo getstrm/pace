@@ -1,7 +1,8 @@
 package com.getstrm.pace.processing_platforms.synapse
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.SYNAPSE
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.SYNAPSE
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SynapseConfig
 import com.getstrm.pace.processing_platforms.Group
@@ -87,7 +88,7 @@ class SynapseTable(
 ) : Table() {
     override val fullName: String = "${table.schema?.name}.${table.name}"
 
-    override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
+    override suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy {
         return DataPolicy.newBuilder()
             .setMetadata(
                 DataPolicy.Metadata.newBuilder()

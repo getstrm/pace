@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import com.getstrm.pace.AbstractDatabaseTest
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
@@ -53,7 +54,7 @@ class PostgresClientTest : AbstractDatabaseTest() {
         // When
         val actual = runBlocking { underTest.listTables(DEFAULT_PAGE_PARAMETERS) }.data.filter { !ignoreTables.contains(it.fullName) }
         runBlocking {
-            val policy = actual.map { it.toDataPolicy(DataPolicy.ProcessingPlatform.getDefaultInstance()) }.first()
+            val policy = actual.map { it.toDataPolicy(ProcessingPlatform.getDefaultInstance()) }.first()
             val field = policy.source.fieldsList.find { it.pathString() == "email" }!!
             field.tagsList shouldContainExactlyInAnyOrder listOf("pii", "with whitespace", "email")
         }

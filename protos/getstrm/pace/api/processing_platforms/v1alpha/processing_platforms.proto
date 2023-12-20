@@ -18,6 +18,18 @@ service ProcessingPlatformsService {
           get: "/v1alpha/processing-platforms"
         };
     };
+  // Lists all databases for the given processing_platform.
+  rpc ListDatabases (ListDatabasesRequest) returns (ListDatabasesResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha/processing-platforms/{platform_id}/databases"
+    };
+  }
+  // Lists all schemas (for a given database, if applicable).
+  rpc ListSchemas (ListSchemasRequest) returns (ListSchemasResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha/processing-platforms/{platform_id}/schemas"
+    };
+  }
     // Lists all available table names for the given platform.
     rpc ListTables (ListTablesRequest) returns (ListTablesResponse) {
         option (google.api.http) = {
@@ -44,16 +56,42 @@ message ListProcessingPlatformsRequest {
 }
 
 message ListProcessingPlatformsResponse {
-    repeated entities.v1alpha.DataPolicy.ProcessingPlatform processing_platforms = 1;
+    repeated entities.v1alpha.ProcessingPlatform processing_platforms = 1;
 }
 
-message ListTablesRequest {
+message ListDatabasesRequest {
   string platform_id = 1 [(buf.validate.field).string = {min_len: 1}];
   api.paging.v1alpha.PageParameters page_parameters = 2;
 }
 
+message ListDatabasesResponse {
+  repeated entities.v1alpha.Database databases = 1;
+  api.paging.v1alpha.PageInfo page_info = 2;
+}
+
+message ListSchemasRequest {
+  string platform_id = 1 [(buf.validate.field).string = {min_len: 1}];
+  optional string database_id = 2;
+  api.paging.v1alpha.PageParameters page_parameters = 3;
+}
+
+// (-- api-linter: core::0158::response-plural-first-field=disabled
+//     aip.dev/not-precedent: Schemata? Get real. --)
+message ListSchemasResponse {
+  repeated entities.v1alpha.Schema schemas = 1;
+  api.paging.v1alpha.PageInfo page_info = 2;
+}
+
+
+message ListTablesRequest {
+  string platform_id = 1 [(buf.validate.field).string = {min_len: 1}];
+  optional string database_id = 2;
+  optional string schema_id = 3;
+  api.paging.v1alpha.PageParameters page_parameters = 4;
+}
+
 message ListTablesResponse {
-  repeated string tables = 1;
+  repeated entities.v1alpha.Table tables = 1;
   api.paging.v1alpha.PageInfo page_info = 2;
 }
 
