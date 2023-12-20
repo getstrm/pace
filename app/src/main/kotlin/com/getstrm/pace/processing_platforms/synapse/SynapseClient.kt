@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.SYNAPSE
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
+import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.config.SynapseConfig
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
@@ -61,6 +62,10 @@ class SynapseClient(
         withContext(Dispatchers.IO) {
             jooq.queries(*dropQuery, *query, *grantSelectQuery).executeBatch()
         }
+    }
+
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<DataCatalog.Database> {
+        TODO("Not yet implemented")
     }
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {

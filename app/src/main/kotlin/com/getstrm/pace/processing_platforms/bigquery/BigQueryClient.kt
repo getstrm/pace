@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.BIGQUERY
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
+import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.config.BigQueryConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
@@ -108,6 +109,10 @@ class BigQueryClient(
                 )
             }
         }
+    }
+
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<DataCatalog.Database> {
+        TODO("Not yet implemented")
     }
 
     // Fixme: better handle case where view was already authorized (currently caught above)

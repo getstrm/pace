@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.SNOWFLAKE
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
+import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.config.SnowflakeConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
@@ -76,6 +77,10 @@ class SnowflakeClient(
             parameters = mapOf("MULTI_STATEMENT_COUNT" to statementCount),
         )
         executeRequest(request)
+    }
+
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<DataCatalog.Database> {
+        TODO("Not yet implemented")
     }
 
     override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {

@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.POSTGRES
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
+import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.config.PostgresConfig
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
@@ -62,6 +63,10 @@ class PostgresClient(
         withContext(Dispatchers.IO) {
             jooq.query(query).execute()
         }
+    }
+
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<DataCatalog.Database> {
+        TODO("Not yet implemented")
     }
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {

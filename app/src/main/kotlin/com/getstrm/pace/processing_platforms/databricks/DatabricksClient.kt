@@ -1,8 +1,6 @@
 package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.DATABRICKS
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.databricks.sdk.AccountClient
 import com.databricks.sdk.WorkspaceClient
@@ -11,26 +9,25 @@ import com.databricks.sdk.service.iam.ListAccountGroupsRequest
 import com.databricks.sdk.service.sql.ExecuteStatementRequest
 import com.databricks.sdk.service.sql.ExecuteStatementResponse
 import com.databricks.sdk.service.sql.StatementState
+import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.config.DatabricksConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.processing_platforms.Table
-import com.getstrm.pace.util.*
+import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.applyPageParameters
+import com.getstrm.pace.util.withPageInfo
 import com.google.rpc.DebugInfo
-import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
 import com.databricks.sdk.core.DatabricksConfig as DatabricksClientConfig
 
 private val log = LoggerFactory.getLogger(DatabricksClient::javaClass.name)
 
 class DatabricksClient(
-    override val id: String,
-    val config: DatabricksConfig,
-) : ProcessingPlatformClient {
+    override val config: DatabricksConfig,
+) : ProcessingPlatformClient(config) {
 
-    constructor(config: DatabricksConfig) : this(config.id, config)
 
     private val workspaceClient = DatabricksClientConfig()
         .setHost(config.workspaceHost)
@@ -47,8 +44,6 @@ class DatabricksClient(
             AccountClient(config)
         }
 
-    override val type = DATABRICKS
-
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> =
         accountClient.groups().list(ListAccountGroupsRequest().apply{
             startIndex = pageParameters.skip.toLong()
@@ -58,7 +53,6 @@ class DatabricksClient(
             Group(id = group.id, name = group.displayName)
         }.withPageInfo()
 
-    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> = listAllTables(pageParameters).map { DatabricksTable(it.fullName, it, this) }
 
     /**
      * Lists all tables (or views) in all schemas that the service principal has access to.
@@ -102,13 +96,23 @@ class DatabricksClient(
             else -> handleDatabricksError(statement, response)
         }
     }
+
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<DataCatalog.Database> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getDatabase(databaseId: String): DataCatalog.Database {
+        TODO("Not yet implemented")
+    }
 }
 
+
+/*
 class DatabricksTable(
     override val fullName: String,
     private val tableInfo: TableInfo,
     private val databricksClient: DatabricksClient,
-) : Table() {
+) : ProcessingPlatformClient.Table(tableInfo.tableId) {
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
     override suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy =
@@ -170,6 +174,8 @@ class DatabricksTable(
             )
             .build()
 }
+
+ */
 
 private fun handleDatabricksError(statement: String, response: ExecuteStatementResponse) {
     log.warn("SQL statement\n{}", statement)
