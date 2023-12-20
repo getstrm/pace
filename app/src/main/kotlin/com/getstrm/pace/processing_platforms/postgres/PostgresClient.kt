@@ -28,7 +28,9 @@ class PostgresClient(
     // single database. If we want to add support for a single client to connect to mulitple
     // databases, more info can be found here:
     // https://www.codejava.net/java-se/jdbc/how-to-list-names-of-all-databases-in-java
-    constructor(config: PostgresConfig) : this(
+    constructor(
+        config: PostgresConfig
+    ) : this(
         config.id,
         DSL.using(
             HikariDataSource(
@@ -36,7 +38,8 @@ class PostgresClient(
                     jdbcUrl = config.getJdbcUrl()
                     username = config.userName
                     password = config.password
-                }),
+                }
+            ),
             SQLDialect.POSTGRES
         )
     )
@@ -45,39 +48,45 @@ class PostgresClient(
 
     override val type = POSTGRES
 
-    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> = jooq.meta()
-        .filterSchemas { !schemasToIgnore.contains(it.name) }
-        .tables
-        .map { PostgresTable(it) }
-        .sortedBy { it.fullName }
-        .applyPageParameters(pageParameters)
-        .withPageInfo()
-    
+    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> =
+        jooq
+            .meta()
+            .filterSchemas { !schemasToIgnore.contains(it.name) }
+            .tables
+            .map { PostgresTable(it) }
+            .sortedBy { it.fullName }
+            .applyPageParameters(pageParameters)
+            .withPageInfo()
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = PostgresViewGenerator(dataPolicy)
         val query = viewGenerator.toDynamicViewSQL().sql
 
-        withContext(Dispatchers.IO) {
-            jooq.query(query).execute()
-        }
+        withContext(Dispatchers.IO) { jooq.query(query).execute() }
     }
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
-        val result = withContext(Dispatchers.IO) {
-            jooq.select(DSL.field("oid", Int::class.java), DSL.field("rolname", String::class.java))
-                .from(DSL.table("pg_roles"))
-                .where(
-                    DSL.field("rolcanlogin").notEqual(true),
-                    DSL.field("rolname").notLike("pg_%")
-                )
-                .orderBy(DSL.field("rolname"))
-                .offset(pageParameters.skip)
-                .limit(pageParameters.pageSize)
-                .fetch()
-        }
+        val result =
+            withContext(Dispatchers.IO) {
+                jooq
+                    .select(
+                        DSL.field("oid", Int::class.java),
+                        DSL.field("rolname", String::class.java)
+                    )
+                    .from(DSL.table("pg_roles"))
+                    .where(
+                        DSL.field("rolcanlogin").notEqual(true),
+                        DSL.field("rolname").notLike("pg_%")
+                    )
+                    .orderBy(DSL.field("rolname"))
+                    .offset(pageParameters.skip)
+                    .limit(pageParameters.pageSize)
+                    .fetch()
+            }
 
-        return result.map { (oid, rolname) -> Group(id = oid.toString(), name = rolname) }.withPageInfo()
+        return result
+            .map { (oid, rolname) -> Group(id = oid.toString(), name = rolname) }
+            .withPageInfo()
     }
 
     companion object {
@@ -86,17 +95,13 @@ class PostgresClient(
     }
 }
 
-class PostgresTable(
-    val table: org.jooq.Table<*>
-) : Table() {
+class PostgresTable(val table: org.jooq.Table<*>) : Table() {
     override val fullName: String = "${table.schema?.name}.${table.name}"
 
     override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
         return DataPolicy.newBuilder()
             .setMetadata(
-                DataPolicy.Metadata.newBuilder()
-                    .setTitle(fullName)
-                    .setDescription(table.comment)
+                DataPolicy.Metadata.newBuilder().setTitle(fullName).setDescription(table.comment)
             )
             .setPlatform(platform)
             .setSource(
@@ -109,7 +114,8 @@ class PostgresTable(
                                 .setType(field.dataType.typeName)
                                 .addAllTags(field.toTags())
                                 .setRequired(!field.dataType.nullable())
-                                .build().normalizeType()
+                                .build()
+                                .normalizeType()
                         },
                     )
                     .build(),

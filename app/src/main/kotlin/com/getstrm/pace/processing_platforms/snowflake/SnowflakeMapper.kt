@@ -16,8 +16,7 @@ data class SnowflakeResponse(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ResultSetMetaData(
     val numRows: Int,
-    @JsonProperty("rowType")
-    val rows: List<RowType>,
+    @JsonProperty("rowType") val rows: List<RowType>,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

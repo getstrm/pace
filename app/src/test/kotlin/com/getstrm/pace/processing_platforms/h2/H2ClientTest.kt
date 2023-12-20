@@ -24,22 +24,27 @@ class H2ClientTest {
     @Test
     fun `insert and retrieve basic CSV`() {
         // Given
-        val dataPolicy = DataPolicy.newBuilder().apply {
-            sourceBuilder.addAllFields(
-                listOf(
-                    namedField("id", "int"),
-                    namedField("name", "string"),
-                    namedField("age", "float"),
-                    namedField("subscribed", "boolean")
-                )
-            )
-        }.build()
-        val csv = """
+        val dataPolicy =
+            DataPolicy.newBuilder()
+                .apply {
+                    sourceBuilder.addAllFields(
+                        listOf(
+                            namedField("id", "int"),
+                            namedField("name", "string"),
+                            namedField("age", "float"),
+                            namedField("subscribed", "boolean")
+                        )
+                    )
+                }
+                .build()
+        val csv =
+            """
             id,name,age,subscribed
             1,John,23.5,true
             2,Jane,24.5,false
             
-        """.trimIndent()
+        """
+                .trimIndent()
 
         // When
         underTest.insertCSV(dataPolicy, csv, "test_table")

@@ -31,7 +31,8 @@ class SnowflakeViewGeneratorTest {
         val condition = underTest.toPrincipalCondition(principals)
 
         // Then
-        condition!!.toSql() shouldBe "((IS_ROLE_IN_SESSION('ANALYTICS')) or (IS_ROLE_IN_SESSION('MARKETING')))"
+        condition!!.toSql() shouldBe
+            "((IS_ROLE_IN_SESSION('ANALYTICS')) or (IS_ROLE_IN_SESSION('MARKETING')))"
     }
 
     @Test
@@ -62,100 +63,123 @@ class SnowflakeViewGeneratorTest {
     fun `field transform with a few transforms`() {
         // Given
         val field = namedField("email", "string")
-        val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("ANALYTICS", "MARKETING").toPrincipals())
-            .build()
-        val otherFixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("REDACTED EMAIL"))
-            .addAllPrincipals(listOf("FRAUD_AND_RISK").toPrincipals())
-            .build()
-        val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("stoelpoot"))
-            .build()
-        val fieldTransform = DataPolicy.RuleSet.FieldTransform.newBuilder()
-            .setField(field)
-            .addAllTransforms(listOf(fixed, otherFixed, fallbackTransform))
-            .build()
+        val fixed =
+            DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+                .setFixed(
+                    DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****")
+                )
+                .addAllPrincipals(listOf("ANALYTICS", "MARKETING").toPrincipals())
+                .build()
+        val otherFixed =
+            DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+                .setFixed(
+                    DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder()
+                        .setValue("REDACTED EMAIL")
+                )
+                .addAllPrincipals(listOf("FRAUD_AND_RISK").toPrincipals())
+                .build()
+        val fallbackTransform =
+            DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+                .setFixed(
+                    DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder()
+                        .setValue("stoelpoot")
+                )
+                .build()
+        val fieldTransform =
+            DataPolicy.RuleSet.FieldTransform.newBuilder()
+                .setField(field)
+                .addAllTransforms(listOf(fixed, otherFixed, fallbackTransform))
+                .build()
 
         // When
         val jooqField = underTest.toJooqField(field, fieldTransform)
 
         // Then
-        jooqField.toSql() shouldBe "case when ((IS_ROLE_IN_SESSION('ANALYTICS')) or (IS_ROLE_IN_SESSION('MARKETING'))) then '****' when (IS_ROLE_IN_SESSION('FRAUD_AND_RISK')) then 'REDACTED EMAIL' " +
+        jooqField.toSql() shouldBe
+            "case when ((IS_ROLE_IN_SESSION('ANALYTICS')) or (IS_ROLE_IN_SESSION('MARKETING'))) then '****' when (IS_ROLE_IN_SESSION('FRAUD_AND_RISK')) then 'REDACTED EMAIL' " +
                 "else 'stoelpoot' end \"email\""
     }
 
     @Test
     fun `generic row filter to condition`() {
         // Given
-        val filter = DataPolicy.RuleSet.Filter.newBuilder()
-            .setGenericFilter(
-                GenericFilter.newBuilder()
-                    .addAllConditions(
-                        listOf(
-                            GenericFilter.Condition.newBuilder()
-                                .addAllPrincipals(listOf("fraud_and_risk").toPrincipals())
-                                .setCondition("true")
-                                .build(),
-                            GenericFilter.Condition.newBuilder()
-                                .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
-                                .setCondition("age > 18")
-                                .build(),
-                            GenericFilter.Condition.newBuilder()
-                                .setCondition("false")
-                                .build()
+        val filter =
+            DataPolicy.RuleSet.Filter.newBuilder()
+                .setGenericFilter(
+                    GenericFilter.newBuilder()
+                        .addAllConditions(
+                            listOf(
+                                GenericFilter.Condition.newBuilder()
+                                    .addAllPrincipals(listOf("fraud_and_risk").toPrincipals())
+                                    .setCondition("true")
+                                    .build(),
+                                GenericFilter.Condition.newBuilder()
+                                    .addAllPrincipals(
+                                        listOf("analytics", "marketing").toPrincipals()
+                                    )
+                                    .setCondition("age > 18")
+                                    .build(),
+                                GenericFilter.Condition.newBuilder().setCondition("false").build()
+                            )
                         )
-                    )
-            )
-            .build()
+                )
+                .build()
 
         // When
         val condition = underTest.toCondition(filter.genericFilter)
 
         // Then
-        condition.toSql() shouldBe "case when (IS_ROLE_IN_SESSION('fraud_and_risk')) then true when ((IS_ROLE_IN_SESSION('analytics')) " +
+        condition.toSql() shouldBe
+            "case when (IS_ROLE_IN_SESSION('fraud_and_risk')) then true when ((IS_ROLE_IN_SESSION('analytics')) " +
                 "or (IS_ROLE_IN_SESSION('marketing'))) then age > 18 else false end"
     }
 
     @Test
     fun `retention to condition`() {
         // Given
-        val retention = RetentionFilter.newBuilder()
-            .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
-            .addAllConditions(
-                listOf(
-                    RetentionFilter.Condition.newBuilder()
-                        .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("MARKETING"))
-                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(5))
-                        .build(),
-                    RetentionFilter.Condition.newBuilder()
-                        .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("FRAUD_AND_RISK"))
-                        .build(),
-                    RetentionFilter.Condition.newBuilder()
-                        .addPrincipals(DataPolicy.Principal.getDefaultInstance())
-                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
-                        .build()
+        val retention =
+            RetentionFilter.newBuilder()
+                .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
+                .addAllConditions(
+                    listOf(
+                        RetentionFilter.Condition.newBuilder()
+                            .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("MARKETING"))
+                            .setPeriod(RetentionFilter.Period.newBuilder().setDays(5))
+                            .build(),
+                        RetentionFilter.Condition.newBuilder()
+                            .addPrincipals(
+                                DataPolicy.Principal.newBuilder().setGroup("FRAUD_AND_RISK")
+                            )
+                            .build(),
+                        RetentionFilter.Condition.newBuilder()
+                            .addPrincipals(DataPolicy.Principal.getDefaultInstance())
+                            .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
+                            .build()
+                    )
                 )
-            ).build()
+                .build()
 
         // When
         val condition = underTest.toCondition(retention)
 
         // Then
-        condition.toSql() shouldBe """
+        condition.toSql() shouldBe
+            """
             case when (IS_ROLE_IN_SESSION('MARKETING')) then dateadd(day, 5, timestamp) > current_timestamp when (IS_ROLE_IN_SESSION('FRAUD_AND_RISK')) then true else dateadd(day, 10, timestamp) > current_timestamp end
-        """.trimIndent()
+        """
+                .trimIndent()
     }
 
     @Test
     fun `full sql view statement with single retention`() {
         // Given
-        val viewGenerator = SnowflakeViewGenerator(singleRetentionPolicy) { withRenderFormatted(true) }
+        val viewGenerator =
+            SnowflakeViewGenerator(singleRetentionPolicy) { withRenderFormatted(true) }
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL().sql shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe
+            """create or replace view public.demo_view
 as
 select
   ts,
@@ -180,11 +204,13 @@ grant SELECT on public.demo_view to marketing;"""
     @Test
     fun `full sql view statement with multiple retentions`() {
         // Given
-        val viewGenerator = SnowflakeViewGenerator(multipleRetentionPolicy) { withRenderFormatted(true) }
+        val viewGenerator =
+            SnowflakeViewGenerator(multipleRetentionPolicy) { withRenderFormatted(true) }
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL().sql shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe
+            """create or replace view public.demo_view
 as
 select
   ts,
@@ -215,7 +241,9 @@ grant SELECT on public.demo_view to marketing;"""
     fun `transform test various transforms`() {
         // Given
         underTest = SnowflakeViewGenerator(dataPolicy) { withRenderFormatted(true) }
-        underTest.toDynamicViewSQL().sql
+        underTest
+            .toDynamicViewSQL()
+            .sql
             .shouldBe(
                 """create or replace view my_database.my_schema.gddemo_public
 as
@@ -265,7 +293,8 @@ grant SELECT on my_database.my_schema.gddemo_public to ADMIN;"""
 
     companion object {
         @Language("yaml")
-        val dataPolicy = """
+        val dataPolicy =
+            """
     source: 
       ref: mydb.my_schema.gddemo
       fields:
@@ -371,10 +400,12 @@ grant SELECT on my_database.my_schema.gddemo_public to ADMIN;"""
       version: "1.0.0"
       create_time: "2023-09-26T16:33:51.150Z"
       update_time: "2023-09-26T16:33:51.150Z"
-              """.toProto<DataPolicy>()
+              """
+                .toProto<DataPolicy>()
 
         @Language("yaml")
-        val singleRetentionPolicy = """
+        val singleRetentionPolicy =
+            """
                 metadata:
                   description: ""
                   version: 1
@@ -421,10 +452,13 @@ grant SELECT on my_database.my_schema.gddemo_public to ADMIN;"""
                             - principals: [] 
                               period:
                                 days: 10
-            """.trimIndent().toProto<DataPolicy>()
+            """
+                .trimIndent()
+                .toProto<DataPolicy>()
 
         @Language("yaml")
-        val multipleRetentionPolicy = """
+        val multipleRetentionPolicy =
+            """
                 metadata:
                   description: ""
                   version: 1
@@ -488,6 +522,8 @@ grant SELECT on my_database.my_schema.gddemo_public to ADMIN;"""
                             - principals: [] 
                               period:
                                 days: 0
-            """.trimIndent().toProto<DataPolicy>()
+            """
+                .trimIndent()
+                .toProto<DataPolicy>()
     }
 }

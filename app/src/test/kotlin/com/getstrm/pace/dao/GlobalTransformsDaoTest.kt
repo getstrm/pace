@@ -59,20 +59,30 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
 
         // Then
         actual shouldHaveSize 2
-       actual.withoutTimestamps() shouldContainExactlyInAnyOrder listOf(emailTransform, nameTransform).toRecords()
+        actual.withoutTimestamps() shouldContainExactlyInAnyOrder
+            listOf(emailTransform, nameTransform).toRecords()
     }
 
     @Test
     fun `upsert transform - update existing`() {
         // Given an update for an existing transform
-        val updateToEmailTransform = emailTransform.toBuilder().apply {
-            tagTransform = tagTransform.toBuilder().apply {
-                addAllTransforms(transformsList.map {
-                    it.toBuilder().setNullify(getDefaultInstance())
-                        .build()
-                })
-            }.build()
-        }.build()
+        val updateToEmailTransform =
+            emailTransform
+                .toBuilder()
+                .apply {
+                    tagTransform =
+                        tagTransform
+                            .toBuilder()
+                            .apply {
+                                addAllTransforms(
+                                    transformsList.map {
+                                        it.toBuilder().setNullify(getDefaultInstance()).build()
+                                    }
+                                )
+                            }
+                            .build()
+                }
+                .build()
 
         // When
         val actual = underTest.upsertTransform(updateToEmailTransform)
@@ -89,11 +99,12 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
         val newRef = "pipo"
         // When
         val changed =
-                underTest.getTagTransform("email")!!.toGlobalTransform().toBuilder()
-                        .setTagTransform(
-                                TagTransform.newBuilder()
-                                        .setTagContent(newRef)
-                        ).build()
+            underTest
+                .getTagTransform("email")!!
+                .toGlobalTransform()
+                .toBuilder()
+                .setTagTransform(TagTransform.newBuilder().setTagContent(newRef))
+                .build()
         underTest.getTransform(changed.refAndType()).shouldBeNull()
         underTest.upsertTransform(changed)
         val readback = underTest.getTransform(changed.refAndType())
@@ -105,12 +116,16 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
     fun `upsert transform - check loose tag match`() {
         // Given
         val refOriginal = "This tests-all_loose ends"
-        val transform = GlobalTransform.newBuilder()
-            .setTagTransform(TagTransform.newBuilder()
-                .setTagContent(refOriginal)
-                .addTransforms(FieldTransform.Transform.newBuilder().setNullify(getDefaultInstance()))
-            )
-            .build()
+        val transform =
+            GlobalTransform.newBuilder()
+                .setTagTransform(
+                    TagTransform.newBuilder()
+                        .setTagContent(refOriginal)
+                        .addTransforms(
+                            FieldTransform.Transform.newBuilder().setNullify(getDefaultInstance())
+                        )
+                )
+                .build()
 
         // When
         underTest.upsertTransform(transform).toGlobalTransform() shouldBe transform
@@ -121,32 +136,42 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
         val refUpdated = "this_tests ALL-loose-ends"
         val readback = underTest.getTagTransform(refUpdated)?.toGlobalTransform()
         readback shouldNotBe null
-        readback!!.tagTransform.transformsList.first().transformCase shouldBe  FieldTransform.Transform.TransformCase.NULLIFY
+        readback!!.tagTransform.transformsList.first().transformCase shouldBe
+            FieldTransform.Transform.TransformCase.NULLIFY
         // just changed the instance, did not add a new one!
         // so we get the original ref
         readback.refAndType().first shouldBe refOriginal
         readback.tagTransform.tagContent shouldBe refOriginal
         underTest.listTransforms().size shouldBe 3
 
-        val updatedTransform = with (transform.toBuilder()) {
-            tagTransformBuilder.tagContent = refUpdated
-            build()
-        }
+        val updatedTransform =
+            with(transform.toBuilder()) {
+                tagTransformBuilder.tagContent = refUpdated
+                build()
+            }
         underTest.upsertTransform(updatedTransform).toGlobalTransform() shouldBe updatedTransform
         underTest.listTransforms().size shouldBe 3
     }
 
     @Test
     fun `upsert transform - check strict tag match`() {
-        val strictDao = GlobalTransformsDao(jooq, GlobalTransformsConfiguration(TagTransforms(looseTagMatch = false)))
+        val strictDao =
+            GlobalTransformsDao(
+                jooq,
+                GlobalTransformsConfiguration(TagTransforms(looseTagMatch = false))
+            )
         // Given
         val s = "This tests-all_loose ends"
-        val transform = GlobalTransform.newBuilder()
-            .setTagTransform(TagTransform.newBuilder()
-                .setTagContent(s)
-                .addTransforms(FieldTransform.Transform.newBuilder().setNullify(getDefaultInstance()))
-            )
-            .build()
+        val transform =
+            GlobalTransform.newBuilder()
+                .setTagTransform(
+                    TagTransform.newBuilder()
+                        .setTagContent(s)
+                        .addTransforms(
+                            FieldTransform.Transform.newBuilder().setNullify(getDefaultInstance())
+                        )
+                )
+                .build()
 
         // When
         strictDao.upsertTransform(transform).toGlobalTransform() shouldBe transform
@@ -154,12 +179,10 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
         // Then
         val s2 = "this_tests ALL-loose-ends"
         val readback = strictDao.getTagTransform(s2)?.toGlobalTransform()
-        readback shouldBe  null
+        readback shouldBe null
         // just changed the instance
         strictDao.listTransforms().size shouldBe 3
-
     }
-
 
     @Test
     fun `delete transform`() {
@@ -177,7 +200,8 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
 
     companion object {
         @Language("yaml")
-        private val emailTransform = """
+        private val emailTransform =
+            """
                 description: "A default transform that should be applied to fields tagged with 'email'."
                 tag_transform:
                   tag_content: email
@@ -185,17 +209,22 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
                     - principals: []
                       fixed:
                         value: "***@***.***"
-                """.trimIndent().toProto<GlobalTransform>()
+                """
+                .trimIndent()
+                .toProto<GlobalTransform>()
 
         @Language("yaml")
-        private val nameTransform = """
+        private val nameTransform =
+            """
                 description: "A default transform that should be applied to fields tagged with 'name'."
                 tag_transform:
                   tag_content: name
                   transforms:
                     - principals: []
                       nullify: {}
-                """.trimIndent().toProto<GlobalTransform>()
+                """
+                .trimIndent()
+                .toProto<GlobalTransform>()
 
         private fun GlobalTransform.toRecord(): GlobalTransformsRecord {
             val record = GlobalTransformsRecord()
@@ -206,13 +235,16 @@ class GlobalTransformsDaoTest : AbstractDatabaseTest() {
             return record
         }
 
-        private fun List<GlobalTransform>.toRecords(): List<GlobalTransformsRecord> = this.map { it.toRecord() }
+        private fun List<GlobalTransform>.toRecords(): List<GlobalTransformsRecord> =
+            this.map { it.toRecord() }
 
-        private fun GlobalTransformsRecord.withoutTimestamps() = this.apply {
-            this.updatedAt = null
-            this.createdAt = null
-        }
+        private fun GlobalTransformsRecord.withoutTimestamps() =
+            this.apply {
+                this.updatedAt = null
+                this.createdAt = null
+            }
 
-        private fun List<GlobalTransformsRecord>.withoutTimestamps() = this.map { it.withoutTimestamps() }
+        private fun List<GlobalTransformsRecord>.withoutTimestamps() =
+            this.map { it.withoutTimestamps() }
     }
 }

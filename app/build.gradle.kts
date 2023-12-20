@@ -25,11 +25,13 @@ val jooqVersion = rootProject.ext["jooqVersion"] as String
 val kotestVersion = rootProject.ext["kotestVersion"] as String
 val openDataDiscoveryOpenApiDir = layout.buildDirectory.dir("generated/source/odd").get()
 val springCloudKubernetesVersion = rootProject.ext["springCloudKubernetesVersion"] as String
-project.version = if (gradle.startParameter.taskNames.any { it.lowercase() == "builddocker" }) {
-    "${project.version}-SNAPSHOT"
-} else {
-    "${project.version}"
-}
+
+project.version =
+    if (gradle.startParameter.taskNames.any { it.lowercase() == "builddocker" }) {
+        "${project.version}-SNAPSHOT"
+    } else {
+        "${project.version}"
+    }
 
 plugins {
     id("org.springframework.boot")
@@ -41,12 +43,14 @@ plugins {
     id("nu.studer.jooq")
     id("org.flywaydb.flyway")
     id("org.openapi.generator")
+    id("com.diffplug.spotless") version "6.23.3"
 }
 
 dependencies {
     // Dependencies managed by Spring
     implementation("org.springframework.boot:spring-boot-starter-jooq")
-    // TODO remove once we upgrade Spring: override SnakeYAML dependency, as the one managed by Spring is too old and is vulnerable
+    // TODO remove once we upgrade Spring: override SnakeYAML dependency, as the one managed by
+    // Spring is too old and is vulnerable
     implementation("org.yaml:snakeyaml:2.2")
     implementation("org.flywaydb:flyway-core")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -69,7 +73,9 @@ dependencies {
     implementation("com.github.drapostolos:type-parser:0.8.1")
     implementation("com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre11")
 
-    implementation("org.springframework.cloud:spring-cloud-starter-kubernetes-fabric8-config:$springCloudKubernetesVersion")
+    implementation(
+        "org.springframework.cloud:spring-cloud-starter-kubernetes-fabric8-config:$springCloudKubernetesVersion"
+    )
 
     implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.77")
@@ -80,7 +86,9 @@ dependencies {
 
     implementation("build.buf.gen:getstrm_pace_grpc_java:1.60.0.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.4.1.1.$generatedBufDependencyVersion")
-    implementation("build.buf.gen:getstrm_pace_protocolbuffers_java:25.1.0.1.$generatedBufDependencyVersion")
+    implementation(
+        "build.buf.gen:getstrm_pace_protocolbuffers_java:25.1.0.1.$generatedBufDependencyVersion"
+    )
     implementation("build.buf:protovalidate:0.1.8")
 
     implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
@@ -100,6 +108,12 @@ dependencies {
     testImplementation("io.zonky.test:embedded-postgres:2.0.6")
 }
 
+configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+    kotlin {
+        ktfmt().kotlinlangStyle() // kotlinlangStyle guarantees following the kotlin style guide
+    }
+}
+
 openApiGenerate {
     generatorName.set("kotlin")
     inputSpec.set("$projectDir/src/main/resources/data-catalogs/open-data-discovery/openapi.yaml")
@@ -110,15 +124,23 @@ openApiGenerate {
     configOptions.set(
         mapOf(
             "serializationLibrary" to "jackson",
-            // Required to ignore unknown properties, as the OpenAPI spec does not fully match the implementation :'(
-            "additionalModelTypeAnnotations" to "@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)"
+            // Required to ignore unknown properties, as the OpenAPI spec does not fully match the
+            // implementation :'(
+            "additionalModelTypeAnnotations" to
+                "@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)"
         )
     )
 }
 
 tasks.findByName("compileKotlin")?.dependsOn("downloadCollibraApolloSchemaFromIntrospection")
+
 tasks.findByName("compileKotlin")?.dependsOn("downloadDatahubApolloSchemaFromIntrospection")
+
 tasks.findByName("compileKotlin")?.dependsOn("openApiGenerate")
+
+tasks.findByName("spotlessApply")?.dependsOn("spotlessKotlin")
+
+tasks.findByName("openApiGenerate")?.dependsOn("spotlessApply")
 
 gradle.taskGraph.whenReady {
     val apolloTaskNameRegex = "download(.+)ApolloSchemaFromIntrospection".toRegex()
@@ -156,11 +178,12 @@ tasks.named<BootJar>("bootJar") {
     manifest {
         attributes["Implementation-Title"] = "Policy As Code Engine"
 
-        attributes["Implementation-Version"] = if (project.version.toString().endsWith("-SNAPSHOT")) {
-            "${project.version} (built at $buildTimestamp)"
-        } else {
-            project.version
-        }
+        attributes["Implementation-Version"] =
+            if (project.version.toString().endsWith("-SNAPSHOT")) {
+                "${project.version} (built at $buildTimestamp)"
+            } else {
+                project.version
+            }
     }
 }
 
@@ -210,7 +233,9 @@ val startPostgresContainer =
                 try {
                     Socket(InetAddress.getLocalHost().hostName, postgresPort)
                     // It might take postgres a while to be ready for connections
-                    project.logger.lifecycle("Connection to port $postgresPort succeeded, waiting 2 seconds for Postgres to finish initialization")
+                    project.logger.lifecycle(
+                        "Connection to port $postgresPort succeeded, waiting 2 seconds for Postgres to finish initialization"
+                    )
                     Thread.sleep(2000)
                     break
                 } catch (e: Exception) {
@@ -298,9 +323,7 @@ gradle.taskGraph.whenReady {
 fun Task.setFakeOutputFileIn(path: Directory) {
     val taskOutput = path.dir("..")
 
-    doLast {
-        taskOutput.file(".gradle-task-$name").asFile.createNewFile()
-    }
+    doLast { taskOutput.file(".gradle-task-$name").asFile.createNewFile() }
     outputs.file(taskOutput.file(".gradle-task-$name"))
 }
 
@@ -308,12 +331,7 @@ val createProtoDescriptor =
     tasks.register<Exec>("createProtoDescriptor") {
         group = "docker"
         workingDir("$rootDir/protos")
-        commandLine(
-            "buf",
-            "build",
-            "-o",
-            "$projectDir/build/docker/descriptor.binpb"
-        )
+        commandLine("buf", "build", "-o", "$projectDir/build/docker/descriptor.binpb")
 
         // prevent creating a proto descriptor via Gradle build (done manually in CI)
         onlyIf { !(rootProject.ext.has("ciBuild")) }
@@ -322,20 +340,21 @@ val createProtoDescriptor =
 val copyDocker =
     tasks.register<Copy>("copyDocker") {
         group = "docker"
-        val grpcServices: String = ByteArrayOutputStream().use { outputStream ->
-            project.exec {
-                workingDir("$rootDir/protos")
+        val grpcServices: String =
+            ByteArrayOutputStream().use { outputStream ->
+                project.exec {
+                    workingDir("$rootDir/protos")
 
-                commandLine(
-                    "bash",
-                    "-c",
-                    "buf build -o -#format=json | jq -rc '.file | map(select(.name | startswith(\"getstrm\"))) | map(select(.service > 0) | (.package + \".\" + .service[].name))'"
-                )
-                standardOutput = outputStream
+                    commandLine(
+                        "bash",
+                        "-c",
+                        "buf build -o -#format=json | jq -rc '.file | map(select(.name | startswith(\"getstrm\"))) | map(select(.service > 0) | (.package + \".\" + .service[].name))'"
+                    )
+                    standardOutput = outputStream
+                }
+
+                outputStream.toString()
             }
-
-            outputStream.toString()
-        }
 
         from("src/main/docker")
         include("*")
@@ -378,7 +397,11 @@ apollo {
             endpointUrl.set("https://test-drive.collibra.com/graphql/knowledgeGraph/v1")
             schemaFile.set(file("src/main/graphql/collibra/schema.graphqls"))
             // TODO remove creds
-            headers.set(mapOf("Authorization" to "Basic dGVzdGRyaXZldXNlcjlvMHY4bjRuOk9vY2Vtb2ckNW01cjduOGQ="))
+            headers.set(
+                mapOf(
+                    "Authorization" to "Basic dGVzdGRyaXZldXNlcjlvMHY4bjRuOk9vY2Vtb2ckNW01cjduOGQ="
+                )
+            )
         }
     }
 
@@ -389,7 +412,12 @@ apollo {
             endpointUrl.set("http://datahub-datahub-frontend.datahub:9002/api/graphql")
             schemaFile.set(file("src/main/graphql/datahub/schema.graphqls"))
             // TODO remove creds
-            headers.set(mapOf("Authorization" to "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhY3RvclR5cGUiOiJVU0VSIiwiYWN0b3JJZCI6ImRhdGFodWIiLCJ0eXBlIjoiUEVSU09OQUwiLCJ2ZXJzaW9uIjoiMiIsImp0aSI6IjE4YWExMjA3LWY2NTQtNDc4OS05MTU3LTkwYTMyMjExMWJkYyIsInN1YiI6ImRhdGFodWIiLCJpc3MiOiJkYXRhaHViLW1ldGFkYXRhLXNlcnZpY2UifQ.8-NksHdL4p3o9_Bryst2MOvH-bATl-avC8liB-E2_sM"))
+            headers.set(
+                mapOf(
+                    "Authorization" to
+                        "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhY3RvclR5cGUiOiJVU0VSIiwiYWN0b3JJZCI6ImRhdGFodWIiLCJ0eXBlIjoiUEVSU09OQUwiLCJ2ZXJzaW9uIjoiMiIsImp0aSI6IjE4YWExMjA3LWY2NTQtNDc4OS05MTU3LTkwYTMyMjExMWJkYyIsInN1YiI6ImRhdGFodWIiLCJpc3MiOiJkYXRhaHViLW1ldGFkYXRhLXNlcnZpY2UifQ.8-NksHdL4p3o9_Bryst2MOvH-bATl-avC8liB-E2_sM"
+                )
+            )
         }
     }
 }

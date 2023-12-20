@@ -8,8 +8,5 @@ import org.springframework.boot.test.context.SpringBootTest
 @Disabled
 class PaceApplicationTests {
 
-	@Test
-	fun contextLoads() {
-	}
-
+    @Test fun contextLoads() {}
 }

@@ -1,6 +1,10 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.data_catalogs.v1alpha.*
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Database as ApiDatabase
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Schema as ApiSchema
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Table as ApiTable
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.catalogs.CollibraCatalog
 import com.getstrm.pace.catalogs.DataCatalog
@@ -13,10 +17,6 @@ import com.getstrm.pace.util.orDefault
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Database as ApiDatabase
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Schema as ApiSchema
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Table as ApiTable
 
 @Component
 class DataCatalogsService(
@@ -24,28 +24,32 @@ class DataCatalogsService(
 ) {
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-    val catalogs: Map<String, DataCatalog> = catalogsConfig.catalogs.mapNotNull { config ->
-        try {
-            when (config.type) {
-                ApiCatalog.Type.TYPE_UNSPECIFIED -> null
-                ApiCatalog.Type.COLLIBRA -> CollibraCatalog(config)
-                ApiCatalog.Type.ODD -> OpenDataDiscoveryCatalog(config)
-                ApiCatalog.Type.DATAHUB -> DatahubCatalog(config)
-                ApiCatalog.Type.UNRECOGNIZED -> null
+    val catalogs: Map<String, DataCatalog> =
+        catalogsConfig.catalogs
+            .mapNotNull { config ->
+                try {
+                    when (config.type) {
+                        ApiCatalog.Type.TYPE_UNSPECIFIED -> null
+                        ApiCatalog.Type.COLLIBRA -> CollibraCatalog(config)
+                        ApiCatalog.Type.ODD -> OpenDataDiscoveryCatalog(config)
+                        ApiCatalog.Type.DATAHUB -> DatahubCatalog(config)
+                        ApiCatalog.Type.UNRECOGNIZED -> null
+                    }
+                } catch (e: Exception) {
+                    log.warn(
+                        "Can't instantiate DataCatalog ${config.id}/${config.type}: {}",
+                        e.message
+                    )
+                    null
+                }
             }
-        } catch (e: Exception) {
-            log.warn("Can't instantiate DataCatalog ${config.id}/${config.type}: {}", e.message)
-            null
-        }
-    }.associateBy { it.id }
+            .associateBy { it.id }
 
     // Ignoring paging for now
-    fun listCatalogs(request: ListCatalogsRequest): List<ApiCatalog> = catalogs.map { (id, platform) ->
-        ApiCatalog.newBuilder()
-            .setId(id)
-            .setType(platform.type)
-            .build()
-    }
+    fun listCatalogs(request: ListCatalogsRequest): List<ApiCatalog> =
+        catalogs.map { (id, platform) ->
+            ApiCatalog.newBuilder().setId(id).setType(platform.type).build()
+        }
 
     suspend fun listDatabases(request: ListDatabasesRequest): PagedCollection<ApiDatabase> =
         with(request) {
@@ -58,8 +62,6 @@ class DataCatalogsService(
             val schemas = getCatalog(catalogId).getDatabase(databaseId).listSchemas()
             return@with schemas.map { it.apiSchema }
         }
-
-
 
     suspend fun listTables(request: ListTablesRequest): PagedCollection<ApiTable> =
         with(request) {
@@ -81,12 +83,15 @@ class DataCatalogsService(
     }
 
     private fun getCatalog(id: String): DataCatalog =
-        catalogs[id] ?: throw ResourceException(
-            ResourceException.Code.NOT_FOUND,
-            ResourceInfo.newBuilder()
-                .setResourceType("Catalog")
-                .setResourceName(id)
-                .setDescription("Catalog $id not found, please ensure it is present in the configuration of the catalogs.")
-                .build()
-        )
+        catalogs[id]
+            ?: throw ResourceException(
+                ResourceException.Code.NOT_FOUND,
+                ResourceInfo.newBuilder()
+                    .setResourceType("Catalog")
+                    .setResourceName(id)
+                    .setDescription(
+                        "Catalog $id not found, please ensure it is present in the configuration of the catalogs."
+                    )
+                    .build()
+            )
 }

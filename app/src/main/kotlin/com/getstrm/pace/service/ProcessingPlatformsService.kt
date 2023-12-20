@@ -46,16 +46,19 @@ class ProcessingPlatformsService(
     }
 
     suspend fun listGroups(platformId: String): PagedCollection<Group> =
-        platforms[platformId]?.listGroups(DEFAULT_PAGE_PARAMETERS) ?: throw processingPlatformNotFound(platformId)
+        platforms[platformId]?.listGroups(DEFAULT_PAGE_PARAMETERS)
+            ?: throw processingPlatformNotFound(platformId)
 
     suspend fun listGroupNames(platformId: String): Set<String> =
         listGroups(platformId).map { it.name }.data.toSet()
 
     fun getProcessingPlatform(dataPolicy: DataPolicy): ProcessingPlatformClient {
-        val processingPlatform = platforms[dataPolicy.platform.id] ?: throw processingPlatformNotFound(
-            dataPolicy.platform.id,
-            dataPolicy.platform.platformType.name
-        )
+        val processingPlatform =
+            platforms[dataPolicy.platform.id]
+                ?: throw processingPlatformNotFound(
+                    dataPolicy.platform.id,
+                    dataPolicy.platform.platformType.name
+                )
         return processingPlatform.also {
             if (it.type != dataPolicy.platform.platformType) {
                 throw BadRequestException(
@@ -65,7 +68,9 @@ class ProcessingPlatformsService(
                             listOf(
                                 BadRequest.FieldViolation.newBuilder()
                                     .setField("dataPolicy.platform.platformType")
-                                    .setDescription("Platform type in DataPolicy ${dataPolicy.platform.platformType} does not correspond with configured platform ${dataPolicy.platform.id} of type ${it.type}")
+                                    .setDescription(
+                                        "Platform type in DataPolicy ${dataPolicy.platform.platformType} does not correspond with configured platform ${dataPolicy.platform.id} of type ${it.type}"
+                                    )
                                     .build()
                             )
                         )
@@ -76,18 +81,27 @@ class ProcessingPlatformsService(
     }
 
     suspend fun listProcessingPlatformTables(request: ListTablesRequest): PagedCollection<Table> =
-        (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)).listTables(request.pageParameters)
+        (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
+            .listTables(request.pageParameters)
 
     suspend fun listProcessingPlatformGroups(request: ListGroupsRequest): PagedCollection<Group> =
-        (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)).listGroups(request.pageParameters)
+        (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
+            .listGroups(request.pageParameters)
 
-    suspend fun getBlueprintPolicy(platformId: String, tableName: String): GetBlueprintPolicyResponse {
-        val processingPlatformInterface = platforms[platformId] ?: throw processingPlatformNotFound(platformId)
+    suspend fun getBlueprintPolicy(
+        platformId: String,
+        tableName: String
+    ): GetBlueprintPolicyResponse {
+        val processingPlatformInterface =
+            platforms[platformId] ?: throw processingPlatformNotFound(platformId)
         val table = processingPlatformInterface.getTable(tableName)
-        val baseDataPolicy = table.toDataPolicy(
-            DataPolicy.ProcessingPlatform.newBuilder().setId(platformId)
-                .setPlatformType(processingPlatformInterface.type).build()
-        )
+        val baseDataPolicy =
+            table.toDataPolicy(
+                DataPolicy.ProcessingPlatform.newBuilder()
+                    .setId(platformId)
+                    .setPlatformType(processingPlatformInterface.type)
+                    .build()
+            )
 
         return globalTransformsService.addRuleSet(baseDataPolicy).let { blueprint ->
             val builder = GetBlueprintPolicyResponse.newBuilder().setDataPolicy(blueprint)
@@ -96,28 +110,37 @@ class ProcessingPlatformsService(
                 builder.build()
             } catch (e: BadRequestException) {
                 e.status.description?.let {
-                    builder.setViolation(
-                        FieldViolation.newBuilder().setDescription(e.status.description))
+                    builder
+                        .setViolation(
+                            FieldViolation.newBuilder().setDescription(e.status.description)
+                        )
                         .build()
-
-                } ?: throw InternalException(InternalException.Code.INTERNAL, DebugInfo.newBuilder()
-                    .setDetail("DataPolicyValidatorService.validate threw an exception without a description. ${BUG_REPORT}" )
-                    .addAllStackEntries(e.stackTrace.map { it.toString()})
-                    .build()
-                )
-
+                }
+                    ?: throw InternalException(
+                        InternalException.Code.INTERNAL,
+                        DebugInfo.newBuilder()
+                            .setDetail(
+                                "DataPolicyValidatorService.validate threw an exception without a description. ${BUG_REPORT}"
+                            )
+                            .addAllStackEntries(e.stackTrace.map { it.toString() })
+                            .build()
+                    )
             }
         }
     }
 
-    private fun processingPlatformNotFound(platformId: String, owner: String? = null) = ResourceException(
-        ResourceException.Code.NOT_FOUND, ResourceInfo.newBuilder()
-            .setResourceType(PROCESSING_PLATFORM)
-            .setResourceName(platformId)
-            .setDescription("Platform with id $platformId not found, please ensure it is present in the configuration of the processing platforms.")
-            .apply { if (owner != null) setOwner(owner) }
-            .build()
-    )
+    private fun processingPlatformNotFound(platformId: String, owner: String? = null) =
+        ResourceException(
+            ResourceException.Code.NOT_FOUND,
+            ResourceInfo.newBuilder()
+                .setResourceType(PROCESSING_PLATFORM)
+                .setResourceName(platformId)
+                .setDescription(
+                    "Platform with id $platformId not found, please ensure it is present in the configuration of the processing platforms."
+                )
+                .apply { if (owner != null) setOwner(owner) }
+                .build()
+        )
 
     companion object {
         private const val PROCESSING_PLATFORM = "Processing Platform"

@@ -24,18 +24,17 @@ import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForEntity
 
-class SnowflakeClient(
-    override val id: String,
-    private val config: SnowflakeConfig
-) : ProcessingPlatformClient {
+class SnowflakeClient(override val id: String, private val config: SnowflakeConfig) :
+    ProcessingPlatformClient {
     constructor(config: SnowflakeConfig) : this(config.id, config)
 
-    private val snowflakeJwtIssuer = SnowflakeJwtIssuer.fromOrganizationAndAccountName(
-        privateKey = config.privateKey,
-        organizationName = config.organizationName,
-        accountName = config.accountName,
-        userName = config.userName
-    )
+    private val snowflakeJwtIssuer =
+        SnowflakeJwtIssuer.fromOrganizationAndAccountName(
+            privateKey = config.privateKey,
+            organizationName = config.organizationName,
+            accountName = config.accountName,
+            userName = config.userName
+        )
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
     private val restTemplate = RestTemplate()
@@ -64,16 +63,21 @@ class SnowflakeClient(
     }
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
-        val statement = SnowflakeViewGenerator(dataPolicy).toDynamicViewSQL().sql
-            .replace("\\n".toRegex(), "\\\\n")
-            .replace("""(\\\d)""".toRegex(), """\\\\""" + "\$1")
-        val statementCount = statement.mapNotNull { element -> element.takeIf { it == ';' } }.size.toString()
-        val request = SnowflakeRequest(
-            statement = statement,
-            database = config.database,
-            warehouse = config.warehouse,
-            parameters = mapOf("MULTI_STATEMENT_COUNT" to statementCount),
-        )
+        val statement =
+            SnowflakeViewGenerator(dataPolicy)
+                .toDynamicViewSQL()
+                .sql
+                .replace("\\n".toRegex(), "\\\\n")
+                .replace("""(\\\d)""".toRegex(), """\\\\""" + "\$1")
+        val statementCount =
+            statement.mapNotNull { element -> element.takeIf { it == ';' } }.size.toString()
+        val request =
+            SnowflakeRequest(
+                statement = statement,
+                database = config.database,
+                warehouse = config.warehouse,
+                parameters = mapOf("MULTI_STATEMENT_COUNT" to statementCount),
+            )
         executeRequest(request)
     }
 
@@ -86,25 +90,33 @@ class SnowflakeClient(
                ORDER BY table_name
                LIMIT ${pageParameters.pageSize}
                OFFSET ${pageParameters.skip} ;
-            """.trimMargin()
-        val request = SnowflakeRequest(
-            statement = statement,
-            database = config.database,
-            warehouse = config.warehouse,
-        )
-        return executeRequest(request).body?.data.orEmpty().map { (schemaName, tableName) ->
-            val fullName = "$schemaName.$tableName"
-            SnowflakeTable(fullName, config, tableName, schemaName, this)
-        }.withPageInfo()
+            """
+                .trimMargin()
+        val request =
+            SnowflakeRequest(
+                statement = statement,
+                database = config.database,
+                warehouse = config.warehouse,
+            )
+        return executeRequest(request)
+            .body
+            ?.data
+            .orEmpty()
+            .map { (schemaName, tableName) ->
+                val fullName = "$schemaName.$tableName"
+                SnowflakeTable(fullName, config, tableName, schemaName, this)
+            }
+            .withPageInfo()
     }
 
     fun describeTable(schema: String, table: String): SnowflakeResponse? {
-        val request = SnowflakeRequest(
-            statement = "DESCRIBE TABLE \"$schema\".\"$table\"",
-            database = config.database,
-            warehouse = config.warehouse,
-            schema = schema,
-        )
+        val request =
+            SnowflakeRequest(
+                statement = "DESCRIBE TABLE \"$schema\".\"$table\"",
+                database = config.database,
+                warehouse = config.warehouse,
+                schema = schema,
+            )
         val snowflakeResponse = executeRequest(request)
 
         if (snowflakeResponse.body?.message != "Statement executed successfully.") {
@@ -115,32 +127,38 @@ class SnowflakeClient(
     }
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
-        val request = SnowflakeRequest(
-            statement = "SHOW ROLES",
-        )
+        val request =
+            SnowflakeRequest(
+                statement = "SHOW ROLES",
+            )
         val response = executeRequest(request)
 
         if (response.body?.message != "Statement executed successfully.") {
             throw RuntimeException(response.body?.message)
         }
-        return response.body?.data.orEmpty().mapNotNull {
-            val owner = it[8]
-            if (owner.isEmpty()) {
-                null
-            } else {
-                Group(id = it[1], name = it[1])
+        return response.body
+            ?.data
+            .orEmpty()
+            .mapNotNull {
+                val owner = it[8]
+                if (owner.isEmpty()) {
+                    null
+                } else {
+                    Group(id = it[1], name = it[1])
+                }
             }
-        }.applyPageParameters(pageParameters)
+            .applyPageParameters(pageParameters)
             .withPageInfo()
     }
 
-    private fun jsonHeaders() = HttpHeaders().apply {
-        setBearerAuth(snowflakeJwtIssuer.issueJwtToken())
-        contentType = MediaType.APPLICATION_JSON
-        accept = listOf(MediaType.APPLICATION_JSON)
-        // Required for Keypair authentication
-        set("X-Snowflake-Authorization-Token-Type", "KEYPAIR_JWT")
-    }
+    private fun jsonHeaders() =
+        HttpHeaders().apply {
+            setBearerAuth(snowflakeJwtIssuer.issueJwtToken())
+            contentType = MediaType.APPLICATION_JSON
+            accept = listOf(MediaType.APPLICATION_JSON)
+            // Required for Keypair authentication
+            set("X-Snowflake-Authorization-Token-Type", "KEYPAIR_JWT")
+        }
 }
 
 data class SnowflakeRequest(
@@ -161,6 +179,7 @@ class SnowflakeTable(
     private val client: SnowflakeClient,
 ) : Table() {
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
     override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
         return client.describeTable(schema, table)?.toDataPolicy(platform, fullName)
             ?: throw ResourceException(
@@ -168,17 +187,21 @@ class SnowflakeTable(
                 ResourceInfo.newBuilder()
                     .setResourceType("Table")
                     .setResourceName(fullName)
-                    .setDescription("Table $fullName not found in Snowflake. Verify that it exists and that the client user has access to it.")
+                    .setDescription(
+                        "Table $fullName not found in Snowflake. Verify that it exists and that the client user has access to it."
+                    )
                     .setOwner("Schema: $schema")
                     .build()
             )
     }
 
-    private fun SnowflakeResponse.toDataPolicy(platform: DataPolicy.ProcessingPlatform, fullName: String): DataPolicy {
+    private fun SnowflakeResponse.toDataPolicy(
+        platform: DataPolicy.ProcessingPlatform,
+        fullName: String
+    ): DataPolicy {
         return DataPolicy.newBuilder()
             .setMetadata(
-                DataPolicy.Metadata.newBuilder()
-                    .setTitle(fullName),
+                DataPolicy.Metadata.newBuilder().setTitle(fullName),
             )
             .setPlatform(platform)
             .setSource(
@@ -188,7 +211,7 @@ class SnowflakeTable(
                         // Todo: make this more type-safe
                         data.orEmpty().map { (name, type, _, nullable) ->
                             val snowflakeResponse = retrieveColumnTags(name)
-                            val tags = snowflakeResponse.body.data?.map{it[0]}?: emptyList()
+                            val tags = snowflakeResponse.body.data?.map { it[0] } ?: emptyList()
 
                             DataPolicy.Field.newBuilder()
                                 .addAllNameParts(listOf(name))
@@ -205,16 +228,19 @@ class SnowflakeTable(
     }
 
     private fun retrieveColumnTags(name: String): ResponseEntity<SnowflakeResponse> {
-        val request = SnowflakeRequest(
-            statement = """
+        val request =
+            SnowflakeRequest(
+                statement =
+                    """
                 SELECT TAG_NAME, TAG_VALUE FROM TABLE (
                     ${config.database}.INFORMATION_SCHEMA.TAG_REFERENCES(
                         '$schema.$table.$name', 'COLUMN'))
-                 """.trimIndent(),
-            database = config.database,
-            warehouse = config.warehouse,
-            schema = schema,
-        )
+                 """
+                        .trimIndent(),
+                database = config.database,
+                warehouse = config.warehouse,
+                schema = schema,
+            )
         val snowflakeResponse = client.executeRequest(request)
 
         if (snowflakeResponse.body?.message != "Statement executed successfully.") {

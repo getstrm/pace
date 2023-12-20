@@ -12,9 +12,9 @@ import io.datahubproject.generated.ListDatasetsQuery
 
 /**
  * interaction with Datahub.
- * 
- * Datahub doesn't have a database→schema→table category.
- * Instead we reply with just one database, one schema, and a large set of tables.
+ *
+ * Datahub doesn't have a database→schema→table category. Instead we reply with just one database,
+ * one schema, and a large set of tables.
  */
 class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
     val client = apolloClient()
@@ -25,7 +25,9 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         client.close()
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<DataCatalog.Database> {
+    override suspend fun listDatabases(
+        pageParameters: PageParameters
+    ): PagedCollection<DataCatalog.Database> {
         return listOf(database).withPageInfo()
     }
 
@@ -33,51 +35,68 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         return database
     }
 
-    inner class Database(override val catalog: DatahubCatalog):
-        DataCatalog.Database( catalog, catalog.id, "datahub", catalog.id ) {
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<DataCatalog.Schema> =
-            listOf(schema).withPageInfo()
+    inner class Database(override val catalog: DatahubCatalog) :
+        DataCatalog.Database(catalog, catalog.id, "datahub", catalog.id) {
+        override suspend fun listSchemas(
+            pageParameters: PageParameters
+        ): PagedCollection<DataCatalog.Schema> = listOf(schema).withPageInfo()
+
         override suspend fun getSchema(schemaId: String) = schema
     }
 
-    inner class Schema(database: Database) : DataCatalog.Schema(database, database.id, database.id) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<DataCatalog.Table> {
-            val response = client.query(ListDatasetsQuery(
-                pageParameters.skip, pageParameters.pageSize)).execute()
-            if (response.hasErrors()) throw RuntimeException("Error fetching databases: ${response.errors}")
-            val tables = response.data?.search?.searchResults?.map { Table(this, it.entity.urn) }.orEmpty()
+    inner class Schema(database: Database) :
+        DataCatalog.Schema(database, database.id, database.id) {
+        override suspend fun listTables(
+            pageParameters: PageParameters
+        ): PagedCollection<DataCatalog.Table> {
+            val response =
+                client
+                    .query(ListDatasetsQuery(pageParameters.skip, pageParameters.pageSize))
+                    .execute()
+            if (response.hasErrors())
+                throw RuntimeException("Error fetching databases: ${response.errors}")
+            val tables =
+                response.data?.search?.searchResults?.map { Table(this, it.entity.urn) }.orEmpty()
             return tables.withTotal(response.data?.search?.total ?: -1)
         }
-        
+
         override suspend fun getTable(tableId: String): DataCatalog.Table {
             val response = client.query(GetDatasetDetailsQuery(tableId)).execute()
-            val dataset = response.data!!.dataset ?: throw ResourceException(
-                    ResourceException.Code.NOT_FOUND,
-                    ResourceInfo.newBuilder()
-                        .setResourceType("Table")
-                        .setResourceName(tableId)
-                        .setDescription("Table $tableId not found in schema $id")
-                        .setOwner("Schema: $id")
-                        .build()
-                )
-            return Table(this, dataset.urn )
+            val dataset =
+                response.data!!.dataset
+                    ?: throw ResourceException(
+                        ResourceException.Code.NOT_FOUND,
+                        ResourceInfo.newBuilder()
+                            .setResourceType("Table")
+                            .setResourceName(tableId)
+                            .setDescription("Table $tableId not found in schema $id")
+                            .setOwner("Schema: $id")
+                            .build()
+                    )
+            return Table(this, dataset.urn)
         }
     }
 
     inner class Table(schema: Schema, urn: String) : DataCatalog.Table(schema, urn, urn) {
         // this property is lazily filled in when calling getDataPolicy
         lateinit var dataset: GetDatasetDetailsQuery.Dataset
-        
+
         override suspend fun createBlueprint(): DataPolicy? {
             val response = client.query(GetDatasetDetailsQuery(id)).execute()
             dataset = response.data!!.dataset!!
-            if (response.hasErrors()) throw RuntimeException("Error fetching details of dataset: ${response.errors}")
+            if (response.hasErrors())
+                throw RuntimeException("Error fetching details of dataset: ${response.errors}")
             val policyBuilder = DataPolicy.newBuilder()
 
             // tags don't exist in schemaMetadata but only in editableSchemaMetadata!
-            val addtributeTags = dataset.editableSchemaMetadata?.editableSchemaFieldInfo?.map {
-                it.fieldPath to it.tags?.tags?.map { it.tag.properties?.name.orEmpty() }.orEmpty()
-            }?.toMap() ?: emptyMap()
+            val addtributeTags =
+                dataset.editableSchemaMetadata
+                    ?.editableSchemaFieldInfo
+                    ?.map {
+                        it.fieldPath to
+                            it.tags?.tags?.map { it.tag.properties?.name.orEmpty() }.orEmpty()
+                    }
+                    ?.toMap() ?: emptyMap()
 
             policyBuilder.sourceBuilder.addAllFields(
                 dataset.schemaMetadata?.fields?.map {
@@ -86,11 +105,13 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                         .addAllTags(addtributeTags[it.fieldPath] ?: emptyList())
                         .setType(it.type.rawValue)
                         .setRequired(!it.nullable)
-                        .build().normalizeType()
+                        .build()
+                        .normalizeType()
                 } ?: emptyList(),
             )
 
-            policyBuilder.metadataBuilder.title = dataset.platform.properties?.displayName ?: dataset.urn
+            policyBuilder.metadataBuilder.title =
+                dataset.platform.properties?.displayName ?: dataset.urn
             policyBuilder.metadataBuilder.description = dataset.platform.name
             policyBuilder.metadataBuilder.addAllTags(
                 dataset.tags?.tags?.map { it.tag.properties?.name.orEmpty() }.orEmpty(),
@@ -100,20 +121,21 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         }
 
         /**
-         * Some fieldPaths in the Datahub sample data (e.g. Kafka), contain field paths that match '[version=2.0].[type=boolean].field_bar', which is probably an export format of Kafka. We need to skip the version and type here, as those are not actual path components.
+         * Some fieldPaths in the Datahub sample data (e.g. Kafka), contain field paths that match
+         * '[version=2.0].[type=boolean].field_bar', which is probably an export format of Kafka. We
+         * need to skip the version and type here, as those are not actual path components.
          */
         private fun String.extractPathComponents() = this.replace(stripKafkaPrefix, "").split(".")
-
     }
 
-    private fun apolloClient(): ApolloClient = ApolloClient.Builder()
-        .serverUrl(config.serverUrl)
-        .addHttpHeader("Authorization", "Bearer ${config.token}")
-        .build()
-    
+    private fun apolloClient(): ApolloClient =
+        ApolloClient.Builder()
+            .serverUrl(config.serverUrl)
+            .addHttpHeader("Authorization", "Bearer ${config.token}")
+            .build()
+
     companion object {
         val urnPattern = """^urn:li:dataset:\(urn:li:dataPlatform:([^,]*),(.*)\)$""".toRegex()
         private val stripKafkaPrefix = """^(\[[^]]+\]\.)+""".toRegex()
-        
     }
 }

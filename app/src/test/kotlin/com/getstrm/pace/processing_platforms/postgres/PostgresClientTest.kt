@@ -24,7 +24,10 @@ class PostgresClientTest : AbstractDatabaseTest() {
         // Given a table in the database
 
         // When
-        val actual = runBlocking { underTest.listTables(DEFAULT_PAGE_PARAMETERS) }.data.filter { !ignoreTables.contains(it.fullName) }
+        val actual =
+            runBlocking { underTest.listTables(DEFAULT_PAGE_PARAMETERS) }
+                .data
+                .filter { !ignoreTables.contains(it.fullName) }
         val tableNames = actual.map { it.fullName }
 
         // Then
@@ -36,13 +39,15 @@ class PostgresClientTest : AbstractDatabaseTest() {
         // Given some groups in the database
 
         // When
-        val (actual, pageInfo) = runBlocking { underTest.listGroups(DEFAULT_PAGE_PARAMETERS) }.map { it.copy(id = "") }
+        val (actual, pageInfo) =
+            runBlocking { underTest.listGroups(DEFAULT_PAGE_PARAMETERS) }.map { it.copy(id = "") }
 
         // Then
-        actual shouldBe listOf(
-            Group("", "fraud_and_risk"),
-            Group("", "marketing"),
-        )
+        actual shouldBe
+            listOf(
+                Group("", "fraud_and_risk"),
+                Group("", "marketing"),
+            )
         pageInfo.total shouldBe 2
     }
 
@@ -51,9 +56,15 @@ class PostgresClientTest : AbstractDatabaseTest() {
         // Given a table in the database
 
         // When
-        val actual = runBlocking { underTest.listTables(DEFAULT_PAGE_PARAMETERS) }.data.filter { !ignoreTables.contains(it.fullName) }
+        val actual =
+            runBlocking { underTest.listTables(DEFAULT_PAGE_PARAMETERS) }
+                .data
+                .filter { !ignoreTables.contains(it.fullName) }
         runBlocking {
-            val policy = actual.map { it.toDataPolicy(DataPolicy.ProcessingPlatform.getDefaultInstance()) }.first()
+            val policy =
+                actual
+                    .map { it.toDataPolicy(DataPolicy.ProcessingPlatform.getDefaultInstance()) }
+                    .first()
             val field = policy.source.fieldsList.find { it.pathString() == "email" }!!
             field.tagsList shouldContainExactlyInAnyOrder listOf("pii", "with whitespace", "email")
         }

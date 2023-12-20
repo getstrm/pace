@@ -1,8 +1,10 @@
 package com.getstrm.pace.service
 
+import build.buf.gen.getstrm.pace.api.plugins.v1alpha.Action as ApiAction
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.DataPolicyGenerator
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.InvokePluginRequest
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.InvokePluginResponse
+import build.buf.gen.getstrm.pace.api.plugins.v1alpha.Plugin as ApiPlugin
 import build.buf.gen.getstrm.pace.api.plugins.v1alpha.SampleDataGenerator
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.PreconditionFailedException
@@ -13,25 +15,26 @@ import com.getstrm.pace.plugins.PluginAction
 import com.google.rpc.BadRequest
 import com.google.rpc.PreconditionFailure
 import org.springframework.stereotype.Component
-import build.buf.gen.getstrm.pace.api.plugins.v1alpha.Action as ApiAction
-import build.buf.gen.getstrm.pace.api.plugins.v1alpha.Plugin as ApiPlugin
 
 @Component
 class PluginsService(plugins: List<Plugin>) {
     private val pluginsById = plugins.associateBy { it.id }
 
-    private val apiPlugins = plugins.map {
-        ApiPlugin.newBuilder()
-            .setId(it.id)
-            .addAllActions(it.actions.values.map { action ->
-                ApiAction.newBuilder()
-                    .setType(action.type)
-                    .setInvokable(action.invokable)
-                    .build()
-            })
-            .setImplementation(it::class.java.canonicalName)
-            .build()
-    }
+    private val apiPlugins =
+        plugins.map {
+            ApiPlugin.newBuilder()
+                .setId(it.id)
+                .addAllActions(
+                    it.actions.values.map { action ->
+                        ApiAction.newBuilder()
+                            .setType(action.type)
+                            .setInvokable(action.invokable)
+                            .build()
+                    }
+                )
+                .setImplementation(it::class.java.canonicalName)
+                .build()
+        }
 
     fun listPlugins(): List<ApiPlugin> = apiPlugins
 
@@ -50,7 +53,6 @@ class PluginsService(plugins: List<Plugin>) {
                     DataPolicyGenerator.Result.newBuilder().setDataPolicy(dataPolicy)
                 )
             }
-
             is GenerateSampleDataAction -> {
                 val sampleData = action.invoke(request.sampleDataGeneratorParameters.payload)
 
@@ -75,7 +77,9 @@ class PluginsService(plugins: List<Plugin>) {
                         .addFieldViolations(
                             BadRequest.FieldViolation.newBuilder()
                                 .setField("action")
-                                .setDescription("Invalid action: must be specified when plugin has more than one action")
+                                .setDescription(
+                                    "Invalid action: must be specified when plugin has more than one action"
+                                )
                                 .build()
                         )
                         .build()
@@ -87,7 +91,10 @@ class PluginsService(plugins: List<Plugin>) {
         }
     }
 
-    private fun pluginNotFoundException(actionType: ApiAction.Type? = null, pluginId: String? = null) =
+    private fun pluginNotFoundException(
+        actionType: ApiAction.Type? = null,
+        pluginId: String? = null
+    ) =
         PreconditionFailedException(
             PreconditionFailedException.Code.FAILED_PRECONDITION,
             PreconditionFailure.newBuilder()
@@ -96,9 +103,12 @@ class PluginsService(plugins: List<Plugin>) {
                         .setType("plugin")
                         .apply { pluginId?.let { setSubject(it) } }
                         .setDescription(
-                            "Plugin not found or configured." + actionType?.let {
-                                " Ensure that your PACE instance has an implementation for ${it.name}."
-                            }.orEmpty()
+                            "Plugin not found or configured." +
+                                actionType
+                                    ?.let {
+                                        " Ensure that your PACE instance has an implementation for ${it.name}."
+                                    }
+                                    .orEmpty()
                         )
                         .build()
                 )

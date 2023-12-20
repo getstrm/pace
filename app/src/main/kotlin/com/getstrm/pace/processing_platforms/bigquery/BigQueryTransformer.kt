@@ -15,7 +15,8 @@ class BigQueryTransformer(
     customJooqSettings: Settings.() -> Unit = {},
 ) : ProcessingPlatformTransformer {
     /**
-     * BigQuery requires backticked names for certain names, and MySQL dialect uses backticks, so we abuse this here.
+     * BigQuery requires backticked names for certain names, and MySQL dialect uses backticks, so we
+     * abuse this here.
      */
     private val bigQueryDsl: DSLContext =
         DSL.using(SQLDialect.MYSQL, defaultJooqSettings.apply(customJooqSettings))
@@ -34,8 +35,11 @@ class BigQueryTransformer(
                 DSL.`val`(regexp.regexp),
             )
         } else {
-            // Bigquery expects two backslashes for the capturing group notation, here doubled because of Kotlin escaping.
-            val replacementWithBackslashNotation = regexp.replacement.replace(CAPTURING_GROUP_REGEX, """\\\\$1""")
+            // Bigquery expects two backslashes for the capturing group notation, here doubled
+            // because of
+            // Kotlin escaping.
+            val replacementWithBackslashNotation =
+                regexp.replacement.replace(CAPTURING_GROUP_REGEX, """\\\\$1""")
             DSL.field(
                 "regexp_replace({0}, {1}, {2})",
                 String::class.java,

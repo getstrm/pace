@@ -8,7 +8,6 @@ import com.google.rpc.DebugInfo
 import io.grpc.*
 import org.slf4j.LoggerFactory
 
-
 class ValidationInterceptor : ServerInterceptor {
     override fun <ReqT, RespT> interceptCall(
         serverCall: ServerCall<ReqT, RespT>,
@@ -28,7 +27,6 @@ class ValidationForwardingServerCallListener<ReqT, RespT>(
 ) : ForwardingServerCallListener.SimpleForwardingServerCallListener<ReqT>(delegate) {
     private var aborted = false
 
-
     override fun onMessage(message: ReqT) {
         try {
             val protoMessage = message as Message
@@ -44,13 +42,16 @@ class ValidationForwardingServerCallListener<ReqT, RespT>(
             aborted = true
             val protoMessageName = "'Cannot determine Proto Message name'"
             log.error("An exception occurred while validating message $protoMessageName", e)
-            val internalException = InternalException(
-                InternalException.Code.INTERNAL,
-                DebugInfo.newBuilder()
-                    .setDetail("Validation of message $protoMessageName failed, ${e.message}, $BUG_REPORT")
-                    .addAllStackEntries(e.stackTrace.map { it.toString() })
-                    .build()
-            )
+            val internalException =
+                InternalException(
+                    InternalException.Code.INTERNAL,
+                    DebugInfo.newBuilder()
+                        .setDetail(
+                            "Validation of message $protoMessageName failed, ${e.message}, $BUG_REPORT"
+                        )
+                        .addAllStackEntries(e.stackTrace.map { it.toString() })
+                        .build()
+                )
             serverCall.close(internalException.status, internalException.trailers())
         }
     }
@@ -62,7 +63,8 @@ class ValidationForwardingServerCallListener<ReqT, RespT>(
     }
 
     companion object {
-        private val log by lazy { LoggerFactory.getLogger(ValidationForwardingServerCallListener::class.java) }
+        private val log by lazy {
+            LoggerFactory.getLogger(ValidationForwardingServerCallListener::class.java)
+        }
     }
 }
-

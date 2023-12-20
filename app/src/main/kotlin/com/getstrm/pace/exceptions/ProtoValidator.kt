@@ -19,28 +19,31 @@ object ProtoValidator {
             if (result.violations.isEmpty()) {
                 null
             } else {
-                val violations = result.violations.map {
-                    BadRequest.FieldViolation.newBuilder()
-                        .setField(if (it.forKey) "${it.fieldPath} (map key)" else it.fieldPath)
-                        .setDescription("${it.message} (constraint id = ${it.constraintId})")
-                        .build()
-                }
+                val violations =
+                    result.violations.map {
+                        BadRequest.FieldViolation.newBuilder()
+                            .setField(if (it.forKey) "${it.fieldPath} (map key)" else it.fieldPath)
+                            .setDescription("${it.message} (constraint id = ${it.constraintId})")
+                            .build()
+                    }
 
                 BadRequestException(
                     BadRequestException.Code.INVALID_ARGUMENT,
-                    BadRequest.newBuilder()
-                        .addAllFieldViolations(violations)
-                        .build(),
-                    errorMessage = "Validation of message ${message.descriptorForType.name} failed, ${violations.size} violations found",
+                    BadRequest.newBuilder().addAllFieldViolations(violations).build(),
+                    errorMessage =
+                        "Validation of message ${message.descriptorForType.name} failed, ${violations.size} violations found",
                 )
             }
         } catch (e: ValidationException) {
-            val protoMessageName = message.descriptorForType.name ?: "'Cannot determine Proto Message name'"
+            val protoMessageName =
+                message.descriptorForType.name ?: "'Cannot determine Proto Message name'"
             log.error("An exception occurred while validating message $protoMessageName", e)
             InternalException(
                 InternalException.Code.INTERNAL,
                 DebugInfo.newBuilder()
-                    .setDetail("Validation of message $protoMessageName failed, ${e.message}, ${PaceStatusException.BUG_REPORT}")
+                    .setDetail(
+                        "Validation of message $protoMessageName failed, ${e.message}, ${PaceStatusException.BUG_REPORT}"
+                    )
                     .addAllStackEntries(e.stackTrace.map { it.toString() })
                     .build()
             )
