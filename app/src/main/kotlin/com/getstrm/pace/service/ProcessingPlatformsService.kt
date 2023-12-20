@@ -1,19 +1,12 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyResponse
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListGroupsRequest
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListTablesRequest
-import build.buf.gen.google.rpc.BadRequest.FieldViolation
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.*
 import com.getstrm.pace.config.ProcessingPlatformConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.exceptions.InternalException
-import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.processing_platforms.bigquery.BigQueryClient
 import com.getstrm.pace.processing_platforms.databricks.DatabricksClient
 import com.getstrm.pace.processing_platforms.postgres.PostgresClient
@@ -22,10 +15,11 @@ import com.getstrm.pace.processing_platforms.synapse.SynapseClient
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
 import com.google.rpc.BadRequest
-import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database as ApiDatabase
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema as ApiSchema
 
 @Component
 class ProcessingPlatformsService(
@@ -76,12 +70,24 @@ class ProcessingPlatformsService(
         }
     }
 
-    suspend fun listProcessingPlatformTables(request: ListTablesRequest): PagedCollection<Table> =
-        (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)).listTables(request.pageParameters)
+    suspend fun listProcessingPlatformTables(request: ListTablesRequest): PagedCollection<ProcessingPlatformClient.Table> {
+        val processingPlatformClient: ProcessingPlatformClient =
+            platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
+        val schema: ProcessingPlatformClient.Schema = processingPlatformClient.getDatabase(request.databaseId).getSchema(request.schemaId)
+        return schema.listTables(
+            request.pageParameters
+        )
+    }
 
     suspend fun listProcessingPlatformGroups(request: ListGroupsRequest): PagedCollection<Group> =
         (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)).listGroups(request.pageParameters)
 
+
+    fun getBlueprintPolicy(request: GetBlueprintPolicyRequest): GetBlueprintPolicyResponse {
+        TODO("Not yet implemented")
+    }
+
+    /*
     suspend fun getBlueprintPolicy(platformId: String, tableName: String): GetBlueprintPolicyResponse {
         val processingPlatformInterface = platforms[platformId] ?: throw processingPlatformNotFound(platformId)
         val table = processingPlatformInterface.getTable(tableName)
@@ -110,6 +116,7 @@ class ProcessingPlatformsService(
             }
         }
     }
+     */
 
     private fun processingPlatformNotFound(platformId: String, owner: String? = null) = ResourceException(
         ResourceException.Code.NOT_FOUND, ResourceInfo.newBuilder()
@@ -119,6 +126,13 @@ class ProcessingPlatformsService(
             .apply { if (owner != null) setOwner(owner) }
             .build()
     )
+
+    fun listDatabases(request: ListDatabasesRequest): PagedCollection<ApiDatabase> {
+        TODO("Not yet implemented")
+    }
+    fun listSchemas(request: ListSchemasRequest): PagedCollection<ApiSchema> {
+        TODO("Not yet implemented")
+    }
 
     companion object {
         private const val PROCESSING_PLATFORM = "Processing Platform"

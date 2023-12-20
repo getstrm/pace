@@ -53,12 +53,14 @@ class DatabricksClientTest {
                 listOf("test_bigint_column", "tag1"),
                 listOf("test_string_column", "email")
                 )))
-        val table = DatabricksTable(tableInfo.name, tableInfo, client)
+        val database = client.DatabricksDatabase(client, "hallo")
+        val schema = client.DatabricksSchema(database, "hallo", "schema")
+        val table = client.DatabricksTable(schema, tableInfo.name, tableInfo, client)
 
         val platform = ProcessingPlatform.newBuilder().setId("test-platform").build()
 
         // When
-        val policy = runBlocking { table.toDataPolicy(platform) }
+        val policy = runBlocking { table.createBlueprint() }
 
         // Then
         val createdTimestamp = Timestamp.newBuilder()

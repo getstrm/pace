@@ -1,6 +1,7 @@
 package com.getstrm.pace.api
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageInfo
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.*
 import com.getstrm.pace.service.ProcessingPlatformsService
 import net.devh.boot.grpc.server.service.GrpcService
@@ -24,23 +25,19 @@ class ProcessingPlatformsApi(
         ).build()
 
     override suspend fun listDatabases(request: ListDatabasesRequest): ListDatabasesResponse {
-        // TODO just to get the cli started.
+        val (databases, pageInfo) = processingPlatformsService.listDatabases(request)
         return ListDatabasesResponse.newBuilder()
-            .addDatabases(ApiDatabase.newBuilder()
-                .setId("Bart")
-                .setDisplayName("BBB")
-            )
+            .addAllDatabases(databases)
+            .setPageInfo(pageInfo)
         .build()
     }
 
     override suspend fun listSchemas(request: ListSchemasRequest): ListSchemasResponse {
-        // TODO just to get the cli started.
+        val (schemas, pageInfo) = processingPlatformsService.listSchemas(request)
         return ListSchemasResponse.newBuilder()
-            .addSchemas(
-                ApiSchema.newBuilder()
-                .setId("Bart ze schema")
-            )
-        .build()
+            .addAllSchemas(schemas)
+            .setPageInfo(pageInfo)
+            .build()
     }
     override suspend fun listTables(request: ListTablesRequest): ListTablesResponse {
         val (tables, pageInfo) = processingPlatformsService.listProcessingPlatformTables(request)
@@ -65,5 +62,5 @@ class ProcessingPlatformsApi(
     }
 
     override suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest) =
-        processingPlatformsService.getBlueprintPolicy(request.platformId, request.tableId)
+        processingPlatformsService.getBlueprintPolicy(request)
 }

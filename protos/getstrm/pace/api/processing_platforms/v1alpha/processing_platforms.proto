@@ -107,7 +107,7 @@ message ListGroupsResponse {
 
 message GetBlueprintPolicyRequest {
     string platform_id = 1 [(buf.validate.field).string = {min_len: 1}];
-    string table_id = 2 [(buf.validate.field).string = {min_len: 1}];
+    entities.v1alpha.Table table = 2;
 }
 
 message GetBlueprintPolicyResponse {

@@ -1,9 +1,7 @@
 package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.*
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
-import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.config.PPConfig
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
@@ -16,11 +14,13 @@ abstract class ProcessingPlatformClient(
         get() = config.id
     val type: ProcessingPlatform.PlatformType
         get() = config.type
+    val apiProcessingPlatform: ProcessingPlatform
+        get() = ProcessingPlatform.newBuilder().setId(id).setPlatformType(config.type).build()
     abstract suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group>
     abstract suspend fun applyPolicy(dataPolicy: DataPolicy)
 
-    abstract suspend fun listDatabases(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): PagedCollection<DataCatalog.Database>
-    abstract suspend fun getDatabase(databaseId: String): DataCatalog.Database
+    abstract suspend fun listDatabases(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): PagedCollection<Database>
+    abstract suspend fun getDatabase(databaseId: String): Database
     
     /**
      * A table is a collection of columns.
@@ -33,8 +33,10 @@ abstract class ProcessingPlatformClient(
          * gathering for creating blueprints becomes non-lazy. You can see this for
          * instance with the DataHub implementation
          */
-        abstract suspend fun createBlueprint(): DataPolicy?
+        abstract suspend fun createBlueprint(): DataPolicy
         override fun toString(): String = "Table($id, $name)"
+        abstract val fullName: String
+        val apiPlatform = schema.database.pp.apiProcessingPlatform
         val apiTable: build.buf.gen.getstrm.pace.api.entities.v1alpha.Table
             get() = build.buf.gen.getstrm.pace.api.entities.v1alpha.Table.newBuilder()
                 .setId(id)
@@ -60,7 +62,7 @@ abstract class ProcessingPlatformClient(
 
     /** meta information database */
     abstract class Database(
-        open val catalog: DataCatalog,
+        open val pp: ProcessingPlatformClient,
         val id: String,
         val dbType: String? = null,
         val displayName: String? = null
@@ -72,20 +74,12 @@ abstract class ProcessingPlatformClient(
 
         val apiDatabase: build.buf.gen.getstrm.pace.api.entities.v1alpha.Database
             get() = build.buf.gen.getstrm.pace.api.entities.v1alpha.Database.newBuilder()
-                .setCatalog(catalog.apiCatalog)
+                .setProcessingPlatform(pp.apiProcessingPlatform)
                 .setDisplayName(displayName.orEmpty())
                 .setId(id)
                 .setType(dbType.orEmpty())
                 .build()
     }
-}
-
-data class Group(val id: String, val name: String, val description: String? = null)
-
-abstract class UNUSED_I_THINK {
-    abstract val fullName: String
-    abstract suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy
-    override fun toString(): String = "${javaClass.simpleName}(fullName=$fullName)"
     companion object {
         private val regex = """(?:pace)\:\:((?:\"[\w\s\-\_]+\"|[\w\-\_]+))""".toRegex()
         fun <T> Field<T>.toTags(): List<String> {
@@ -96,3 +90,5 @@ abstract class UNUSED_I_THINK {
         }
     }
 }
+
+data class Group(val id: String, val name: String, val description: String? = null)

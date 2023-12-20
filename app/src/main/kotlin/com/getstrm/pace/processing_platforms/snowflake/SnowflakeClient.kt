@@ -2,15 +2,12 @@ package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.SNOWFLAKE
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
-import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.config.SnowflakeConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.applyPageParameters
 import com.getstrm.pace.util.normalizeType
@@ -27,10 +24,8 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForEntity
 
 class SnowflakeClient(
-    override val id: String,
-    private val config: SnowflakeConfig
-) : ProcessingPlatformClient {
-    constructor(config: SnowflakeConfig) : this(config.id, config)
+    override val config: SnowflakeConfig
+) : ProcessingPlatformClient(config) {
 
     private val snowflakeJwtIssuer = SnowflakeJwtIssuer.fromOrganizationAndAccountName(
         privateKey = config.privateKey,
@@ -41,8 +36,6 @@ class SnowflakeClient(
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
     private val restTemplate = RestTemplate()
-
-    override val type = SNOWFLAKE
 
     fun executeRequest(request: SnowflakeRequest): ResponseEntity<SnowflakeResponse> {
         try {
@@ -79,45 +72,12 @@ class SnowflakeClient(
         executeRequest(request)
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<DataCatalog.Database> {
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
-        val statement =
-            """SELECT table_schema, table_name, table_type,
-               created as create_date,
-               last_altered as modify_date
-               FROM information_schema.tables where table_type = 'BASE TABLE'
-               ORDER BY table_name
-               LIMIT ${pageParameters.pageSize}
-               OFFSET ${pageParameters.skip} ;
-            """.trimMargin()
-        val request = SnowflakeRequest(
-            statement = statement,
-            database = config.database,
-            warehouse = config.warehouse,
-        )
-        return executeRequest(request).body?.data.orEmpty().map { (schemaName, tableName) ->
-            val fullName = "$schemaName.$tableName"
-            SnowflakeTable(fullName, config, tableName, schemaName, this)
-        }.withPageInfo()
-    }
-
-    fun describeTable(schema: String, table: String): SnowflakeResponse? {
-        val request = SnowflakeRequest(
-            statement = "DESCRIBE TABLE \"$schema\".\"$table\"",
-            database = config.database,
-            warehouse = config.warehouse,
-            schema = schema,
-        )
-        val snowflakeResponse = executeRequest(request)
-
-        if (snowflakeResponse.body?.message != "Statement executed successfully.") {
-            log.error("{}", snowflakeResponse)
-            throw RuntimeException(snowflakeResponse.body?.message)
-        }
-        return snowflakeResponse.body
+    override suspend fun getDatabase(databaseId: String): Database {
+        TODO("Not yet implemented")
     }
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
@@ -147,7 +107,67 @@ class SnowflakeClient(
         // Required for Keypair authentication
         set("X-Snowflake-Authorization-Token-Type", "KEYPAIR_JWT")
     }
-}
+    
+    fun describeTable(schema: String, table: String): SnowflakeResponse? {
+        val request = SnowflakeRequest(
+            statement = "DESCRIBE TABLE \"$schema\".\"$table\"",
+            database = config.database,
+            warehouse = config.warehouse,
+            schema = schema,
+        )
+        val snowflakeResponse = executeRequest(request)
+
+        if (snowflakeResponse.body?.message != "Statement executed successfully.") {
+            log.error("{}", snowflakeResponse)
+            throw RuntimeException(snowflakeResponse.body?.message)
+        }
+        return snowflakeResponse.body
+    }
+
+    inner class SnowflakeDatabase(pp: ProcessingPlatformClient, id: String)
+        : Database(
+        pp, id,
+    ) {
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
+            TODO("Not yet implemented")
+        }
+
+        override suspend fun getSchema(schemaId: String): Schema {
+            TODO("Not yet implemented")
+        }
+    }
+
+    inner class SnowflakeSchema(database: ProcessingPlatformClient.Database, id: String, name: String)
+        : Schema(
+        database, id, name,
+    ) {
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
+            val statement =
+                """SELECT table_schema, table_name, table_type,
+               created as create_date,
+               last_altered as modify_date
+               FROM information_schema.tables where table_type = 'BASE TABLE'
+               ORDER BY table_name
+               LIMIT ${pageParameters.pageSize}
+               OFFSET ${pageParameters.skip} ;
+            """.trimMargin()
+            val request = SnowflakeRequest(
+                statement = statement,
+                database = config.database,
+                warehouse = config.warehouse,
+            )
+            return executeRequest(request).body?.data.orEmpty().map { (schemaName, tableName) ->
+                val fullName = "$schemaName.$tableName"
+                SnowflakeTable(this, fullName, tableName, schemaName)
+            }.withPageInfo()
+        }
+
+        override suspend fun getTable(tableId: String): Table {
+            TODO("Not yet implemented")
+        }
+
+
+    }
 
 data class SnowflakeRequest(
     val statement: String,
@@ -159,74 +179,78 @@ data class SnowflakeRequest(
     val parameters: Map<String, String> = emptyMap(),
 )
 
-class SnowflakeTable(
-    override val fullName: String,
-    private val config: SnowflakeConfig,
-    private val table: String,
-    private val schema: String,
-    private val client: SnowflakeClient,
-) : Table() {
-    private val log by lazy { LoggerFactory.getLogger(javaClass) }
-    override suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy {
-        return client.describeTable(schema, table)?.toDataPolicy(platform, fullName)
-            ?: throw ResourceException(
-                ResourceException.Code.NOT_FOUND,
-                ResourceInfo.newBuilder()
-                    .setResourceType("Table")
-                    .setResourceName(fullName)
-                    .setDescription("Table $fullName not found in Snowflake. Verify that it exists and that the client user has access to it.")
-                    .setOwner("Schema: $schema")
-                    .build()
-            )
-    }
 
-    private fun SnowflakeResponse.toDataPolicy(platform: ProcessingPlatform, fullName: String): DataPolicy {
-        return DataPolicy.newBuilder()
-            .setMetadata(
-                DataPolicy.Metadata.newBuilder()
-                    .setTitle(fullName),
-            )
-            .setPlatform(platform)
-            .setSource(
-                DataPolicy.Source.newBuilder()
-                    .setRef(fullName)
-                    .addAllFields(
-                        // Todo: make this more type-safe
-                        data.orEmpty().map { (name, type, _, nullable) ->
-                            val snowflakeResponse = retrieveColumnTags(name)
-                            val tags = snowflakeResponse.body.data?.map{it[0]}?: emptyList()
+    inner class SnowflakeTable(
+        ppSchema: Schema,
+        override val fullName: String,
+        private val table: String,
+        val schema_: String,
+    ) : Table(ppSchema,
+        fullName,
+        table
+    ) {
+        private val log by lazy { LoggerFactory.getLogger(javaClass) }
+        override suspend fun createBlueprint(): DataPolicy {
+            return describeTable(schema_, table)?.toDataPolicy(schema.database.pp.apiProcessingPlatform, fullName)
+                ?: throw ResourceException(
+                    ResourceException.Code.NOT_FOUND,
+                    ResourceInfo.newBuilder()
+                        .setResourceType("Table")
+                        .setResourceName(fullName)
+                        .setDescription("Table $fullName not found in Snowflake. Verify that it exists and that the client user has access to it.")
+                        .setOwner("Schema: $schema_")
+                        .build()
+                )
+        }
 
-                            DataPolicy.Field.newBuilder()
-                                .addAllNameParts(listOf(name))
-                                .addAllTags(tags)
-                                .setType(type)
-                                .setRequired(nullable != "y")
-                                .build()
-                                .normalizeType()
-                        },
-                    )
-                    .build(),
-            )
-            .build()
-    }
+        private fun SnowflakeResponse.toDataPolicy(platform: ProcessingPlatform, fullName: String): DataPolicy {
+            return DataPolicy.newBuilder()
+                .setMetadata(
+                    DataPolicy.Metadata.newBuilder()
+                        .setTitle(fullName),
+                )
+                .setPlatform(platform)
+                .setSource(
+                    DataPolicy.Source.newBuilder()
+                        .setRef(fullName)
+                        .addAllFields(
+                            // Todo: make this more type-safe
+                            data.orEmpty().map { (name, type, _, nullable) ->
+                                val snowflakeResponse = retrieveColumnTags(name)
+                                val tags = snowflakeResponse.body?.data?.map{it[0]}?: emptyList()
 
-    private fun retrieveColumnTags(name: String): ResponseEntity<SnowflakeResponse> {
-        val request = SnowflakeRequest(
-            statement = """
+                                DataPolicy.Field.newBuilder()
+                                    .addAllNameParts(listOf(name))
+                                    .addAllTags(tags)
+                                    .setType(type)
+                                    .setRequired(nullable != "y")
+                                    .build()
+                                    .normalizeType()
+                            },
+                        )
+                        .build(),
+                )
+                .build()
+        }
+
+        private fun retrieveColumnTags(name: String): ResponseEntity<SnowflakeResponse> {
+            val request = SnowflakeRequest(
+                statement = """
                 SELECT TAG_NAME, TAG_VALUE FROM TABLE (
                     ${config.database}.INFORMATION_SCHEMA.TAG_REFERENCES(
                         '$schema.$table.$name', 'COLUMN'))
                  """.trimIndent(),
-            database = config.database,
-            warehouse = config.warehouse,
-            schema = schema,
-        )
-        val snowflakeResponse = client.executeRequest(request)
+                database = config.database,
+                warehouse = config.warehouse,
+                schema = schema_,
+            )
+            val snowflakeResponse = executeRequest(request)
 
-        if (snowflakeResponse.body?.message != "Statement executed successfully.") {
-            log.error("{}", snowflakeResponse)
-            throw RuntimeException(snowflakeResponse.body?.message)
+            if (snowflakeResponse.body?.message != "Statement executed successfully.") {
+                log.error("{}", snowflakeResponse)
+                throw RuntimeException(snowflakeResponse.body?.message)
+            }
+            return snowflakeResponse
         }
-        return snowflakeResponse
     }
 }

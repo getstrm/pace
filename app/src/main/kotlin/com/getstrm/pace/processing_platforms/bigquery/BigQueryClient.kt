@@ -2,15 +2,13 @@ package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.BIGQUERY
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
-import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.config.BigQueryConfig
+import com.getstrm.pace.config.PPConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.util.*
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.*
@@ -20,13 +18,13 @@ import org.slf4j.LoggerFactory
 import com.google.cloud.bigquery.Table as BQTable
 
 class BigQueryClient(
-    override val id: String,
+    config: PPConfig,
     serviceAccountKeyJson: String,
     private val projectId: String,
     private val userGroupsTable: String,
-) : ProcessingPlatformClient {
+) : ProcessingPlatformClient(config) {
     constructor(config: BigQueryConfig) : this(
-        config.id,
+        config,
         config.serviceAccountJsonKey,
         config.projectId,
         config.userGroupsTable,
@@ -49,17 +47,13 @@ class BigQueryClient(
         polClient = PolicyTagManagerClient.create()
     }
 
-    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
+    /*
+    suspend fun FUBAR(pageParameters: PageParameters): PagedCollection<Table> {
         // TODO need the same hierarchy as for the catalogs!
         // Issue: PACE-84
         // It makes no sense that we just list all tables
         val dataSets = bigQuery.listDatasets().iterateAll()
         val tables = dataSets.flatMap { dataSet ->
-            // TODO: bigquery does not support offset (skip).
-            // https://linear.app/strmprivacy/issue/PACE-85/add-page-token-en-next-page-token
-            // Options: expose token in api (my preference), and use its optional existence for pagination
-            // loop the call below until we reach the required offset.
-            // for now just ignoring the skip parameter
             bigQuery.listTables(dataSet.datasetId).iterateAll().toList()
         }
             .applyPageParameters(pageParameters)
@@ -68,6 +62,8 @@ class BigQueryClient(
             }
         return tables.withPageInfo()
     }
+    
+     */
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = BigQueryViewGenerator(dataPolicy, userGroupsTable)
@@ -111,7 +107,11 @@ class BigQueryClient(
         }
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<DataCatalog.Database> {
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getDatabase(databaseId: String): ProcessingPlatformClient.Database {
         TODO("Not yet implemented")
     }
 
@@ -136,8 +136,6 @@ class BigQueryClient(
         }
         sourceDataSet.toBuilder().setAcl(sourceAcl + viewsAcl).build().update()
     }
-
-    override val type = BIGQUERY
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
         val query = """
@@ -166,13 +164,41 @@ class BigQueryClient(
     }
 }
 
+class BigQuerySchema(database: ProcessingPlatformClient.Database, id: String, name: String): ProcessingPlatformClient.Schema(
+    database = database, id = id, name = name,
+) {
+    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<ProcessingPlatformClient.Table> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getTable(tableId: String): ProcessingPlatformClient.Table {
+        TODO("Not yet implemented")
+    }
+}
+
+class BigQueryDatabase(pp: ProcessingPlatformClient, id: String, fullName: String):
+    ProcessingPlatformClient.Database(
+        pp = pp, id = id, dbType = "bigquery", displayName = fullName
+) {
+    override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<ProcessingPlatformClient.Schema> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getSchema(schemaId: String): ProcessingPlatformClient.Schema {
+        TODO("Not yet implemented")
+    }
+}
+
 class BigQueryTable(
-    override val fullName: String,
+    schema: ProcessingPlatformClient.Schema,
     private val table: com.google.cloud.bigquery.Table,
     private val polClient: PolicyTagManagerClient,
-) : Table() {
+    id: String,
+) : ProcessingPlatformClient.Table(
+    schema, id, id,
+) {
 
-    override suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy =
+    suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy =
         table.toDataPolicy(platform)
 
 
@@ -217,5 +243,12 @@ class BigQueryTable(
             )
             .build()
     }
+
+    override suspend fun createBlueprint(): DataPolicy {
+        TODO("Not yet implemented")
+    }
+
+    override val fullName: String
+        get() = TODO("Not yet implemented")
 
 }

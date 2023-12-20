@@ -9,7 +9,6 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
 
 class SnowflakeClientTest {
@@ -23,7 +22,6 @@ class SnowflakeClientTest {
         accountName = "",
         organizationName = "",
         privateKey = "",
-
         )
     @Test
     fun `convert snowflake describe table result`() {
@@ -55,10 +53,13 @@ class SnowflakeClientTest {
                         message = "Statement executed successfully.",
                     ) , HttpStatus.OK)
 
-        val table = SnowflakeTable("test_schema.test_table", config, "test_table", "test_schema", snowflakeClient)
+        val database = snowflakeClient.SnowflakeDatabase(snowflakeClient, "db")
+        val schema = snowflakeClient.SnowflakeSchema(database, "db", "schema")
+        
+        val table = snowflakeClient.SnowflakeTable(schema, "test_schema.test_table", "test_table", "test_schema")
 
         // When
-        val policy = runBlocking { table.toDataPolicy(platform) }
+        val policy = runBlocking { table.createBlueprint() }
 
         // Then
         policy shouldBe

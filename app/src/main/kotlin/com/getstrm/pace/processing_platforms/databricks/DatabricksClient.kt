@@ -9,16 +9,14 @@ import com.databricks.sdk.service.iam.ListAccountGroupsRequest
 import com.databricks.sdk.service.sql.ExecuteStatementRequest
 import com.databricks.sdk.service.sql.ExecuteStatementResponse
 import com.databricks.sdk.service.sql.StatementState
-import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.config.DatabricksConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.util.PagedCollection
-import com.getstrm.pace.util.applyPageParameters
-import com.getstrm.pace.util.withPageInfo
+import com.getstrm.pace.util.*
 import com.google.rpc.DebugInfo
+import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
 import com.databricks.sdk.core.DatabricksConfig as DatabricksClientConfig
 
@@ -97,85 +95,114 @@ class DatabricksClient(
         }
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<DataCatalog.Database> {
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getDatabase(databaseId: String): DataCatalog.Database {
+    override suspend fun getDatabase(databaseId: String): Database {
         TODO("Not yet implemented")
     }
-}
+    
+    inner class DatabricksDatabase(pp: ProcessingPlatformClient, id: String)
+        :ProcessingPlatformClient.Database(
+        pp, id,
+
+    ) {
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
+            TODO("Not yet implemented")
+        }
+
+        override suspend fun getSchema(schemaId: String): Schema {
+            TODO("Not yet implemented")
+        }
+    }
+    
+    inner class DatabricksSchema(database: Database, id: String, name: String)
+        : Schema(
+        database, id, name,
+
+    ) {
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
+            TODO("Not yet implemented")
+        }
+
+        override suspend fun getTable(tableId: String): Table {
+            TODO("Not yet implemented")
+        }
+    }
+
+    inner class DatabricksTable(
+        schema: Schema,
+        override val fullName: String,
+        private val tableInfo: TableInfo,
+        private val databricksClient: DatabricksClient,
+    ) : Table(schema,
+        tableInfo.tableId, fullName,
+        ) {
+        private val log by lazy { LoggerFactory.getLogger(javaClass) }
+        override suspend fun createBlueprint(): DataPolicy {
+                return tableInfo.toDataPolicy(getTags(tableInfo))
+        }
 
 
-/*
-class DatabricksTable(
-    override val fullName: String,
-    private val tableInfo: TableInfo,
-    private val databricksClient: DatabricksClient,
-) : ProcessingPlatformClient.Table(tableInfo.tableId) {
-    private val log by lazy { LoggerFactory.getLogger(javaClass) }
+        /* TODO the current databricks api does not expose column tags! :-(
+        The hack we use is to execute a sql query
+         */
+        private fun getTags(tableInfo: TableInfo): Map<String, List<String>> {
 
-    override suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy =
-        tableInfo.toDataPolicy(platform, getTags(tableInfo))
-
-    /* TODO the current databricks api does not expose column tags! :-(
-    The hack we use is to execute a sql query
-     */
-    private fun getTags(tableInfo: TableInfo): Map<String, List<String>> {
-
-        @Language(value="Sql")
-        val statement = """
+            @Language(value="Sql")
+            val statement = """
             SELECT column_name field, tag_name tag, tag_value val
             from system.information_schema.column_tags
             WHERE catalog_name = '${tableInfo.catalogName}'
             AND schema_name = '${tableInfo.schemaName}'
             AND table_name = '${tableInfo.name}'
         """.trimIndent()
-        val response = databricksClient.executeStatement(statement)
-        return when (response.status.state) {
-            StatementState.SUCCEEDED -> {
-                return response.result.dataArray.orEmpty().map { it.toList() }
-                    .groupBy {it[0]}
-                    .mapValues { tags -> tags.value.map {it[1]} }
-            }
-            else -> {
-                if (response.status.error.errorCode != null) {
-                    handleDatabricksError(statement, response)
+            val response = databricksClient.executeStatement(statement)
+            return when (response.status.state) {
+                StatementState.SUCCEEDED -> {
+                    return response.result.dataArray.orEmpty().map { it.toList() }
+                        .groupBy {it[0]}
+                        .mapValues { tags -> tags.value.map {it[1]} }
                 }
-                emptyMap()
+                else -> {
+                    if (response.status.error.errorCode != null) {
+                        handleDatabricksError(statement, response)
+                    }
+                    emptyMap()
+                }
             }
         }
-    }
 
-    private fun TableInfo.toDataPolicy(platform: ProcessingPlatform, tags: Map<String, List<String>>): DataPolicy =
-        DataPolicy.newBuilder()
-            .setMetadata(
-                DataPolicy.Metadata.newBuilder()
-                    .setTitle(name)
-                    .setDescription(comment.orEmpty())
-                    .setCreateTime(createdAt.toTimestamp())
-                    .setUpdateTime(updatedAt.toTimestamp()),
-            )
-            .setPlatform(platform)
-            .setSource(
-                DataPolicy.Source.newBuilder()
-                    .setRef(fullName)
-                    .addAllFields(
-                        columns.map { column ->
-                            DataPolicy.Field.newBuilder()
-                                .addAllNameParts(listOf(column.name))
-                                .addAllTags( tags[column.name]?: emptyList())
-                                .setType(column.typeText)
-                                .setRequired(!(column.nullable ?: false))
-                                .build().normalizeType()
-                        },
-                    )
-                    .build(),
-            )
-            .build()
+        private fun TableInfo.toDataPolicy(tags: Map<String, List<String>>): DataPolicy =
+            DataPolicy.newBuilder()
+                .setMetadata(
+                    DataPolicy.Metadata.newBuilder()
+                        .setTitle(name)
+                        .setDescription(comment.orEmpty())
+                        .setCreateTime(createdAt.toTimestamp())
+                        .setUpdateTime(updatedAt.toTimestamp()),
+                )
+                .setPlatform(apiPlatform)
+                .setSource(
+                    DataPolicy.Source.newBuilder()
+                        .setRef(fullName)
+                        .addAllFields(
+                            columns.map { column ->
+                                DataPolicy.Field.newBuilder()
+                                    .addAllNameParts(listOf(column.name))
+                                    .addAllTags( tags[column.name]?: emptyList())
+                                    .setType(column.typeText)
+                                    .setRequired(!(column.nullable ?: false))
+                                    .build().normalizeType()
+                            },
+                        )
+                        .build(),
+                )
+                .build()
+    }
 }
 
- */
 
 private fun handleDatabricksError(statement: String, response: ExecuteStatementResponse) {
     log.warn("SQL statement\n{}", statement)
