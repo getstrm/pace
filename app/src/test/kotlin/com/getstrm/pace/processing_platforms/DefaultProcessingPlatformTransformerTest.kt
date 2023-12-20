@@ -255,19 +255,35 @@ class DefaultProcessingPlatformTransformerTest {
     }
 
     @Test
-    fun `numeric rounding - round`() {
+    fun `numeric rounding - round without divisor`() {
         // Given
         val field = namedField("transactionamount", "integer")
-        val ceil = DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.newBuilder()
+        val round = DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.newBuilder()
             .setRound(
                 DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Round.newBuilder().setPrecision(-1)
             ).build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.numericRounding(field, ceil)
+        val result = DefaultProcessingPlatformTransformer.numericRounding(field, round)
 
         // Then
         result.toSql() shouldBe "round(transactionamount, -1)"
+    }
+
+    @Test
+    fun `numeric rounding - round with divisor`() {
+        // Given
+        val field = namedField("transactionamount", "integer")
+        val round = DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.newBuilder()
+            .setRound(
+                DataPolicy.RuleSet.FieldTransform.Transform.NumericRounding.Round.newBuilder().setPrecision(0).setDivisor(5f)
+            ).build()
+
+        // When
+        val result = DefaultProcessingPlatformTransformer.numericRounding(field, round)
+
+        // Then
+        result.toSql() shouldBe "(round((transactionamount / 5E0), 0) * 5E0)"
     }
 
     @Test
