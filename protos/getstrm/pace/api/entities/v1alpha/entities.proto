@@ -148,6 +148,8 @@ message DataPolicy {
           message Round {
             // The precision to use for rounding. When positive, the value is rounded to the nearest decimal place. When negative, the value is rounded to the nearest power of 10.
             int32 precision = 1;
+            // The divisor to use when applying integer division. Advise is to use divisors only when rounding to a multiple of that divisor, with a precision of 0.
+            optional float divisor = 2;
           }
         }
 
