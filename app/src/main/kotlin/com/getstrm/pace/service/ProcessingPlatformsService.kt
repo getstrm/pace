@@ -87,6 +87,14 @@ class ProcessingPlatformsService(
         TODO("Not yet implemented")
     }
 
+    suspend fun listDatabases(request: ListDatabasesRequest): PagedCollection<ApiDatabase> =
+        (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
+            .listDatabases(request.pageParameters).map{it.apiDatabase}
+
+    fun listSchemas(request: ListSchemasRequest): PagedCollection<ApiSchema> {
+        TODO("Not yet implemented")
+    }
+
     /*
     suspend fun getBlueprintPolicy(platformId: String, tableName: String): GetBlueprintPolicyResponse {
         val processingPlatformInterface = platforms[platformId] ?: throw processingPlatformNotFound(platformId)
@@ -117,7 +125,6 @@ class ProcessingPlatformsService(
         }
     }
      */
-
     private fun processingPlatformNotFound(platformId: String, owner: String? = null) = ResourceException(
         ResourceException.Code.NOT_FOUND, ResourceInfo.newBuilder()
             .setResourceType(PROCESSING_PLATFORM)
@@ -126,13 +133,6 @@ class ProcessingPlatformsService(
             .apply { if (owner != null) setOwner(owner) }
             .build()
     )
-
-    fun listDatabases(request: ListDatabasesRequest): PagedCollection<ApiDatabase> {
-        TODO("Not yet implemented")
-    }
-    fun listSchemas(request: ListSchemasRequest): PagedCollection<ApiSchema> {
-        TODO("Not yet implemented")
-    }
 
     companion object {
         private const val PROCESSING_PLATFORM = "Processing Platform"

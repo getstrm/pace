@@ -7,6 +7,7 @@ import com.getstrm.pace.config.BigQueryConfig
 import com.getstrm.pace.config.PPConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
+import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.util.*
@@ -14,6 +15,7 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.*
 import com.google.cloud.datacatalog.v1.PolicyTagManagerClient
 import com.google.rpc.DebugInfo
+import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
 import com.google.cloud.bigquery.Table as BQTable
 
@@ -65,6 +67,33 @@ class BigQueryClient(
     
      */
 
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
+        
+        // FIXME pagedCalls function needs to understand page tokens
+        // for now just getting all of the datasets
+        // how slow is this?
+        val datasets = ArrayList<Dataset>()
+        do {
+            val page = bigQuery.listDatasets()
+            datasets += page.iterateAll()
+        } while(page.hasNextPage())
+        val f = datasets.map{
+            BigQueryDatabase(this, it.generatedId, it.datasetId.dataset)
+        }
+        return f.withPageInfo()
+    }
+
+    override suspend fun getDatabase(databaseId: String): Database {
+        return listDatabases(THOUSAND_RECORDS).find { it.id == databaseId }
+            ?: throw ResourceException(
+                ResourceException.Code.NOT_FOUND,
+                ResourceInfo.newBuilder()
+                    .setResourceType("Gcloud dataset")
+                    .setResourceName(databaseId)
+                    .build()
+            )
+    }
+
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = BigQueryViewGenerator(dataPolicy, userGroupsTable)
         val query = viewGenerator.toDynamicViewSQL().sql
@@ -105,14 +134,6 @@ class BigQueryClient(
                 )
             }
         }
-    }
-
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun getDatabase(databaseId: String): ProcessingPlatformClient.Database {
-        TODO("Not yet implemented")
     }
 
     // Fixme: better handle case where view was already authorized (currently caught above)
@@ -162,93 +183,92 @@ class BigQueryClient(
             return TableId.of(project, dataset, table)
         }
     }
-}
-
-class BigQuerySchema(database: ProcessingPlatformClient.Database, id: String, name: String): ProcessingPlatformClient.Schema(
-    database = database, id = id, name = name,
-) {
-    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<ProcessingPlatformClient.Table> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun getTable(tableId: String): ProcessingPlatformClient.Table {
-        TODO("Not yet implemented")
-    }
-}
-
-class BigQueryDatabase(pp: ProcessingPlatformClient, id: String, fullName: String):
-    ProcessingPlatformClient.Database(
-        pp = pp, id = id, dbType = "bigquery", displayName = fullName
-) {
-    override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<ProcessingPlatformClient.Schema> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun getSchema(schemaId: String): ProcessingPlatformClient.Schema {
-        TODO("Not yet implemented")
-    }
-}
-
-class BigQueryTable(
-    schema: ProcessingPlatformClient.Schema,
-    private val table: com.google.cloud.bigquery.Table,
-    private val polClient: PolicyTagManagerClient,
-    id: String,
-) : ProcessingPlatformClient.Table(
-    schema, id, id,
-) {
-
-    suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy =
-        table.toDataPolicy(platform)
-
-
-    private fun BQTable.toDataPolicy(platform: ProcessingPlatform): DataPolicy {
-        // The reload ensures all metadata is fetched, including the schema
-        val table = reload()
-        // typical tag value =
-        // projects/stream-machine-development/locations/europe-west4/taxonomies/5886429027103247004/policyTags/5980433277276442728
-        var tags = table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map {
-            it.name to (it.policyTags?.names ?: emptyList())
-        }.toMap()
-        val nameLookup = tags.values.flatten().toSet().associateWith { tag: String ->
-            polClient.getPolicyTag(tag).displayName
+    
+    inner class BigQuerySchema(database: Database, id: String, name: String): ProcessingPlatformClient.Schema(
+        database = database, id = id, name = name,
+    ) {
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<ProcessingPlatformClient.Table> {
+            TODO("Not yet implemented")
         }
-        tags = tags.mapValues { (_, v) -> v.map { nameLookup[it] } }
 
-        return DataPolicy.newBuilder()
-            .setMetadata(
-                DataPolicy.Metadata.newBuilder()
-                    .setTitle(this.toFullName())
-                    .setDescription(table.description.orEmpty())
-                    .setCreateTime(table.creationTime.toTimestamp())
-                    .setUpdateTime(table.lastModifiedTime.toTimestamp()),
-            )
-            .setPlatform(platform)
-            .setSource(
-                DataPolicy.Source.newBuilder()
-                    .setRef(this.toFullName())
-                    .addAllFields(
-                        table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map { field ->
-                            // Todo: add support for nested fields using getSubFields()
-                            DataPolicy.Field.newBuilder()
-                                .addNameParts(field.name)
-                                .addAllTags(tags[field.name])
-                                .setType(field.type.name())
-                                // Todo: correctly handle repeated fields (defined by mode REPEATED)
-                                .setRequired(field.mode != Field.Mode.NULLABLE)
-                                .build().normalizeType()
-                        },
-                    )
-                    .build(),
-            )
-            .build()
+        override suspend fun getTable(tableId: String): ProcessingPlatformClient.Table {
+            TODO("Not yet implemented")
+        }
     }
+    
+    inner class BigQueryDatabase(pp: ProcessingPlatformClient, id: String, fullName: String):
+        Database(
+            pp = pp, id = id, dbType = "bigquery", displayName = fullName
+        ) {
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<ProcessingPlatformClient.Schema> {
+            TODO("Not yet implemented")
+        }
 
-    override suspend fun createBlueprint(): DataPolicy {
-        TODO("Not yet implemented")
+        override suspend fun getSchema(schemaId: String): ProcessingPlatformClient.Schema {
+            TODO("Not yet implemented")
+        }
     }
+    inner class BigQueryTable(
+        schema: ProcessingPlatformClient.Schema,
+        private val table: com.google.cloud.bigquery.Table,
+        private val polClient: PolicyTagManagerClient,
+        id: String,
+    ) : ProcessingPlatformClient.Table(
+        schema, id, id,
+    ) {
 
-    override val fullName: String
-        get() = TODO("Not yet implemented")
+        suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy =
+            table.toDataPolicy(platform)
 
+
+        private fun BQTable.toDataPolicy(platform: ProcessingPlatform): DataPolicy {
+            // The reload ensures all metadata is fetched, including the schema
+            val table = reload()
+            // typical tag value =
+            // projects/stream-machine-development/locations/europe-west4/taxonomies/5886429027103247004/policyTags/5980433277276442728
+            var tags = table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map {
+                it.name to (it.policyTags?.names ?: emptyList())
+            }.toMap()
+            val nameLookup = tags.values.flatten().toSet().associateWith { tag: String ->
+                polClient.getPolicyTag(tag).displayName
+            }
+            tags = tags.mapValues { (_, v) -> v.map { nameLookup[it] } }
+
+            return DataPolicy.newBuilder()
+                .setMetadata(
+                    DataPolicy.Metadata.newBuilder()
+                        .setTitle(this.toFullName())
+                        .setDescription(table.description.orEmpty())
+                        .setCreateTime(table.creationTime.toTimestamp())
+                        .setUpdateTime(table.lastModifiedTime.toTimestamp()),
+                )
+                .setPlatform(platform)
+                .setSource(
+                    DataPolicy.Source.newBuilder()
+                        .setRef(this.toFullName())
+                        .addAllFields(
+                            table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map { field ->
+                                // Todo: add support for nested fields using getSubFields()
+                                DataPolicy.Field.newBuilder()
+                                    .addNameParts(field.name)
+                                    .addAllTags(tags[field.name])
+                                    .setType(field.type.name())
+                                    // Todo: correctly handle repeated fields (defined by mode REPEATED)
+                                    .setRequired(field.mode != Field.Mode.NULLABLE)
+                                    .build().normalizeType()
+                            },
+                        )
+                        .build(),
+                )
+                .build()
+        }
+
+        override suspend fun createBlueprint(): DataPolicy {
+            TODO("Not yet implemented")
+        }
+
+        override val fullName: String
+            get() = TODO("Not yet implemented")
+
+    }
 }
