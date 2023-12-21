@@ -83,16 +83,28 @@ class ProcessingPlatformsService(
         (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)).listGroups(request.pageParameters)
 
 
-    fun getBlueprintPolicy(request: GetBlueprintPolicyRequest): GetBlueprintPolicyResponse {
-        TODO("Not yet implemented")
+    suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest): GetBlueprintPolicyResponse {
+        val platformClient =
+            platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
+        val database = platformClient.getDatabase(request.table.schema.database.id)
+        val schema = database.getSchema(request.table.schema.id)
+        val table = schema.getTable(request.table.id)
+        val blueprint = table.createBlueprint()
+        return GetBlueprintPolicyResponse.newBuilder()
+            .setDataPolicy(blueprint)
+            .build()
+        
     }
 
     suspend fun listDatabases(request: ListDatabasesRequest): PagedCollection<ApiDatabase> =
         (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
             .listDatabases(request.pageParameters).map{it.apiDatabase}
 
-    fun listSchemas(request: ListSchemasRequest): PagedCollection<ApiSchema> {
-        TODO("Not yet implemented")
+    suspend fun listSchemas(request: ListSchemasRequest): PagedCollection<ApiSchema> {
+        val platformClient =
+            platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
+        val database = platformClient.getDatabase(request.databaseId)
+        return database.listSchemas(request.pageParameters).map{it.apiSchema}
     }
 
     /*

@@ -1,7 +1,7 @@
 package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.BIGQUERY
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.BigQueryConfig
 import com.getstrm.pace.config.PPConfig
@@ -49,24 +49,6 @@ class BigQueryClient(
         polClient = PolicyTagManagerClient.create()
     }
 
-    /*
-    suspend fun FUBAR(pageParameters: PageParameters): PagedCollection<Table> {
-        // TODO need the same hierarchy as for the catalogs!
-        // Issue: PACE-84
-        // It makes no sense that we just list all tables
-        val dataSets = bigQuery.listDatasets().iterateAll()
-        val tables = dataSets.flatMap { dataSet ->
-            bigQuery.listTables(dataSet.datasetId).iterateAll().toList()
-        }
-            .applyPageParameters(pageParameters)
-            .map { table ->
-                BigQueryTable(table.tableId.toFullName(), table, polClient)
-            }
-        return tables.withPageInfo()
-    }
-    
-     */
-
     override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
         
         // FIXME pagedCalls function needs to understand page tokens
@@ -78,13 +60,14 @@ class BigQueryClient(
             datasets += page.iterateAll()
         } while(page.hasNextPage())
         val f = datasets.map{
-            BigQueryDatabase(this, it.generatedId, it.datasetId.dataset)
+            BigQueryDatabase(this, it)
         }
         return f.withPageInfo()
     }
 
     override suspend fun getDatabase(databaseId: String): Database {
-        return listDatabases(THOUSAND_RECORDS).find { it.id == databaseId }
+        val databases = listDatabases(THOUSAND_RECORDS)
+        return databases.find { it.id == databaseId }
             ?: throw ResourceException(
                 ResourceException.Code.NOT_FOUND,
                 ResourceInfo.newBuilder()
@@ -184,46 +167,56 @@ class BigQueryClient(
         }
     }
     
-    inner class BigQuerySchema(database: Database, id: String, name: String): ProcessingPlatformClient.Schema(
-        database = database, id = id, name = name,
-    ) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<ProcessingPlatformClient.Table> {
-            TODO("Not yet implemented")
-        }
-
-        override suspend fun getTable(tableId: String): ProcessingPlatformClient.Table {
-            TODO("Not yet implemented")
-        }
-    }
-    
-    inner class BigQueryDatabase(pp: ProcessingPlatformClient, id: String, fullName: String):
+    inner class BigQueryDatabase(pp: ProcessingPlatformClient, val dataset: Dataset):
         Database(
-            pp = pp, id = id, dbType = "bigquery", displayName = fullName
+            pp = pp,
+            id = dataset.generatedId,
+            dbType = BIGQUERY.name,
+            displayName = dataset.datasetId.dataset
         ) {
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<ProcessingPlatformClient.Schema> {
-            TODO("Not yet implemented")
+        val schema = BigQuerySchema(this)
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
+            return listOf(schema).withPageInfo()
         }
 
-        override suspend fun getSchema(schemaId: String): ProcessingPlatformClient.Schema {
-            TODO("Not yet implemented")
+        override suspend fun getSchema(schemaId: String): Schema {
+            return schema
         }
     }
+
+    inner class BigQuerySchema(database: BigQueryDatabase): Schema( database, "schema", "schema" ) {
+        val dataset = database.dataset
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
+            val tables = bigQuery.listTables(dataset.datasetId).iterateAll().toList()
+                .applyPageParameters(pageParameters)
+                .map { table ->
+                    BigQueryTable(this, table, table.generatedId)
+                }
+            return tables.withPageInfo()
+        }
+
+        override suspend fun getTable(tableId: String): Table {
+            return listTables(THOUSAND_RECORDS).find { it.id == tableId }
+                ?: throw ResourceException(
+                    ResourceException.Code.NOT_FOUND,
+                    ResourceInfo.newBuilder()
+                        .setResourceType("Gcloud table")
+                        .setResourceName(tableId)
+                        .build()
+                )
+        }
+    }
+
     inner class BigQueryTable(
-        schema: ProcessingPlatformClient.Schema,
-        private val table: com.google.cloud.bigquery.Table,
-        private val polClient: PolicyTagManagerClient,
+        schema: Schema,
+        private val bqtable: BQTable,
         id: String,
-    ) : ProcessingPlatformClient.Table(
-        schema, id, id,
-    ) {
-
-        suspend fun toDataPolicy(platform: ProcessingPlatform): DataPolicy =
-            table.toDataPolicy(platform)
+    ) : Table( schema, id, id ) {
 
 
-        private fun BQTable.toDataPolicy(platform: ProcessingPlatform): DataPolicy {
+        override suspend fun createBlueprint(): DataPolicy {
             // The reload ensures all metadata is fetched, including the schema
-            val table = reload()
+            val table = bqtable.reload()
             // typical tag value =
             // projects/stream-machine-development/locations/europe-west4/taxonomies/5886429027103247004/policyTags/5980433277276442728
             var tags = table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map {
@@ -237,15 +230,15 @@ class BigQueryClient(
             return DataPolicy.newBuilder()
                 .setMetadata(
                     DataPolicy.Metadata.newBuilder()
-                        .setTitle(this.toFullName())
+                        .setTitle(this.fullName)
                         .setDescription(table.description.orEmpty())
                         .setCreateTime(table.creationTime.toTimestamp())
                         .setUpdateTime(table.lastModifiedTime.toTimestamp()),
                 )
-                .setPlatform(platform)
+                .setPlatform(apiPlatform)
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(this.toFullName())
+                        .setRef(this.fullName)
                         .addAllFields(
                             table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map { field ->
                                 // Todo: add support for nested fields using getSubFields()
@@ -263,12 +256,8 @@ class BigQueryClient(
                 .build()
         }
 
-        override suspend fun createBlueprint(): DataPolicy {
-            TODO("Not yet implemented")
-        }
-
         override val fullName: String
-            get() = TODO("Not yet implemented")
+            get() = bqtable.generatedId
 
     }
 }

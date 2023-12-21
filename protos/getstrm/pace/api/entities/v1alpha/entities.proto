@@ -263,7 +263,7 @@ message Database {
   }];
   string type = 2;
   string display_name = 3 [(buf.validate.field) = {
-    ignore_empty: false,
+    ignore_empty: true,
     string: {min_len: 1}
   }];
   // The parent of the database
@@ -284,7 +284,7 @@ message Schema {
     string: {min_len: 1}
   }];
   string name = 2 [(buf.validate.field) = {
-    ignore_empty: false,
+    ignore_empty: true,
     string: {min_len: 1}
   }];
   // The parent database to which this schema belongs.
@@ -302,7 +302,7 @@ message Table {
     string: {min_len: 1}
   }];
   string name = 2 [(buf.validate.field) = {
-    ignore_empty: false,
+    ignore_empty: true,
     string: {min_len: 1}
   }];
   // The parent schema to which this table belongs.

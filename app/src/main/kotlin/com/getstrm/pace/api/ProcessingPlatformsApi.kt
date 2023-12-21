@@ -3,6 +3,7 @@ package com.getstrm.pace.api
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageInfo
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.*
+import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.service.ProcessingPlatformsService
 import net.devh.boot.grpc.server.service.GrpcService
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database as ApiDatabase
@@ -42,13 +43,7 @@ class ProcessingPlatformsApi(
     override suspend fun listTables(request: ListTablesRequest): ListTablesResponse {
         val (tables, pageInfo) = processingPlatformsService.listProcessingPlatformTables(request)
         return ListTablesResponse.newBuilder()
-            .addAllTables( tables.map {
-                ApiTable.newBuilder()
-                    .setId(it.fullName)
-                    .setName(it.fullName)
-                    .build()
-                
-            } )
+            .addAllTables( tables.map(ProcessingPlatformClient.Table::apiTable))
             .setPageInfo(pageInfo)
             .build()
     }
