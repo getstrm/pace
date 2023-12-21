@@ -55,7 +55,19 @@ class SynapseClient(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getDatabase(databaseId: String): Database {
+    override suspend fun listSchemas(databaseId: String, pageParameters: PageParameters): PagedCollection<Schema> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun listTables(
+        databaseId: String,
+        schemaId: String,
+        pageParameters: PageParameters
+    ): PagedCollection<Table> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table {
         TODO("Not yet implemented")
     }
 

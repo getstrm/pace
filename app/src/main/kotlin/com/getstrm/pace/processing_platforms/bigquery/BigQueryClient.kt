@@ -10,7 +10,12 @@ import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.util.*
+import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.THOUSAND_RECORDS
+import com.getstrm.pace.util.applyPageParameters
+import com.getstrm.pace.util.normalizeType
+import com.getstrm.pace.util.toTimestamp
+import com.getstrm.pace.util.withPageInfo
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.*
 import com.google.cloud.datacatalog.v1.PolicyTagManagerClient
@@ -65,9 +70,24 @@ class BigQueryClient(
         return f.withPageInfo()
     }
 
-    override suspend fun getDatabase(databaseId: String): Database {
-        val databases = listDatabases(THOUSAND_RECORDS)
-        return databases.find { it.id == databaseId }
+    override suspend fun listSchemas(databaseId: String, pageParameters: PageParameters): PagedCollection<Schema> {
+        return getDatabase(databaseId).listSchemas(pageParameters)
+    }
+
+    override suspend fun listTables(
+        databaseId: String,
+        schemaId: String,
+        pageParameters: PageParameters
+    ): PagedCollection<Table> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table {
+        TODO("Not yet implemented")
+    }
+
+    private suspend fun getDatabase(databaseId: String): Database {
+        return bigQuery.getDataset(databaseId)?.let { BigQueryDatabase(this, it) }
             ?: throw ResourceException(
                 ResourceException.Code.NOT_FOUND,
                 ResourceInfo.newBuilder()

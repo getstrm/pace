@@ -1,7 +1,12 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.*
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyRequest
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyResponse
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListDatabasesRequest
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListGroupsRequest
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListSchemasRequest
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListTablesRequest
 import com.getstrm.pace.config.ProcessingPlatformConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.ResourceException
@@ -73,10 +78,7 @@ class ProcessingPlatformsService(
     suspend fun listProcessingPlatformTables(request: ListTablesRequest): PagedCollection<ProcessingPlatformClient.Table> {
         val processingPlatformClient: ProcessingPlatformClient =
             platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
-        val schema: ProcessingPlatformClient.Schema = processingPlatformClient.getDatabase(request.databaseId).getSchema(request.schemaId)
-        return schema.listTables(
-            request.pageParameters
-        )
+        return processingPlatformClient.listTables(request.databaseId, request.schemaId, request.pageParameters)
     }
 
     suspend fun listProcessingPlatformGroups(request: ListGroupsRequest): PagedCollection<Group> =
@@ -86,14 +88,15 @@ class ProcessingPlatformsService(
     suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest): GetBlueprintPolicyResponse {
         val platformClient =
             platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
-        val database = platformClient.getDatabase(request.table.schema.database.id)
-        val schema = database.getSchema(request.table.schema.id)
-        val table = schema.getTable(request.table.id)
+        val table = platformClient.getTable(
+            request.table.schema.database.id,
+            request.table.schema.id,
+            request.table.id
+        )
         val blueprint = table.createBlueprint()
         return GetBlueprintPolicyResponse.newBuilder()
             .setDataPolicy(blueprint)
             .build()
-        
     }
 
     suspend fun listDatabases(request: ListDatabasesRequest): PagedCollection<ApiDatabase> =
@@ -103,8 +106,7 @@ class ProcessingPlatformsService(
     suspend fun listSchemas(request: ListSchemasRequest): PagedCollection<ApiSchema> {
         val platformClient =
             platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
-        val database = platformClient.getDatabase(request.databaseId)
-        return database.listSchemas(request.pageParameters).map{it.apiSchema}
+        return platformClient.listSchemas(request.databaseId, request.pageParameters).map { it.apiSchema }
     }
 
     /*

@@ -6,6 +6,7 @@ import com.getstrm.pace.config.PPConfig
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
 import org.jooq.Field
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
 
 abstract class ProcessingPlatformClient(
     open val config: PPConfig,
@@ -20,13 +21,29 @@ abstract class ProcessingPlatformClient(
     abstract suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group>
     abstract suspend fun applyPolicy(dataPolicy: DataPolicy)
     abstract suspend fun listDatabases(pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS): PagedCollection<Database>
-    abstract suspend fun getDatabase(databaseId: String): Database
-    
+
+    abstract suspend fun listSchemas(
+        databaseId: String,
+        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
+    ): PagedCollection<Schema>
+
+    abstract suspend fun listTables(
+        databaseId: String,
+        schemaId: String,
+        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
+    ): PagedCollection<Table>
+
+    abstract suspend fun getTable(
+        databaseId: String,
+        schemaId: String,
+        tableId: String
+    ): Table
 
     /** meta information database */
     abstract class Database(
         open val pp: ProcessingPlatformClient,
         val id: String,
+        // Todo: make fields required
         val dbType: String? = null,
         val displayName: String? = null
     ) {
@@ -83,8 +100,8 @@ abstract class ProcessingPlatformClient(
         override fun toString(): String = "Table($id, $name)"
         abstract val fullName: String
         val apiPlatform = schema.database.pp.apiProcessingPlatform
-        val apiTable: build.buf.gen.getstrm.pace.api.entities.v1alpha.Table
-            get() = build.buf.gen.getstrm.pace.api.entities.v1alpha.Table.newBuilder()
+        val apiTable: ApiTable
+            get() = ApiTable.newBuilder()
                 .setId(id)
                 .setSchema(schema.apiSchema)
                 .setName(name)

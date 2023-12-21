@@ -9,9 +9,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.google.cloud.bigquery.Table
 import com.google.cloud.bigquery.TableId
 import org.jooq.*
-import java.util.ArrayList
-import java.util.stream.Collectors
-import kotlin.math.max
 import kotlin.math.min
 
 internal val YAML_MAPPER = ObjectMapper(YAMLFactory())
@@ -65,12 +62,8 @@ private fun DataPolicy.RuleSet.Filter.listPrincipals() = when (this.filterCase) 
  * Can't throw an exception.
  * skip and pageSize are protobuf uint32 so can never be negative.
  */
-fun <T>Collection<T>.applyPageParameters(p:PageParameters) : List<T> =
-        stream()
-            .skip(p.skip.toLong())
-            .limit(p.pageSize.toLong())
-            .collect(Collectors.toList())
-
+fun <T> Iterable<T>.applyPageParameters(p: PageParameters): List<T> =
+    asSequence().drop(p.skip).take(p.pageSize).toList()
 
 data class PagedCollection<T>(val data: Collection<T>, val pageInfo: PageInfo){
     fun <V> map(transform: (T) -> V): PagedCollection<V> = data.map(transform).withPageInfo(pageInfo)
@@ -96,7 +89,7 @@ private const val MAX_PAGE_SIZE_PER_REQUEST = 20
 
 /**
  * retrieve the requested information via 1 or more calls to a backend.
- * 
+ *
  * @param pageParameters the requested set of data
  * @param queryFunction the function that accesses the backend.
  *        skip: the offset when interacting with the backend.

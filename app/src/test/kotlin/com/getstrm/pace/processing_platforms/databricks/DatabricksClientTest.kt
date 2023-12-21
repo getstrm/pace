@@ -2,7 +2,9 @@ package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
+import com.databricks.sdk.service.catalog.CatalogInfo
 import com.databricks.sdk.service.catalog.ColumnInfo
+import com.databricks.sdk.service.catalog.SchemaInfo
 import com.databricks.sdk.service.catalog.TableInfo
 import com.databricks.sdk.service.sql.ExecuteStatementResponse
 import com.databricks.sdk.service.sql.ResultData
@@ -53,9 +55,9 @@ class DatabricksClientTest {
                 listOf("test_bigint_column", "tag1"),
                 listOf("test_string_column", "email")
                 )))
-        val database = client.DatabricksDatabase(client, "hallo")
-        val schema = client.DatabricksSchema(database, "hallo", "schema")
-        val table = client.DatabricksTable(schema, tableInfo.name, tableInfo, client)
+        val database = client.DatabricksDatabase(client, CatalogInfo())
+        val schema = client.DatabricksSchema(database, SchemaInfo())
+        val table = client.DatabricksTable(schema, TableInfo())
 
         val platform = ProcessingPlatform.newBuilder().setId("test-platform").build()
 
