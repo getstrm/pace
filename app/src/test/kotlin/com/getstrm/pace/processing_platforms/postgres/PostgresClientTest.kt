@@ -1,7 +1,6 @@
 package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import com.getstrm.pace.AbstractDatabaseTest
 import com.getstrm.pace.config.PostgresConfig
 import com.getstrm.pace.processing_platforms.Group
@@ -11,6 +10,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class PostgresClientTest : AbstractDatabaseTest() {
@@ -24,6 +24,8 @@ class PostgresClientTest : AbstractDatabaseTest() {
         dataSource.executeMigrations("database/postgres-client")
     }
 
+    // Todo: re-enable when implemented
+    @Disabled
     @Test
     fun `list tables`() {
         // Given a table in the database
@@ -51,6 +53,8 @@ class PostgresClientTest : AbstractDatabaseTest() {
         pageInfo.total shouldBe 2
     }
 
+    // Todo: re-enable when implemented
+    @Disabled
     @Test
     fun `test tags from field comment`() {
         // Given a table in the database

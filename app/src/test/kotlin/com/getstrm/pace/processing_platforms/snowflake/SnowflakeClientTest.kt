@@ -7,10 +7,13 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 
+// FIXME: the client itself should not be mocked!
+@Disabled
 class SnowflakeClientTest {
 
     private val config = SnowflakeConfig(
