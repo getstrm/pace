@@ -17,7 +17,7 @@ class PostgresClientTest : AbstractDatabaseTest() {
     val config = PostgresConfig("postgres", "localhost", 5432, "postgres", "postgres", "postgres")
     private val underTest = PostgresClient(config, jooq)
     private val db = underTest.PostgresDatabase(underTest, "db")
-    private val schema = underTest.PostgresSchema(db, "db", "db")
+    private val schema = underTest.PostgresSchema(db, "db")
 
     @BeforeEach
     fun setupDatabase() {

@@ -16,61 +16,52 @@ import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
 
+/**
+ * Mapping of concepts
+ *
+ * PACE        Postgres
+ * Database    Single Postgres Database
+ * Schema      Postgres schema
+ * Table       Postgres table.
+ */
 class PostgresClient( override val config: PostgresConfig ) : ProcessingPlatformClient(config) {
     // To match the behavior of the other ProcessingPlatform implementations, we connect to a
     // single database. If we want to add support for a single client to connect to mulitple
     // databases, more info can be found here:
     // https://www.codejava.net/java-se/jdbc/how-to-list-names-of-all-databases-in-java
-        private val jooq = DSL.using(
-            HikariDataSource(
-                HikariConfig().apply {
-                    jdbcUrl = config.getJdbcUrl()
-                    username = config.userName
-                    password = config.password
-                }),
-            SQLDialect.POSTGRES
-        )
+    private val jooq = DSL.using(
+        HikariDataSource(
+            HikariConfig().apply {
+                jdbcUrl = config.getJdbcUrl()
+                username = config.userName
+                password = config.password
+            }),
+        SQLDialect.POSTGRES
+    )
     val database = PostgresDatabase(this, config.database)
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-    
-
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = PostgresViewGenerator(dataPolicy)
         val query = viewGenerator.toDynamicViewSQL().sql
-
-        withContext(Dispatchers.IO) {
-            jooq.query(query).execute()
-        }
+        withContext(Dispatchers.IO) { jooq.query(query).execute() }
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
-        return listOf(database).withPageInfo()
-    }
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> =
+        listOf(database).withPageInfo()
 
     override suspend fun listSchemas(databaseId: String, pageParameters: PageParameters): PagedCollection<Schema> =
-        (if (this.database.id == databaseId) this.database else throwNotFound(
-            databaseId,
-            "PostgreSQL database"
-        )).listSchemas(pageParameters)
+        (if (this.database.id == databaseId) this.database else throwNotFound( databaseId, "PostgreSQL database" )).listSchemas(pageParameters)
 
-    override suspend fun listTables(
-        databaseId: String,
-        schemaId: String,
-        pageParameters: PageParameters
-    ): PagedCollection<Table> {
-        val schema = listSchemas(databaseId).find{it.id == schemaId} ?: throwNotFound(schemaId, "PostgreSQL schema")
-        return schema.listTables(pageParameters)
-    }
+    override suspend fun listTables( databaseId: String, schemaId: String, pageParameters: PageParameters ): PagedCollection<Table> =
+        getSchema(databaseId, schemaId).listTables(pageParameters)
 
-    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table {
-        // TODO improve performance
-        return listTables(databaseId, schemaId, THOUSAND_RECORDS).find { it.id ==tableId } ?: throwNotFound(tableId, "PostgreSQL table")
-    }
+    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table =
+        getSchema(databaseId, schemaId).getTable(tableId)
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
-        val result = withContext(Dispatchers.IO) {
+        val oidsAndRoles = withContext(Dispatchers.IO) {
             jooq.select(DSL.field("oid", Int::class.java), DSL.field("rolname", String::class.java))
                 .from(DSL.table("pg_roles"))
                 .where(
@@ -83,50 +74,58 @@ class PostgresClient( override val config: PostgresConfig ) : ProcessingPlatform
                 .fetch()
         }
 
-        return result.map { (oid, rolname) -> Group(id = oid.toString(), name = rolname) }.withPageInfo()
+        return oidsAndRoles.map { (oid, rolname) ->
+            Group(id = oid.toString(), name = rolname) }
+            .withPageInfo()
     }
 
-    companion object {
-        // These are built-in Postgres schemas that we don't want to list tables from.
-    }
+    private suspend fun PostgresClient.getSchema(
+        databaseId: String,
+        schemaId: String
+    ) = listSchemas(databaseId).find { it.id == schemaId } ?: throwNotFound(schemaId, "PostgreSQL schema")
 
     inner class PostgresDatabase(override val platformClient: ProcessingPlatformClient, id: String)
         :Database( platformClient, id, POSTGRES.name, id ) {
-            
+
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> =
             jooq
-            .meta()
-            .schemas
-            .filter { it.name !in listOf("information_schema", "pg_catalog") }
-            .map { PostgresSchema(this, it.name, it.name) }
-            .sortedBy { it.name }.withPageInfo()
+                .meta()
+                .schemas
+                .filter { it.name !in listOf("information_schema", "pg_catalog") }
+                .map { PostgresSchema(this, it.name) }
+                .sortedBy { it.name }
+                .withPageInfo()
 
         override suspend fun getSchema(schemaId: String): Schema =
-            listSchemas(MILLION_RECORDS).find{it.id == schemaId}
-            ?: throwNotFound(schemaId, "PostgreSQL schema")
-    }
-    
-    inner class PostgresSchema( database: PostgresDatabase, id: String, name: String ) :
-        Schema( database, id, name ) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
-            val tables = jooq
+            (jooq
                 .meta()
-                .filterSchemas {it.name == id}
-                .tables
-                .map { PostgresTable(this, it) }
-                .sortedBy { it.fullName }
-                .applyPageParameters(pageParameters)
-            return tables.withPageInfo()
-        }
+                .schemas
+                .firstOrNull{it.name == schemaId}
+                ?:
+                throwNotFound(schemaId, "PostgreSQL schema")
+                ).let{PostgresSchema(this, it.name)}
+    }
 
-        override suspend fun getTable(tableId: String): Table {
-             return listTables(MILLION_RECORDS).find{it.id == tableId}
-                 ?: throwNotFound(tableId, "PostgreSQL table")
-        }
+    inner class PostgresSchema(database: PostgresDatabase, id: String) :
+        Schema( database, id, id ) {
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> = jooq
+            .meta()
+            .filterSchemas { it.name == id }
+            .tables
+            .map { PostgresTable(this, it) }
+            .sortedBy { it.fullName }
+            .applyPageParameters(pageParameters)
+            .withPageInfo()
+
+        override suspend fun getTable(tableId: String): Table = (jooq
+            .meta()
+            .filterSchemas { it.name == id }
+            .tables.firstOrNull { it.name == tableId } ?: throwNotFound(tableId, "PostgreSQL table"))
+            .let { PostgresTable(this, it) }
     }
 
     inner class PostgresTable(
-        schema: ProcessingPlatformClient.Schema,
+        schema: Schema,
         val table: org.jooq.Table<*>,
     ) : Table(
         schema, table.name, table.name
@@ -154,11 +153,8 @@ class PostgresClient( override val config: PostgresConfig ) : ProcessingPlatform
                                     .build().normalizeType()
                             },
                         )
-                        .build(),
                 )
                 .build()
         }
     }
 }
-
-private val schemasToIgnore = listOf("information_schema", "pg_catalog")
