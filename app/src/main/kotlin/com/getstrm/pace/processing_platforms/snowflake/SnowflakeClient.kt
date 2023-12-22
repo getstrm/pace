@@ -203,7 +203,7 @@ data class SnowflakeRequest(
     ) {
         private val log by lazy { LoggerFactory.getLogger(javaClass) }
         override suspend fun createBlueprint(): DataPolicy {
-            return describeTable(schema_, table)?.toDataPolicy(schema.database.pp.apiProcessingPlatform, fullName)
+            return describeTable(schema_, table)?.toDataPolicy(schema.database.platformClient.apiProcessingPlatform, fullName)
                 ?: throw ResourceException(
                     ResourceException.Code.NOT_FOUND,
                     ResourceInfo.newBuilder()

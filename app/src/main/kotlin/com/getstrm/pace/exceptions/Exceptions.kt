@@ -161,3 +161,13 @@ class InternalException(
         DEADLINE_EXCEEDED(Status.DEADLINE_EXCEEDED),
     }
 }
+
+fun throwNotFound(id: String, type: String) : Nothing {
+    throw ResourceException(
+        ResourceException.Code.NOT_FOUND,
+        ResourceInfo.newBuilder()
+            .setResourceName(id)
+            .setResourceType(type)
+            .build()
+    )
+}

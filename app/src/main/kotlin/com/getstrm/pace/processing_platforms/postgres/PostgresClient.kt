@@ -94,9 +94,9 @@ class PostgresClient(
         private val schemasToIgnore = listOf("information_schema", "pg_catalog")
     }
 
-    inner class PostgresDatabase(override val pp: ProcessingPlatformClient, id: String)
+    inner class PostgresDatabase(override val platformClient: ProcessingPlatformClient, id: String)
         :Database(
-        pp, id, POSTGRES.name, id
+        platformClient, id, POSTGRES.name, id
     ) {
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
             TODO("Not yet implemented")
@@ -136,7 +136,7 @@ class PostgresClient(
                         .setTitle(fullName)
                         .setDescription(table.comment)
                 )
-                .setPlatform(schema.database.pp.apiProcessingPlatform)
+                .setPlatform(schema.database.platformClient.apiProcessingPlatform)
                 .setSource(
                     DataPolicy.Source.newBuilder()
                         .setRef(fullName)

@@ -148,7 +148,7 @@ class DatabricksClient(
         processingPlatformClient: ProcessingPlatformClient,
         name: String
     ) : Database(
-        pp = processingPlatformClient,
+        platformClient = processingPlatformClient,
         id = name,
         dbType = DATABRICKS.name,
         displayName = name,

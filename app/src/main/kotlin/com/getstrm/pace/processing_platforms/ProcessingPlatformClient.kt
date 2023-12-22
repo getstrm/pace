@@ -41,7 +41,7 @@ abstract class ProcessingPlatformClient(
 
     /** meta information database */
     abstract class Database(
-        open val pp: ProcessingPlatformClient,
+        open val platformClient: ProcessingPlatformClient,
         val id: String,
         // Todo: make fields required
         val dbType: String? = null,
@@ -54,7 +54,7 @@ abstract class ProcessingPlatformClient(
 
         val apiDatabase: build.buf.gen.getstrm.pace.api.entities.v1alpha.Database
             get() = build.buf.gen.getstrm.pace.api.entities.v1alpha.Database.newBuilder()
-                .setProcessingPlatform(pp.apiProcessingPlatform)
+                .setProcessingPlatform(platformClient.apiProcessingPlatform)
                 .setDisplayName(displayName.orEmpty())
                 .setId(id)
                 .setType(dbType.orEmpty())
@@ -103,7 +103,7 @@ abstract class ProcessingPlatformClient(
          * the full name to be used in SQL queries to get at the source data.
          */
         abstract val fullName: String
-        val apiPlatform = schema.database.pp.apiProcessingPlatform
+        val apiPlatform = schema.database.platformClient.apiProcessingPlatform
         val apiTable: ApiTable
             get() = ApiTable.newBuilder()
                 .setId(id)
