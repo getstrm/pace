@@ -3,33 +3,25 @@ package com.getstrm.pace.processing_platforms.postgres
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.POSTGRES
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
-import com.getstrm.pace.config.PPConfig
 import com.getstrm.pace.config.PostgresConfig
+import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.util.PagedCollection
-import com.getstrm.pace.util.normalizeType
-import com.getstrm.pace.util.withPageInfo
+import com.getstrm.pace.util.*
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
 
-class PostgresClient(
-    config: PPConfig,
-    private val jooq: DSLContext,
-) : ProcessingPlatformClient(config) {
+class PostgresClient( override val config: PostgresConfig ) : ProcessingPlatformClient(config) {
     // To match the behavior of the other ProcessingPlatform implementations, we connect to a
     // single database. If we want to add support for a single client to connect to mulitple
     // databases, more info can be found here:
     // https://www.codejava.net/java-se/jdbc/how-to-list-names-of-all-databases-in-java
-    constructor(config: PostgresConfig) : this(
-        config,
-        DSL.using(
+        private val jooq = DSL.using(
             HikariDataSource(
                 HikariConfig().apply {
                     jdbcUrl = config.getJdbcUrl()
@@ -38,10 +30,11 @@ class PostgresClient(
                 }),
             SQLDialect.POSTGRES
         )
-    )
+    val database = PostgresDatabase(this, config.database)
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
+    
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = PostgresViewGenerator(dataPolicy)
@@ -53,23 +46,27 @@ class PostgresClient(
     }
 
     override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
-        TODO("Not yet implemented")
+        return listOf(database).withPageInfo()
     }
 
-    override suspend fun listSchemas(databaseId: String, pageParameters: PageParameters): PagedCollection<Schema> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun listSchemas(databaseId: String, pageParameters: PageParameters): PagedCollection<Schema> =
+        (if (this.database.id == databaseId) this.database else throwNotFound(
+            databaseId,
+            "PostgreSQL database"
+        )).listSchemas(pageParameters)
 
     override suspend fun listTables(
         databaseId: String,
         schemaId: String,
         pageParameters: PageParameters
     ): PagedCollection<Table> {
-        TODO("Not yet implemented")
+        val schema = listSchemas(databaseId).find{it.id == schemaId} ?: throwNotFound(schemaId, "PostgreSQL schema")
+        return schema.listTables(pageParameters)
     }
 
     override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table {
-        TODO("Not yet implemented")
+        // TODO improve performance
+        return listTables(databaseId, schemaId, THOUSAND_RECORDS).find { it.id ==tableId } ?: throwNotFound(tableId, "PostgreSQL table")
     }
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
@@ -91,33 +88,40 @@ class PostgresClient(
 
     companion object {
         // These are built-in Postgres schemas that we don't want to list tables from.
-        private val schemasToIgnore = listOf("information_schema", "pg_catalog")
     }
 
     inner class PostgresDatabase(override val platformClient: ProcessingPlatformClient, id: String)
-        :Database(
-        platformClient, id, POSTGRES.name, id
-    ) {
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
-            TODO("Not yet implemented")
-        }
+        :Database( platformClient, id, POSTGRES.name, id ) {
+            
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> =
+            jooq
+            .meta()
+            .schemas
+            .filter { it.name !in listOf("information_schema", "pg_catalog") }
+            .map { PostgresSchema(this, it.name, it.name) }
+            .sortedBy { it.name }.withPageInfo()
 
-        override suspend fun getSchema(schemaId: String): Schema {
-            TODO("Not yet implemented")
-        }
+        override suspend fun getSchema(schemaId: String): Schema =
+            listSchemas(MILLION_RECORDS).find{it.id == schemaId}
+            ?: throwNotFound(schemaId, "PostgreSQL schema")
     }
-    inner class PostgresSchema(
-        database: Database, id: String, name: String
-
-    ) : Schema(
-        database, id, name,
-    ) {
+    
+    inner class PostgresSchema( database: PostgresDatabase, id: String, name: String ) :
+        Schema( database, id, name ) {
         override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
-            TODO("Not yet implemented")
+            val tables = jooq
+                .meta()
+                .filterSchemas {it.name == id}
+                .tables
+                .map { PostgresTable(this, it) }
+                .sortedBy { it.fullName }
+                .applyPageParameters(pageParameters)
+            return tables.withPageInfo()
         }
 
         override suspend fun getTable(tableId: String): Table {
-            TODO("Not yet implemented")
+             return listTables(MILLION_RECORDS).find{it.id == tableId}
+                 ?: throwNotFound(tableId, "PostgreSQL table")
         }
     }
 
@@ -156,3 +160,5 @@ class PostgresClient(
         }
     }
 }
+
+private val schemasToIgnore = listOf("information_schema", "pg_catalog")

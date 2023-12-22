@@ -177,9 +177,10 @@ class BigQueryClient(
                 val page = bigQuery.listDatasets()
                 datasets += page.iterateAll()
             } while (page.hasNextPage())
-            return datasets.map {
+            val info: PagedCollection<Schema> = datasets.map {
                 BigQuerySchema(this, it)
             }.withPageInfo()
+            return info
         }
 
         override suspend fun getSchema(schemaId: String): Schema =
