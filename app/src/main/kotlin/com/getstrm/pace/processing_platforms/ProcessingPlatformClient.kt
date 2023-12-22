@@ -98,6 +98,10 @@ abstract class ProcessingPlatformClient(
          */
         abstract suspend fun createBlueprint(): DataPolicy
         override fun toString(): String = "Table($id, $name)"
+
+        /**
+         * the full name to be used in SQL queries to get at the source data.
+         */
         abstract val fullName: String
         val apiPlatform = schema.database.pp.apiProcessingPlatform
         val apiTable: ApiTable

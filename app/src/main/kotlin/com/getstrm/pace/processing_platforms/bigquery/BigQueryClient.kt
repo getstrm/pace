@@ -13,7 +13,6 @@ import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.util.*
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.*
-import com.google.cloud.bigquery.Table
 import com.google.cloud.datacatalog.v1.PolicyTagManagerClient
 import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
@@ -34,37 +33,30 @@ class BigQueryClient(
     )
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
-    private val credentials: GoogleCredentials
-    private val bigQuery: BigQuery
-    private val polClient: PolicyTagManagerClient
+    // Create a service account credential.
+    private val credentials: GoogleCredentials = GoogleCredentials.fromStream(serviceAccountKeyJson.byteInputStream())
+        .createScoped(listOf("https://www.googleapis.com/auth/cloud-platform"))
+    private val bigQuery: BigQuery = BigQueryOptions.newBuilder()
+        .setCredentials(credentials)
+        .setProjectId(projectId)
+        .build()
+        .service
+    private val polClient: PolicyTagManagerClient = PolicyTagManagerClient.create()
 
-    init {
-        // Create a service account credential.
-        credentials = GoogleCredentials.fromStream(serviceAccountKeyJson.byteInputStream())
-            .createScoped(listOf("https://www.googleapis.com/auth/cloud-platform"))
-        bigQuery = BigQueryOptions.newBuilder()
-            .setCredentials(credentials)
-            .setProjectId(projectId)
-            .build()
-            .service
-        polClient = PolicyTagManagerClient.create()
-    }
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> =
+        listOf(BigQueryDatabase(this, projectId)).withPageInfo()
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
-        
-        // FIXME pagedCalls function needs to understand page tokens
-        // for now just getting all of the datasets
-        // how slow is this?
-        val datasets = ArrayList<Dataset>()
-        do {
-            val page = bigQuery.listDatasets()
-            datasets += page.iterateAll()
-        } while(page.hasNextPage())
-        val f = datasets.map{
-            BigQueryDatabase(this, it)
-        }
-        return f.withPageInfo()
-    }
+
+
+    private suspend fun getDatabase(databaseId: String): Database =
+        listDatabases(DEFAULT_PAGE_PARAMETERS).find{it.id ==databaseId}
+            ?: throw ResourceException(
+                ResourceException.Code.NOT_FOUND,
+                ResourceInfo.newBuilder()
+                    .setResourceName(databaseId)
+                    .setResourceType("bigquery dataset")
+                    .build()
+            )
 
     override suspend fun listSchemas(databaseId: String, pageParameters: PageParameters): PagedCollection<Schema> {
         return getDatabase(databaseId).listSchemas(pageParameters)
@@ -81,17 +73,6 @@ class BigQueryClient(
 
     override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table {
         return getDatabase(databaseId).getSchema(schemaId).getTable(tableId)
-    }
-
-    private suspend fun getDatabase(databaseId: String): Database {
-        return bigQuery.getDataset(DatasetId.of(projectId, databaseId))?.let { BigQueryDatabase(this, it) }
-            ?: throw ResourceException(
-                ResourceException.Code.NOT_FOUND,
-                ResourceInfo.newBuilder()
-                    .setResourceType("Gcloud dataset")
-                    .setResourceName(databaseId)
-                    .build()
-            )
     }
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
@@ -184,25 +165,36 @@ class BigQueryClient(
         }
     }
     
-    inner class BigQueryDatabase(pp: ProcessingPlatformClient, val dataset: Dataset):
+    inner class BigQueryDatabase(pp: ProcessingPlatformClient, val dataset: String):
         Database(
             pp = pp,
-            id = dataset.datasetId.dataset,
+            id = dataset,
             dbType = BIGQUERY.name,
-            displayName = dataset.generatedId
+            displayName = dataset
         ) {
-        val schema = BigQuerySchema(this)
+            
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
-            return listOf(schema).withPageInfo()
+
+            // FIXME pagedCalls function needs to understand page tokens
+            // for now just getting all of the datasets
+            // how slow is this?
+            val datasets = ArrayList<Dataset>()
+            do {
+                val page = bigQuery.listDatasets()
+                datasets += page.iterateAll()
+            } while(page.hasNextPage())
+            val f = datasets.map{
+                BigQuerySchema(this, it)
+            }
+            return f.withPageInfo()
         }
 
-        override suspend fun getSchema(schemaId: String): Schema {
-            return schema
-        }
+        override suspend fun getSchema(schemaId: String): Schema =
+            BigQuerySchema(this, bigQuery.getDataset(schemaId))
     }
 
-    inner class BigQuerySchema(database: BigQueryDatabase): Schema( database, "schema", "schema" ) {
-        val dataset = database.dataset
+    inner class BigQuerySchema(database: BigQueryDatabase, val dataset: Dataset):
+        Schema( database, dataset.datasetId.dataset, dataset.datasetId.dataset ) {
         override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
             val tables = bigQuery.listTables(dataset.datasetId).iterateAll().toList()
                 .applyPageParameters(pageParameters)
@@ -212,31 +204,23 @@ class BigQueryClient(
             return tables.withPageInfo()
         }
 
-        override suspend fun getTable(tableId: String): Table {
-            return listTables(THOUSAND_RECORDS).find { it.id == tableId }
-                ?: throw ResourceException(
-                    ResourceException.Code.NOT_FOUND,
-                    ResourceInfo.newBuilder()
-                        .setResourceType("Gcloud table")
-                        .setResourceName(tableId)
-                        .build()
-                )
-        }
+        override suspend fun getTable(tableId: String): Table =
+            BigQueryTable(this, bigQuery.getTable(TableId.of(dataset.datasetId.dataset, tableId)))
     }
 
     inner class BigQueryTable(
         schema: Schema,
-        private val bqtable: BQTable,
-    ) : Table(schema, bqtable.tableId.table, bqtable.generatedId) {
+        private val bqTable: BQTable,
+    ) : Table(schema, bqTable.tableId.table, bqTable.generatedId) {
 
         override suspend fun createBlueprint(): DataPolicy {
             // The reload ensures all metadata is fetched, including the schema
-            val table = bqtable.reload()
+            val table = bqTable.reload()
             // typical tag value =
             // projects/stream-machine-development/locations/europe-west4/taxonomies/5886429027103247004/policyTags/5980433277276442728
-            var tags = table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map {
+            var tags = table.getDefinition<TableDefinition>().schema?.fields.orEmpty().associate {
                 it.name to (it.policyTags?.names ?: emptyList())
-            }.toMap()
+            }
             val nameLookup = tags.values.flatten().toSet().associateWith { tag: String ->
                 polClient.getPolicyTag(tag).displayName
             }
@@ -271,6 +255,6 @@ class BigQueryClient(
                 .build()
         }
 
-        override val fullName = with(bqtable.tableId){"${project}.${dataset}.${table}"}
+        override val fullName = with(bqTable.tableId){"${project}.${dataset}.${table}"}
     }
 }
