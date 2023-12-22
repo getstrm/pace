@@ -51,11 +51,10 @@ class DatabricksClient(
         }
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> =
-        accountClient.groups().list(ListAccountGroupsRequest().apply{
+        accountClient.groups().list(ListAccountGroupsRequest().apply {
             startIndex = pageParameters.skip.toLong()
             count = pageParameters.pageSize.toLong()
-        }
-        ).map { group ->
+        }).map { group ->
             Group(id = group.id, name = group.displayName)
         }.withPageInfo()
 
@@ -169,7 +168,7 @@ class DatabricksClient(
 
     inner class DatabricksSchema(database: Database, name: String) : Schema(
         database = database,
-        id = "${database.id}.$name",
+        id = name,
         name = name,
     ) {
         override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> =
@@ -188,12 +187,12 @@ class DatabricksClient(
         override val fullName: String = tableInfo.fullName,
     ) : Table(
         schema = schema,
-        id = tableInfo.fullName,
+        id = tableInfo.name,
         name = tableInfo.name,
     ) {
         private val log by lazy { LoggerFactory.getLogger(javaClass) }
         override suspend fun createBlueprint(): DataPolicy {
-                return tableInfo.toDataPolicy(getTags(tableInfo))
+            return tableInfo.toDataPolicy(getTags(tableInfo))
         }
 
         /* TODO the current databricks api does not expose column tags! :-(
@@ -201,7 +200,7 @@ class DatabricksClient(
          */
         private fun getTags(tableInfo: TableInfo): Map<String, List<String>> {
 
-            @Language(value="Sql")
+            @Language(value = "Sql")
             val statement = """
             SELECT column_name field, tag_name tag, tag_value val
             from system.information_schema.column_tags
@@ -213,9 +212,10 @@ class DatabricksClient(
             return when (response.status.state) {
                 StatementState.SUCCEEDED -> {
                     return response.result.dataArray.orEmpty().map { it.toList() }
-                        .groupBy {it[0]}
-                        .mapValues { tags -> tags.value.map {it[1]} }
+                        .groupBy { it[0] }
+                        .mapValues { tags -> tags.value.map { it[1] } }
                 }
+
                 else -> {
                     if (response.status.error.errorCode != null) {
                         handleDatabricksError(statement, response)
@@ -242,7 +242,7 @@ class DatabricksClient(
                             columns.map { column ->
                                 DataPolicy.Field.newBuilder()
                                     .addAllNameParts(listOf(column.name))
-                                    .addAllTags( tags[column.name]?: emptyList())
+                                    .addAllTags(tags[column.name] ?: emptyList())
                                     .setType(column.typeText)
                                     .setRequired(!(column.nullable ?: false))
                                     .build().normalizeType()
