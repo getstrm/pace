@@ -10,14 +10,10 @@ import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.util.PagedCollection
-import com.getstrm.pace.util.THOUSAND_RECORDS
-import com.getstrm.pace.util.applyPageParameters
-import com.getstrm.pace.util.normalizeType
-import com.getstrm.pace.util.toTimestamp
-import com.getstrm.pace.util.withPageInfo
+import com.getstrm.pace.util.*
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.*
+import com.google.cloud.bigquery.Table
 import com.google.cloud.datacatalog.v1.PolicyTagManagerClient
 import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
@@ -79,15 +75,16 @@ class BigQueryClient(
         schemaId: String,
         pageParameters: PageParameters
     ): PagedCollection<Table> {
-        TODO("Not yet implemented")
+        return getDatabase(databaseId).getSchema(schemaId).listTables(pageParameters)
+        
     }
 
     override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table {
-        TODO("Not yet implemented")
+        return getDatabase(databaseId).getSchema(schemaId).getTable(tableId)
     }
 
     private suspend fun getDatabase(databaseId: String): Database {
-        return bigQuery.getDataset(databaseId)?.let { BigQueryDatabase(this, it) }
+        return bigQuery.getDataset(DatasetId.of(projectId, databaseId))?.let { BigQueryDatabase(this, it) }
             ?: throw ResourceException(
                 ResourceException.Code.NOT_FOUND,
                 ResourceInfo.newBuilder()
@@ -105,7 +102,7 @@ class BigQueryClient(
             .build()
         try {
             bigQuery.query(queryConfig)
-        } catch (e: JobException) {
+        } catch (e: Exception) {
             log.warn("SQL query\n{}", query)
             log.warn("Caused error {}", e.message)
             throw InternalException(
@@ -118,7 +115,7 @@ class BigQueryClient(
                     .build(),
                 e,
             )
-        }
+        } 
         try {
             authorizeViews(dataPolicy)
         } catch (e: BigQueryException) {
@@ -190,9 +187,9 @@ class BigQueryClient(
     inner class BigQueryDatabase(pp: ProcessingPlatformClient, val dataset: Dataset):
         Database(
             pp = pp,
-            id = dataset.generatedId,
+            id = dataset.datasetId.dataset,
             dbType = BIGQUERY.name,
-            displayName = dataset.datasetId.dataset
+            displayName = dataset.generatedId
         ) {
         val schema = BigQuerySchema(this)
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
@@ -209,8 +206,8 @@ class BigQueryClient(
         override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
             val tables = bigQuery.listTables(dataset.datasetId).iterateAll().toList()
                 .applyPageParameters(pageParameters)
-                .map { table ->
-                    BigQueryTable(this, table, table.generatedId)
+                .map { table: com.google.cloud.bigquery.Table ->
+                    BigQueryTable(this, table)
                 }
             return tables.withPageInfo()
         }
@@ -230,9 +227,7 @@ class BigQueryClient(
     inner class BigQueryTable(
         schema: Schema,
         private val bqtable: BQTable,
-        id: String,
-    ) : Table( schema, id, id ) {
-
+    ) : Table(schema, bqtable.tableId.table, bqtable.generatedId) {
 
         override suspend fun createBlueprint(): DataPolicy {
             // The reload ensures all metadata is fetched, including the schema
@@ -276,8 +271,6 @@ class BigQueryClient(
                 .build()
         }
 
-        override val fullName: String
-            get() = bqtable.generatedId
-
+        override val fullName = with(bqtable.tableId){"${project}.${dataset}.${table}"}
     }
 }

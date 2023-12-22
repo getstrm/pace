@@ -22,10 +22,6 @@ fun String.yamlToJson(shouldThrow: Boolean = false): String? {
     }
 }
 
-fun Table.toFullName() = tableId.toFullName()
-
-fun TableId.toFullName() = "$project.$dataset.$table"
-
 /**
  * Apply different operations on the head, tail and body of a collection. The head and tail contain a single element,
  * and the body contains the rest of the elements in the collection. Requires at least 2 elements in the collection.
