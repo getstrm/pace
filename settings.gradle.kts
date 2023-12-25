@@ -11,7 +11,7 @@ pluginManagement {
         id("org.jetbrains.kotlin.plugin.spring") version kotlinVersion
 
         id("com.google.cloud.artifactregistry.gradle-plugin") version "2.2.1"
-        id("nu.studer.jooq") version "8.2.1"
+        id("nu.studer.jooq") version "8.2.2"
         id("org.openapi.generator") version "7.2.0"
         id("com.bmuschko.docker-remote-api") version "9.4.0"
         id("org.flywaydb.flyway") version "9.22.3"
