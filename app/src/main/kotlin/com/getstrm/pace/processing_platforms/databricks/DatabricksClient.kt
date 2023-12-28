@@ -244,7 +244,6 @@ class DatabricksClient(
                         .groupBy { it[0] }
                         .mapValues { tags -> tags.value.map { it[1] } }
                 }
-
                 StatementState.CANCELED -> TODO()
                 StatementState.CLOSED -> TODO()
                 StatementState.FAILED -> TODO()
@@ -253,13 +252,8 @@ class DatabricksClient(
                     // https://github.com/getstrm/pace/issues/134
                     throw InternalException(
                         InternalException.Code.INTERNAL,
-                        DebugInfo.newBuilder()
-                            .setDetail(
-                                "Databricks query is pending"
-                            )
-                            .build()
+                        DebugInfo.newBuilder().setDetail("Databricks query is pending").build()
                     )
-                    
                 }
                 StatementState.RUNNING -> TODO()
                 else -> {
