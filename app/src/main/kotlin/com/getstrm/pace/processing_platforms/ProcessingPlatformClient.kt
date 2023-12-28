@@ -107,7 +107,7 @@ abstract class ProcessingPlatformClient(
          */
         abstract suspend fun createBlueprint(): DataPolicy
 
-        override fun toString(): String = "Table($id, $name)"
+        override fun toString(): String = "${schema.database.id}.${schema.id}.$id"
 
         /** the full name to be used in SQL queries to get at the source data. */
         abstract val fullName: String

@@ -11,7 +11,6 @@ import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.util.MILLION_RECORDS
 import com.getstrm.pace.util.PagedCollection
-import com.getstrm.pace.util.THOUSAND_RECORDS
 import com.getstrm.pace.util.applyPageParameters
 import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.withPageInfo
@@ -97,19 +96,14 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
         databaseId: String,
         schemaId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Table> {
-        if (databaseId != database.id) throwNotFound(databaseId, "SnowflakeDatabase")
-        val schema = database.getSchema(schemaId)
-        return schema.listTables(pageParameters)
-    }
+    ): PagedCollection<Table> =
+        getDatabase(databaseId).getSchema(schemaId).listTables(pageParameters)
 
-    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table {
-        // TODO increase performance
-        val table =
-            listTables(databaseId, schemaId, THOUSAND_RECORDS).find { it.id == tableId }
-                ?: throwNotFound(tableId, "Snowflake table")
-        return table
-    }
+    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table =
+        getDatabase(databaseId).getSchema(schemaId).getTable(tableId)
+
+    fun getDatabase(databaseId: String): SnowflakeDatabase =
+        if (databaseId != database.id) throwNotFound(databaseId, "SnowflakeDatabase") else database
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
         val request =
@@ -168,11 +162,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
             id,
         ) {
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
-            val sql =
-                """
-                SHOW SCHEMAS in DATABASE "$id"
-            """
-                    .trimIndent()
+            val sql = "SHOW SCHEMAS in DATABASE \"$id\""
 
             val request =
                 SnowflakeRequest(
@@ -184,7 +174,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
                 .body
                 ?.data
                 .orEmpty()
-                .map { (_, name) -> SnowflakeSchema(this, name, name) }
+                .map { (_, name) -> SnowflakeSchema(this, name) }
                 .withPageInfo()
         }
 
@@ -194,10 +184,10 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
         }
     }
 
-    inner class SnowflakeSchema(database: Database, id: String, name: String) :
+    inner class SnowflakeSchema(database: Database, name: String) :
         Schema(
             database,
-            id,
+            name,
             name,
         ) {
         override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
@@ -221,16 +211,14 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
                 .body
                 ?.data
                 .orEmpty()
-                .map { (schemaName, tableName) ->
-                    val fullName = "$schemaName.$tableName"
-                    SnowflakeTable(this, tableName, id)
-                }
+                .map { (_, tableName) -> SnowflakeTable(this, tableName) }
                 .withPageInfo()
         }
 
-        override suspend fun getTable(tableId: String): Table {
-            TODO("Not yet implemented")
-        }
+        override suspend fun getTable(tableId: String): Table =
+            // TODO increase performance
+            listTables(database.id, id, MILLION_RECORDS).find { it.id == tableId }
+                ?: throwNotFound(tableId, "Snowflake table")
     }
 
     data class SnowflakeRequest(
@@ -245,13 +233,12 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
 
     inner class SnowflakeTable(
         ppSchema: Schema,
-        private val table: String,
-        val schema_: String,
-    ) : Table(ppSchema, table, table) {
+        tableName: String,
+    ) : Table(ppSchema, tableName, tableName) {
         private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
         override suspend fun createBlueprint(): DataPolicy {
-            return describeTable(schema_, table)
+            return describeTable(schema.id, id)
                 ?.toDataPolicy(schema.database.platformClient.apiProcessingPlatform, id)
                 ?: throw ResourceException(
                     ResourceException.Code.NOT_FOUND,
@@ -261,7 +248,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
                         .setDescription(
                             "Table $id not found in Snowflake. Verify that it exists and that the client user has access to it."
                         )
-                        .setOwner("Schema: $schema_")
+                        .setOwner("Schema: $id")
                         .build()
                 )
         }
@@ -314,7 +301,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
                             .trimIndent(),
                     database = config.database,
                     warehouse = config.warehouse,
-                    schema = schema_,
+                    schema = id,
                 )
 
             val snowflakeResponse = executeRequest(request)

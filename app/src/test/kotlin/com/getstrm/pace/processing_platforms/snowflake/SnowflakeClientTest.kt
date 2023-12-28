@@ -64,15 +64,9 @@ class SnowflakeClientTest {
             )
 
         val database = snowflakeClient.SnowflakeDatabase(snowflakeClient, "db")
-        val schema = snowflakeClient.SnowflakeSchema(database, "db", "schema")
+        val schema = snowflakeClient.SnowflakeSchema(database, "schema")
 
-        val table =
-            snowflakeClient.SnowflakeTable(
-                schema,
-                "test_schema.test_table",
-                "test_table",
-                "test_schema"
-            )
+        val table = snowflakeClient.SnowflakeTable(schema, "test_schema")
 
         // When
         val policy = runBlocking { table.createBlueprint() }

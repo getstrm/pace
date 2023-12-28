@@ -10,35 +10,28 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class PostgresClientTest : AbstractDatabaseTest() {
-    val config = PostgresConfig("postgres", "localhost", 5432, "postgres", "postgres", "postgres")
+    val config = PostgresConfig("postgres", "localhost", port, "postgres", "postgres", "postgres")
     private val underTest = PostgresClient(config)
-    private val db = underTest.PostgresDatabase(underTest, "db")
-    private val schema = underTest.PostgresSchema(db, "db")
+    private val db = underTest.PostgresDatabase(underTest, "postgres")
 
     @BeforeEach
     fun setupDatabase() {
         dataSource.executeMigrations("database/postgres-client")
     }
 
-    // Todo: re-enable when implemented
-    @Disabled
     @Test
     fun `list tables`() {
-        // Given a table in the database
-
-        // When
-        val actual =
-            runBlocking { schema.listTables(DEFAULT_PAGE_PARAMETERS) }
-                .data
-                .filter { !ignoreTables.contains(it.fullName) }
-        val tableNames = actual.map { it.fullName }
-
-        // Then
-        tableNames shouldBe listOf("public.demo")
+        runBlocking {
+            // Given
+            val schema = db.getSchema("public")
+            val tables = schema.listTables()
+            // Then
+            tables.data.map { it.name } shouldContainExactlyInAnyOrder
+                listOf("demo", "flyway_schema_history")
+        }
     }
 
     @Test
@@ -58,19 +51,12 @@ class PostgresClientTest : AbstractDatabaseTest() {
         pageInfo.total shouldBe 2
     }
 
-    // Todo: re-enable when implemented
-    @Disabled
     @Test
     fun `test tags from field comment`() {
-        // Given a table in the database
-
-        // When
-        val actual =
-            runBlocking { schema.listTables(DEFAULT_PAGE_PARAMETERS) }
-                .data
-                .filter { !ignoreTables.contains(it.fullName) }
         runBlocking {
-            val policy: DataPolicy = actual.map { it.createBlueprint() }.first()
+            val schema = db.getSchema("public")
+            val tables = schema.getTable("demo")
+            val policy: DataPolicy = tables.createBlueprint()
             val field = policy.source.fieldsList.find { it.pathString() == "email" }!!
             field.tagsList shouldContainExactlyInAnyOrder listOf("pii", "with whitespace", "email")
         }
