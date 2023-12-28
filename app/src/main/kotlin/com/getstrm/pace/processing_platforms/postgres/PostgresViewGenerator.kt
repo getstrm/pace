@@ -20,23 +20,30 @@ import org.jooq.impl.DSL
 class PostgresViewGenerator(
     dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {},
-) : ProcessingPlatformViewGenerator(
-    dataPolicy,
-    transformer = PostgresTransformer(),
-    customJooqSettings = customJooqSettings
-) {
-    override val jooq: DSLContext = DSL.using(SQLDialect.POSTGRES, defaultJooqSettings.apply(customJooqSettings))
-    override fun additionalFooterStatements(): Queries {
-        val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->
-            val viewName = ruleSet.target.fullname
+) :
+    ProcessingPlatformViewGenerator(
+        dataPolicy,
+        transformer = PostgresTransformer(),
+        customJooqSettings = customJooqSettings
+    ) {
+    override val jooq: DSLContext =
+        DSL.using(SQLDialect.POSTGRES, defaultJooqSettings.apply(customJooqSettings))
 
-            ruleSet.uniquePrincipals().map {
-                DSL.query(
-                    jooq.grant(DSL.privilege("SELECT")).on(DSL.table(DSL.unquotedName(viewName)))
-                        .to(DSL.role(DSL.quotedName(it.group))).sql
-                )
+    override fun additionalFooterStatements(): Queries {
+        val grants =
+            dataPolicy.ruleSetsList.flatMap { ruleSet ->
+                val viewName = ruleSet.target.fullname
+
+                ruleSet.uniquePrincipals().map {
+                    DSL.query(
+                        jooq
+                            .grant(DSL.privilege("SELECT"))
+                            .on(DSL.table(DSL.unquotedName(viewName)))
+                            .to(DSL.role(DSL.quotedName(it.group)))
+                            .sql
+                    )
+                }
             }
-        }
 
         return jooq.queries(grants)
     }
@@ -48,45 +55,50 @@ class PostgresViewGenerator(
             DSL.or(
                 principals.map { principal ->
                     when {
-                        principal.hasGroup() -> DSL.condition(
-                            "{0} IN ( SELECT rolname FROM user_groups )",
-                            principal.group
-                        )
-
-                        else -> throw InternalException(
-                            InternalException.Code.INTERNAL,
-                            DebugInfo.newBuilder()
-                                .setDetail("Principal of type ${principal.principalCase} is not supported for platform PostgreSQL. ${PaceStatusException.UNIMPLEMENTED}")
-                                .build()
-                        )
+                        principal.hasGroup() ->
+                            DSL.condition(
+                                "{0} IN ( SELECT rolname FROM user_groups )",
+                                principal.group
+                            )
+                        else ->
+                            throw InternalException(
+                                InternalException.Code.INTERNAL,
+                                DebugInfo.newBuilder()
+                                    .setDetail(
+                                        "Principal of type ${principal.principalCase} is not supported for platform PostgreSQL. ${PaceStatusException.UNIMPLEMENTED}"
+                                    )
+                                    .build()
+                            )
                     }
-                })
+                }
+            )
         }
     }
 
     override fun renderName(name: String): String = jooq.renderNamedParams(DSL.unquotedName(name))
 
-    override fun selectWithAdditionalHeaderStatements(fields: List<Field<*>>): SelectSelectStep<Record> {
-        val userGroupSelect = DSL.unquotedName("user_groups")
-            .`as`(
-                DSL.select(
-                    DSL.field("rolname")
-                ).from(
-                    DSL.table(DSL.unquotedName("pg_roles"))
-                ).where(
-                    DSL.field("rolcanlogin")
-                        .eq(false)
-                        .and(
-                            DSL.function(
-                                "pg_has_role",
-                                Boolean::class.java,
-                                DSL.field("session_user"),
-                                DSL.field("oid"),
-                                DSL.inline("member")
-                            )
+    override fun selectWithAdditionalHeaderStatements(
+        fields: List<Field<*>>
+    ): SelectSelectStep<Record> {
+        val userGroupSelect =
+            DSL.unquotedName("user_groups")
+                .`as`(
+                    DSL.select(DSL.field("rolname"))
+                        .from(DSL.table(DSL.unquotedName("pg_roles")))
+                        .where(
+                            DSL.field("rolcanlogin")
+                                .eq(false)
+                                .and(
+                                    DSL.function(
+                                        "pg_has_role",
+                                        Boolean::class.java,
+                                        DSL.field("session_user"),
+                                        DSL.field("oid"),
+                                        DSL.inline("member")
+                                    )
+                                )
                         )
                 )
-            )
 
         return DSL.with(userGroupSelect).select(fields)
     }

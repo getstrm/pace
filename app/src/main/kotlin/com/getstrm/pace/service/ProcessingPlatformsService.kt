@@ -1,6 +1,8 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database as ApiDatabase
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema as ApiSchema
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyResponse
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListDatabasesRequest
@@ -23,8 +25,6 @@ import com.google.rpc.BadRequest
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database as ApiDatabase
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema as ApiSchema
 
 @Component
 class ProcessingPlatformsService(
@@ -46,16 +46,19 @@ class ProcessingPlatformsService(
     }
 
     suspend fun listGroups(platformId: String): PagedCollection<Group> =
-        platforms[platformId]?.listGroups(DEFAULT_PAGE_PARAMETERS) ?: throw processingPlatformNotFound(platformId)
+        platforms[platformId]?.listGroups(DEFAULT_PAGE_PARAMETERS)
+            ?: throw processingPlatformNotFound(platformId)
 
     suspend fun listGroupNames(platformId: String): Set<String> =
         listGroups(platformId).map { it.name }.data.toSet()
 
     fun getProcessingPlatform(dataPolicy: DataPolicy): ProcessingPlatformClient {
-        val processingPlatform = platforms[dataPolicy.platform.id] ?: throw processingPlatformNotFound(
-            dataPolicy.platform.id,
-            dataPolicy.platform.platformType.name
-        )
+        val processingPlatform =
+            platforms[dataPolicy.platform.id]
+                ?: throw processingPlatformNotFound(
+                    dataPolicy.platform.id,
+                    dataPolicy.platform.platformType.name
+                )
         return processingPlatform.also {
             if (it.type != dataPolicy.platform.platformType) {
                 throw BadRequestException(
@@ -65,7 +68,9 @@ class ProcessingPlatformsService(
                             listOf(
                                 BadRequest.FieldViolation.newBuilder()
                                     .setField("dataPolicy.platform.platformType")
-                                    .setDescription("Platform type in DataPolicy ${dataPolicy.platform.platformType} does not correspond with configured platform ${dataPolicy.platform.id} of type ${it.type}")
+                                    .setDescription(
+                                        "Platform type in DataPolicy ${dataPolicy.platform.platformType} does not correspond with configured platform ${dataPolicy.platform.id} of type ${it.type}"
+                                    )
                                     .build()
                             )
                         )
@@ -75,38 +80,46 @@ class ProcessingPlatformsService(
         }
     }
 
-    suspend fun listProcessingPlatformTables(request: ListTablesRequest): PagedCollection<ProcessingPlatformClient.Table> {
+    suspend fun listProcessingPlatformTables(
+        request: ListTablesRequest
+    ): PagedCollection<ProcessingPlatformClient.Table> {
         val processingPlatformClient: ProcessingPlatformClient =
             platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
-        return processingPlatformClient.listTables(request.databaseId, request.schemaId, request.pageParameters)
+        return processingPlatformClient.listTables(
+            request.databaseId,
+            request.schemaId,
+            request.pageParameters
+        )
     }
 
     suspend fun listProcessingPlatformGroups(request: ListGroupsRequest): PagedCollection<Group> =
-        (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)).listGroups(request.pageParameters)
-
+        (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
+            .listGroups(request.pageParameters)
 
     suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest): GetBlueprintPolicyResponse {
         val platformClient =
             platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
-        val table = platformClient.getTable(
-            request.table.schema.database.id,
-            request.table.schema.id,
-            request.table.id
-        )
+        val table =
+            platformClient.getTable(
+                request.table.schema.database.id,
+                request.table.schema.id,
+                request.table.id
+            )
         val blueprint = table.createBlueprint()
-        return GetBlueprintPolicyResponse.newBuilder()
-            .setDataPolicy(blueprint)
-            .build()
+        return GetBlueprintPolicyResponse.newBuilder().setDataPolicy(blueprint).build()
     }
 
     suspend fun listDatabases(request: ListDatabasesRequest): PagedCollection<ApiDatabase> =
         (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
-            .listDatabases(request.pageParameters).map{it.apiDatabase}
+            .listDatabases(request.pageParameters)
+            .map { it.apiDatabase }
 
     suspend fun listSchemas(request: ListSchemasRequest): PagedCollection<ApiSchema> {
         val platformClient =
             platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
-        return platformClient.listSchemas(request.databaseId, request.pageParameters).map { it.apiSchema }
+        return platformClient.listSchemas(request.databaseId, request.pageParameters).map {
+            it.apiSchema
+        }
     }
 
     /*
@@ -139,14 +152,18 @@ class ProcessingPlatformsService(
         }
     }
      */
-    private fun processingPlatformNotFound(platformId: String, owner: String? = null) = ResourceException(
-        ResourceException.Code.NOT_FOUND, ResourceInfo.newBuilder()
-            .setResourceType(PROCESSING_PLATFORM)
-            .setResourceName(platformId)
-            .setDescription("Platform with id $platformId not found, please ensure it is present in the configuration of the processing platforms.")
-            .apply { if (owner != null) setOwner(owner) }
-            .build()
-    )
+    private fun processingPlatformNotFound(platformId: String, owner: String? = null) =
+        ResourceException(
+            ResourceException.Code.NOT_FOUND,
+            ResourceInfo.newBuilder()
+                .setResourceType(PROCESSING_PLATFORM)
+                .setResourceName(platformId)
+                .setDescription(
+                    "Platform with id $platformId not found, please ensure it is present in the configuration of the processing platforms."
+                )
+                .apply { if (owner != null) setOwner(owner) }
+                .build()
+        )
 
     companion object {
         private const val PROCESSING_PLATFORM = "Processing Platform"

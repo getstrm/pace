@@ -9,7 +9,6 @@ import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
 import com.getstrm.pace.util.toApiDataPolicy
-import com.getstrm.pace.util.withPageInfo
 import com.google.rpc.ResourceInfo
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -21,7 +20,9 @@ class DataPolicyService(
     private val dataPolicyValidatorService: DataPolicyValidatorService
 ) {
     suspend fun listDataPolicies(request: ListDataPoliciesRequest): PagedCollection<DataPolicy> =
-        dataPolicyDao.listDataPolicies(request.pageParameters.orDefault()).map { it.toApiDataPolicy() }
+        dataPolicyDao.listDataPolicies(request.pageParameters.orDefault()).map {
+            it.toApiDataPolicy()
+        }
 
     @Transactional
     suspend fun upsertDataPolicy(request: UpsertDataPolicyRequest): DataPolicy {
@@ -30,9 +31,10 @@ class DataPolicyService(
             processingPlatforms.listGroupNames(request.dataPolicy.platform.id)
         )
 
-        return dataPolicyDao.upsertDataPolicy(request.dataPolicy).also {
-            if (request.apply) applyDataPolicy(it)
-        }.toApiDataPolicy()
+        return dataPolicyDao
+            .upsertDataPolicy(request.dataPolicy)
+            .also { if (request.apply) applyDataPolicy(it) }
+            .toApiDataPolicy()
     }
 
     suspend fun applyDataPolicy(id: String, platformId: String): DataPolicy =
@@ -48,12 +50,13 @@ class DataPolicyService(
         getActiveDataPolicy(id, platformId).toApiDataPolicy()
 
     private fun getActiveDataPolicy(id: String, platformId: String): DataPoliciesRecord =
-        dataPolicyDao.getActiveDataPolicy(id, platformId) ?: throw ResourceException(
-            ResourceException.Code.NOT_FOUND,
-            ResourceInfo.newBuilder()
-                .setResourceType("DataPolicy")
-                .setResourceName(id)
-                .setDescription("DataPolicy $id not found")
-                .build()
-        )
+        dataPolicyDao.getActiveDataPolicy(id, platformId)
+            ?: throw ResourceException(
+                ResourceException.Code.NOT_FOUND,
+                ResourceInfo.newBuilder()
+                    .setResourceType("DataPolicy")
+                    .setResourceName(id)
+                    .setDescription("DataPolicy $id not found")
+                    .build()
+            )
 }

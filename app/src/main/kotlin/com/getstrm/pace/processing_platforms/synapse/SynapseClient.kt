@@ -25,7 +25,9 @@ class SynapseClient(
     // single database. If we want to add support for a single client to connect to multiple
     // databases, more info can be found here:
     // https://www.codejava.net/java-se/jdbc/how-to-list-names-of-all-databases-in-java
-    constructor(config: SynapseConfig) : this(
+    constructor(
+        config: SynapseConfig
+    ) : this(
         config,
         DSL.using(
             HikariDataSource(
@@ -33,15 +35,16 @@ class SynapseClient(
                     jdbcUrl = config.getJdbcUrl()
                     username = config.userName
                     password = config.password
-                }),
+                }
+            ),
             SQLDialect.DEFAULT
         ),
     )
 
-
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = SynapseViewGenerator(dataPolicy)
-        // Explicitly dropping the views if they exist first and granting the 'select' to roles is required by Synapse.
+        // Explicitly dropping the views if they exist first and granting the 'select' to roles is
+        // required by Synapse.
         val dropQuery = viewGenerator.dropViewsSQL().queries()
         val query = viewGenerator.toDynamicViewSQL().queries()
         val grantSelectQuery = viewGenerator.grantSelectPrivileges().queries()
@@ -55,7 +58,10 @@ class SynapseClient(
         TODO("Not yet implemented")
     }
 
-    override suspend fun listSchemas(databaseId: String, pageParameters: PageParameters): PagedCollection<Schema> {
+    override suspend fun listSchemas(
+        databaseId: String,
+        pageParameters: PageParameters
+    ): PagedCollection<Schema> {
         TODO("Not yet implemented")
     }
 
@@ -72,26 +78,33 @@ class SynapseClient(
     }
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
-        val result = withContext(Dispatchers.IO) {
-            jooq.select(DSL.field("principal_id", Int::class.java), DSL.field("name", String::class.java))
-                .from(DSL.table("sys.database_principals"))
-                .where(
-                    DSL.field("type_desc").eq("DATABASE_ROLE")
-                )
-                .limit(pageParameters.pageSize)
-                .offset(pageParameters.skip)
-                .fetch()
-        }
-        return result.map { (oid, rolname) -> Group(id = oid.toString(), name = rolname) }.withPageInfo()
+        val result =
+            withContext(Dispatchers.IO) {
+                jooq
+                    .select(
+                        DSL.field("principal_id", Int::class.java),
+                        DSL.field("name", String::class.java)
+                    )
+                    .from(DSL.table("sys.database_principals"))
+                    .where(DSL.field("type_desc").eq("DATABASE_ROLE"))
+                    .limit(pageParameters.pageSize)
+                    .offset(pageParameters.skip)
+                    .fetch()
+            }
+        return result
+            .map { (oid, rolname) -> Group(id = oid.toString(), name = rolname) }
+            .withPageInfo()
     }
 
     companion object {
         // These are built-in Synapse schemas that we don't want to list tables from.
         private val schemasToIgnore = listOf("sys", "INFORMATION_SCHEMA")
     }
-    inner class SynapseDatabase(pp: ProcessingPlatformClient, id: String):
+
+    inner class SynapseDatabase(pp: ProcessingPlatformClient, id: String) :
         ProcessingPlatformClient.Database(
-            pp, id,
+            pp,
+            id,
         ) {
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
             TODO("Not yet implemented")
@@ -102,18 +115,16 @@ class SynapseClient(
         }
     }
 
-    inner class SynapseSchema(database: Database, id: String, name: String):
-    ProcessingPlatformClient.Schema(
-        database, id, name
-    ) {
+    inner class SynapseSchema(database: Database, id: String, name: String) :
+        ProcessingPlatformClient.Schema(database, id, name) {
         override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
-            return jooq.meta()
+            return jooq
+                .meta()
                 .filterSchemas { !schemasToIgnore.contains(it.name) }
                 .tables
                 .applyPageParameters(pageParameters)
                 .map { it -> SynapseTable(it, this, name, it.name) }
                 .withPageInfo()
-
         }
 
         override suspend fun getTable(tableId: String): Table {
@@ -122,10 +133,11 @@ class SynapseClient(
     }
 
     inner class SynapseTable(
-        val table: org.jooq.Table<*>, schema: Schema, id: String, name: String
-    ) : Table(
-        schema, id, name
-    ) {
+        val table: org.jooq.Table<*>,
+        schema: Schema,
+        id: String,
+        name: String
+    ) : Table(schema, id, name) {
         override val fullName: String = "${table.schema?.name}.${table.name}"
 
         override suspend fun createBlueprint(): DataPolicy {
@@ -146,7 +158,8 @@ class SynapseClient(
                                     .setType(field.dataType.typeName)
                                     .addAllTags(field.toTags())
                                     .setRequired(!field.dataType.nullable())
-                                    .build().normalizeType()
+                                    .build()
+                                    .normalizeType()
                             },
                         )
                         .build(),

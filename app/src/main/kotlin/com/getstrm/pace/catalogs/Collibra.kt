@@ -13,32 +13,39 @@ import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.util.*
 import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
+import java.util.*
 import kotlinx.coroutines.flow.single
 import org.slf4j.LoggerFactory
-import java.util.*
-
 
 class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
     val client = apolloClient()
+
     override fun close() = client.close()
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<DataCatalog.Database> =
+    override suspend fun listDatabases(
+        pageParameters: PageParameters
+    ): PagedCollection<DataCatalog.Database> =
         pagedCalls(pageParameters) { skip: Int, pageSize: Int ->
-            client.query(
-                ListPhysicalDataAssetsQuery(
-                    assetType = AssetTypes.DATABASE.assetName,
-                    skip = skip,
-                    pageSize = pageSize
-                )
-            ).executeOrThrowError().assets.onlyNonNulls()
-        }
+                client
+                    .query(
+                        ListPhysicalDataAssetsQuery(
+                            assetType = AssetTypes.DATABASE.assetName,
+                            skip = skip,
+                            pageSize = pageSize
+                        )
+                    )
+                    .executeOrThrowError()
+                    .assets
+                    .onlyNonNulls()
+            }
             .withUnknownTotals()
             .map { Database(this, it.id.toString(), it.getDataSourceType(), it.displayName ?: "") }
 
     override suspend fun getDatabase(databaseId: String): DataCatalog.Database {
-        val database = client.query(GetDataBaseQuery(databaseId)).executeOrThrowError().assets.firstNonNull()
+        val database =
+            client.query(GetDataBaseQuery(databaseId)).executeOrThrowError().assets.firstNonNull()
         return Database(
             catalog = this,
             id = database.id.toString(),
@@ -47,68 +54,111 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         )
     }
 
-    inner class Database(override val catalog: CollibraCatalog, id: String, dbType: String, displayName: String) :
-        DataCatalog.Database(catalog, id, dbType, displayName) {
+    inner class Database(
+        override val catalog: CollibraCatalog,
+        id: String,
+        dbType: String,
+        displayName: String
+    ) : DataCatalog.Database(catalog, id, dbType, displayName) {
 
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<DataCatalog.Schema> {
-            val schemas = pagedCalls(pageParameters) { skip, pageSize ->
-                client.query(ListSchemaIdsQuery(id, skip, pageSize))
-                    .executeOrThrowError().assets.onlyNonNulls().first().schemas
-            }
-            return schemas.map {
-                Schema(catalog, this, it.target.id.toString(), it.target.fullName)
-            }.withUnknownTotals()
+        override suspend fun listSchemas(
+            pageParameters: PageParameters
+        ): PagedCollection<DataCatalog.Schema> {
+            val schemas =
+                pagedCalls(pageParameters) { skip, pageSize ->
+                    client
+                        .query(ListSchemaIdsQuery(id, skip, pageSize))
+                        .executeOrThrowError()
+                        .assets
+                        .onlyNonNulls()
+                        .first()
+                        .schemas
+                }
+            return schemas
+                .map { Schema(catalog, this, it.target.id.toString(), it.target.fullName) }
+                .withUnknownTotals()
         }
 
         override suspend fun getSchema(schemaId: String): DataCatalog.Schema {
             val schemaAsset =
-                catalog.client.query(GetSchemaQuery(schemaId)).executeOrThrowError().assets.firstNonNull()
+                catalog.client
+                    .query(GetSchemaQuery(schemaId))
+                    .executeOrThrowError()
+                    .assets
+                    .firstNonNull()
             return Schema(catalog, this, schemaAsset.id.toString(), schemaAsset.fullName)
         }
     }
 
-    inner class Schema(private val catalog: CollibraCatalog, database: DataCatalog.Database, id: String, name: String) :
-        DataCatalog.Schema(database, id, name) {
-            
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<DataCatalog.Table> {
-            val tables = pagedCalls(pageParameters) { skip, pageSize ->
-                // first() refers to the single schema
-                client.query(ListTablesInSchemaQuery(id, skip, pageSize))
-                    .executeOrThrowError().assets.onlyNonNulls().first().tables
-            }.map { Table(catalog, this, it.target.id.toString(), it.target.fullName) }
+    inner class Schema(
+        private val catalog: CollibraCatalog,
+        database: DataCatalog.Database,
+        id: String,
+        name: String
+    ) : DataCatalog.Schema(database, id, name) {
+
+        override suspend fun listTables(
+            pageParameters: PageParameters
+        ): PagedCollection<DataCatalog.Table> {
+            val tables =
+                pagedCalls(pageParameters) { skip, pageSize ->
+                        // first() refers to the single schema
+                        client
+                            .query(ListTablesInSchemaQuery(id, skip, pageSize))
+                            .executeOrThrowError()
+                            .assets
+                            .onlyNonNulls()
+                            .first()
+                            .tables
+                    }
+                    .map { Table(catalog, this, it.target.id.toString(), it.target.fullName) }
             return tables.withUnknownTotals()
         }
 
         override suspend fun getTable(tableId: String): DataCatalog.Table {
-            val table = catalog.client.query(GetTableQuery(tableId)).executeOrThrowError().assets.onlyNonNulls().firstOrNull() ?:
-            throw BadRequestException(
-                INVALID_ARGUMENT, BadRequest.newBuilder()
-                    .addFieldViolations(BadRequest.FieldViolation.newBuilder()
-                        .setDescription("table $tableId not found")
+            val table =
+                catalog.client
+                    .query(GetTableQuery(tableId))
+                    .executeOrThrowError()
+                    .assets
+                    .onlyNonNulls()
+                    .firstOrNull()
+                    ?: throw BadRequestException(
+                        INVALID_ARGUMENT,
+                        BadRequest.newBuilder()
+                            .addFieldViolations(
+                                BadRequest.FieldViolation.newBuilder()
+                                    .setDescription("table $tableId not found")
+                            )
+                            .build(),
+                        errorMessage = "table $tableId not found"
                     )
-                    .build()
-                ,
-                errorMessage = "table $tableId not found"
-            )
             return Table(catalog, this, tableId, table.fullName)
         }
     }
 
-    class Table(private val catalog: CollibraCatalog, schema: DataCatalog.Schema, id: String, name: String) :
-        DataCatalog.Table(schema, id, name) {
+    class Table(
+        private val catalog: CollibraCatalog,
+        schema: DataCatalog.Schema,
+        id: String,
+        name: String
+    ) : DataCatalog.Table(schema, id, name) {
 
         override suspend fun createBlueprint(): DataPolicy? {
-            val columns: List<ColumnTypesAndTagsQuery.Column> = pagedCalls(MILLION_RECORDS)
-            { skip, pageSize ->
-                catalog.client.query(ColumnTypesAndTagsQuery(tableId = id, pageSize = pageSize, skip = skip))
-                    .executeOrThrowError().columns.onlyNonNulls()
-            }
-            return with( DataPolicy.newBuilder()) {
+            val columns: List<ColumnTypesAndTagsQuery.Column> =
+                pagedCalls(MILLION_RECORDS) { skip, pageSize ->
+                    catalog.client
+                        .query(
+                            ColumnTypesAndTagsQuery(tableId = id, pageSize = pageSize, skip = skip)
+                        )
+                        .executeOrThrowError()
+                        .columns
+                        .onlyNonNulls()
+                }
+            return with(DataPolicy.newBuilder()) {
                 metadataBuilder.title = name
                 metadataBuilder.description = schema.database.displayName
-                columns.forEach { column ->
-                    sourceBuilder.addFields(column.toField())
-                }
+                columns.forEach { column -> sourceBuilder.addFields(column.toField()) }
                 build()
             }
         }
@@ -125,7 +175,9 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
     }
 
     private fun apolloClient(): ApolloClient {
-        val basicAuth = Base64.getEncoder().encodeToString("${config.userName}:${config.password}".toByteArray())
+        val basicAuth =
+            Base64.getEncoder()
+                .encodeToString("${config.userName}:${config.password}".toByteArray())
         return ApolloClient.Builder()
             .serverUrl(config.serverUrl)
             .addHttpHeader("Authorization", "Basic $basicAuth")
@@ -139,16 +191,14 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         stringAttributes.find { it.type.publicId == "DataSourceType" }?.stringValue ?: "unknown"
 }
 
-/**
- * utility function to provide error handling in grpc compatible format.
- */
+/** utility function to provide error handling in grpc compatible format. */
 private suspend fun <D : Operation.Data> ApolloCall<D>.executeOrThrowError(): D {
     val apolloResponse = toFlow().single()
-    if(apolloResponse.hasErrors()){
+    if (apolloResponse.hasErrors()) {
         throw InternalException(
             InternalException.Code.INTERNAL,
             DebugInfo.newBuilder()
-                .setDetail(apolloResponse.errors?.joinToString()?:"unknown")
+                .setDetail(apolloResponse.errors?.joinToString() ?: "unknown")
                 .build()
         )
     }

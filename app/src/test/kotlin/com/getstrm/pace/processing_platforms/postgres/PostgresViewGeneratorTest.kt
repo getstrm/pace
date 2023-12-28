@@ -24,7 +24,8 @@ class PostgresViewGeneratorTest {
         val condition = underTest.toPrincipalCondition(principals)
 
         // Then
-        condition!!.toSql() shouldBe "(('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups )))"
+        condition!!.toSql() shouldBe
+            "(('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups )))"
     }
 
     @Test
@@ -55,119 +56,144 @@ class PostgresViewGeneratorTest {
     fun `field transform with a few transforms`() {
         // Given
         val field = namedField("email", "string")
-        val fixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****"))
-            .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
-            .build()
-        val otherFixed = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("REDACTED EMAIL"))
-            .addAllPrincipals(listOf("fraud_and_risk").toPrincipals())
-            .build()
-        val fallbackTransform = DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
-            .setFixed(DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("fixed-value"))
-            .build()
-        val fieldTransform = DataPolicy.RuleSet.FieldTransform.newBuilder()
-            .setField(field)
-            .addAllTransforms(listOf(fixed, otherFixed, fallbackTransform))
-            .build()
+        val fixed =
+            DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+                .setFixed(
+                    DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("****")
+                )
+                .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
+                .build()
+        val otherFixed =
+            DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+                .setFixed(
+                    DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder()
+                        .setValue("REDACTED EMAIL")
+                )
+                .addAllPrincipals(listOf("fraud_and_risk").toPrincipals())
+                .build()
+        val fallbackTransform =
+            DataPolicy.RuleSet.FieldTransform.Transform.newBuilder()
+                .setFixed(
+                    DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder()
+                        .setValue("fixed-value")
+                )
+                .build()
+        val fieldTransform =
+            DataPolicy.RuleSet.FieldTransform.newBuilder()
+                .setField(field)
+                .addAllTransforms(listOf(fixed, otherFixed, fallbackTransform))
+                .build()
 
         // When
         val jooqField = underTest.toJooqField(field, fieldTransform)
 
         // Then
-        jooqField.toSql() shouldBe "case when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then '****' when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then 'REDACTED EMAIL' else 'fixed-value' end \"email\""
+        jooqField.toSql() shouldBe
+            "case when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then '****' when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then 'REDACTED EMAIL' else 'fixed-value' end \"email\""
     }
 
     @Test
     fun `generic row filter to condition`() {
         // Given
-        val filter = DataPolicy.RuleSet.Filter.newBuilder()
-            .setGenericFilter(
-                GenericFilter.newBuilder()
-                    .addAllConditions(
-                        listOf(
-                            GenericFilter.Condition.newBuilder()
-                                .addAllPrincipals(listOf("fraud_and_risk").toPrincipals())
-                                .setCondition("true")
-                                .build(),
-                            GenericFilter.Condition.newBuilder()
-                                .addAllPrincipals(listOf("analytics", "marketing").toPrincipals())
-                                .setCondition("age > 18")
-                                .build(),
-                            GenericFilter.Condition.newBuilder()
-                                .setCondition("false")
-                                .build()
+        val filter =
+            DataPolicy.RuleSet.Filter.newBuilder()
+                .setGenericFilter(
+                    GenericFilter.newBuilder()
+                        .addAllConditions(
+                            listOf(
+                                GenericFilter.Condition.newBuilder()
+                                    .addAllPrincipals(listOf("fraud_and_risk").toPrincipals())
+                                    .setCondition("true")
+                                    .build(),
+                                GenericFilter.Condition.newBuilder()
+                                    .addAllPrincipals(
+                                        listOf("analytics", "marketing").toPrincipals()
+                                    )
+                                    .setCondition("age > 18")
+                                    .build(),
+                                GenericFilter.Condition.newBuilder().setCondition("false").build()
+                            )
                         )
-                    )
-            )
-            .build()
+                )
+                .build()
 
         // When
         val condition = underTest.toCondition(filter.genericFilter)
 
         // Then
-        condition.toSql() shouldBe "case when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then age > 18 else false end"
+        condition.toSql() shouldBe
+            "case when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then age > 18 else false end"
     }
 
     @Test
     fun `single retention with single condition`() {
         // Given
-        val retention = RetentionFilter.newBuilder()
-            .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
-            .addConditions(
-                RetentionFilter.Condition.newBuilder()
-                    .addPrincipals(DataPolicy.Principal.getDefaultInstance())
-                    .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
-                    .build()
-            )
-            .build()
-
-        // When
-        val condition = underTest.toCondition(retention)
-
-        // Then
-        condition.toSql() shouldBe """
-            dateadd(day, 10, timestamp) > current_timestamp""".trimIndent()
-    }
-
-
-    @Test
-    fun `single retention to condition`() {
-        // Given
-        val retention = RetentionFilter.newBuilder()
-            .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
-            .addAllConditions(
-                listOf(
-                    RetentionFilter.Condition.newBuilder()
-                        .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("marketing"))
-                        .setPeriod(RetentionFilter.Period.newBuilder().setDays(5))
-                        .build(),
-                    RetentionFilter.Condition.newBuilder()
-                        .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("fraud_and_risk"))
-                        .build(),
+        val retention =
+            RetentionFilter.newBuilder()
+                .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
+                .addConditions(
                     RetentionFilter.Condition.newBuilder()
                         .addPrincipals(DataPolicy.Principal.getDefaultInstance())
                         .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
                         .build()
                 )
-            ).build()
+                .build()
 
         // When
         val condition = underTest.toCondition(retention)
 
         // Then
-        condition.toSql() shouldBe """
-            case when ('marketing' IN ( SELECT rolname FROM user_groups )) then dateadd(day, 5, timestamp) > current_timestamp when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true else dateadd(day, 10, timestamp) > current_timestamp end""".trimIndent()
+        condition.toSql() shouldBe
+            """
+            dateadd(day, 10, timestamp) > current_timestamp"""
+                .trimIndent()
+    }
+
+    @Test
+    fun `single retention to condition`() {
+        // Given
+        val retention =
+            RetentionFilter.newBuilder()
+                .setField(DataPolicy.Field.newBuilder().addNameParts("timestamp"))
+                .addAllConditions(
+                    listOf(
+                        RetentionFilter.Condition.newBuilder()
+                            .addPrincipals(DataPolicy.Principal.newBuilder().setGroup("marketing"))
+                            .setPeriod(RetentionFilter.Period.newBuilder().setDays(5))
+                            .build(),
+                        RetentionFilter.Condition.newBuilder()
+                            .addPrincipals(
+                                DataPolicy.Principal.newBuilder().setGroup("fraud_and_risk")
+                            )
+                            .build(),
+                        RetentionFilter.Condition.newBuilder()
+                            .addPrincipals(DataPolicy.Principal.getDefaultInstance())
+                            .setPeriod(RetentionFilter.Period.newBuilder().setDays(10))
+                            .build()
+                    )
+                )
+                .build()
+
+        // When
+        val condition = underTest.toCondition(retention)
+
+        // Then
+        condition.toSql() shouldBe
+            """
+            case when ('marketing' IN ( SELECT rolname FROM user_groups )) then dateadd(day, 5, timestamp) > current_timestamp when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true else dateadd(day, 10, timestamp) > current_timestamp end"""
+                .trimIndent()
     }
 
     @Test
     fun `full sql view statement with multiple retentions`() {
         // Given
-        val viewGenerator = PostgresViewGenerator(multipleRetentionPolicy) { withRenderFormatted(true) }
+        val viewGenerator =
+            PostgresViewGenerator(multipleRetentionPolicy) { withRenderFormatted(true) }
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL().sql shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe
+            """create or replace view public.demo_view
 as
 with
   user_groups as (
@@ -207,11 +233,13 @@ grant SELECT on public.demo_view to "marketing";"""
     @Test
     fun `full sql view statement with single retention`() {
         // Given
-        val viewGenerator = PostgresViewGenerator(singleRetentionPolicy) { withRenderFormatted(true) }
+        val viewGenerator =
+            PostgresViewGenerator(singleRetentionPolicy) { withRenderFormatted(true) }
         // When
 
         // Then
-        viewGenerator.toDynamicViewSQL().sql shouldBe """create or replace view public.demo_view
+        viewGenerator.toDynamicViewSQL().sql shouldBe
+            """create or replace view public.demo_view
 as
 with
   user_groups as (
@@ -249,9 +277,10 @@ grant SELECT on public.demo_view to "marketing";"""
     @Test
     fun `full SQL view statement with a single detokenize join`() {
         // Given
-        val viewGenerator = PostgresViewGenerator(singleDetokenizePolicy) { withRenderFormatted(true) }
+        val viewGenerator =
+            PostgresViewGenerator(singleDetokenizePolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL().sql shouldBe
-                """create or replace view public.demo_view
+            """create or replace view public.demo_view
 as
 with
   user_groups as (
@@ -286,9 +315,10 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
     @Test
     fun `full SQL view statement with multiple detokenize joins on two tables`() {
         // Given
-        val viewGenerator = PostgresViewGenerator(multiDetokenizePolicy) { withRenderFormatted(true) }
+        val viewGenerator =
+            PostgresViewGenerator(multiDetokenizePolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL().sql shouldBe
-                """create or replace view public.demo_view
+            """create or replace view public.demo_view
 as
 with
   user_groups as (
@@ -329,7 +359,9 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
     fun `full SQL view statement with multiple transforms`() {
         // Given
         val viewGenerator = PostgresViewGenerator(dataPolicy) { withRenderFormatted(true) }
-        viewGenerator.toDynamicViewSQL().sql
+        viewGenerator
+            .toDynamicViewSQL()
+            .sql
             .shouldBe(
                 """create or replace view public.demo_view
 as
@@ -389,7 +421,8 @@ grant SELECT on public.demo_view to "sales";"""
 
     companion object {
         @Language("yaml")
-        val dataPolicy = """
+        val dataPolicy =
+            """
                 metadata:
                   description: ""
                   version: 5
@@ -485,10 +518,13 @@ grant SELECT on public.demo_view to "sales";"""
                               avg:
                                 precision: 2
                                 cast_to: "float64"
-            """.trimIndent().toProto<DataPolicy>()
+            """
+                .trimIndent()
+                .toProto<DataPolicy>()
 
         @Language("yaml")
-        val singleDetokenizePolicy = """
+        val singleDetokenizePolicy =
+            """
                 metadata:
                   description: ""
                   version: 1
@@ -534,10 +570,13 @@ grant SELECT on public.demo_view to "sales";"""
                                 name_parts: [ userid ]
                           - principals: []
                             identity: {}
-            """.trimIndent().toProto<DataPolicy>()
+            """
+                .trimIndent()
+                .toProto<DataPolicy>()
 
         @Language("yaml")
-        val multiDetokenizePolicy = """
+        val multiDetokenizePolicy =
+            """
                 metadata:
                   description: ""
                   version: 1
@@ -595,10 +634,13 @@ grant SELECT on public.demo_view to "sales";"""
                                 name_parts: [ transactionid ]
                           - principals: []
                             identity: {}
-            """.trimIndent().toProto<DataPolicy>()
+            """
+                .trimIndent()
+                .toProto<DataPolicy>()
 
         @Language("yaml")
-        val singleRetentionPolicy = """
+        val singleRetentionPolicy =
+            """
                 metadata:
                   description: ""
                   version: 1
@@ -645,10 +687,13 @@ grant SELECT on public.demo_view to "sales";"""
                             - principals: [] 
                               period:
                                 days: 10
-            """.trimIndent().toProto<DataPolicy>()
+            """
+                .trimIndent()
+                .toProto<DataPolicy>()
 
         @Language("yaml")
-        val multipleRetentionPolicy = """
+        val multipleRetentionPolicy =
+            """
                 metadata:
                   description: ""
                   version: 1
@@ -709,6 +754,8 @@ grant SELECT on public.demo_view to "sales";"""
                             - principals: [] 
                               period:
                                 days: 365
-            """.trimIndent().toProto<DataPolicy>()
+            """
+                .trimIndent()
+                .toProto<DataPolicy>()
     }
 }

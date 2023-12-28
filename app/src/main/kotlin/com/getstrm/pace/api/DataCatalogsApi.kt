@@ -6,9 +6,8 @@ import com.getstrm.pace.service.DataCatalogsService
 import net.devh.boot.grpc.server.service.GrpcService
 
 @GrpcService
-class DataCatalogsApi(
-    private val dataCatalogsService: DataCatalogsService
-) : DataCatalogsServiceGrpcKt.DataCatalogsServiceCoroutineImplBase() {
+class DataCatalogsApi(private val dataCatalogsService: DataCatalogsService) :
+    DataCatalogsServiceGrpcKt.DataCatalogsServiceCoroutineImplBase() {
 
     override suspend fun listCatalogs(request: ListCatalogsRequest): ListCatalogsResponse =
         ListCatalogsResponse.newBuilder()
@@ -24,27 +23,25 @@ class DataCatalogsApi(
     }
 
     override suspend fun listSchemas(request: ListSchemasRequest): ListSchemasResponse {
-        val (schemas, pageInfo) = dataCatalogsService.listSchemas(request) 
-        return ListSchemasResponse.newBuilder()
-            .addAllSchemas(schemas)
-            .setPageInfo(pageInfo)
-            .build()
+        val (schemas, pageInfo) = dataCatalogsService.listSchemas(request)
+        return ListSchemasResponse.newBuilder().addAllSchemas(schemas).setPageInfo(pageInfo).build()
     }
 
     override suspend fun listTables(request: ListTablesRequest): ListTablesResponse {
         val (tables, pageInfo) = dataCatalogsService.listTables(request)
-        return ListTablesResponse.newBuilder()
-            .addAllTables(tables)
-            .setPageInfo(pageInfo)
-            .build()
+        return ListTablesResponse.newBuilder().addAllTables(tables).setPageInfo(pageInfo).build()
     }
 
-    override suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest): GetBlueprintPolicyResponse {
-        val dataPolicy: DataPolicy = dataCatalogsService.getBlueprintPolicy(
-            request.catalogId, request.databaseId, request.schemaId, request.tableId
-        )
-        return GetBlueprintPolicyResponse.newBuilder()
-            .setDataPolicy(dataPolicy)
-            .build()
+    override suspend fun getBlueprintPolicy(
+        request: GetBlueprintPolicyRequest
+    ): GetBlueprintPolicyResponse {
+        val dataPolicy: DataPolicy =
+            dataCatalogsService.getBlueprintPolicy(
+                request.catalogId,
+                request.databaseId,
+                request.schemaId,
+                request.tableId
+            )
+        return GetBlueprintPolicyResponse.newBuilder().setDataPolicy(dataPolicy).build()
     }
 }

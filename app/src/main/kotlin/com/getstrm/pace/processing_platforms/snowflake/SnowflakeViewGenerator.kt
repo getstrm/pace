@@ -14,11 +14,12 @@ import org.jooq.impl.DSL
 class SnowflakeViewGenerator(
     dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {},
-) : ProcessingPlatformViewGenerator(
-    dataPolicy,
-    transformer = SnowflakeTransformer(),
-    customJooqSettings = customJooqSettings
-) {
+) :
+    ProcessingPlatformViewGenerator(
+        dataPolicy,
+        transformer = SnowflakeTransformer(),
+        customJooqSettings = customJooqSettings
+    ) {
     override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
         return if (principals.isEmpty()) {
             null
@@ -26,13 +27,17 @@ class SnowflakeViewGenerator(
             DSL.or(
                 principals.map { principal ->
                     when {
-                        principal.hasGroup() -> DSL.condition("IS_ROLE_IN_SESSION({0})", principal.group)
-                        else -> throw InternalException(
-                            InternalException.Code.INTERNAL,
-                            DebugInfo.newBuilder()
-                                .setDetail("Principal of type ${principal.principalCase} is not supported for platform Snowflake. $UNIMPLEMENTED")
-                                .build()
-                        )
+                        principal.hasGroup() ->
+                            DSL.condition("IS_ROLE_IN_SESSION({0})", principal.group)
+                        else ->
+                            throw InternalException(
+                                InternalException.Code.INTERNAL,
+                                DebugInfo.newBuilder()
+                                    .setDetail(
+                                        "Principal of type ${principal.principalCase} is not supported for platform Snowflake. $UNIMPLEMENTED"
+                                    )
+                                    .build()
+                            )
                     }
                 }
             )
@@ -40,16 +45,20 @@ class SnowflakeViewGenerator(
     }
 
     override fun additionalFooterStatements(): Queries {
-        val grants = dataPolicy.ruleSetsList.flatMap { ruleSet ->
-            val viewName = ruleSet.target.fullname
+        val grants =
+            dataPolicy.ruleSetsList.flatMap { ruleSet ->
+                val viewName = ruleSet.target.fullname
 
-            ruleSet.uniquePrincipals().map {
-                DSL.query(
-                    jooq.grant(DSL.privilege("SELECT")).on(DSL.table(DSL.unquotedName(viewName)))
-                        .to(DSL.role(it.group)).sql
-                )
+                ruleSet.uniquePrincipals().map {
+                    DSL.query(
+                        jooq
+                            .grant(DSL.privilege("SELECT"))
+                            .on(DSL.table(DSL.unquotedName(viewName)))
+                            .to(DSL.role(it.group))
+                            .sql
+                    )
+                }
             }
-        }
 
         return jooq.queries(grants)
     }

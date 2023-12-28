@@ -7,9 +7,6 @@ import com.nimbusds.jose.JWSSigner
 import com.nimbusds.jose.crypto.RSASSASigner
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
-import org.apache.commons.codec.binary.Base64
-import org.bouncycastle.util.io.pem.PemReader
-import org.slf4j.LoggerFactory
 import java.io.StringReader
 import java.security.KeyFactory
 import java.security.MessageDigest
@@ -20,18 +17,21 @@ import java.security.spec.InvalidKeySpecException
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.RSAPublicKeySpec
 import java.util.*
-
+import org.apache.commons.codec.binary.Base64
+import org.bouncycastle.util.io.pem.PemReader
+import org.slf4j.LoggerFactory
 
 /**
- * Based on https://github.com/snowflakedb/snowflake-jdbc/blob/b0841291cdc6974b42b47617924dd84f3e0b9a45/src/main/java/net/snowflake/client/core/SessionUtilKeyPair.java
+ * Based on
+ * https://github.com/snowflakedb/snowflake-jdbc/blob/b0841291cdc6974b42b47617924dd84f3e0b9a45/src/main/java/net/snowflake/client/core/SessionUtilKeyPair.java
  *
- * TODO make sure to handle the 401 properly, because that is most often caused by an incorrect account identifier, which leads to an incorrect JWT
+ * TODO make sure to handle the 401 properly, because that is most often caused by an incorrect
+ * account identifier, which leads to an incorrect JWT
  */
-class SnowflakeJwtIssuer private constructor(
+class SnowflakeJwtIssuer
+private constructor(
     privateKeyContent: String,
-    /**
-     * Make sure this is the accountName (the prefix for your account URL), not the account ID
-     */
+    /** Make sure this is the accountName (the prefix for your account URL), not the account ID */
     accountIdentifier: String,
     userName: String
 ) {
@@ -47,14 +47,15 @@ class SnowflakeJwtIssuer private constructor(
         this.accountIdentifier = accountIdentifier.uppercase(Locale.getDefault())
 
         val keyFactory = KeyFactory.getInstance("RSA")
-        val privateKeyBytes = PemReader(StringReader(privateKeyContent))
-            .use { it.readPemObject().content }
+        val privateKeyBytes =
+            PemReader(StringReader(privateKeyContent)).use { it.readPemObject().content }
 
         val keySpec = PKCS8EncodedKeySpec(privateKeyBytes)
         val privateKey = keyFactory.generatePrivate(keySpec)
 
         this.privateKey = privateKey as RSAPrivateCrtKey
-        val publicKeySpec = RSAPublicKeySpec(this.privateKey.modulus, this.privateKey.publicExponent)
+        val publicKeySpec =
+            RSAPublicKeySpec(this.privateKey.modulus, this.privateKey.publicExponent)
 
         try {
             this.publicKey = keyFactoryInstance.generatePublic(publicKeySpec)
@@ -68,19 +69,21 @@ class SnowflakeJwtIssuer private constructor(
     fun issueJwtToken(): String {
         val builder = JWTClaimsSet.Builder()
         val sub = String.format(SUBJECT_FMT, accountIdentifier, userName)
-        val iss = String.format(
-            ISSUER_FMT,
-            accountIdentifier,
-            userName,
-            calculatePublicKeyFingerprint(publicKey)
-        )
+        val iss =
+            String.format(
+                ISSUER_FMT,
+                accountIdentifier,
+                userName,
+                calculatePublicKeyFingerprint(publicKey)
+            )
 
         // iat is now
         val iat = Date(System.currentTimeMillis())
 
         // expiration is 60 seconds later
         val exp = Date(iat.time + 60L * 1000)
-        val claimsSet: JWTClaimsSet = builder.issuer(iss).subject(sub).issueTime(iat).expirationTime(exp).build()
+        val claimsSet: JWTClaimsSet =
+            builder.issuer(iss).subject(sub).issueTime(iat).expirationTime(exp).build()
         val signedJWT = SignedJWT(JWSHeader(JWSAlgorithm.RS256), claimsSet)
         val signer: JWSSigner = RSASSASigner(privateKey)
         try {
@@ -92,11 +95,11 @@ class SnowflakeJwtIssuer private constructor(
         log.debug(
             "JWT:\n'{'\niss: {}\nsub: {}\niat: {}\nexp: {}\n'}'",
             iss,
-            sub, (iat.time / 1000).toString(), (exp.time / 1000).toString()
+            sub,
+            (iat.time / 1000).toString(),
+            (exp.time / 1000).toString()
         )
-        return signedJWT.serialize().also {
-            log.debug("JWT: {}", it)
-        }
+        return signedJWT.serialize().also { log.debug("JWT: {}", it) }
     }
 
     private fun calculatePublicKeyFingerprint(publicKey: PublicKey): String {

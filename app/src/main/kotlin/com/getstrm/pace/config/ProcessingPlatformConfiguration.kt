@@ -12,10 +12,8 @@ data class ProcessingPlatformConfiguration(
     val synapse: List<SynapseConfig> = emptyList(),
 )
 
-open class PPConfig(
-    open val id: String,
-    val type: ProcessingPlatform.PlatformType
-)
+open class PPConfig(open val id: String, val type: ProcessingPlatform.PlatformType)
+
 data class SnowflakeConfig(
     override val id: String,
     val serverUrl: String,
@@ -32,7 +30,7 @@ data class BigQueryConfig(
     val projectId: String,
     val userGroupsTable: String,
     val serviceAccountJsonKey: String,
-) : PPConfig(id, ProcessingPlatform.PlatformType.BIGQUERY) 
+) : PPConfig(id, ProcessingPlatform.PlatformType.BIGQUERY)
 
 data class PostgresConfig(
     override val id: String,
@@ -41,8 +39,7 @@ data class PostgresConfig(
     val database: String,
     val userName: String,
     val password: String,
-): PPConfig(id, ProcessingPlatform.PlatformType.POSTGRES)
-{
+) : PPConfig(id, ProcessingPlatform.PlatformType.POSTGRES) {
     internal fun getJdbcUrl() = "jdbc:postgresql://$hostName:$port/$database"
 }
 
@@ -54,7 +51,7 @@ data class DatabricksConfig(
     val clientId: String,
     val clientSecret: String,
     val warehouseId: String,
-): PPConfig(id, ProcessingPlatform.PlatformType.DATABRICKS)
+) : PPConfig(id, ProcessingPlatform.PlatformType.DATABRICKS)
 
 data class SynapseConfig(
     override val id: String,
@@ -63,7 +60,7 @@ data class SynapseConfig(
     val database: String,
     val userName: String,
     val password: String,
-): PPConfig(id, ProcessingPlatform.PlatformType.SYNAPSE) 
-{
-    internal fun getJdbcUrl() = "jdbc:sqlserver://$hostName:$port;database=$database;user=$userName;password=$password;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.sql.azuresynapse.net;loginTimeout=30;"
+) : PPConfig(id, ProcessingPlatform.PlatformType.SYNAPSE) {
+    internal fun getJdbcUrl() =
+        "jdbc:sqlserver://$hostName:$port;database=$database;user=$userName;password=$password;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.sql.azuresynapse.net;loginTimeout=30;"
 }

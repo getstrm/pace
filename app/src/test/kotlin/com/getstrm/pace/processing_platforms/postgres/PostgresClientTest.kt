@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 
 class PostgresClientTest : AbstractDatabaseTest() {
     val config = PostgresConfig("postgres", "localhost", 5432, "postgres", "postgres", "postgres")
-    private val underTest = PostgresClient(config, jooq)
+    private val underTest = PostgresClient(config)
     private val db = underTest.PostgresDatabase(underTest, "db")
     private val schema = underTest.PostgresSchema(db, "db")
 
@@ -31,7 +31,10 @@ class PostgresClientTest : AbstractDatabaseTest() {
         // Given a table in the database
 
         // When
-        val actual = runBlocking { schema.listTables(DEFAULT_PAGE_PARAMETERS) }.data.filter { !ignoreTables.contains(it.fullName) }
+        val actual =
+            runBlocking { schema.listTables(DEFAULT_PAGE_PARAMETERS) }
+                .data
+                .filter { !ignoreTables.contains(it.fullName) }
         val tableNames = actual.map { it.fullName }
 
         // Then
@@ -43,13 +46,15 @@ class PostgresClientTest : AbstractDatabaseTest() {
         // Given some groups in the database
 
         // When
-        val (actual, pageInfo) = runBlocking { underTest.listGroups(DEFAULT_PAGE_PARAMETERS) }.map { it.copy(id = "") }
+        val (actual, pageInfo) =
+            runBlocking { underTest.listGroups(DEFAULT_PAGE_PARAMETERS) }.map { it.copy(id = "") }
 
         // Then
-        actual shouldBe listOf(
-            Group("", "fraud_and_risk"),
-            Group("", "marketing"),
-        )
+        actual shouldBe
+            listOf(
+                Group("", "fraud_and_risk"),
+                Group("", "marketing"),
+            )
         pageInfo.total shouldBe 2
     }
 
@@ -60,7 +65,10 @@ class PostgresClientTest : AbstractDatabaseTest() {
         // Given a table in the database
 
         // When
-        val actual = runBlocking { schema.listTables(DEFAULT_PAGE_PARAMETERS) }.data.filter { !ignoreTables.contains(it.fullName) }
+        val actual =
+            runBlocking { schema.listTables(DEFAULT_PAGE_PARAMETERS) }
+                .data
+                .filter { !ignoreTables.contains(it.fullName) }
         runBlocking {
             val policy: DataPolicy = actual.map { it.createBlueprint() }.first()
             val field = policy.source.fieldsList.find { it.pathString() == "email" }!!

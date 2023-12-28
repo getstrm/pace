@@ -25,26 +25,31 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @Disabled
 class OpenAIPluginIT {
 
-    @Autowired
-    private lateinit var underTest: OpenAIPlugin
+    @Autowired private lateinit var underTest: OpenAIPlugin
 
     @Test
     fun `OpenAI should generate a valid Data Policy`() {
         runBlocking {
             // Given
             val initialDataPolicy = blueprintDataPolicy.toProto<DataPolicy>()
-            val instructions = """
+            val instructions =
+                """
         For the group administrators, do not filter the data. For all other users, only show records with emails ending with google.com.
         For the group administrators, replace the username with a fixed value of "omitted". For the group analytics, hash the organization with a seed of 42. For all other users, use a regex pattern to only show the domain of the email field.
-    """.trimIndent()
+    """
+                    .trimIndent()
 
             // When
-            val result = underTest.GenerateDataPolicy().invoke(
-                OpenAIDataPolicyGeneratorPayload.newBuilder()
-                    .setInitialDataPolicy(initialDataPolicy)
-                    .setInstructions(instructions)
-                    .build().toJson()
-            )
+            val result =
+                underTest
+                    .GenerateDataPolicy()
+                    .invoke(
+                        OpenAIDataPolicyGeneratorPayload.newBuilder()
+                            .setInitialDataPolicy(initialDataPolicy)
+                            .setInstructions(instructions)
+                            .build()
+                            .toJson()
+                    )
 
             // Then
             result shouldNotBe initialDataPolicy
@@ -54,7 +59,8 @@ class OpenAIPluginIT {
 
     companion object {
         @Language("yaml")
-        private val blueprintDataPolicy = """
+        private val blueprintDataPolicy =
+            """
 metadata:
   version: 3
   description: "Users of our application"

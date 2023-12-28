@@ -16,9 +16,7 @@ import org.springframework.stereotype.Component
 @Component
 class DataPolicyEvaluationService {
 
-    /**
-     * Evaluates the first ruleset in the provided data policy on the provided input CSV.
-     */
+    /** Evaluates the first ruleset in the provided data policy on the provided input CSV. */
     fun evaluatePolicy(
         dataPolicy: DataPolicy,
         sampleCsv: String,
@@ -31,21 +29,26 @@ class DataPolicyEvaluationService {
                     dataPolicy.ruleSetsList.map {
                         FullEvaluationResult.RuleSetResult.newBuilder()
                             .setTarget(it.target)
-                            .addAllPrincipalEvaluationResults(evaluateRuleSet(dataPolicy, it, h2Client))
+                            .addAllPrincipalEvaluationResults(
+                                evaluateRuleSet(dataPolicy, it, h2Client)
+                            )
                             .build()
                     }
-                ).build()
-        } catch (e: DataAccessException) {
-            val (detail, cause) = when (val cause = e.cause) {
-                is JdbcSQLSyntaxErrorException -> cause.originalMessage to cause
-                else -> (cause?.message ?: e.message) to e
-            }
-            val debugInfo = DebugInfo.newBuilder()
-                .setDetail(
-                    "Error while evaluating data policy. If caused by platform-specific statements, " +
-                        "please test the data policy on the platform itself. Details: $detail"
                 )
                 .build()
+        } catch (e: DataAccessException) {
+            val (detail, cause) =
+                when (val cause = e.cause) {
+                    is JdbcSQLSyntaxErrorException -> cause.originalMessage to cause
+                    else -> (cause?.message ?: e.message) to e
+                }
+            val debugInfo =
+                DebugInfo.newBuilder()
+                    .setDetail(
+                        "Error while evaluating data policy. If caused by platform-specific statements, " +
+                            "please test the data policy on the platform itself. Details: $detail"
+                    )
+                    .build()
             throw InternalException(InternalException.Code.UNKNOWN, debugInfo, cause)
         } finally {
             h2Client.close()
@@ -59,23 +62,25 @@ class DataPolicyEvaluationService {
     ): List<PrincipalEvaluationResult> {
         val principalsToEvaluate = ruleSet.uniquePrincipals() + null
 
-        val results = principalsToEvaluate.map { principal ->
-            val viewGenerator = H2ViewGenerator(
-                dataPolicy,
-                principal,
-                "input",
-            )
-            val select = viewGenerator.toSelectStatement(ruleSet)
-            val resultCsv = h2Client.jooq.fetch(select).formatCSV(
-                CSVFormat().nullString("").emptyString("")
-            )
+        val results =
+            principalsToEvaluate.map { principal ->
+                val viewGenerator =
+                    H2ViewGenerator(
+                        dataPolicy,
+                        principal,
+                        "input",
+                    )
+                val select = viewGenerator.toSelectStatement(ruleSet)
+                val resultCsv =
+                    h2Client.jooq
+                        .fetch(select)
+                        .formatCSV(CSVFormat().nullString("").emptyString(""))
 
-            PrincipalEvaluationResult.newBuilder().apply {
-                if (principal != null) setPrincipal(principal)
+                PrincipalEvaluationResult.newBuilder()
+                    .apply { if (principal != null) setPrincipal(principal) }
+                    .setCsv(resultCsv)
+                    .build()
             }
-                .setCsv(resultCsv)
-                .build()
-        }
         return results
     }
 }

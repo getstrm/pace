@@ -21,8 +21,10 @@ class SnowflakeTransformer : ProcessingPlatformTransformer {
                 DSL.`val`(regexp.regexp),
             )
         } else {
-            // Snowflake expects two backslashes for the capturing group notation, here doubled because of Kotlin escaping.
-            val replacementWithBackslashNotation = regexp.replacement.replace(CAPTURING_GROUP_REGEX, """\\\\$1""")
+            // Snowflake expects two backslashes for the capturing group notation, here doubled
+            // because of Kotlin escaping.
+            val replacementWithBackslashNotation =
+                regexp.replacement.replace(CAPTURING_GROUP_REGEX, """\\\\$1""")
             DSL.field(
                 "regexp_replace({0}, {1}, {2})",
                 String::class.java,
