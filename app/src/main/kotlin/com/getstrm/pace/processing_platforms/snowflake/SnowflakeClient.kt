@@ -6,9 +6,12 @@ import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SnowflakeConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
+import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
+import com.getstrm.pace.util.MILLION_RECORDS
 import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.THOUSAND_RECORDS
 import com.getstrm.pace.util.applyPageParameters
 import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.withPageInfo
@@ -76,15 +79,18 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
         executeRequest(request)
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
-        TODO("Not yet implemented")
+    val database = SnowflakeDatabase(this, config.database)
+
+    override suspend fun listDatabases(ignored: PageParameters): PagedCollection<Database> {
+        return listOf(database).withPageInfo()
     }
 
     override suspend fun listSchemas(
         databaseId: String,
         pageParameters: PageParameters
     ): PagedCollection<Schema> {
-        TODO("Not yet implemented")
+        if (databaseId != database.id) throwNotFound(databaseId, "SnowflakeDatabase")
+        return database.listSchemas(pageParameters)
     }
 
     override suspend fun listTables(
@@ -92,11 +98,17 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
         schemaId: String,
         pageParameters: PageParameters
     ): PagedCollection<Table> {
-        TODO("Not yet implemented")
+        if (databaseId != database.id) throwNotFound(databaseId, "SnowflakeDatabase")
+        val schema = database.getSchema(schemaId)
+        return schema.listTables(pageParameters)
     }
 
     override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table {
-        TODO("Not yet implemented")
+        // TODO increase performance
+        val table =
+            listTables(databaseId, schemaId, THOUSAND_RECORDS).find { it.id == tableId }
+                ?: throwNotFound(tableId, "Snowflake table")
+        return table
     }
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
@@ -156,19 +168,33 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
             id,
         ) {
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
-            TODO("Not yet implemented")
+            val sql =
+                """
+                SHOW SCHEMAS in DATABASE "$id"
+            """
+                    .trimIndent()
+
+            val request =
+                SnowflakeRequest(
+                    statement = sql,
+                    database = id,
+                    warehouse = config.warehouse,
+                )
+            return executeRequest(request)
+                .body
+                ?.data
+                .orEmpty()
+                .map { (_, name) -> SnowflakeSchema(this, name, name) }
+                .withPageInfo()
         }
 
         override suspend fun getSchema(schemaId: String): Schema {
-            TODO("Not yet implemented")
+            return listSchemas(MILLION_RECORDS).find { it.id == schemaId }
+                ?: throwNotFound(schemaId, "Snowflake schema")
         }
     }
 
-    inner class SnowflakeSchema(
-        database: ProcessingPlatformClient.Database,
-        id: String,
-        name: String
-    ) :
+    inner class SnowflakeSchema(database: Database, id: String, name: String) :
         Schema(
             database,
             id,
@@ -197,7 +223,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
                 .orEmpty()
                 .map { (schemaName, tableName) ->
                     val fullName = "$schemaName.$tableName"
-                    SnowflakeTable(this, fullName, tableName, schemaName)
+                    SnowflakeTable(this, tableName, id)
                 }
                 .withPageInfo()
         }
@@ -219,27 +245,29 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
 
     inner class SnowflakeTable(
         ppSchema: Schema,
-        override val fullName: String,
         private val table: String,
         val schema_: String,
-    ) : Table(ppSchema, fullName, table) {
+    ) : Table(ppSchema, table, table) {
         private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
         override suspend fun createBlueprint(): DataPolicy {
             return describeTable(schema_, table)
-                ?.toDataPolicy(schema.database.platformClient.apiProcessingPlatform, fullName)
+                ?.toDataPolicy(schema.database.platformClient.apiProcessingPlatform, id)
                 ?: throw ResourceException(
                     ResourceException.Code.NOT_FOUND,
                     ResourceInfo.newBuilder()
                         .setResourceType("Table")
-                        .setResourceName(fullName)
+                        .setResourceName(id)
                         .setDescription(
-                            "Table $fullName not found in Snowflake. Verify that it exists and that the client user has access to it."
+                            "Table $id not found in Snowflake. Verify that it exists and that the client user has access to it."
                         )
                         .setOwner("Schema: $schema_")
                         .build()
                 )
         }
+
+        override val fullName: String
+            get() = "${schema.id}.${id}"
 
         private fun SnowflakeResponse.toDataPolicy(
             platform: ProcessingPlatform,
@@ -274,20 +302,21 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
                 .build()
         }
 
-        private fun retrieveColumnTags(name: String): ResponseEntity<SnowflakeResponse> {
+        private fun retrieveColumnTags(columnName: String): ResponseEntity<SnowflakeResponse> {
             val request =
                 SnowflakeRequest(
                     statement =
                         """
                 SELECT TAG_NAME, TAG_VALUE FROM TABLE (
                     ${config.database}.INFORMATION_SCHEMA.TAG_REFERENCES(
-                        '$schema.$table.$name', 'COLUMN'))
+                        '${schema.id}.$id.$columnName', 'COLUMN'))
                  """
                             .trimIndent(),
                     database = config.database,
                     warehouse = config.warehouse,
                     schema = schema_,
                 )
+
             val snowflakeResponse = executeRequest(request)
 
             if (snowflakeResponse.body?.message != "Statement executed successfully.") {
