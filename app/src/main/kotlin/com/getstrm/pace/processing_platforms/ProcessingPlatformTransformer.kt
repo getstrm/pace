@@ -120,11 +120,21 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
                             .div(numericRounding.floor.divisor)
                     )
                     .multiply(numericRounding.floor.divisor)
-            NumericRounding.RoundingCase.ROUND ->
-                DSL.round(
-                    DSL.field(field.fullName(), Float::class.java),
-                    numericRounding.round.precision
-                )
+            NumericRounding.RoundingCase.ROUND -> {
+                if (numericRounding.round.hasDivisor()) {
+                    DSL.round(
+                            DSL.field(field.fullName(), Float::class.java)
+                                .div(numericRounding.round.divisor),
+                            numericRounding.round.precision
+                        )
+                        .multiply(numericRounding.round.divisor)
+                } else {
+                    DSL.round(
+                        DSL.field(field.fullName(), Float::class.java),
+                        numericRounding.round.precision
+                    )
+                }
+            }
             NumericRounding.RoundingCase.ROUNDING_NOT_SET,
             null ->
                 throw InternalException(

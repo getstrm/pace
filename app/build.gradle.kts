@@ -180,10 +180,10 @@ tasks.named<BootJar>("bootJar") {
 
         attributes["Implementation-Version"] =
             if (project.version.toString().endsWith("-SNAPSHOT")) {
-            "${project.version} (built at $buildTimestamp)"
-        } else {
-            project.version
-        }
+                "${project.version} (built at $buildTimestamp)"
+            } else {
+                project.version
+            }
     }
 }
 
@@ -342,19 +342,19 @@ val copyDocker =
         group = "docker"
         val grpcServices: String =
             ByteArrayOutputStream().use { outputStream ->
-            project.exec {
-                workingDir("$rootDir/protos")
+                project.exec {
+                    workingDir("$rootDir/protos")
 
-                commandLine(
-                    "bash",
-                    "-c",
-                    "buf build -o -#format=json | jq -rc '.file | map(select(.name | startswith(\"getstrm\"))) | map(select(.service > 0) | (.package + \".\" + .service[].name))'"
-                )
-                standardOutput = outputStream
+                    commandLine(
+                        "bash",
+                        "-c",
+                        "buf build -o -#format=json | jq -rc '.file | map(select(.name | startswith(\"getstrm\"))) | map(select(.service > 0) | (.package + \".\" + .service[].name))'"
+                    )
+                    standardOutput = outputStream
+                }
+
+                outputStream.toString()
             }
-
-            outputStream.toString()
-        }
 
         from("src/main/docker")
         include("*")

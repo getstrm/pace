@@ -36,7 +36,8 @@ class BigQueryTransformer(
             )
         } else {
             // Bigquery expects two backslashes for the capturing group notation, here doubled
-            // because of Kotlin escaping.
+            // because of
+            // Kotlin escaping.
             val replacementWithBackslashNotation =
                 regexp.replacement.replace(CAPTURING_GROUP_REGEX, """\\\\$1""")
             DSL.field(

@@ -22,7 +22,8 @@ class PostgresTransformer : ProcessingPlatformTransformer {
             )
         } else {
             // Postgres expects one backslash for the capturing group notation, here doubled because
-            // of Kotlin escaping.
+            // of
+            // Kotlin escaping.
             val replacementWithBackslashNotation =
                 regexp.replacement.replace(CAPTURING_GROUP_REGEX, """\\$1""")
             DSL.regexpReplaceAll(

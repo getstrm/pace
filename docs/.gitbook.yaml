@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.41
+    version: 1.0.0-alpha.42
 paths:
     /data-policies:
         get:
@@ -1339,6 +1339,10 @@ components:
                     type: integer
                     description: The precision to use for rounding. When positive, the value is rounded to the nearest decimal place. When negative, the value is rounded to the nearest power of 10.
                     format: int32
+                divisor:
+                    type: number
+                    description: The divisor to use when applying integer division. Advise is to use divisors only when rounding to a multiple of that divisor, with a precision of 0.
+                    format: float
         PageInfo:
             type: object
             properties:
