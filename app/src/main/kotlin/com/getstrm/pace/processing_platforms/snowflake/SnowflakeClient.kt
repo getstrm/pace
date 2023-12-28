@@ -38,6 +38,10 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
     private val restTemplate = RestTemplate()
 
+    // Currently our Snowflake Processing configured to connect to just one Database
+    // which is why we have a hardcoded one here
+    val database = SnowflakeDatabase(this, config.database)
+
     fun executeRequest(request: SnowflakeRequest): ResponseEntity<SnowflakeResponse> {
         try {
             return restTemplate.postForEntity<SnowflakeResponse>(
@@ -78,19 +82,13 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
         executeRequest(request)
     }
 
-    val database = SnowflakeDatabase(this, config.database)
-
-    override suspend fun listDatabases(ignored: PageParameters): PagedCollection<Database> {
-        return listOf(database).withPageInfo()
-    }
+    override suspend fun listDatabases(ignored: PageParameters): PagedCollection<Database> =
+        listOf(database).withPageInfo()
 
     override suspend fun listSchemas(
         databaseId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Schema> {
-        if (databaseId != database.id) throwNotFound(databaseId, "SnowflakeDatabase")
-        return database.listSchemas(pageParameters)
-    }
+    ): PagedCollection<Schema> = getDatabase(databaseId).listSchemas(pageParameters)
 
     override suspend fun listTables(
         databaseId: String,
@@ -101,9 +99,6 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
 
     override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table =
         getDatabase(databaseId).getSchema(schemaId).getTable(tableId)
-
-    fun getDatabase(databaseId: String): SnowflakeDatabase =
-        if (databaseId != database.id) throwNotFound(databaseId, "SnowflakeDatabase") else database
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
         val request =
@@ -130,6 +125,9 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
             .withPageInfo()
     }
 
+    private fun getDatabase(databaseId: String): SnowflakeDatabase =
+        if (databaseId != database.id) throwNotFound(databaseId, "SnowflakeDatabase") else database
+
     private fun jsonHeaders() =
         HttpHeaders().apply {
             setBearerAuth(snowflakeJwtIssuer.issueJwtToken())
@@ -139,7 +137,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
             set("X-Snowflake-Authorization-Token-Type", "KEYPAIR_JWT")
         }
 
-    fun describeTable(schema: String, table: String): SnowflakeResponse? {
+    fun describeTable(schema: String, table: String): SnowflakeResponse {
         val request =
             SnowflakeRequest(
                 statement = "DESCRIBE TABLE \"$schema\".\"$table\"",
@@ -154,6 +152,17 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
             throw RuntimeException(snowflakeResponse.body?.message)
         }
         return snowflakeResponse.body
+            ?: throw ResourceException(
+                ResourceException.Code.NOT_FOUND,
+                ResourceInfo.newBuilder()
+                    .setResourceType("Table")
+                    .setResourceName(id)
+                    .setDescription(
+                        "Table $schema.$table not found in Snowflake. Verify that it exists and that the client user has access to it."
+                    )
+                    .setOwner("Schema: $id")
+                    .build()
+            )
     }
 
     inner class SnowflakeDatabase(pp: ProcessingPlatformClient, id: String) :
@@ -239,18 +248,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
 
         override suspend fun createBlueprint(): DataPolicy {
             return describeTable(schema.id, id)
-                ?.toDataPolicy(schema.database.platformClient.apiProcessingPlatform, id)
-                ?: throw ResourceException(
-                    ResourceException.Code.NOT_FOUND,
-                    ResourceInfo.newBuilder()
-                        .setResourceType("Table")
-                        .setResourceName(id)
-                        .setDescription(
-                            "Table $id not found in Snowflake. Verify that it exists and that the client user has access to it."
-                        )
-                        .setOwner("Schema: $id")
-                        .build()
-                )
+                .toDataPolicy(schema.database.platformClient.apiProcessingPlatform, id)
         }
 
         override val fullName: String

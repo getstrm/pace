@@ -14,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
-import org.slf4j.LoggerFactory
 
 /**
  * Mapping of concepts
@@ -39,8 +38,6 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
         )
     val database = PostgresDatabase(this, config.database)
 
-    private val log by lazy { LoggerFactory.getLogger(javaClass) }
-
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = PostgresViewGenerator(dataPolicy)
         val query = viewGenerator.toDynamicViewSQL().sql
@@ -53,10 +50,7 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
     override suspend fun listSchemas(
         databaseId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Schema> =
-        (if (this.database.id == databaseId) this.database
-            else throwNotFound(databaseId, "PostgreSQL database"))
-            .listSchemas(pageParameters)
+    ): PagedCollection<Schema> = getDatabase(databaseId).listSchemas(pageParameters)
 
     override suspend fun listTables(
         databaseId: String,
@@ -90,6 +84,10 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
             .map { (oid, rolname) -> Group(id = oid.toString(), name = rolname) }
             .withPageInfo()
     }
+
+    private fun getDatabase(databaseId: String) =
+        (if (this.database.id == databaseId) this.database
+        else throwNotFound(databaseId, "PostgreSQL database"))
 
     private suspend fun PostgresClient.getSchema(databaseId: String, schemaId: String) =
         listSchemas(databaseId).find { it.id == schemaId }
