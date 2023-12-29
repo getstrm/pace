@@ -32,8 +32,10 @@ pace list global-transforms [flags]
 ### Options inherited from parent commands
 
 ```
-      --api-host string   api host (default "localhost:50051")
-  -o, --output string     output format [yaml, json, json-raw] (default "yaml")
+      --api-host string    api host (default "localhost:50051")
+  -o, --output string      output format [yaml, json, json-raw] (default "yaml")
+  -P, --page_size uint32   the maximum number of records per page (default 10)
+  -S, --skip uint32        the number of records that need to be skipped
 ```
 
 ### SEE ALSO

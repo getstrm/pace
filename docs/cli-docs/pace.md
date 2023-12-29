@@ -15,6 +15,7 @@ PACE CLI dev
 * [pace apply](pace_apply.md)	 - Apply a specification
 * [pace completion](pace_completion.md)	 - Generate the autocompletion script for the specified shell
 * [pace delete](pace_delete.md)	 - Delete entities
+* [pace disable](pace_disable.md)	 - Disable operation
 * [pace evaluate](pace_evaluate.md)	 - Evaluate a specification
 * [pace get](pace_get.md)	 - Get a single entity
 * [pace invoke](pace_invoke.md)	 - Invoke a functionality
