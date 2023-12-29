@@ -23,9 +23,12 @@ CHECKS           = $(addprefix check-, ${USERS})
 # the standalone database table and executes the checks.
 all: tables.yaml ${CHECKS} kill-pace
 
-tables.yaml: launch-pace
-	pace list tables --processing-platform ${PP} -o yaml > $@
-	diff $@ tables-expected.yaml
+tables.yaml:
+	@ echo "checking 'pace list tables'"
+	@ pace list tables --processing-platform ${PP} -o yaml > $@
+	@ diff -q $@ tables-expected.yaml || (echo "list tables command produced wrong output"; \
+		cat $@; exit 1)
+	@ echo "list tables ok"
 
 
 
