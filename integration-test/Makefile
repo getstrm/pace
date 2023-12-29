@@ -21,7 +21,13 @@ CHECKS           = $(addprefix check-, ${USERS})
 
 # default target sets up everything, reads the views from
 # the standalone database table and executes the checks.
-all: ${CHECKS} kill-pace
+all: tables.yaml ${CHECKS} kill-pace
+
+tables.yaml: launch-pace
+	pace list tables --processing-platform ${PP} -o yaml > $@
+	diff $@ tables-expected.yaml
+
+
 
 check-mark: mark.csv demo.csv awk cut
 	@ echo ----- checking marketing with user mark -----
@@ -119,6 +125,7 @@ launch-pace: app.jar
 	@ echo launched local pace app.jar and stored pid $$(cat $@) in $@
 	@ ./wait-for-port.sh
 	@ echo port 50051 is open
+	@ chmod 0600 pgpass
 
 clean:
 	@ echo Cleaning all generated resources, pace policies and the ${REF} table.
