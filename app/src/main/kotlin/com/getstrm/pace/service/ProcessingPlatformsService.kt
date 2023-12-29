@@ -20,6 +20,7 @@ import com.getstrm.pace.processing_platforms.snowflake.SnowflakeClient
 import com.getstrm.pace.processing_platforms.synapse.SynapseClient
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.orDefault
 import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
@@ -82,7 +83,7 @@ class ProcessingPlatformsService(
 
     suspend fun listProcessingPlatformTables(request: ListTablesRequest): PagedCollection<Table> =
         (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
-            .listTables(request.pageParameters)
+            .listTables(request.pageParameters.orDefault())
 
     suspend fun listProcessingPlatformGroups(request: ListGroupsRequest): PagedCollection<Group> =
         (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
