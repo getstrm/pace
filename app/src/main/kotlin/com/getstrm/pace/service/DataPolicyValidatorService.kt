@@ -60,7 +60,7 @@ class DataPolicyValidatorService {
         fun checkField(field: DataPolicy.Field) {
             if (!validFields.contains(field.pathStringUpper())) {
                 throw invalidArgumentException(
-                    field.pathStringUpper(),
+                    field.pathString(),
                     "Field does not exist in source ${dataPolicy.source.ref}"
                 )
             }
