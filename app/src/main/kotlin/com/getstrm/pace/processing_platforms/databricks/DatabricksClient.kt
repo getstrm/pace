@@ -15,7 +15,7 @@ import com.databricks.sdk.service.sql.StatementState
 import com.getstrm.pace.config.DatabricksConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
-import com.getstrm.pace.exceptions.ResourceException
+import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.util.PagedCollection
@@ -24,7 +24,6 @@ import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.toTimestamp
 import com.getstrm.pace.util.withPageInfo
 import com.google.rpc.DebugInfo
-import com.google.rpc.ResourceInfo
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
 
@@ -151,14 +150,7 @@ class DatabricksClient(
         resourceName: String
     ): Nothing {
         if (t is DatabricksError && t.isMissing) {
-            throw ResourceException(
-                ResourceException.Code.NOT_FOUND,
-                ResourceInfo.newBuilder()
-                    .setResourceType(resourceType)
-                    .setResourceName(resourceName)
-                    .setDescription("$resourceType with id $resourceName not found.")
-                    .build(),
-            )
+            throwNotFound(resourceName, resourceType)
         } else {
             throw t
         }

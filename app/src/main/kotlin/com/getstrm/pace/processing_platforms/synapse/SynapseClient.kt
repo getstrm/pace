@@ -3,6 +3,7 @@ package com.getstrm.pace.processing_platforms.synapse
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SynapseConfig
+import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.util.PagedCollection
@@ -55,14 +56,14 @@ class SynapseClient(
     }
 
     override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
-        TODO("Not yet implemented")
+        throwUnimplemented("listDatabases on Synapse")
     }
 
     override suspend fun listSchemas(
         databaseId: String,
         pageParameters: PageParameters
     ): PagedCollection<Schema> {
-        TODO("Not yet implemented")
+        throwUnimplemented("listSchemas on Synapse")
     }
 
     override suspend fun listTables(
@@ -70,11 +71,11 @@ class SynapseClient(
         schemaId: String,
         pageParameters: PageParameters
     ): PagedCollection<Table> {
-        TODO("Not yet implemented")
+        throwUnimplemented("listTables on Synapse")
     }
 
     override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table {
-        TODO("Not yet implemented")
+        throwUnimplemented("getTable on Synapse")
     }
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
@@ -107,11 +108,11 @@ class SynapseClient(
             id,
         ) {
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
-            TODO("Not yet implemented")
+            throwUnimplemented("listSchemas on Synapse")
         }
 
         override suspend fun getSchema(schemaId: String): Schema {
-            TODO("Not yet implemented")
+            throwUnimplemented("getSchema on Synapse")
         }
     }
 
@@ -128,7 +129,7 @@ class SynapseClient(
         }
 
         override suspend fun getTable(tableId: String): Table {
-            TODO("Not yet implemented")
+            throwUnimplemented("getTable on Synapse")
         }
     }
 

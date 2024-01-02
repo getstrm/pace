@@ -21,6 +21,7 @@ import com.getstrm.pace.processing_platforms.snowflake.SnowflakeClient
 import com.getstrm.pace.processing_platforms.synapse.SynapseClient
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.orDefault
 import com.google.rpc.BadRequest
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
@@ -88,13 +89,13 @@ class ProcessingPlatformsService(
         return processingPlatformClient.listTables(
             request.databaseId,
             request.schemaId,
-            request.pageParameters
+            request.pageParameters.orDefault()
         )
     }
 
     suspend fun listProcessingPlatformGroups(request: ListGroupsRequest): PagedCollection<Group> =
         (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
-            .listGroups(request.pageParameters)
+            .listGroups(request.pageParameters.orDefault())
 
     suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest): GetBlueprintPolicyResponse {
         val platformClient =
@@ -111,15 +112,15 @@ class ProcessingPlatformsService(
 
     suspend fun listDatabases(request: ListDatabasesRequest): PagedCollection<ApiDatabase> =
         (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
-            .listDatabases(request.pageParameters)
+            .listDatabases(request.pageParameters.orDefault())
             .map { it.apiDatabase }
 
     suspend fun listSchemas(request: ListSchemasRequest): PagedCollection<ApiSchema> {
         val platformClient =
             platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
-        return platformClient.listSchemas(request.databaseId, request.pageParameters).map {
-            it.apiSchema
-        }
+        return platformClient
+            .listSchemas(request.databaseId, request.pageParameters.orDefault())
+            .map { it.apiSchema }
     }
 
     /*
