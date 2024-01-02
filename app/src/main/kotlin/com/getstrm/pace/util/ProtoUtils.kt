@@ -134,7 +134,8 @@ fun Instant.toOffsetDateTime() = this.atOffset(ZoneOffset.UTC)
 fun OffsetDateTime.toTimestamp() =
     Timestamp.newBuilder().setSeconds(toEpochSecond()).setNanos(nano).build()
 
-fun DataPolicy.Field.pathString() = this.namePartsList.joinToString(separator = ".")
+fun DataPolicy.Field.pathString() =
+    this.namePartsList.map(String::uppercase).joinToString(separator = ".")
 
 fun DataPolicy.Field.fullName(): String = this.namePartsList.joinToString(".")
 

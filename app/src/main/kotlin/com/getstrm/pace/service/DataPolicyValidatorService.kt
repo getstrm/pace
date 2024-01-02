@@ -12,7 +12,16 @@ import org.springframework.stereotype.Component
 @Component
 class DataPolicyValidatorService {
 
-    fun validate(dataPolicy: DataPolicy, validGroups: Set<String>) {
+    /** validate a data policy.
+     * 
+     * @param dataPolicy the policy to validate
+     * @param platformGroups the groups on the platform, in their original
+     *                       character case (as given by the platform)
+     * 
+     * group and path checks are case insensitive because in essence SQL is
+     * case insensitive.
+     */
+    fun validate(dataPolicy: DataPolicy, platformGroups: Set<String>) {
         if (dataPolicy.source.ref.isNullOrEmpty()) {
             throw invalidArgumentException(
                 "dataPolicy.source.ref",
@@ -25,11 +34,12 @@ class DataPolicyValidatorService {
                 "DataPolicy platform id is empty"
             )
         }
+        val validGroups = platformGroups.map { it.uppercase() }.toSet()
         val validFields = dataPolicy.source.fieldsList.map(DataPolicy.Field::pathString).toSet()
 
         // check that every principal exists in validGroups
         fun checkPrincipals(principals: List<DataPolicy.Principal>) {
-            (principals.map { it.group }.toSet() - validGroups).let {
+            (principals.map { it.group.uppercase() }.toSet() - validGroups).let {
                 if (it.isNotEmpty()) {
                     throw invalidArgumentException(
                         it.map { principal ->

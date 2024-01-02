@@ -100,6 +100,90 @@ rule_sets:
     }
 
     @Test
+    fun `validate complex happy flow with different cases`() {
+        @Language("yaml")
+        val dataPolicy =
+            """
+$policyBase
+rule_sets: 
+- target:
+    type: DYNAMIC_VIEW
+    fullname: 'my_catalog.my_schema.gddemo_public'
+  field_transforms:
+    - field:
+        name_parts: [ EMAil ]
+      transforms:
+        - principals:
+            - group: anALYTics
+            - group: maRKETing
+          regexp:
+            regexp: '^.*(@.*)${'$'}'
+            replacement: '****${'$'}1'
+        - principals:
+            - group: frAUD-AND-Risk
+            - group: admin
+          identity: {}
+        - principals: []
+          fixed:
+            value: "'****'"
+    - field:
+        name_parts: [ usERId ]
+      transforms:
+        - principals:
+            - group: fraud-and-risk
+          identity: {}
+        - principals: []
+          hash:
+            seed: "1234"
+    - field:
+        name_parts: [ items ]
+      transforms:
+        - principals: []
+          fixed:
+            value: "'****'"
+    - field:
+        name_parts: [ brANd ]
+      transforms:
+        - principals: []
+          sql_statement:
+            statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
+  filters:
+    - generic_filter:
+        field:
+          name_parts: [ age ]
+        conditions:
+          - principals:
+              - group: fraud-and-risk
+            condition: "true"
+          - principals: []
+            condition: "age > 18"
+    - generic_filter:
+        field:
+          name_parts: [ userId ]
+        conditions:
+          - principals:
+              - group: marketing
+            condition: "userId in ('1', '2', '3', '4')"
+          - principals: []
+            condition: "true"
+    - generic_filter:
+        field:
+          name_parts: [ transactionAmount ]
+        conditions:
+          - principals: []
+            condition: "transactionAmount < 10"
+        """
+                .toProto<DataPolicy>()
+
+        assertDoesNotThrow {
+            underTest.validate(
+                dataPolicy,
+                setOf("analytics", "marketing", "fraud-and-risk", "admin")
+            )
+        }
+    }
+
+    @Test
     fun `validate non-empty last`() {
         @Language("yaml")
         val dataPolicy =
