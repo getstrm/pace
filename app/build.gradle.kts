@@ -202,7 +202,6 @@ val removePostgresContainer =
         }
     }
 
-
 val createPostgresContainer =
     tasks.register("jooqPostgresCreate", DockerCreateContainer::class) {
         dependsOn(removePostgresContainer)

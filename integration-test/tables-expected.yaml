@@ -1,0 +1,6 @@
+page_info:
+  total: 2
+tables:
+- public.demo
+- public.demo_view
+

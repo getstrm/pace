@@ -1,3 +1,15 @@
+# [1.0.0-alpha.43](https://github.com/getstrm/pace/compare/v1.0.0-alpha.42...v1.0.0-alpha.43) (2023-12-29)
+
+
+### Bug Fixes
+
+* **alpha:** removed husky pre-commit ([d069bae](https://github.com/getstrm/pace/commit/d069bae5d911c0eb7dfd6ee6a3c1e739bb2caa91))
+
+
+### Features
+
+* **pace-87:** add ktfmt as precommit and gradle build step ([#123](https://github.com/getstrm/pace/issues/123)) ([fde2e0d](https://github.com/getstrm/pace/commit/fde2e0d1b2b96b352f1bc7fd1a1ff707268db7d6))
+
 # [1.0.0-alpha.42](https://github.com/getstrm/pace/compare/v1.0.0-alpha.41...v1.0.0-alpha.42) (2023-12-20)
 
 

@@ -22,6 +22,8 @@ grant administrator to standalone;
 -- Grant select access to user 'other' on all (including future) tables
 alter default privileges in schema public grant all on tables to other;
 
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO standalone;
+
 insert into public.demo (transactionid, userid, email, age, transactionamount, brand)
 values (861200791, 533445, 'jeffreypowell@hotmail.com', 33, 123, 'Lenovo')
      , (733970993, 468355, 'forbeserik@gmail.com', 16, 46, 'MacBook')

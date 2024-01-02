@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test
 
 class DatabricksClientTest {
 
-    // FIXME: the client itself should not be mocked!
     private val client = mockk<DatabricksClient>()
 
     @Disabled("should be fixed")

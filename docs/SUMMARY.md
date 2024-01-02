@@ -63,6 +63,8 @@
       * [zsh](cli-docs/pace\_completion\_zsh.md)
     * [delete](cli-docs/pace\_delete.md)
       * [global-transform](cli-docs/pace\_delete\_global-transform.md)
+    * [disable](cli-docs/pace\_disable.md)
+      * [welcome](cli-docs/pace\_disable\_welcome.md)
     * [evaluate](cli-docs/pace\_evaluate.md)
       * [data-policy](cli-docs/pace\_evaluate\_data-policy.md)
     * [get](cli-docs/pace\_get.md)
