@@ -3,6 +3,7 @@ package com.getstrm.pace.service
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.util.pathString
+import com.getstrm.pace.util.pathStringUpper
 import com.google.rpc.BadRequest
 import com.google.rpc.BadRequest.FieldViolation
 import org.springframework.stereotype.Component
@@ -12,14 +13,14 @@ import org.springframework.stereotype.Component
 @Component
 class DataPolicyValidatorService {
 
-    /** validate a data policy.
-     * 
+    /**
+     * validate a data policy.
+     *
      * @param dataPolicy the policy to validate
-     * @param platformGroups the groups on the platform, in their original
-     *                       character case (as given by the platform)
-     * 
-     * group and path checks are case insensitive because in essence SQL is
-     * case insensitive.
+     * @param platformGroups the groups on the platform, in their original character case (as given
+     *   by the platform)
+     *
+     * group and path checks are case insensitive because in essence SQL is case insensitive.
      */
     fun validate(dataPolicy: DataPolicy, platformGroups: Set<String>) {
         if (dataPolicy.source.ref.isNullOrEmpty()) {
@@ -35,31 +36,31 @@ class DataPolicyValidatorService {
             )
         }
         val validGroups = platformGroups.map { it.uppercase() }.toSet()
-        val validFields = dataPolicy.source.fieldsList.map(DataPolicy.Field::pathString).toSet()
+        val validFields =
+            dataPolicy.source.fieldsList.map(DataPolicy.Field::pathStringUpper).toSet()
 
         // check that every principal exists in validGroups
         fun checkPrincipals(principals: List<DataPolicy.Principal>) {
-            (principals.map { it.group.uppercase() }.toSet() - validGroups).let {
-                if (it.isNotEmpty()) {
-                    throw invalidArgumentException(
-                        it.map { principal ->
-                            FieldViolation.newBuilder()
-                                .setField("principal")
-                                .setDescription(
-                                    "Principal $principal does not exist in platform ${dataPolicy.platform.id}"
-                                )
-                                .build()
-                        }
-                    )
-                }
+            val missingPrincipals = principals.filter { p -> p.group.uppercase() !in validGroups }
+            if (missingPrincipals.isNotEmpty()) {
+                throw invalidArgumentException(
+                    missingPrincipals.map { principal ->
+                        FieldViolation.newBuilder()
+                            .setField("principal")
+                            .setDescription(
+                                "Principal ${principal.group} does not exist in platform ${dataPolicy.platform.id}"
+                            )
+                            .build()
+                    }
+                )
             }
         }
 
         // check that every field in a field transform or row filter exists in the DataPolicy
         fun checkField(field: DataPolicy.Field) {
-            if (!validFields.contains(field.pathString())) {
+            if (!validFields.contains(field.pathStringUpper())) {
                 throw invalidArgumentException(
-                    field.pathString(),
+                    field.pathStringUpper(),
                     "Field does not exist in source ${dataPolicy.source.ref}"
                 )
             }
@@ -141,7 +142,7 @@ class DataPolicyValidatorService {
                 .fold(
                     emptySet<String>(),
                 ) { alreadySeen, field ->
-                    field.pathString().let {
+                    field.pathStringUpper().let {
                         if (alreadySeen.contains(it)) {
                             throw invalidArgumentException(
                                 listOf(
@@ -166,7 +167,7 @@ class DataPolicyValidatorService {
                 .fold(
                     emptySet<String>(),
                 ) { alreadySeen, field ->
-                    field.pathString().let {
+                    field.pathStringUpper().let {
                         if (alreadySeen.contains(it)) {
                             throw invalidArgumentException(
                                 listOf(
