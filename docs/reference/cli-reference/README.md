@@ -53,3 +53,46 @@ The following entities are available in the CLI:
 * processing-platform
 * schema
 * table
+
+## Telemetry
+The cli collects minimal statistics in a local file (`~/.config/pace/telemetry.yaml`) to see which calls (verbs and nouns) have been
+done, and what their command exit code was.
+
+```yaml
+metric_points:
+    pace get data-policy:
+        0:
+            cumulative_count: 2
+        1:
+            cumulative_count: 1
+    pace list processing-platforms:
+        0:
+            cumulative_count: 1
+    pace list tables:
+        0:
+            cumulative_count: 2
+    pace version:
+        0:
+            cumulative_count: 17
+cli_version: dev
+operation_version: linux
+id: 36be4c46-4e1b-431d-b9db-1b315f537a85
+```
+
+We can see that the command `get data-policy` was twice called succesfully, and once had a failure (the `1`).
+The `cli_version` is the version as produced by `pace version` (in this case a developers' local build).
+The id is a random UUID, that has the same function as a session id in a browser. It allows us to see that consecutive calls are from the same cli instance.
+
+A global flag named `stats-interval` defines the interval in seconds that the cli uses between consecutive upload http requests. This does not happen in the background, but whenever you execute some command with the cli. There's a file named `~/.config/pace/telemetry-timestamp` that holds the unix timestamp of the last telemetry upload.
+
+**Disabling telemetry** of course you can easily disable the telemetry uploads. You can do one of the following.
+
+1. add `stats-interval: -1` to `~/.config/pace/config.yaml`
+2. put `export PACE_STATS_INTERVAL=-1` into your shell environment
+3. add `--stats-interval=-1` to every pace cli call you execute.
+
+You cannot disable the collection of calls into the statistics file, but that just stays on your computer.
+
+Of course since the cli is open-source, you can have a look at the telemetry implementation in the file `pkg/entity/metrics/metrics.go`.
+
+The default of the cli configuration is with telemetry enabled, with a 1 hour interval. We would really like to see which calls are being used and which ones are not. But the choice is yours!
