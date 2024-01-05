@@ -9,6 +9,7 @@ pace delete global-transform (ref) [flags]
 ### Examples
 
 ```
+
     pace delete global-transform PII_EMAIL
 
 	deleted_count: 1
