@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.44
+    version: 1.0.0-alpha.45
 paths:
     /data-policies:
         get:
@@ -614,6 +614,48 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /v1alpha/processing-platforms/{platformId}/databases:
+        get:
+            tags:
+                - ProcessingPlatformsService
+            description: Lists all databases for the given processing_platform.
+            operationId: ProcessingPlatformsService_ListDatabases
+            parameters:
+                - name: platformId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: pageParameters.skip
+                  in: query
+                  description: |-
+                    The provided skip value of the request.
+                     skip represents records to skip before returning results.
+                     If empty, skip is 0.
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: pageParameters.pageSize
+                  in: query
+                  description: |-
+                    The provided page_size value of the request.
+                     If empty, page_size is 10.
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDatabasesResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /v1alpha/processing-platforms/{platformId}/groups:
         get:
             tags:
@@ -656,6 +698,52 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /v1alpha/processing-platforms/{platformId}/schemas:
+        get:
+            tags:
+                - ProcessingPlatformsService
+            description: Lists all schemas (for a given database, if applicable).
+            operationId: ProcessingPlatformsService_ListSchemas
+            parameters:
+                - name: platformId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: databaseId
+                  in: query
+                  schema:
+                    type: string
+                - name: pageParameters.skip
+                  in: query
+                  description: |-
+                    The provided skip value of the request.
+                     skip represents records to skip before returning results.
+                     If empty, skip is 0.
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: pageParameters.pageSize
+                  in: query
+                  description: |-
+                    The provided page_size value of the request.
+                     If empty, page_size is 10.
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListSchemasResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /v1alpha/processing-platforms/{platformId}/tables:
         get:
             tags:
@@ -666,6 +754,14 @@ paths:
                 - name: platformId
                   in: path
                   required: true
+                  schema:
+                    type: string
+                - name: databaseId
+                  in: query
+                  schema:
+                    type: string
+                - name: schemaId
+                  in: query
                   schema:
                     type: string
                 - name: pageParameters.skip
@@ -698,7 +794,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /v1alpha/processing-platforms/{platformId}/tables/{tableId}/blueprint-policy:
+    /v1alpha/processing-platforms/{platformId}/tables/{table_id}/blueprint-policy:
         get:
             tags:
                 - ProcessingPlatformsService
@@ -713,11 +809,98 @@ paths:
                   required: true
                   schema:
                     type: string
-                - name: tableId
+                - name: table_id
                   in: path
                   required: true
                   schema:
                     type: string
+                - name: table.id
+                  in: query
+                  description: The id used by the catalog.
+                  schema:
+                    type: string
+                - name: table.name
+                  in: query
+                  schema:
+                    type: string
+                - name: table.schema.id
+                  in: query
+                  description: The id used by the catalog.
+                  schema:
+                    type: string
+                - name: table.schema.name
+                  in: query
+                  schema:
+                    type: string
+                - name: table.schema.database.id
+                  in: query
+                  description: The id of the database
+                  schema:
+                    type: string
+                - name: table.schema.database.type
+                  in: query
+                  schema:
+                    type: string
+                - name: table.schema.database.displayName
+                  in: query
+                  schema:
+                    type: string
+                - name: table.schema.database.catalog.id
+                  in: query
+                  description: An arbitrary but unique identifier for the catalog. This matches the id from the PACE app configuration.
+                  schema:
+                    type: string
+                - name: table.schema.database.catalog.type
+                  in: query
+                  schema:
+                    enum:
+                        - TYPE_UNSPECIFIED
+                        - COLLIBRA
+                        - ODD
+                        - DATAHUB
+                    type: string
+                    format: enum
+                - name: table.schema.database.catalog.tags
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: table.schema.database.processingPlatform.platformType
+                  in: query
+                  schema:
+                    enum:
+                        - PLATFORM_TYPE_UNSPECIFIED
+                        - DATABRICKS
+                        - SNOWFLAKE
+                        - BIGQUERY
+                        - POSTGRES
+                        - SYNAPSE
+                    type: string
+                    format: enum
+                - name: table.schema.database.processingPlatform.id
+                  in: query
+                  description: An arbitrary but unique identifier for the platform. This matches the id from the PACE app configuration.
+                  schema:
+                    type: string
+                - name: table.schema.database.tags
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: table.schema.tags
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: table.tags
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
             responses:
                 "200":
                     description: OK
@@ -835,66 +1018,8 @@ components:
                 databases:
                     type: array
                     items:
-                        $ref: '#/components/schemas/DataCatalog_Database'
+                        $ref: '#/components/schemas/Database'
                     description: A top-most level of the catalog. This is typically a database.
-                tags:
-                    type: array
-                    items:
-                        type: string
-        DataCatalog_Database:
-            type: object
-            properties:
-                id:
-                    type: string
-                    description: The id used by the catalog.
-                type:
-                    type: string
-                displayName:
-                    type: string
-                catalog:
-                    allOf:
-                        - $ref: '#/components/schemas/DataCatalog'
-                    description: The parent catalog to which this database belongs.
-                schemas:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/DataCatalog_Schema'
-                    description: The schemas in this database.
-                tags:
-                    type: array
-                    items:
-                        type: string
-        DataCatalog_Schema:
-            type: object
-            properties:
-                id:
-                    type: string
-                    description: The id used by the catalog.
-                name:
-                    type: string
-                database:
-                    $ref: '#/components/schemas/DataCatalog_Database'
-                tables:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/DataCatalog_Table'
-                    description: The tables in this schema.
-                tags:
-                    type: array
-                    items:
-                        type: string
-        DataCatalog_Table:
-            type: object
-            properties:
-                id:
-                    type: string
-                    description: The id used by the catalog.
-                name:
-                    type: string
-                schema:
-                    allOf:
-                        - $ref: '#/components/schemas/DataCatalog_Schema'
-                    description: The parent schema to which this table belongs.
                 tags:
                     type: array
                     items:
@@ -909,7 +1034,7 @@ components:
                 source:
                     $ref: '#/components/schemas/DataPolicy_Source'
                 platform:
-                    $ref: '#/components/schemas/DataPolicy_ProcessingPlatform'
+                    $ref: '#/components/schemas/ProcessingPlatform'
                 ruleSets:
                     type: array
                     items:
@@ -973,22 +1098,6 @@ components:
             properties:
                 group:
                     type: string
-        DataPolicy_ProcessingPlatform:
-            type: object
-            properties:
-                platformType:
-                    enum:
-                        - PLATFORM_TYPE_UNSPECIFIED
-                        - DATABRICKS
-                        - SNOWFLAKE
-                        - BIGQUERY
-                        - POSTGRES
-                        - SYNAPSE
-                    type: string
-                    format: enum
-                id:
-                    type: string
-                    description: An arbitrary but unique identifier for the platform. This matches the id from the PACE app configuration.
         DataPolicy_RuleSet:
             type: object
             properties:
@@ -1033,6 +1142,29 @@ components:
                 fullname:
                     type: string
                     description: The full and unique name to be used in the target platform. E.g. the view name.
+        Database:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The id of the database
+                type:
+                    type: string
+                displayName:
+                    type: string
+                catalog:
+                    $ref: '#/components/schemas/DataCatalog'
+                processingPlatform:
+                    $ref: '#/components/schemas/ProcessingPlatform'
+                schemas:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Schema'
+                    description: The schemas in this database.
+                tags:
+                    type: array
+                    items:
+                        type: string
         DeleteGlobalTransformRequest:
             type: object
             properties:
@@ -1264,7 +1396,7 @@ components:
                 databases:
                     type: array
                     items:
-                        $ref: '#/components/schemas/DataCatalog_Database'
+                        $ref: '#/components/schemas/Database'
                 pageInfo:
                     $ref: '#/components/schemas/PageInfo'
         ListGlobalTransformsResponse:
@@ -1296,14 +1428,14 @@ components:
                 processingPlatforms:
                     type: array
                     items:
-                        $ref: '#/components/schemas/DataPolicy_ProcessingPlatform'
+                        $ref: '#/components/schemas/ProcessingPlatform'
         ListSchemasResponse:
             type: object
             properties:
                 schemas:
                     type: array
                     items:
-                        $ref: '#/components/schemas/DataCatalog_Schema'
+                        $ref: '#/components/schemas/Schema'
                 pageInfo:
                     $ref: '#/components/schemas/PageInfo'
             description: |-
@@ -1315,7 +1447,7 @@ components:
                 tables:
                     type: array
                     items:
-                        $ref: '#/components/schemas/DataCatalog_Table'
+                        $ref: '#/components/schemas/Table'
                 pageInfo:
                     $ref: '#/components/schemas/PageInfo'
         NumericRounding_Ceil:
@@ -1364,6 +1496,22 @@ components:
                     items:
                         $ref: '#/components/schemas/Action'
                     description: Actions that this plugin supports
+        ProcessingPlatform:
+            type: object
+            properties:
+                platformType:
+                    enum:
+                        - PLATFORM_TYPE_UNSPECIFIED
+                        - DATABRICKS
+                        - SNOWFLAKE
+                        - BIGQUERY
+                        - POSTGRES
+                        - SYNAPSE
+                    type: string
+                    format: enum
+                id:
+                    type: string
+                    description: An arbitrary but unique identifier for the platform. This matches the id from the PACE app configuration.
         RetentionFilter_Condition:
             type: object
             properties:
@@ -1428,6 +1576,25 @@ components:
                         - CSV
                     type: string
                     format: enum
+        Schema:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The id used by the catalog.
+                name:
+                    type: string
+                database:
+                    $ref: '#/components/schemas/Database'
+                tables:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Table'
+                    description: The tables in this schema.
+                tags:
+                    type: array
+                    items:
+                        type: string
         Status:
             type: object
             properties:
@@ -1444,6 +1611,22 @@ components:
                         $ref: '#/components/schemas/GoogleProtobufAny'
                     description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
             description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+        Table:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The id used by the catalog.
+                name:
+                    type: string
+                schema:
+                    allOf:
+                        - $ref: '#/components/schemas/Schema'
+                    description: The parent schema to which this table belongs.
+                tags:
+                    type: array
+                    items:
+                        type: string
         Transform_Aggregation:
             type: object
             properties:
