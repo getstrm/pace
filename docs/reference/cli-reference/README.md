@@ -76,21 +76,21 @@ metric_points:
     pace version:
         0:
             cumulative_count: 17
-cli_version: dev # a developer local build of the cli
-operation_version: linux # using a Linux desktop
+cli_version: v1.16.0
+operation_version: darwin # macOS
 id: 36be4c46-4e1b-431d-b9db-1b315f537a85 # a random identifier of this cli instance.
 ```
 
-A global flag named `telemetry-interval-seconds` defines the interval in seconds that the cli uses between consecutive upload http requests. This does not happen in the background, but whenever you execute some command with the cli. There's a file named `~/.config/pace/telemetry-last-upload-timestamp` that holds the unix timestamp of the last telemetry upload.
+A global flag named `telemetry-interval-seconds` defines the interval in seconds that the CLI uses between consecutive uploads of the collected telemetry. This does not happen in the background, but whenever you execute some command with the CLI. There's a file named `~/.config/pace/telemetry-last-upload-timestamp` that holds the unix timestamp of the last telemetry upload.
 
 **Disabling telemetry:** of course you can easily disable the telemetry uploads. You can do one of the following.
 
-1. add `telemetry-interval-seconds` to `~/.config/pace/config.yaml`
+1. add `telemetry-interval-seconds: -1` to `~/.config/pace/config.yaml`
 2. put `export PACE_TELEMETRY_INTERVAL_SECONDS=-1` into your shell environment
 3. add `--telemetry-interval-seconds=-1` to every pace cli call you execute.
 
-You cannot disable the collection of calls into the statistics file.
+You cannot disable the collection of calls into the statistics file, but the telemetry will be kept in the local file only, they will not be uploaded.
 
-Of course since the cli is open-source, you can have a look at the telemetry implementation in the file `pkg/entity/metrics/metrics.go`.
+Of course since the CLI is open-source, you can have a look at the telemetry implementation in the file `pkg/entity/metrics/metrics.go`.
 
-The default of the cli configuration which is created on the first call of the `pace` cli is with telemetry enabled, with a 1 hour interval. The PACE developers would really like to see which calls are being used and which ones are not. But the choice is yours!
+The default of the CLI configuration which is created on the first call of the `pace` CLI is with telemetry enabled, with a 1 hour interval. The PACE developers would really like to see which calls are being used and which ones are not, in order to improve PACE and the CLI. But the choice is yours.
