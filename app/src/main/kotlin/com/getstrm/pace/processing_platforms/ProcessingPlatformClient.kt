@@ -1,46 +1,91 @@
 package com.getstrm.pace.processing_platforms
 
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.*
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
-import com.getstrm.pace.exceptions.ResourceException
+import com.getstrm.pace.config.PPConfig
+import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
-import com.getstrm.pace.util.THOUSAND_RECORDS
-import com.google.rpc.ResourceInfo
 import org.jooq.Field
 
-interface ProcessingPlatformClient {
+abstract class ProcessingPlatformClient(
+    open val config: PPConfig,
+) {
     val id: String
-    val type: DataPolicy.ProcessingPlatform.PlatformType
+        get() = config.id
 
-    suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group>
+    val type: ProcessingPlatform.PlatformType
+        get() = config.type
 
-    suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table>
+    val apiProcessingPlatform: ProcessingPlatform
+        get() = ProcessingPlatform.newBuilder().setId(id).setPlatformType(config.type).build()
 
-    suspend fun applyPolicy(dataPolicy: DataPolicy)
+    abstract suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group>
 
-    // TODO Should be overridden by implementations to avoid query size constraints
-    // TODO make more efficient implementation that does not list all the databases
-    suspend fun getTable(tableName: String): Table =
-        listTables(THOUSAND_RECORDS).data.find { it.fullName == tableName }
-            ?: throw ResourceException(
-                ResourceException.Code.NOT_FOUND,
-                ResourceInfo.newBuilder()
-                    .setResourceType("Table")
-                    .setResourceName(tableName)
-                    .setDescription("Table $tableName not found in platform $id of type $type")
-                    .setOwner("Processing Platform: ${type.name}")
+    abstract suspend fun applyPolicy(dataPolicy: DataPolicy)
+
+    abstract suspend fun listDatabases(
+        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
+    ): PagedCollection<Database>
+
+    abstract suspend fun listSchemas(
+        databaseId: String,
+        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
+    ): PagedCollection<Schema>
+
+    abstract suspend fun listTables(
+        databaseId: String,
+        schemaId: String,
+        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
+    ): PagedCollection<Table>
+
+    abstract suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table
+
+    /** meta information database */
+    abstract class Database(
+        open val platformClient: ProcessingPlatformClient,
+        val id: String,
+        // Todo: make fields required
+        val dbType: String? = null,
+        val displayName: String? = null
+    ) {
+        abstract suspend fun listSchemas(
+            pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
+        ): PagedCollection<Schema>
+
+        override fun toString() =
+            dbType?.let { "Database($id, $dbType, $displayName)" } ?: "Database($id)"
+
+        abstract suspend fun getSchema(schemaId: String): Schema
+
+        val apiDatabase: build.buf.gen.getstrm.pace.api.entities.v1alpha.Database
+            get() =
+                build.buf.gen.getstrm.pace.api.entities.v1alpha.Database.newBuilder()
+                    .setProcessingPlatform(platformClient.apiProcessingPlatform)
+                    .setDisplayName(displayName.orEmpty())
+                    .setId(id)
+                    .setType(dbType.orEmpty())
                     .build()
-            )
-}
+    }
 
-data class Group(val id: String, val name: String, val description: String? = null)
+    /** A schema is a collection of tables. */
+    abstract class Schema(val database: Database, val id: String, val name: String) {
+        abstract suspend fun listTables(
+            pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
+        ): PagedCollection<Table>
 
-abstract class Table {
-    abstract val fullName: String
+        override fun toString(): String = "Schema($id, $name)"
 
-    abstract suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy
+        val apiSchema: build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema
+            get() =
+                build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema.newBuilder()
+                    .setId(id)
+                    .setName(name)
+                    .setDatabase(database.apiDatabase)
+                    .build()
 
-    override fun toString(): String = "${javaClass.simpleName}(fullName=$fullName)"
+        abstract suspend fun getTable(tableId: String): Table
+    }
 
     companion object {
         private val regex = """(?:pace)\:\:((?:\"[\w\s\-\_]+\"|[\w\-\_]+))""".toRegex()
@@ -50,4 +95,27 @@ abstract class Table {
             return match.map { it.groupValues[1].trim('"') }.toList()
         }
     }
+
+    /** A table is a collection of columns. */
+    abstract class Table(val schema: Schema, val id: String, val name: String) {
+        /**
+         * create a blueprint from the field information and possible the global transforms.
+         *
+         * NOTE: do not call this method `get...` (Bean convention) because then the lazy
+         * information gathering for creating blueprints becomes non-lazy. You can see this for
+         * instance with the DataHub implementation
+         */
+        abstract suspend fun createBlueprint(): DataPolicy
+
+        override fun toString(): String = "${schema.database.id}.${schema.id}.$id"
+
+        /** the full name to be used in SQL queries to get at the source data. */
+        abstract val fullName: String
+        val apiPlatform = schema.database.platformClient.apiProcessingPlatform
+        val apiTable: ApiTable
+            get() =
+                ApiTable.newBuilder().setId(id).setSchema(schema.apiSchema).setName(name).build()
+    }
 }
+
+data class Group(val id: String, val name: String, val description: String? = null)

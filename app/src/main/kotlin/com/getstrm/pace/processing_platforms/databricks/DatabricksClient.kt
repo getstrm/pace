@@ -1,11 +1,12 @@
 package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.DATABRICKS
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.DATABRICKS
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.databricks.sdk.AccountClient
 import com.databricks.sdk.WorkspaceClient
 import com.databricks.sdk.core.DatabricksConfig as DatabricksClientConfig
+import com.databricks.sdk.core.DatabricksError
 import com.databricks.sdk.service.catalog.TableInfo
 import com.databricks.sdk.service.iam.ListAccountGroupsRequest
 import com.databricks.sdk.service.sql.ExecuteStatementRequest
@@ -14,10 +15,14 @@ import com.databricks.sdk.service.sql.StatementState
 import com.getstrm.pace.config.DatabricksConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
+import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.processing_platforms.Table
-import com.getstrm.pace.util.*
+import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.applyPageParameters
+import com.getstrm.pace.util.normalizeType
+import com.getstrm.pace.util.toTimestamp
+import com.getstrm.pace.util.withPageInfo
 import com.google.rpc.DebugInfo
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
@@ -25,11 +30,8 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger(DatabricksClient::javaClass.name)
 
 class DatabricksClient(
-    override val id: String,
-    val config: DatabricksConfig,
-) : ProcessingPlatformClient {
-
-    constructor(config: DatabricksConfig) : this(config.id, config)
+    override val config: DatabricksConfig,
+) : ProcessingPlatformClient(config) {
 
     private val workspaceClient =
         DatabricksClientConfig()
@@ -46,8 +48,6 @@ class DatabricksClient(
             .setClientSecret(config.clientSecret)
             .let { config -> AccountClient(config) }
 
-    override val type = DATABRICKS
-
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> =
         accountClient
             .groups()
@@ -59,33 +59,6 @@ class DatabricksClient(
             )
             .map { group -> Group(id = group.id, name = group.displayName) }
             .withPageInfo()
-
-    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> =
-        listAllTables(pageParameters).map { DatabricksTable(it.fullName, it, this) }
-
-    /** Lists all tables (or views) in all schemas that the service principal has access to. */
-    private fun listAllTables(pageParameters: PageParameters): PagedCollection<TableInfo> {
-        // TODO
-        // https://linear.app/strmprivacy/issue/PACE-84/processing-platforms-should-have-table-hierarchy-similar-to-catalogs
-        val catalogNames = workspaceClient.catalogs().list().map { it.name }
-        val schemas = catalogNames.flatMap { catalog -> workspaceClient.schemas().list(catalog) }
-        val tableInfoList =
-            schemas.flatMap { schema ->
-                workspaceClient.tables().list(schema.catalogName, schema.name)
-            }
-        return tableInfoList
-            .filter { it.owner != "System user" }
-            .applyPageParameters(pageParameters)
-            .withPageInfo()
-    }
-
-    /**
-     * Lists all tables (or views) in a specific schema in a specific catalog that the service
-     * principal has access to.
-     */
-    fun listSchemaTables(catalogName: String, schemaName: String): List<TableInfo> {
-        return workspaceClient.tables().list(catalogName, schemaName).toList()
-    }
 
     fun executeStatement(
         statement: String,
@@ -113,96 +86,221 @@ class DatabricksClient(
             else -> handleDatabricksError(statement, response)
         }
     }
-}
 
-class DatabricksTable(
-    override val fullName: String,
-    private val tableInfo: TableInfo,
-    private val databricksClient: DatabricksClient,
-) : Table() {
-    private val log by lazy { LoggerFactory.getLogger(javaClass) }
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
+        return workspaceClient
+            .catalogs()
+            .list()
+            .applyPageParameters(pageParameters)
+            .map { catalogInfo -> DatabricksDatabase(this, catalogInfo.name) }
+            .withPageInfo()
+    }
 
-    override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy =
-        tableInfo.toDataPolicy(platform, getTags(tableInfo))
+    override suspend fun listSchemas(
+        databaseId: String,
+        pageParameters: PageParameters
+    ): PagedCollection<Schema> {
+        try {
+            return workspaceClient
+                .schemas()
+                .list(databaseId)
+                .map { schemaInfo ->
+                    val database = DatabricksDatabase(this, schemaInfo.catalogName)
+                    DatabricksSchema(database, schemaInfo.name)
+                }
+                .withPageInfo()
+        } catch (t: Throwable) {
+            mapNotFoundError(t, "Databricks catalog", databaseId)
+        }
+    }
 
-    /* TODO the current databricks api does not expose column tags! :-(
-    The hack we use is to execute a sql query
-     */
-    private fun getTags(tableInfo: TableInfo): Map<String, List<String>> {
+    override suspend fun listTables(
+        databaseId: String,
+        schemaId: String,
+        pageParameters: PageParameters
+    ): PagedCollection<Table> {
+        try {
+            return workspaceClient
+                .tables()
+                .list(databaseId, schemaId)
+                .map { tableInfo -> tableInfo.toTable() }
+                .withPageInfo()
+        } catch (t: Throwable) {
+            mapNotFoundError(t, "Databricks schema", schemaId)
+        }
+    }
 
-        @Language(value = "Sql")
-        val statement =
-            """
+    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table {
+        try {
+            return workspaceClient.tables().get("$databaseId.$schemaId.$tableId").toTable()
+        } catch (t: Throwable) {
+            mapNotFoundError(t, "Databricks table", tableId)
+        }
+    }
+
+    private fun TableInfo.toTable(): DatabricksTable {
+        val database = DatabricksDatabase(this@DatabricksClient, catalogName)
+        val schema = DatabricksSchema(database, schemaName)
+        return DatabricksTable(schema, this)
+    }
+
+    private fun mapNotFoundError(
+        t: Throwable,
+        resourceType: String,
+        resourceName: String
+    ): Nothing {
+        if (t is DatabricksError && t.isMissing) {
+            throwNotFound(resourceName, resourceType)
+        } else {
+            throw t
+        }
+    }
+
+    inner class DatabricksDatabase(
+        processingPlatformClient: ProcessingPlatformClient,
+        name: String
+    ) :
+        Database(
+            platformClient = processingPlatformClient,
+            id = name,
+            dbType = DATABRICKS.name,
+            displayName = name,
+        ) {
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> =
+            listSchemas(id, pageParameters)
+
+        override suspend fun getSchema(schemaId: String): Schema {
+            try {
+                return workspaceClient.schemas().get(schemaId).let {
+                    DatabricksSchema(this, it.name)
+                }
+            } catch (t: Throwable) {
+                mapNotFoundError(t, "Databricks schema", schemaId)
+            }
+        }
+    }
+
+    inner class DatabricksSchema(database: Database, name: String) :
+        Schema(
+            database = database,
+            id = name,
+            name = name,
+        ) {
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> =
+            listTables(database.id, name, pageParameters)
+
+        override suspend fun getTable(tableId: String): Table {
+            getTable(database.id, name, tableId).let {
+                return it
+            }
+        }
+    }
+
+    inner class DatabricksTable(
+        schema: Schema,
+        private val tableInfo: TableInfo,
+        override val fullName: String = tableInfo.fullName,
+    ) :
+        Table(
+            schema = schema,
+            id = tableInfo.name,
+            name = tableInfo.name,
+        ) {
+        private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+        override suspend fun createBlueprint(): DataPolicy {
+            return tableInfo.toDataPolicy(getTags(tableInfo))
+        }
+
+        /* TODO the current databricks api does not expose column tags! :-(
+        The hack we use is to execute a sql query
+         */
+        private fun getTags(tableInfo: TableInfo): Map<String, List<String>> {
+
+            @Language(value = "Sql")
+            val statement =
+                """
             SELECT column_name field, tag_name tag, tag_value val
             from system.information_schema.column_tags
             WHERE catalog_name = '${tableInfo.catalogName}'
             AND schema_name = '${tableInfo.schemaName}'
             AND table_name = '${tableInfo.name}'
         """
-                .trimIndent()
-        val response = databricksClient.executeStatement(statement)
-        return when (response.status.state) {
-            StatementState.SUCCEEDED -> {
-                return response.result.dataArray
-                    .orEmpty()
-                    .map { it.toList() }
-                    .groupBy { it[0] }
-                    .mapValues { tags -> tags.value.map { it[1] } }
-            }
-            else -> {
-                if (response.status.error.errorCode != null) {
-                    handleDatabricksError(statement, response)
+                    .trimIndent()
+            val response = executeStatement(statement)
+            return when (response.status.state) {
+                StatementState.SUCCEEDED -> {
+                    return response.result.dataArray
+                        .orEmpty()
+                        .map { it.toList() }
+                        .groupBy { it[0] }
+                        .mapValues { tags -> tags.value.map { it[1] } }
                 }
-                emptyMap()
+                StatementState.CANCELED -> TODO()
+                StatementState.CLOSED -> TODO()
+                StatementState.FAILED -> TODO()
+                StatementState.PENDING -> {
+                    // TODO no compute!
+                    // https://github.com/getstrm/pace/issues/134
+                    throw InternalException(
+                        InternalException.Code.INTERNAL,
+                        DebugInfo.newBuilder().setDetail("Databricks query is pending").build()
+                    )
+                }
+                StatementState.RUNNING -> TODO()
+                else -> {
+                    if (response.status.error.errorCode != null) {
+                        handleDatabricksError(statement, response)
+                    }
+                    emptyMap()
+                }
             }
         }
+
+        private fun TableInfo.toDataPolicy(tags: Map<String, List<String>>): DataPolicy =
+            DataPolicy.newBuilder()
+                .setMetadata(
+                    DataPolicy.Metadata.newBuilder()
+                        .setTitle(name)
+                        .setDescription(comment.orEmpty())
+                        .setCreateTime(createdAt.toTimestamp())
+                        .setUpdateTime(updatedAt.toTimestamp()),
+                )
+                .setPlatform(apiPlatform)
+                .setSource(
+                    DataPolicy.Source.newBuilder()
+                        .setRef(fullName)
+                        .addAllFields(
+                            columns.map { column ->
+                                DataPolicy.Field.newBuilder()
+                                    .addAllNameParts(listOf(column.name))
+                                    .addAllTags(tags[column.name] ?: emptyList())
+                                    .setType(column.typeText)
+                                    .setRequired(!(column.nullable ?: false))
+                                    .build()
+                                    .normalizeType()
+                            },
+                        )
+                        .build(),
+                )
+                .build()
     }
 
-    private fun TableInfo.toDataPolicy(
-        platform: DataPolicy.ProcessingPlatform,
-        tags: Map<String, List<String>>
-    ): DataPolicy =
-        DataPolicy.newBuilder()
-            .setMetadata(
-                DataPolicy.Metadata.newBuilder()
-                    .setTitle(name)
-                    .setDescription(comment.orEmpty())
-                    .setCreateTime(createdAt.toTimestamp())
-                    .setUpdateTime(updatedAt.toTimestamp()),
-            )
-            .setPlatform(platform)
-            .setSource(
-                DataPolicy.Source.newBuilder()
-                    .setRef(fullName)
-                    .addAllFields(
-                        columns.map { column ->
-                            DataPolicy.Field.newBuilder()
-                                .addAllNameParts(listOf(column.name))
-                                .addAllTags(tags[column.name] ?: emptyList())
-                                .setType(column.typeText)
-                                .setRequired(!(column.nullable ?: false))
-                                .build()
-                                .normalizeType()
-                        },
-                    )
-                    .build(),
-            )
-            .build()
-}
+    private fun handleDatabricksError(statement: String, response: ExecuteStatementResponse) {
+        log.warn("SQL statement\n{}", statement)
+        val errorMessage =
+            "Databricks response %s: %s"
+                .format(response.status.error, response.status.error.message)
+        log.warn("Caused error {}", errorMessage)
 
-private fun handleDatabricksError(statement: String, response: ExecuteStatementResponse) {
-    log.warn("SQL statement\n{}", statement)
-    val errorMessage =
-        "Databricks response %s: %s".format(response.status.error, response.status.error.message)
-    log.warn("Caused error {}", errorMessage)
-
-    throw InternalException(
-        InternalException.Code.INTERNAL,
-        DebugInfo.newBuilder()
-            .setDetail(
-                "Error while executing Databricks query (error code: ${response.status.error.errorCode.name}), please check the logs of your PACE deployment. $BUG_REPORT"
-            )
-            .addAllStackEntries(listOf(errorMessage))
-            .build()
-    )
+        throw InternalException(
+            InternalException.Code.INTERNAL,
+            DebugInfo.newBuilder()
+                .setDetail(
+                    "Error while executing Databricks query (error code: ${response.status.error.errorCode.name}), please check the logs of your PACE deployment. $BUG_REPORT"
+                )
+                .addAllStackEntries(listOf(errorMessage))
+                .build()
+        )
+    }
 }

@@ -1,10 +1,10 @@
 package com.getstrm.pace.catalogs
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Database as ApiDatabase
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Schema as ApiSchema
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Table as ApiTable
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database as ApiDatabase
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema as ApiSchema
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS

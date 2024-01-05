@@ -6,10 +6,6 @@ import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.google.cloud.bigquery.Table
-import com.google.cloud.bigquery.TableId
-import java.util.ArrayList
-import java.util.stream.Collectors
 import kotlin.math.min
 import org.jooq.*
 
@@ -23,10 +19,6 @@ fun String.yamlToJson(shouldThrow: Boolean = false): String? {
         if (shouldThrow) throw e else null
     }
 }
-
-fun Table.toFullName() = tableId.toFullName()
-
-fun TableId.toFullName() = "$project.$dataset.$table"
 
 /**
  * Apply different operations on the head, tail and body of a collection. The head and tail contain
@@ -67,8 +59,8 @@ private fun DataPolicy.RuleSet.Filter.listPrincipals() =
  * safe page parameters application to a List Can't throw an exception. skip and pageSize are
  * protobuf uint32 so can never be negative.
  */
-fun <T> Collection<T>.applyPageParameters(p: PageParameters): List<T> =
-    stream().skip(p.skip.toLong()).limit(p.pageSize.toLong()).collect(Collectors.toList())
+fun <T> Iterable<T>.applyPageParameters(p: PageParameters): List<T> =
+    asSequence().drop(p.skip).take(p.pageSize).toList()
 
 data class PagedCollection<T>(val data: Collection<T>, val pageInfo: PageInfo) {
     fun <V> map(transform: (T) -> V): PagedCollection<V> =

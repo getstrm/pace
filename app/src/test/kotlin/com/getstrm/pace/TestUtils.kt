@@ -51,7 +51,7 @@ abstract class AbstractDatabaseTest {
         private val log by lazy { LoggerFactory.getLogger(AbstractDatabaseTest::class.java) }
         lateinit var dataSource: DataSource
         lateinit var jooq: DSLContext
-        var port: Int = 5432
+        var port: Int = 5452
 
         @BeforeAll
         @JvmStatic

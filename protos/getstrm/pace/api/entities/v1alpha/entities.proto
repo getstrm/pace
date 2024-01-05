@@ -178,20 +178,6 @@ message DataPolicy {
     }
   }
 
-  message ProcessingPlatform {
-    PlatformType platform_type = 1;
-    // An arbitrary but unique identifier for the platform. This matches the id from the PACE app configuration.
-    string id = 2 [(buf.validate.field).string.min_len = 1];
-    enum PlatformType {
-      PLATFORM_TYPE_UNSPECIFIED = 0;
-      DATABRICKS = 1;
-      SNOWFLAKE = 2;
-      BIGQUERY = 3;
-      POSTGRES = 4;
-      SYNAPSE = 5;
-    }
-  }
-
   message Target {
     TargetType type = 1;
     // The full and unique name to be used in the target platform. E.g. the view name.
@@ -269,54 +255,72 @@ message DataCatalog {
     DATAHUB = 3;
   }
 
-  message Database {
-    // The id used by the catalog.
-    string id = 1 [(buf.validate.field) = {
-      ignore_empty: false,
-      string: {min_len: 1}
-    }];
-    string type = 2;
-    string display_name = 3 [(buf.validate.field) = {
-      ignore_empty: false,
-      string: {min_len: 1}
-    }];
-    // The parent catalog to which this database belongs.
+}
+
+message Database {
+  // The id of the database
+  string id = 1 [(buf.validate.field) = {
+    ignore_empty: false,
+    string: {min_len: 1}
+  }];
+  string type = 2;
+  string display_name = 3 [(buf.validate.field) = {
+    ignore_empty: true,
+    string: {min_len: 1}
+  }];
+  // The parent of the database
+  oneof parent {
     DataCatalog catalog = 4;
-    // The schemas in this database.
-    repeated Schema schemas = 5;
-    repeated string tags = 6;
+    ProcessingPlatform processing_platform = 5;
   }
+  
+  // The schemas in this database.
+  repeated Schema schemas = 6;
+  repeated string tags = 7;
+}
 
-  message Schema {
-    // The id used by the catalog.
-    string id = 1 [(buf.validate.field) = {
-      ignore_empty: false,
-      string: {min_len: 1}
-    }];
-    string name = 2 [(buf.validate.field) = {
-      ignore_empty: false,
-      string: {min_len: 1}
-    }];
-    // The parent database to which this schema belongs.
+message Schema {
+  // The id used by the catalog.
+  string id = 1 [(buf.validate.field) = {
+    ignore_empty: false,
+    string: {min_len: 1}
+  }];
+  string name = 2 [(buf.validate.field) = {
+    ignore_empty: true,
+    string: {min_len: 1}
+  }];
+  // The parent database to which this schema belongs.
 
-    Database database = 3;
-    // The tables in this schema.
-    repeated Table tables = 4;
-    repeated string tags = 5;
-  }
+  Database database = 3;
+  // The tables in this schema.
+  repeated Table tables = 4;
+  repeated string tags = 5;
+}
 
-  message Table {
-    // The id used by the catalog.
-    string id = 1 [(buf.validate.field) = {
-      ignore_empty: false,
-      string: {min_len: 1}
-    }];
-    string name = 2 [(buf.validate.field) = {
-      ignore_empty: false,
-      string: {min_len: 1}
-    }];
-    // The parent schema to which this table belongs.
-    Schema schema = 3;
-    repeated string tags = 4;
+message Table {
+  // The id used by the catalog.
+  string id = 1 [(buf.validate.field) = {
+    ignore_empty: false,
+    string: {min_len: 1}
+  }];
+  string name = 2 [(buf.validate.field) = {
+    ignore_empty: true,
+    string: {min_len: 1}
+  }];
+  // The parent schema to which this table belongs.
+  Schema schema = 3;
+  repeated string tags = 4;
+}
+message ProcessingPlatform {
+  PlatformType platform_type = 1;
+  // An arbitrary but unique identifier for the platform. This matches the id from the PACE app configuration.
+  string id = 2 [(buf.validate.field).string.min_len = 1];
+  enum PlatformType {
+    PLATFORM_TYPE_UNSPECIFIED = 0;
+    DATABRICKS = 1;
+    SNOWFLAKE = 2;
+    BIGQUERY = 3;
+    POSTGRES = 4;
+    SYNAPSE = 5;
   }
 }

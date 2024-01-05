@@ -2,6 +2,7 @@ package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.AbstractDatabaseTest
+import com.getstrm.pace.config.PostgresConfig
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.pathString
@@ -12,7 +13,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class PostgresClientTest : AbstractDatabaseTest() {
-    private val underTest = PostgresClient("postgres", jooq)
+    val config = PostgresConfig("postgres", "localhost", port, "postgres", "postgres", "postgres")
+    private val underTest = PostgresClient(config)
+    private val db = underTest.PostgresDatabase(underTest, "postgres")
 
     @BeforeEach
     fun setupDatabase() {
@@ -21,17 +24,14 @@ class PostgresClientTest : AbstractDatabaseTest() {
 
     @Test
     fun `list tables`() {
-        // Given a table in the database
-
-        // When
-        val actual =
-            runBlocking { underTest.listTables(DEFAULT_PAGE_PARAMETERS) }
-                .data
-                .filter { !ignoreTables.contains(it.fullName) }
-        val tableNames = actual.map { it.fullName }
-
-        // Then
-        tableNames shouldBe listOf("public.demo")
+        runBlocking {
+            // Given
+            val schema = db.getSchema("public")
+            val tables = schema.listTables()
+            // Then
+            tables.data.map { it.name } shouldContainExactlyInAnyOrder
+                listOf("demo", "flyway_schema_history")
+        }
     }
 
     @Test
@@ -53,18 +53,10 @@ class PostgresClientTest : AbstractDatabaseTest() {
 
     @Test
     fun `test tags from field comment`() {
-        // Given a table in the database
-
-        // When
-        val actual =
-            runBlocking { underTest.listTables(DEFAULT_PAGE_PARAMETERS) }
-                .data
-                .filter { !ignoreTables.contains(it.fullName) }
         runBlocking {
-            val policy =
-                actual
-                    .map { it.toDataPolicy(DataPolicy.ProcessingPlatform.getDefaultInstance()) }
-                    .first()
+            val schema = db.getSchema("public")
+            val tables = schema.getTable("demo")
+            val policy: DataPolicy = tables.createBlueprint()
             val field = policy.source.fieldsList.find { it.pathString() == "email" }!!
             field.tagsList shouldContainExactlyInAnyOrder listOf("pii", "with whitespace", "email")
         }

@@ -167,3 +167,17 @@ class InternalException(val code: Code, val debugInfo: DebugInfo, cause: Throwab
         DEADLINE_EXCEEDED(Status.DEADLINE_EXCEEDED),
     }
 }
+
+fun throwNotFound(id: String, type: String): Nothing {
+    throw ResourceException(
+        ResourceException.Code.NOT_FOUND,
+        ResourceInfo.newBuilder().setResourceName(id).setResourceType(type).build()
+    )
+}
+
+fun throwUnimplemented(what: String): Nothing {
+    throw InternalException(
+        InternalException.Code.INTERNAL,
+        DebugInfo.newBuilder().setDetail("$what is not implemented yet").build()
+    )
+}

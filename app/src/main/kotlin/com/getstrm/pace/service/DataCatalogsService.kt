@@ -2,10 +2,10 @@ package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.data_catalogs.v1alpha.*
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Database as ApiDatabase
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Schema as ApiSchema
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog.Table as ApiTable
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database as ApiDatabase
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema as ApiSchema
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
 import com.getstrm.pace.catalogs.CollibraCatalog
 import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.catalogs.DatahubCatalog

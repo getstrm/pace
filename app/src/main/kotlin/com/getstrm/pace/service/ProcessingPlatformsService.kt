@@ -1,18 +1,19 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database as ApiDatabase
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema as ApiSchema
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyResponse
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListDatabasesRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListGroupsRequest
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListSchemasRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListTablesRequest
-import build.buf.gen.google.rpc.BadRequest.FieldViolation
 import com.getstrm.pace.config.ProcessingPlatformConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.exceptions.InternalException
-import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.processing_platforms.bigquery.BigQueryClient
 import com.getstrm.pace.processing_platforms.databricks.DatabricksClient
 import com.getstrm.pace.processing_platforms.postgres.PostgresClient
@@ -22,7 +23,6 @@ import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
 import com.google.rpc.BadRequest
-import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -81,28 +81,56 @@ class ProcessingPlatformsService(
         }
     }
 
-    suspend fun listProcessingPlatformTables(request: ListTablesRequest): PagedCollection<Table> =
-        (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
-            .listTables(request.pageParameters.orDefault())
+    suspend fun listProcessingPlatformTables(
+        request: ListTablesRequest
+    ): PagedCollection<ProcessingPlatformClient.Table> {
+        val processingPlatformClient: ProcessingPlatformClient =
+            platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
+        return processingPlatformClient.listTables(
+            request.databaseId,
+            request.schemaId,
+            request.pageParameters.orDefault()
+        )
+    }
 
     suspend fun listProcessingPlatformGroups(request: ListGroupsRequest): PagedCollection<Group> =
         (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
-            .listGroups(request.pageParameters)
+            .listGroups(request.pageParameters.orDefault())
 
-    suspend fun getBlueprintPolicy(
-        platformId: String,
-        tableName: String
-    ): GetBlueprintPolicyResponse {
-        val processingPlatformInterface =
-            platforms[platformId] ?: throw processingPlatformNotFound(platformId)
-        val table = processingPlatformInterface.getTable(tableName)
-        val baseDataPolicy =
-            table.toDataPolicy(
-                DataPolicy.ProcessingPlatform.newBuilder()
-                    .setId(platformId)
-                    .setPlatformType(processingPlatformInterface.type)
-                    .build()
+    suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest): GetBlueprintPolicyResponse {
+        val platformClient =
+            platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
+        val table =
+            platformClient.getTable(
+                request.table.schema.database.id,
+                request.table.schema.id,
+                request.table.id
             )
+        val blueprint = table.createBlueprint()
+        return GetBlueprintPolicyResponse.newBuilder().setDataPolicy(blueprint).build()
+    }
+
+    suspend fun listDatabases(request: ListDatabasesRequest): PagedCollection<ApiDatabase> =
+        (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
+            .listDatabases(request.pageParameters.orDefault())
+            .map { it.apiDatabase }
+
+    suspend fun listSchemas(request: ListSchemasRequest): PagedCollection<ApiSchema> {
+        val platformClient =
+            platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
+        return platformClient
+            .listSchemas(request.databaseId, request.pageParameters.orDefault())
+            .map { it.apiSchema }
+    }
+
+    /*
+    suspend fun getBlueprintPolicy(platformId: String, tableName: String): GetBlueprintPolicyResponse {
+        val processingPlatformInterface = platforms[platformId] ?: throw processingPlatformNotFound(platformId)
+        val table = processingPlatformInterface.getTable(tableName)
+        val baseDataPolicy = table.toDataPolicy(
+            ProcessingPlatform.newBuilder().setId(platformId)
+                .setPlatformType(processingPlatformInterface.type).build()
+        )
 
         return globalTransformsService.addRuleSet(baseDataPolicy).let { blueprint ->
             val builder = GetBlueprintPolicyResponse.newBuilder().setDataPolicy(blueprint)
@@ -111,25 +139,20 @@ class ProcessingPlatformsService(
                 builder.build()
             } catch (e: BadRequestException) {
                 e.status.description?.let {
-                    builder
-                        .setViolation(
-                            FieldViolation.newBuilder().setDescription(e.status.description)
-                        )
+                    builder.setViolation(
+                        FieldViolation.newBuilder().setDescription(e.status.description))
                         .build()
-                }
-                    ?: throw InternalException(
-                        InternalException.Code.INTERNAL,
-                        DebugInfo.newBuilder()
-                            .setDetail(
-                                "DataPolicyValidatorService.validate threw an exception without a description. ${BUG_REPORT}"
-                            )
-                            .addAllStackEntries(e.stackTrace.map { it.toString() })
-                            .build()
-                    )
+
+                } ?: throw InternalException(InternalException.Code.INTERNAL, DebugInfo.newBuilder()
+                    .setDetail("DataPolicyValidatorService.validate threw an exception without a description. ${BUG_REPORT}" )
+                    .addAllStackEntries(e.stackTrace.map { it.toString()})
+                    .build()
+                )
+
             }
         }
     }
-
+     */
     private fun processingPlatformNotFound(platformId: String, owner: String? = null) =
         ResourceException(
             ResourceException.Code.NOT_FOUND,

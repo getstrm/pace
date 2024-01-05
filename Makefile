@@ -1,5 +1,5 @@
 .PHONY: clean-common-protos, buf-create-descriptor-binpb, run-grpc-proxy, run-docker-local \
-    json-schema integration-test copy-json-schema-to-resources
+    json-schema integration-test copy-json-schema-to-resources download-odd-oas
 
 SHELL := /bin/bash
 
@@ -49,3 +49,7 @@ copy-json-schema-to-resources: json-schema
 integration-test:
 	@ chmod go-rw integration-test/pgpass
 	@ make -C integration-test clean pace all
+
+
+download-odd-oas:
+	${MAKE} -C app/src/main/resources/data-catalogs/open-data-discovery/

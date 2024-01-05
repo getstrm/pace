@@ -1,84 +1,77 @@
 package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.ProcessingPlatform.PlatformType.BIGQUERY
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.BIGQUERY
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.BigQueryConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
+import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.processing_platforms.Table
 import com.getstrm.pace.util.*
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.*
+import com.google.cloud.bigquery.Dataset as BQDataset
 import com.google.cloud.bigquery.Table as BQTable
 import com.google.cloud.datacatalog.v1.PolicyTagManagerClient
 import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
 
+/**
+ * Bigquery has the following mapping between Pace entities and Bigquery entities.
+ *
+ * PACE BigQuery Database Project Schema Dataset Table Table
+ */
 class BigQueryClient(
-    override val id: String,
-    serviceAccountKeyJson: String,
-    private val projectId: String,
-    private val userGroupsTable: String,
-) : ProcessingPlatformClient {
-    constructor(
-        config: BigQueryConfig
-    ) : this(
-        config.id,
-        config.serviceAccountJsonKey,
-        config.projectId,
-        config.userGroupsTable,
-    )
+    override val config: BigQueryConfig,
+) : ProcessingPlatformClient(config) {
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
-    private val credentials: GoogleCredentials
-    private val bigQuery: BigQuery
-    private val polClient: PolicyTagManagerClient
+    // Create a service account credential.
+    private val credentials: GoogleCredentials =
+        GoogleCredentials.fromStream(config.serviceAccountJsonKey.byteInputStream())
+            .createScoped(listOf("https://www.googleapis.com/auth/cloud-platform"))
+    private val bigQuery: BigQuery =
+        BigQueryOptions.newBuilder()
+            .setCredentials(credentials)
+            .setProjectId(config.projectId)
+            .build()
+            .service
+    private val polClient: PolicyTagManagerClient = PolicyTagManagerClient.create()
 
-    init {
-        // Create a service account credential.
-        credentials =
-            GoogleCredentials.fromStream(serviceAccountKeyJson.byteInputStream())
-                .createScoped(listOf("https://www.googleapis.com/auth/cloud-platform"))
-        bigQuery =
-            BigQueryOptions.newBuilder()
-                .setCredentials(credentials)
-                .setProjectId(projectId)
-                .build()
-                .service
-        polClient = PolicyTagManagerClient.create()
-    }
+    private val bigQueryDatabase = BigQueryDatabase(this, config.projectId)
+    /**
+     * for now we have interact with only one Gcloud project, and call this the PACE Database. But
+     * the access credentials might allow interaction with multiple projects, in which case the
+     * result from this call would become greater.
+     */
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> =
+        listOf(bigQueryDatabase).withPageInfo()
 
-    override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
-        // TODO need the same hierarchy as for the catalogs!
-        // Issue: PACE-84
-        // It makes no sense that we just list all tables
-        val dataSets = bigQuery.listDatasets().iterateAll()
-        val tables =
-            dataSets
-                .flatMap { dataSet ->
-                    // TODO: bigquery does not support offset (skip).
-                    // https://linear.app/strmprivacy/issue/PACE-85/add-page-token-en-next-page-token
-                    // Options: expose token in api (my preference), and use its optional existence
-                    // for pagination
-                    // loop the call below until we reach the required offset.
-                    // for now just ignoring the skip parameter
-                    bigQuery.listTables(dataSet.datasetId).iterateAll().toList()
-                }
-                .applyPageParameters(pageParameters)
-                .map { table -> BigQueryTable(table.tableId.toFullName(), table, polClient) }
-        return tables.withPageInfo()
-    }
+    private suspend fun getDatabase(databaseId: String): Database =
+        listDatabases(DEFAULT_PAGE_PARAMETERS).find { it.id == databaseId }
+            ?: throwNotFound(databaseId, "BigQuery Dataset")
+
+    override suspend fun listSchemas(databaseId: String, pageParameters: PageParameters) =
+        getDatabase(databaseId).listSchemas(pageParameters)
+
+    override suspend fun listTables(
+        databaseId: String,
+        schemaId: String,
+        pageParameters: PageParameters
+    ) = getDatabase(databaseId).getSchema(schemaId).listTables(pageParameters)
+
+    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String) =
+        getDatabase(databaseId).getSchema(schemaId).getTable(tableId)
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
-        val viewGenerator = BigQueryViewGenerator(dataPolicy, userGroupsTable)
+        val viewGenerator = BigQueryViewGenerator(dataPolicy, config.userGroupsTable)
         val query = viewGenerator.toDynamicViewSQL().sql
         val queryConfig = QueryJobConfiguration.newBuilder(query).setUseLegacySql(false).build()
         try {
             bigQuery.query(queryConfig)
-        } catch (e: JobException) {
+        } catch (e: Exception) {
             log.warn("SQL query\n{}", query)
             log.warn("Caused error {}", e.message)
             throw InternalException(
@@ -136,15 +129,13 @@ class BigQueryClient(
         sourceDataSet.toBuilder().setAcl(sourceAcl + viewsAcl).build().update()
     }
 
-    override val type = BIGQUERY
-
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
         val query =
             """
             SELECT
               DISTINCT userGroup
             FROM
-              $userGroupsTable
+              ${config.userGroupsTable}
             ORDER BY userGroup
             LIMIT ${pageParameters.pageSize}
             OFFSET ${pageParameters.skip}
@@ -167,64 +158,105 @@ class BigQueryClient(
             return TableId.of(project, dataset, table)
         }
     }
-}
 
-class BigQueryTable(
-    override val fullName: String,
-    private val table: com.google.cloud.bigquery.Table,
-    private val polClient: PolicyTagManagerClient,
-) : Table() {
+    /** one BigQueryDatabase corresponds with one Gcloud project */
+    inner class BigQueryDatabase(platformClient: ProcessingPlatformClient, projectId: String) :
+        Database(
+            platformClient = platformClient,
+            id = projectId,
+            dbType = BIGQUERY.name,
+            displayName = projectId
+        ) {
 
-    override suspend fun toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy =
-        table.toDataPolicy(platform)
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
+            // FIXME pagedCalls function needs to understand page tokens
+            // We'll pick that up after the merge of pace-84
+            // for now just getting all of the datasets
+            // how slow is this?
+            val datasets = ArrayList<BQDataset>()
+            do {
+                val page = bigQuery.listDatasets()
+                datasets += page.iterateAll()
+            } while (page.hasNextPage())
+            val info: PagedCollection<Schema> =
+                datasets.map { BigQuerySchema(this, it) }.withPageInfo()
+            return info
+        }
 
-    private fun BQTable.toDataPolicy(platform: DataPolicy.ProcessingPlatform): DataPolicy {
-        // The reload ensures all metadata is fetched, including the schema
-        val table = reload()
-        // typical tag value =
-        // projects/stream-machine-development/locations/europe-west4/taxonomies/5886429027103247004/policyTags/5980433277276442728
-        var tags =
-            table
-                .getDefinition<TableDefinition>()
-                .schema
-                ?.fields
-                .orEmpty()
-                .map { it.name to (it.policyTags?.names ?: emptyList()) }
-                .toMap()
-        val nameLookup =
-            tags.values.flatten().toSet().associateWith { tag: String ->
-                polClient.getPolicyTag(tag).displayName
-            }
-        tags = tags.mapValues { (_, v) -> v.map { nameLookup[it] } }
+        override suspend fun getSchema(schemaId: String): Schema =
+            BigQuerySchema(this, bigQuery.getDataset(schemaId))
+    }
 
-        return DataPolicy.newBuilder()
-            .setMetadata(
-                DataPolicy.Metadata.newBuilder()
-                    .setTitle(this.toFullName())
-                    .setDescription(table.description.orEmpty())
-                    .setCreateTime(table.creationTime.toTimestamp())
-                    .setUpdateTime(table.lastModifiedTime.toTimestamp()),
-            )
-            .setPlatform(platform)
-            .setSource(
-                DataPolicy.Source.newBuilder()
-                    .setRef(this.toFullName())
-                    .addAllFields(
-                        table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map { field
-                            ->
-                            // Todo: add support for nested fields using getSubFields()
-                            DataPolicy.Field.newBuilder()
-                                .addNameParts(field.name)
-                                .addAllTags(tags[field.name])
-                                .setType(field.type.name())
-                                // Todo: correctly handle repeated fields (defined by mode REPEATED)
-                                .setRequired(field.mode != Field.Mode.NULLABLE)
-                                .build()
-                                .normalizeType()
-                        },
-                    )
-                    .build(),
-            )
-            .build()
+    /** One BigQuerySchema corresponds with one BigQuery dataset */
+    inner class BigQuerySchema(database: BigQueryDatabase, val dataset: BQDataset) :
+        Schema(database, dataset.datasetId.dataset, dataset.datasetId.dataset) {
+
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> =
+            // FIXME pagedCalls function needs to understand page tokens
+            bigQuery
+                .listTables(dataset.datasetId)
+                .iterateAll()
+                .toList()
+                .applyPageParameters(pageParameters)
+                .map { BigQueryTable(this, it) }
+                .withPageInfo()
+
+        override suspend fun getTable(tableId: String) =
+            BigQueryTable(this, bigQuery.getTable(TableId.of(dataset.datasetId.dataset, tableId)))
+    }
+
+    /** One BigQueryTable corresponds with one PACE Table. */
+    inner class BigQueryTable(
+        schema: Schema,
+        private val bqTable: BQTable,
+    ) : Table(schema, bqTable.tableId.table, bqTable.generatedId) {
+
+        override suspend fun createBlueprint(): DataPolicy {
+            // The reload ensures all metadata is fetched, including the schema
+            val table = bqTable.reload()
+            // typical tag value =
+            // projects/stream-machine-development/locations/europe-west4/taxonomies/5886429027103247004/policyTags/5980433277276442728
+            var tags =
+                table.getDefinition<TableDefinition>().schema?.fields.orEmpty().associate {
+                    it.name to (it.policyTags?.names ?: emptyList())
+                }
+            val nameLookup =
+                tags.values.flatten().toSet().associateWith { tag: String ->
+                    polClient.getPolicyTag(tag).displayName
+                }
+            tags = tags.mapValues { (_, v) -> v.map { nameLookup[it] } }
+
+            return DataPolicy.newBuilder()
+                .setMetadata(
+                    DataPolicy.Metadata.newBuilder()
+                        .setTitle(this.fullName)
+                        .setDescription(table.description.orEmpty())
+                        .setCreateTime(table.creationTime.toTimestamp())
+                        .setUpdateTime(table.lastModifiedTime.toTimestamp()),
+                )
+                .setPlatform(apiPlatform)
+                .setSource(
+                    DataPolicy.Source.newBuilder()
+                        .setRef(this.fullName)
+                        .addAllFields(
+                            table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map {
+                                field ->
+                                // Todo: add support for nested fields using getSubFields()
+                                DataPolicy.Field.newBuilder()
+                                    .addNameParts(field.name)
+                                    .addAllTags(tags[field.name])
+                                    .setType(field.type.name())
+                                    // Todo: correctly handle repeated fields (defined by mode
+                                    // REPEATED)
+                                    .setRequired(field.mode != Field.Mode.NULLABLE)
+                                    .build()
+                                    .normalizeType()
+                            },
+                        )
+                )
+                .build()
+        }
+
+        override val fullName = with(bqTable.tableId) { "${project}.${dataset}.${table}" }
     }
 }
