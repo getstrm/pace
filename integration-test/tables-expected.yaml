@@ -1,6 +1,28 @@
 page_info:
   total: 2
 tables:
-- public.demo
-- public.demo_view
+- id: demo
+  name: demo
+  schema:
+    database:
+      display_name: standalone
+      id: standalone
+      processing_platform:
+        id: standalone-sample-connection
+        platform_type: POSTGRES
+      type: POSTGRES
+    id: public
+    name: public
+- id: demo_view
+  name: demo_view
+  schema:
+    database:
+      display_name: standalone
+      id: standalone
+      processing_platform:
+        id: standalone-sample-connection
+        platform_type: POSTGRES
+      type: POSTGRES
+    id: public
+    name: public
 

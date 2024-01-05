@@ -9,7 +9,8 @@ export PATH := .:${PATH}
 
 PSQL             = PGPASSFILE=pgpass psql -h localhost -q
 PP               = standalone-sample-connection # the processing platform
-REF              = public.demo
+TABLE            = demo
+REF              = public.${TABLE}
 VIEW             = ${REF}_view
 STANDALONE_FLAGS = -t -A -p 5431 standalone # psql flags non-aligned tuples
 
@@ -25,7 +26,7 @@ all: tables.yaml ${CHECKS} kill-pace
 
 tables.yaml: applied
 	@ echo "checking 'pace list tables'"
-	@ pace list tables --processing-platform ${PP} -o yaml > $@
+	@ pace list tables --processing-platform ${PP} --database standalone --schema public -o yaml > $@
 	@ diff -q $@ tables-expected.yaml || (echo "list tables command produced wrong output"; \
 		cat $@; exit 1)
 	@ echo "list tables ok"
@@ -79,7 +80,7 @@ ${VIEW_CSVS}: %.csv: applied
 
 blueprint.yaml: launch-pace load-db-data
 	@ echo getting blueprint ${REF}
-	@ pace get data-policy --processing-platform ${PP} --blueprint ${REF} > $@
+	@ pace get data-policy --processing-platform ${PP} --database standalone --schema public --blueprint ${TABLE} > $@
 
 # the rulesets.patch file is part of the test and committed in git.
 policy.yaml: blueprint.yaml rulesets.patch
@@ -106,7 +107,7 @@ awk cut:
 kill-pace:
 	@ if [ -f launch-pace ] ; then \
 		echo killing pace pid $$(cat launch-pace); \
-		cat launch-pace|xargs kill; rm launch-pace ; \
+		cat launch-pace|xargs kill; rm -f launch-pace
 	fi
 
 pace:
@@ -115,8 +116,8 @@ pace:
 	@ echo pace version: $$(pace version)
 
 app.jar:
-	@ echo building $@ and symlinking it here.
-	@ (cd .. ; ./gradlew build ) && ln -sf ../app/build/libs/app.jar $@
+	@ echo building $@ and copying it here.
+	@ (cd .. ; ./gradlew build ) && rm -f app.jar && cp ../app/build/libs/app.jar $@
 
 launch-pace: app.jar
 	@ echo checking postgres ports 5431 and 5433
