@@ -10,7 +10,8 @@ export PATH := .:${PATH}
 PSQL             = PGPASSFILE=pgpass psql -h localhost -q
 PP               = standalone-sample-connection # the processing platform
 TABLE            = demo
-REF              = public.${TABLE}
+SCHEMA           = public
+REF              = ${SCHEMA}.${TABLE}
 VIEW             = ${REF}_view
 STANDALONE_FLAGS = -t -A -p 5431 standalone # psql flags non-aligned tuples
 
@@ -26,7 +27,7 @@ all: tables.yaml ${CHECKS} kill-pace
 
 tables.yaml: applied
 	@ echo "checking 'pace list tables'"
-	@ pace list tables --processing-platform ${PP} --database standalone --schema public -o yaml > $@
+	@ pace list tables --processing-platform ${PP} --database standalone --schema ${SCHEMA} -o yaml > $@
 	@ diff -q $@ tables-expected.yaml || (echo "list tables command produced wrong output"; \
 		cat $@; exit 1)
 	@ echo "list tables ok"
@@ -80,7 +81,7 @@ ${VIEW_CSVS}: %.csv: applied
 
 blueprint.yaml: launch-pace load-db-data
 	@ echo getting blueprint ${REF}
-	@ pace get data-policy --processing-platform ${PP} --database standalone --schema public --blueprint ${TABLE} > $@
+	@ pace get data-policy --processing-platform ${PP} --database standalone --schema ${SCHEMA} --blueprint ${TABLE} > $@
 
 # the rulesets.patch file is part of the test and committed in git.
 policy.yaml: blueprint.yaml rulesets.patch
@@ -107,7 +108,7 @@ awk cut:
 kill-pace:
 	@ if [ -f launch-pace ] ; then \
 		echo killing pace pid $$(cat launch-pace); \
-		cat launch-pace|xargs kill; rm -f launch-pace
+		cat launch-pace|xargs kill; rm -f launch-pace; \
 	fi
 
 pace:
