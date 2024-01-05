@@ -81,7 +81,7 @@ operation_version: linux # using a Linux desktop
 id: 36be4c46-4e1b-431d-b9db-1b315f537a85 # a random identifier of this cli instance.
 ```
 
-A global flag named `telemetry-interval-seconds` defines the interval in seconds that the cli uses between consecutive upload http requests. This does not happen in the background, but whenever you execute some command with the cli. There's a file named `~/.config/pace/telemetry-timestamp` that holds the unix timestamp of the last telemetry upload.
+A global flag named `telemetry-interval-seconds` defines the interval in seconds that the cli uses between consecutive upload http requests. This does not happen in the background, but whenever you execute some command with the cli. There's a file named `~/.config/pace/telemetry-last-upload-timestamp` that holds the unix timestamp of the last telemetry upload.
 
 **Disabling telemetry:** of course you can easily disable the telemetry uploads. You can do one of the following.
 
