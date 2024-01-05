@@ -58,13 +58,15 @@ The following entities are available in the CLI:
 The cli collects minimal statistics in a local file (`~/.config/pace/telemetry.yaml`) to see which calls (verbs and nouns) have been
 done, and what their command exit code was.
 
+Below an annotated example file:
 ```yaml
 metric_points:
-    pace get data-policy:
-        0:
-            cumulative_count: 2
-        1:
-            cumulative_count: 1
+    pace get data-policy: # the command without command arguments
+        0: # the command exit code (0 means a successfull call)
+            cumulative_count: 2 # the cumulative number of times this has occurred since
+                                # the telemetry.yaml file was created
+        1: # a non-successful command execution
+            cumulative_count: 1 # occurred once.
     pace list processing-platforms:
         0:
             cumulative_count: 1
@@ -74,25 +76,21 @@ metric_points:
     pace version:
         0:
             cumulative_count: 17
-cli_version: dev
-operation_version: linux
-id: 36be4c46-4e1b-431d-b9db-1b315f537a85
+cli_version: dev # a developer local build of the cli
+operation_version: linux # using a Linux desktop
+id: 36be4c46-4e1b-431d-b9db-1b315f537a85 # a random identifier of this cli instance.
 ```
-
-We can see that the command `get data-policy` was twice called succesfully, and once had a failure (the `1`).
-The `cli_version` is the version as produced by `pace version` (in this case a developers' local build).
-The id is a random UUID, that has the same function as a session id in a browser. It allows us to see that consecutive calls are from the same cli instance.
 
 A global flag named `stats-interval` defines the interval in seconds that the cli uses between consecutive upload http requests. This does not happen in the background, but whenever you execute some command with the cli. There's a file named `~/.config/pace/telemetry-timestamp` that holds the unix timestamp of the last telemetry upload.
 
-**Disabling telemetry** of course you can easily disable the telemetry uploads. You can do one of the following.
+**Disabling telemetry:** of course you can easily disable the telemetry uploads. You can do one of the following.
 
 1. add `stats-interval: -1` to `~/.config/pace/config.yaml`
 2. put `export PACE_STATS_INTERVAL=-1` into your shell environment
 3. add `--stats-interval=-1` to every pace cli call you execute.
 
-You cannot disable the collection of calls into the statistics file, but that just stays on your computer.
+You cannot disable the collection of calls into the statistics file.
 
 Of course since the cli is open-source, you can have a look at the telemetry implementation in the file `pkg/entity/metrics/metrics.go`.
 
-The default of the cli configuration is with telemetry enabled, with a 1 hour interval. We would really like to see which calls are being used and which ones are not. But the choice is yours!
+The default of the cli configuration which is created on the first call of the `pace` cli is with telemetry enabled, with a 1 hour interval. The PACE developers would really like to see which calls are being used and which ones are not. But the choice is yours!
