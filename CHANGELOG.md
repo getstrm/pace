@@ -1,3 +1,10 @@
+# [1.0.0-alpha.45](https://github.com/getstrm/pace/compare/v1.0.0-alpha.44...v1.0.0-alpha.45) (2024-01-05)
+
+
+### Features
+
+* **pace-84:** hierarchical processing platforms ([#135](https://github.com/getstrm/pace/issues/135)) ([9aa1280](https://github.com/getstrm/pace/commit/9aa1280569b327e45429a6f25686ea52029e8868))
+
 # [1.0.0-alpha.44](https://github.com/getstrm/pace/compare/v1.0.0-alpha.43...v1.0.0-alpha.44) (2024-01-05)
 
 
