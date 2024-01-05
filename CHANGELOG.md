@@ -1,3 +1,11 @@
+# [1.0.0-alpha.44](https://github.com/getstrm/pace/compare/v1.0.0-alpha.43...v1.0.0-alpha.44) (2024-01-05)
+
+
+### Features
+
+* **pace-1:** case insensitive checks on DataPolicy.validate ([#137](https://github.com/getstrm/pace/issues/137)) ([ec453a6](https://github.com/getstrm/pace/commit/ec453a609438cf39d2dd56f2abb39dc27c1685ea))
+* **pace-93:** telemetry explained ([#138](https://github.com/getstrm/pace/issues/138)) ([dd4a3a2](https://github.com/getstrm/pace/commit/dd4a3a20d24ca37619965f287188b35872607f51))
+
 # [1.0.0-alpha.43](https://github.com/getstrm/pace/compare/v1.0.0-alpha.42...v1.0.0-alpha.43) (2023-12-29)
 
 
