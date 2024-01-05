@@ -81,13 +81,13 @@ operation_version: linux # using a Linux desktop
 id: 36be4c46-4e1b-431d-b9db-1b315f537a85 # a random identifier of this cli instance.
 ```
 
-A global flag named `stats-interval` defines the interval in seconds that the cli uses between consecutive upload http requests. This does not happen in the background, but whenever you execute some command with the cli. There's a file named `~/.config/pace/telemetry-timestamp` that holds the unix timestamp of the last telemetry upload.
+A global flag named `telemetry-interval-seconds` defines the interval in seconds that the cli uses between consecutive upload http requests. This does not happen in the background, but whenever you execute some command with the cli. There's a file named `~/.config/pace/telemetry-timestamp` that holds the unix timestamp of the last telemetry upload.
 
 **Disabling telemetry:** of course you can easily disable the telemetry uploads. You can do one of the following.
 
-1. add `stats-interval: -1` to `~/.config/pace/config.yaml`
-2. put `export PACE_STATS_INTERVAL=-1` into your shell environment
-3. add `--stats-interval=-1` to every pace cli call you execute.
+1. add `telemetry-interval-seconds` to `~/.config/pace/config.yaml`
+2. put `export PACE_TELEMETRY_INTERVAL_SECONDS=-1` into your shell environment
+3. add `--telemetry-interval-seconds=-1` to every pace cli call you execute.
 
 You cannot disable the collection of calls into the statistics file.
 
