@@ -17,14 +17,12 @@ pace evaluate data-policy (policy-id) [flags]
 ### Examples
 
 ```
-
-
 pace evaluate data-policy public.demo --processing-platform example-platform --sample-data sample.csv
 Results for rule set with target: public.demo_view
 group: administrator
 
  TRANSACTIONID   USERID   EMAIL                      AGE   BRAND    TRANSACTIONAMOUNT 
-                                                                          
+
  534704584       870941   acole@gmail.com            4     HP       7                 
  807835672       867943   knappjeremy@hotmail.com    49    Acer     10                
  467414030       251481   morriserin@hotmail.com     6     Acer     277               
@@ -35,7 +33,7 @@ group: administrator
 group: marketing
 
  TRANSACTIONID   USERID   EMAIL              AGE   BRAND   TRANSACTIONAMOUNT 
-                                                                 
+
  807835672       0        ****@hotmail.com   49    Other   10                
  994186205       0        ****@yahoo.com     68    Other   160               
  217127008       0        ****@hotmail.com   28    Other   263               
@@ -44,12 +42,11 @@ group: marketing
 All other principals
 
  TRANSACTIONID   USERID   EMAIL   AGE   BRAND   TRANSACTIONAMOUNT 
-                                                      
+
  807835672       0        ****    49    Other   10                
  994186205       0        ****    68    Other   160               
  217127008       0        ****    28    Other   263               
- 142409570       0        ****    56    Other   296  
-
+ 142409570       0        ****    56    Other   296
 ```
 
 ### Options

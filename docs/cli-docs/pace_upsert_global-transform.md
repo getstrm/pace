@@ -14,7 +14,6 @@ pace upsert global-transform (yaml or json file) [flags]
 ### Examples
 
 ```
-
     pace upsert global-transform global-tag-transform.yaml
 
 	transform:

@@ -55,10 +55,11 @@ The following entities are available in the CLI:
 * table
 
 ## Telemetry
-The cli collects minimal statistics in a local file (`~/.config/pace/telemetry.yaml`) to see which calls (verbs and nouns) have been
-done, and what their command exit code was.
+
+The cli collects minimal statistics in a local file (`~/.config/pace/telemetry.yaml`) to see which calls (verbs and nouns) have been done, and what their command exit code was.
 
 Below an annotated example file:
+
 ```yaml
 metric_points:
     pace get data-policy: # the command without command arguments
@@ -77,7 +78,7 @@ metric_points:
         0:
             cumulative_count: 17
 cli_version: v1.16.0
-operation_version: darwin # macOS
+operating_system: darwin # macOS
 id: 36be4c46-4e1b-431d-b9db-1b315f537a85 # a random identifier of this cli instance.
 ```
 

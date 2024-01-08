@@ -15,13 +15,10 @@ pace list data-policies [flags]
 ### Examples
 
 ```
-
-
 pace list data-policies --output table
  PLATFORM       SOURCE                                                  TAGS
 
  bigquery-dev   stream-machine-development.dynamic_views.cdc_diabetes
-
 ```
 
 ### Options

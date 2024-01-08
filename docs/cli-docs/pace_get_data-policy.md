@@ -12,20 +12,17 @@ build the `source` part of a data policy. We must either provide a platform or a
 id to make the call succeed.
 
 Without a `--processing-platform` or a `--catalog` it just means we interact with the PACE
-database and retrieve successfully applied data policies.
+database and retrieve succesfully applied data policies.
 
 ```
-pace get data-policy (table-name|policy-id) [flags]
+pace get data-policy (table-id|policy-id) [flags]
 ```
 
 ### Examples
 
 ```
-
-
-# get a blueprint policy without rule sets from Catalog Collibra
+# get a blueprint policy without rulesets from Catalog Collibra
 pace get data-policy --catalog COLLIBRA-testdrive \
-	--blueprint \
 	--database 99379294-6e87-4e26-9f09-21c6bf86d415 \
 	--schema 342f676c-341e-4229-b3c2-3e71f9ed0fcd \
 	6e978083-bb8f-459d-a48b-c9a50289b327
@@ -43,13 +40,10 @@ data_policy:
         type: varchar
 	...
 
-# get a blueprint policy without rule sets from Processing Platform BigQuery
+# get a blueprint policy without rulesets from Processing Platform BigQuery
 pace get data-policy \
-	--blueprint \
 	--processing-platform bigquery-dev \
-	--database stream-machine-development \
-	--schema dynamic_view_poc \ 
-	gddemo
+	stream-machine-development.dynamic_view_poc.gddemo
 dataPolicy:
   metadata:
     createTime: '2023-10-04T09:04:56.246Z'
@@ -69,7 +63,7 @@ dataPolicy:
       type: INTEGER
 
 
-# get a complete datapolicy (with rulesets) from the PACE database
+# get a complete datapolicy from the PACE database
 pace get data-policy --processing-platform bigquery-dev \
 	stream-machine-development.dynamic_views.cdc_diabetes
 
@@ -91,9 +85,8 @@ rule_sets:
       type: integer
     transforms:
     - fixed:
-        value: redacted
+        value: blabla
   target:
-
 ```
 
 ### Options

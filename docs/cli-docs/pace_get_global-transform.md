@@ -13,7 +13,6 @@ pace get global-transform (ref) [flags]
 ### Examples
 
 ```
-
     pace get global-transform PII_EMAIL
 
 	description: ...
