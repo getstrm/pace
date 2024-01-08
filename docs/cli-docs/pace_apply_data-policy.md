@@ -13,6 +13,8 @@ pace apply data-policy (policy-id) [flags]
 ### Examples
 
 ```
+
+
 pace apply data-policy public.demo --processing-platform bigquery-dev
 data_policy:
   id: public.demo
@@ -31,6 +33,7 @@ data_policy:
       - fixed:
           value: "****"
 ...
+
 ```
 
 ### Options
