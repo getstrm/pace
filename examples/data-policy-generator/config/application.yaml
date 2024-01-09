@@ -7,6 +7,15 @@ spring:
       schema: public
 
 app:
+  processing-platforms:
+    postgres:
+      - id: "standalone-sample-connection"
+        host-name: "postgres_processing_platform"
+        port: 5432
+        user-name: "standalone"
+        password: "standalone"
+        database: "standalone"
+
   plugins:
     openai:
       enabled: true
