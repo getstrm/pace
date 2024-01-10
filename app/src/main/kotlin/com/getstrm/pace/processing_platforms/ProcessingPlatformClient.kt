@@ -3,7 +3,10 @@ package com.getstrm.pace.processing_platforms
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.*
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageResponse
 import com.getstrm.pace.config.PPConfig
+import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
 import org.jooq.Field
@@ -40,6 +43,10 @@ abstract class ProcessingPlatformClient(
     ): PagedCollection<Table>
 
     abstract suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table
+
+    open fun getLineage(request: GetLineageRequest): GetLineageResponse {
+        throwUnimplemented("Lineage in platform ${config.type}")
+    }
 
     /** meta information database */
     abstract class Database(

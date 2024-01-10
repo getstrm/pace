@@ -1,8 +1,11 @@
 package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.Lineage
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.BIGQUERY
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageResponse
 import com.getstrm.pace.config.BigQueryConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
@@ -14,6 +17,11 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.*
 import com.google.cloud.bigquery.Dataset as BQDataset
 import com.google.cloud.bigquery.Table as BQTable
+import com.google.cloud.datacatalog.lineage.v1.BatchSearchLinkProcessesRequest
+import com.google.cloud.datacatalog.lineage.v1.EntityReference
+import com.google.cloud.datacatalog.lineage.v1.LineageClient
+import com.google.cloud.datacatalog.lineage.v1.LineageSettings
+import com.google.cloud.datacatalog.lineage.v1.SearchLinksRequest
 import com.google.cloud.datacatalog.v1.PolicyTagManagerClient
 import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
@@ -38,6 +46,13 @@ class BigQueryClient(
             .setProjectId(config.projectId)
             .build()
             .service
+    private val lineageClient =
+        LineageClient.create(
+            LineageSettings.newBuilder().setCredentialsProvider { credentials }.build()
+        )
+    // TODO determine eu or us!
+    val parent = "projects/${config.projectId}/locations/us"
+
     private val polClient: PolicyTagManagerClient = PolicyTagManagerClient.create()
 
     private val bigQueryDatabase = BigQueryDatabase(this, config.projectId)
@@ -152,7 +167,81 @@ class BigQueryClient(
             .withPageInfo()
     }
 
+    override fun getLineage(request: GetLineageRequest): GetLineageResponse {
+        val links = buildLineageList(request.fqn.addBqPrefix())
+        return GetLineageResponse.newBuilder().addAllLineages(links).build()
+    }
+
+    private fun buildLineageList(fqn: String): List<Lineage> {
+        val bidiLinks =
+            lineageClient
+                .searchLinks(
+                    SearchLinksRequest.newBuilder()
+                        .setParent(parent)
+                        .setSource(fqn.toEntity())
+                        .build()
+                )
+                // TODO handle multiple response pages
+                .page
+                .values +
+                lineageClient
+                    .searchLinks(
+                        SearchLinksRequest.newBuilder()
+                            .setParent(parent)
+                            .setTarget(fqn.toEntity())
+                            .build()
+                    )
+                    // TODO handle multiple response pages
+                    .page
+                    .values
+                    .toList()
+        val processesMap =
+            lineageClient
+                .batchSearchLinkProcesses(
+                    BatchSearchLinkProcessesRequest.newBuilder()
+                        .addAllLinks(bidiLinks.map { it.name })
+                        .setParent(parent)
+                        .build()
+                )
+                .page
+                .values
+                .associateBy { processLinks ->
+                    (processLinks.linksList.minBy { it.startTime.toOffsetDateTime() }.link)
+                }
+
+        val queryMap =
+            processesMap
+                .map { (linkName, links) ->
+                    val query =
+                        lineageClient
+                            .getProcess(links.process)
+                            .attributesMap["bigquery_job_id"]
+                            ?.stringValue
+                            ?.let {
+                                (bigQuery.getJob(it).getConfiguration() as QueryJobConfiguration)
+                                    .query
+                            }
+                    linkName to query
+                }
+                .toMap()
+
+        return bidiLinks.map {
+            val process = queryMap[it.name]
+            makeLineage(process, it.source.fullyQualifiedName, it.target.fullyQualifiedName)
+        }
+    }
+
+    private fun makeLineage(name: String?, s: String, t: String): Lineage {
+        return Lineage.newBuilder()
+            .setRelation(name ?: "unknown")
+            .setSourceFqn(s)
+            .setTargetFqn(t)
+            .build()
+    }
+
     companion object {
+        val jobRegex = """^projects/\d+/locations/\w+/links/p:(.*)""".toRegex()
+
         private fun String.toTableId(): TableId {
             val (project, dataset, table) = replace("`", "").split(".")
             return TableId.of(project, dataset, table)
@@ -260,3 +349,7 @@ class BigQueryClient(
         override val fullName = with(bqTable.tableId) { "${project}.${dataset}.${table}" }
     }
 }
+
+private fun String.addBqPrefix() = if (!this.startsWith("bigquery:")) "bigquery:$this" else this
+
+private fun String.toEntity() = EntityReference.newBuilder().setFullyQualifiedName(this).build()

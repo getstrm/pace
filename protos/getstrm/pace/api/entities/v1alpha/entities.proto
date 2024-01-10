@@ -324,3 +324,14 @@ message ProcessingPlatform {
     SYNAPSE = 5;
   }
 }
+
+message Lineage {
+  string source_fqn = 1;
+  string target_fqn = 2;
+  string relation = 3;
+  repeated Field field_relations = 4;
+  message Field {
+    string source_attribute = 1;
+    string target_attribute = 2;
+  }
+}
