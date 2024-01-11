@@ -44,17 +44,12 @@ abstract class ProcessingPlatformClient(
 
     abstract suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table
 
-    /**
-     * return the up- and downstream tables of a table identified by its
-     * fully qualified name.
-     */
+    /** return the up- and downstream tables of a table identified by its fully qualified name. */
     open fun getLineage(request: GetLineageRequest): GetLineageResponse {
         throwUnimplemented("Lineage in platform ${config.type}")
     }
 
-    /**
-     * create a blueprint via its fully qualified table name.
-     */
+    /** create a blueprint via its fully qualified table name. */
     open fun createBlueprint(fqn: String): DataPolicy {
         throwUnimplemented("createBlueprint from fully qualified name in platform ${config.type}")
     }
@@ -63,9 +58,8 @@ abstract class ProcessingPlatformClient(
     abstract class Database(
         open val platformClient: ProcessingPlatformClient,
         val id: String,
-        // Todo: make fields required
-        val dbType: String? = null,
-        val displayName: String? = null
+        val dbType: ProcessingPlatform.PlatformType,
+        val displayName: String? = id
     ) {
         abstract suspend fun listSchemas(
             pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
@@ -82,7 +76,7 @@ abstract class ProcessingPlatformClient(
                     .setProcessingPlatform(platformClient.apiProcessingPlatform)
                     .setDisplayName(displayName.orEmpty())
                     .setId(id)
-                    .setType(dbType.orEmpty())
+                    .setType(dbType.name)
                     .build()
     }
 

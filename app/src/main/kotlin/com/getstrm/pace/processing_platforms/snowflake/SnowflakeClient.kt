@@ -169,6 +169,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
         Database(
             pp,
             id,
+            ProcessingPlatform.PlatformType.SNOWFLAKE
         ) {
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
             val sql = "SHOW SCHEMAS in DATABASE \"$id\""
