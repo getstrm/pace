@@ -171,6 +171,14 @@ class BigQueryClient(
             .withPageInfo()
     }
 
+    override fun createBlueprint(fqn: String): DataPolicy {
+        val (projectId, dataset, tableName) = fqn.stripBqPrefix().split(".")
+        val table =
+            bigQuery.getTable(TableId.of(projectId, dataset, tableName))
+                ?: throwNotFound(fqn, "BigQuery Table")
+        return doCreateBlueprint(table)
+    }
+
     override fun getLineage(request: GetLineageRequest): GetLineageResponse {
         val (upstream, downstream) = buildLineageList(request.fqn.addBqPrefix())
         return GetLineageResponse.newBuilder()
@@ -308,57 +316,69 @@ class BigQueryClient(
         schema: Schema,
         private val bqTable: BQTable,
     ) : Table(schema, bqTable.tableId.table, bqTable.generatedId) {
-
         override suspend fun createBlueprint(): DataPolicy {
-            // The reload ensures all metadata is fetched, including the schema
-            val table = bqTable.reload()
-            // typical tag value =
-            // projects/stream-machine-development/locations/europe-west4/taxonomies/5886429027103247004/policyTags/5980433277276442728
-            var tags =
-                table.getDefinition<TableDefinition>().schema?.fields.orEmpty().associate {
-                    it.name to (it.policyTags?.names ?: emptyList())
-                }
-            val nameLookup =
-                tags.values.flatten().toSet().associateWith { tag: String ->
-                    polClient.getPolicyTag(tag).displayName
-                }
-            tags = tags.mapValues { (_, v) -> v.map { nameLookup[it] } }
-
-            return DataPolicy.newBuilder()
-                .setMetadata(
-                    DataPolicy.Metadata.newBuilder()
-                        .setTitle(this.fullName)
-                        .setDescription(table.description.orEmpty())
-                        .setCreateTime(table.creationTime.toTimestamp())
-                        .setUpdateTime(table.lastModifiedTime.toTimestamp()),
-                )
-                .setPlatform(apiPlatform)
-                .setSource(
-                    DataPolicy.Source.newBuilder()
-                        .setRef(this.fullName)
-                        .addAllFields(
-                            table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map {
-                                field ->
-                                // Todo: add support for nested fields using getSubFields()
-                                DataPolicy.Field.newBuilder()
-                                    .addNameParts(field.name)
-                                    .addAllTags(tags[field.name])
-                                    .setType(field.type.name())
-                                    // Todo: correctly handle repeated fields (defined by mode
-                                    // REPEATED)
-                                    .setRequired(field.mode != Field.Mode.NULLABLE)
-                                    .build()
-                                    .normalizeType()
-                            },
-                        )
-                )
-                .build()
+            return doCreateBlueprint(bqTable)!!
         }
 
-        override val fullName = with(bqTable.tableId) { "${project}.${dataset}.${table}" }
+        override val fullName = bqTable.fullName()
+    }
+
+    private fun doCreateBlueprint(bqTable: com.google.cloud.bigquery.Table): DataPolicy {
+        // The reload ensures all metadata is fetched, including the schema
+        val table = bqTable.reload()
+        // typical tag value =
+        // projects/stream-machine-development/locations/europe-west4/taxonomies/5886429027103247004/policyTags/5980433277276442728
+        var tags =
+            table.getDefinition<TableDefinition>().schema?.fields.orEmpty().associate {
+                it.name to (it.policyTags?.names ?: emptyList())
+            }
+        val nameLookup =
+            tags.values.flatten().toSet().associateWith { tag: String ->
+                polClient.getPolicyTag(tag).displayName
+            }
+        tags = tags.mapValues { (_, v) -> v.map { nameLookup[it] } }
+
+        return DataPolicy.newBuilder()
+            .setMetadata(
+                DataPolicy.Metadata.newBuilder()
+                    .setTitle(table.fullName())
+                    .setDescription(table.description.orEmpty())
+                    .setCreateTime(table.creationTime.toTimestamp())
+                    .setUpdateTime(table.lastModifiedTime.toTimestamp()),
+            )
+            .setPlatform(apiProcessingPlatform)
+            .setSource(
+                DataPolicy.Source.newBuilder()
+                    .setRef(table.fullName())
+                    .addAllFields(
+                        table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map { field
+                            ->
+                            // Todo: add support for nested fields using getSubFields()
+                            DataPolicy.Field.newBuilder()
+                                .addNameParts(field.name)
+                                .addAllTags(tags[field.name])
+                                .setType(field.type.name())
+                                // Todo: correctly handle repeated fields (defined by mode
+                                // REPEATED)
+                                .setRequired(field.mode != Field.Mode.NULLABLE)
+                                .build()
+                                .normalizeType()
+                        },
+                    )
+            )
+            .build()
     }
 }
 
-private fun String.addBqPrefix() = if (!this.startsWith("bigquery:")) "bigquery:$this" else this
+private const val BIGQUERY_PREFIX = "bigquery:"
+
+private fun String.addBqPrefix() =
+    if (!this.startsWith(BIGQUERY_PREFIX)) "${BIGQUERY_PREFIX}$this" else this
+
+private fun String.stripBqPrefix() =
+    if (this.startsWith(BIGQUERY_PREFIX)) this.subSequence(BIGQUERY_PREFIX.length, this.length)
+    else this
 
 private fun String.toEntity() = EntityReference.newBuilder().setFullyQualifiedName(this).build()
+
+fun BQTable.fullName() = with(tableId) { "${project}.${dataset}.${table}" }

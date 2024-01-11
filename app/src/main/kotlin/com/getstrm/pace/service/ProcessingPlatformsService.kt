@@ -102,13 +102,18 @@ class ProcessingPlatformsService(
     suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest): GetBlueprintPolicyResponse {
         val platformClient =
             platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
-        val table =
-            platformClient.getTable(
-                request.table.schema.database.id,
-                request.table.schema.id,
-                request.table.id
-            )
-        val blueprint = table.createBlueprint()
+        val blueprint =
+            if (request.fqn.isNotEmpty()) {
+                platformClient.createBlueprint(request.fqn)
+            } else {
+                val table =
+                    platformClient.getTable(
+                        request.table.schema.database.id,
+                        request.table.schema.id,
+                        request.table.id
+                    )
+                table.createBlueprint()
+            }
         return GetBlueprintPolicyResponse.newBuilder().setDataPolicy(blueprint).build()
     }
 

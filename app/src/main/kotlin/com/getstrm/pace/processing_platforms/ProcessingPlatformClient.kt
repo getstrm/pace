@@ -48,6 +48,10 @@ abstract class ProcessingPlatformClient(
         throwUnimplemented("Lineage in platform ${config.type}")
     }
 
+    open fun createBlueprint(fqn: String): DataPolicy {
+        throwUnimplemented("createBlueprint from fully qualified name in platform ${config.type}")
+    }
+
     /** meta information database */
     abstract class Database(
         open val platformClient: ProcessingPlatformClient,
