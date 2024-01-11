@@ -12,13 +12,12 @@ option java_package = "com.getstrm.pace.api.processing_platforms.v1alpha";
 option java_multiple_files = true;
 
 service ProcessingPlatformsService {
-  // Lists all configured processing platforms.
-  rpc ListProcessingPlatforms (ListProcessingPlatformsRequest) returns (ListProcessingPlatformsResponse) {
-    option (google.api.http) = {
-      get: "/v1alpha/processing-platforms"
+    // Lists all configured processing platforms.
+    rpc ListProcessingPlatforms (ListProcessingPlatformsRequest) returns (ListProcessingPlatformsResponse) {
+        option (google.api.http) = {
+          get: "/v1alpha/processing-platforms"
+        };
     };
-  };
-
   // Lists all databases for the given processing_platform.
   rpc ListDatabases (ListDatabasesRequest) returns (ListDatabasesResponse) {
     option (google.api.http) = {
@@ -31,32 +30,32 @@ service ProcessingPlatformsService {
       get: "/v1alpha/processing-platforms/{platform_id}/schemas"
     };
   }
-  // Lists all available table names for the given platform.
-  rpc ListTables (ListTablesRequest) returns (ListTablesResponse) {
-    option (google.api.http) = {
-      get: "/v1alpha/processing-platforms/{platform_id}/tables"
+    // Lists all available table names for the given platform.
+    rpc ListTables (ListTablesRequest) returns (ListTablesResponse) {
+        option (google.api.http) = {
+          get: "/v1alpha/processing-platforms/{platform_id}/tables"
+        };
     };
-  };
-  // Lists all available user groups for the given platform.
-  rpc ListGroups (ListGroupsRequest) returns (ListGroupsResponse) {
-    option (google.api.http) = {
-      get: "/v1alpha/processing-platforms/{platform_id}/groups"
+    // Lists all available user groups for the given platform.
+    rpc ListGroups (ListGroupsRequest) returns (ListGroupsResponse) {
+        option (google.api.http) = {
+          get: "/v1alpha/processing-platforms/{platform_id}/groups"
+        };
     };
-  };
-  // Returns a data policy without any rule sets, based on the given table's data structure in the platform.
-  // Extend this blueprint policy with field transforms and/or rule sets to create a complete data policy.
-  // Use the UpsertDataPolicy endpoint to save and enforce the policy.
-  rpc GetBlueprintPolicy (GetBlueprintPolicyRequest) returns (GetBlueprintPolicyResponse) {
-    option (google.api.http) = {
-      get: "/v1alpha/processing-platforms/{platform_id}/tables/{table_id}/blueprint-policy"
+    // Returns a data policy without any rule sets, based on the given table's data structure in the platform.
+    // Extend this blueprint policy with field transforms and/or rule sets to create a complete data policy.
+    // Use the UpsertDataPolicy endpoint to save and enforce the policy.
+    rpc GetBlueprintPolicy (GetBlueprintPolicyRequest) returns (GetBlueprintPolicyResponse) {
+        option (google.api.http) = {
+          get: "/v1alpha/processing-platforms/{platform_id}/tables/{table_id}/blueprint-policy"
+        };
     };
-  };
 
-  rpc GetLineage (GetLineageRequest) returns (GetLineageResponse) {
-    option (google.api.http) = {
-      get: "/v1alpha/processing-platforms/{platform_id}/tables/{fqn}/lineage"
-    };
-  }
+    rpc GetLineage (GetLineageRequest) returns (GetLineageResponse) {
+      option (google.api.http) = {
+        get: "/v1alpha/processing-platforms/{platform_id}/tables/{fqn}/lineage"
+      };
+    }
 }
 
 message ListProcessingPlatformsRequest {
@@ -115,7 +114,7 @@ message ListGroupsResponse {
 message GetBlueprintPolicyRequest {
     string platform_id = 1 [(buf.validate.field).string = {min_len: 1}];
     entities.v1alpha.Table table = 2;
-    optional string fqn = 3;
+    string fqn = 3;
 }
 
 message GetBlueprintPolicyResponse {
@@ -129,5 +128,6 @@ message GetLineageRequest {
 }
 
 message GetLineageResponse {
-  repeated entities.v1alpha.Lineage lineages = 1; 
+  repeated entities.v1alpha.Lineage upstream = 1;
+  repeated entities.v1alpha.Lineage downstream = 2;
 }

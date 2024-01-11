@@ -52,7 +52,7 @@ message GetBlueprintPolicyRequest {
   optional string database_id = 2;
   optional string schema_id = 3;
   string table_id = 4 [(buf.validate.field).string = {min_len: 1}];
-  optional string fqn = 5;
+  string fqn = 5;
 }
 
 message GetBlueprintPolicyResponse {

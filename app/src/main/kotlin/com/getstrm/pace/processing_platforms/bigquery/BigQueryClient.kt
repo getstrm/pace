@@ -21,11 +21,15 @@ import com.google.cloud.datacatalog.lineage.v1.BatchSearchLinkProcessesRequest
 import com.google.cloud.datacatalog.lineage.v1.EntityReference
 import com.google.cloud.datacatalog.lineage.v1.LineageClient
 import com.google.cloud.datacatalog.lineage.v1.LineageSettings
+import com.google.cloud.datacatalog.lineage.v1.ProcessLinks
 import com.google.cloud.datacatalog.lineage.v1.SearchLinksRequest
 import com.google.cloud.datacatalog.v1.PolicyTagManagerClient
 import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
 
+typealias LinkName = String
+
+typealias SqlString = String
 /**
  * Bigquery has the following mapping between Pace entities and Bigquery entities.
  *
@@ -168,12 +172,15 @@ class BigQueryClient(
     }
 
     override fun getLineage(request: GetLineageRequest): GetLineageResponse {
-        val links = buildLineageList(request.fqn.addBqPrefix())
-        return GetLineageResponse.newBuilder().addAllLineages(links).build()
+        val (upstream, downstream) = buildLineageList(request.fqn.addBqPrefix())
+        return GetLineageResponse.newBuilder()
+            .addAllUpstream(upstream)
+            .addAllDownstream(downstream)
+            .build()
     }
 
-    private fun buildLineageList(fqn: String): List<Lineage> {
-        val bidiLinks =
+    private fun buildLineageList(fqn: String): Pair<List<Lineage>, List<Lineage>> {
+        val downstreamLinks =
             lineageClient
                 .searchLinks(
                     SearchLinksRequest.newBuilder()
@@ -183,65 +190,67 @@ class BigQueryClient(
                 )
                 // TODO handle multiple response pages
                 .page
-                .values +
-                lineageClient
-                    .searchLinks(
-                        SearchLinksRequest.newBuilder()
-                            .setParent(parent)
-                            .setTarget(fqn.toEntity())
-                            .build()
-                    )
-                    // TODO handle multiple response pages
-                    .page
-                    .values
-                    .toList()
-        val processesMap =
+                .values
+                .toList()
+        val upstreamLinks =
+            lineageClient
+                .searchLinks(
+                    SearchLinksRequest.newBuilder()
+                        .setParent(parent)
+                        .setTarget(fqn.toEntity())
+                        .build()
+                )
+                // TODO handle multiple response pages
+                .page
+                .values
+                .toList()
+
+        // find the processes associated with the found links. Note that one process
+        // can cause multiple links, which is why we invert the map, and flatten the list.
+        val processesMap: Map<LinkName, ProcessLinks> =
             lineageClient
                 .batchSearchLinkProcesses(
                     BatchSearchLinkProcessesRequest.newBuilder()
-                        .addAllLinks(bidiLinks.map { it.name })
+                        .addAllLinks((downstreamLinks + upstreamLinks).map { it.name })
                         .setParent(parent)
                         .build()
                 )
+                // TODO handle multi-page responses
                 .page
                 .values
-                .associateBy { processLinks ->
-                    (processLinks.linksList.minBy { it.startTime.toOffsetDateTime() }.link)
-                }
-
-        val queryMap =
-            processesMap
-                .map { (linkName, links) ->
-                    val query =
-                        lineageClient
-                            .getProcess(links.process)
-                            .attributesMap["bigquery_job_id"]
-                            ?.stringValue
-                            ?.let {
-                                (bigQuery.getJob(it).getConfiguration() as QueryJobConfiguration)
-                                    .query
-                            }
-                    linkName to query
-                }
+                .map { processLink -> processLink.linksList.map { it.link to processLink } }
+                .flatten()
                 .toMap()
 
-        return bidiLinks.map {
-            val process = queryMap[it.name]
-            makeLineage(process, it.source.fullyQualifiedName, it.target.fullyQualifiedName)
-        }
+        // for each process we find a possible associated SQL query.
+        // the advantage of this two-step approach is that we don't have to call
+        // BigQuery twice for the same SQL.
+        val queryProcessMap: Map<ProcessLinks, SqlString?> =
+            processesMap.values.toSet().associateWith { processLinks ->
+                val job =
+                    lineageClient
+                        .getProcess(processLinks.process)
+                        .attributesMap["bigquery_job_id"]
+                        ?.stringValue
+                        ?.let { bigQuery.getJob(it) }
+                job?.getConfiguration<QueryJobConfiguration>()?.query
+            }
+
+        //  for each link, get the possible sql query from the queryProcessMap
+        val queryMap: Map<LinkName, SqlString?> =
+            processesMap.mapValues { queryProcessMap[it.value] }
+
+        return Pair(
+            upstreamLinks.map { makeLineage(queryMap[it.name], it.source.fullyQualifiedName) },
+            downstreamLinks.map { makeLineage(queryMap[it.name], it.target.fullyQualifiedName) }
+        )
     }
 
-    private fun makeLineage(name: String?, s: String, t: String): Lineage {
-        return Lineage.newBuilder()
-            .setRelation(name ?: "unknown")
-            .setSourceFqn(s)
-            .setTargetFqn(t)
-            .build()
+    private fun makeLineage(relation: String?, fqn: String): Lineage {
+        return Lineage.newBuilder().setRelation(relation ?: "unknown").setFqn(fqn).build()
     }
 
     companion object {
-        val jobRegex = """^projects/\d+/locations/\w+/links/p:(.*)""".toRegex()
-
         private fun String.toTableId(): TableId {
             val (project, dataset, table) = replace("`", "").split(".")
             return TableId.of(project, dataset, table)

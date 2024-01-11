@@ -326,8 +326,7 @@ message ProcessingPlatform {
 }
 
 message Lineage {
-  string source_fqn = 1;
-  string target_fqn = 2;
+  string fqn = 1;
   string relation = 3;
   repeated Field field_relations = 4;
   message Field {
