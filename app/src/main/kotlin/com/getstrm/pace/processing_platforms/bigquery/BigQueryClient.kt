@@ -313,7 +313,7 @@ class BigQueryClient(
     inner class BigQueryTable(
         schema: Schema,
         private val bqTable: BQTable,
-    ) : Table(schema, bqTable.tableId.table, bqTable.generatedId) {
+    ) : Table(schema, bqTable.tableId.table, bqTable.fullName()) {
         override suspend fun createBlueprint() = doCreateBlueprint(bqTable)
 
         override val fullName = bqTable.fullName()
