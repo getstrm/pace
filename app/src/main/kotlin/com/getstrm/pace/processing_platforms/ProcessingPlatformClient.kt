@@ -44,10 +44,17 @@ abstract class ProcessingPlatformClient(
 
     abstract suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table
 
+    /**
+     * return the up- and downstream tables of a table identified by its
+     * fully qualified name.
+     */
     open fun getLineage(request: GetLineageRequest): GetLineageResponse {
         throwUnimplemented("Lineage in platform ${config.type}")
     }
 
+    /**
+     * create a blueprint via its fully qualified table name.
+     */
     open fun createBlueprint(fqn: String): DataPolicy {
         throwUnimplemented("createBlueprint from fully qualified name in platform ${config.type}")
     }

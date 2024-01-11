@@ -171,13 +171,11 @@ class BigQueryClient(
             .withPageInfo()
     }
 
-    override fun createBlueprint(fqn: String): DataPolicy {
-        val (projectId, dataset, tableName) = fqn.stripBqPrefix().split(".")
-        val table =
-            bigQuery.getTable(TableId.of(projectId, dataset, tableName))
+    override fun createBlueprint(fqn: String): DataPolicy =
+        doCreateBlueprint(
+            bigQuery.getTable(fqn.stripBqPrefix().toTableId())
                 ?: throwNotFound(fqn, "BigQuery Table")
-        return doCreateBlueprint(table)
-    }
+        )
 
     override fun getLineage(request: GetLineageRequest): GetLineageResponse {
         val (upstream, downstream) = buildLineageList(request.fqn.addBqPrefix())
@@ -188,6 +186,7 @@ class BigQueryClient(
     }
 
     private fun buildLineageList(fqn: String): Pair<List<Lineage>, List<Lineage>> {
+        bigQuery.getTable(fqn.stripBqPrefix().toTableId()) ?: throwNotFound(fqn, "BigQuery Table")
         val downstreamLinks =
             lineageClient
                 .searchLinks(
@@ -212,6 +211,9 @@ class BigQueryClient(
                 .page
                 .values
                 .toList()
+        if (upstreamLinks.isEmpty() && downstreamLinks.isEmpty()) {
+            return Pair(emptyList(), emptyList())
+        }
 
         // find the processes associated with the found links. Note that one process
         // can cause multiple links, which is why we invert the map, and flatten the list.
@@ -256,13 +258,6 @@ class BigQueryClient(
 
     private fun makeLineage(relation: String?, fqn: String): Lineage {
         return Lineage.newBuilder().setRelation(relation ?: "unknown").setFqn(fqn).build()
-    }
-
-    companion object {
-        private fun String.toTableId(): TableId {
-            val (project, dataset, table) = replace("`", "").split(".")
-            return TableId.of(project, dataset, table)
-        }
     }
 
     /** one BigQueryDatabase corresponds with one Gcloud project */
@@ -316,9 +311,7 @@ class BigQueryClient(
         schema: Schema,
         private val bqTable: BQTable,
     ) : Table(schema, bqTable.tableId.table, bqTable.generatedId) {
-        override suspend fun createBlueprint(): DataPolicy {
-            return doCreateBlueprint(bqTable)!!
-        }
+        override suspend fun createBlueprint() = doCreateBlueprint(bqTable)
 
         override val fullName = bqTable.fullName()
     }
@@ -375,10 +368,16 @@ private const val BIGQUERY_PREFIX = "bigquery:"
 private fun String.addBqPrefix() =
     if (!this.startsWith(BIGQUERY_PREFIX)) "${BIGQUERY_PREFIX}$this" else this
 
-private fun String.stripBqPrefix() =
-    if (this.startsWith(BIGQUERY_PREFIX)) this.subSequence(BIGQUERY_PREFIX.length, this.length)
+private fun String.stripBqPrefix(): String =
+    if (this.startsWith(BIGQUERY_PREFIX))
+        this.subSequence(BIGQUERY_PREFIX.length, this.length).toString()
     else this
 
 private fun String.toEntity() = EntityReference.newBuilder().setFullyQualifiedName(this).build()
 
 fun BQTable.fullName() = with(tableId) { "${project}.${dataset}.${table}" }
+
+fun String.toTableId(): TableId {
+    val (project, dataset, table) = replace("`", "").split(".")
+    return TableId.of(project, dataset, table)
+}
