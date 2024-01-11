@@ -1,0 +1,75 @@
+metadata:
+  description: ""
+  version: 1
+  title: public.demo
+platform:
+  id: standalone-sample-connection
+  platform_type: POSTGRES
+source:
+  fields:
+    - name_parts:
+        - transactionid
+      required: true
+      type: integer
+    - name_parts:
+        - userid
+      required: true
+      type: integer
+    - name_parts:
+        - email
+      required: true
+      type: varchar
+    - name_parts:
+        - age
+      required: true
+      type: integer
+    - name_parts:
+        - brand
+      required: true
+      type: varchar
+    - name_parts:
+        - transactionamount
+      required: true
+      type: integer
+  ref: public.demo
+rule_sets:
+  - target:
+      fullname: public.demo_view
+    filters:
+      - generic_filter:
+          conditions:
+            - principals: [ { group: administrator }, { group: fraud_and_risk } ]
+              condition: "true"
+            - principals: [ ]
+              condition: "age > 8"
+    field_transforms:
+      - field:
+          name_parts: [ userid ]
+        transforms:
+          - principals: [ { group: fraud_and_risk }, { group: administrator } ]
+            identity: { }
+          - principals: [ ]
+            fixed:
+              value: "0000"
+      - field:
+          name_parts: [ email ]
+        transforms:
+          - principals: [ { group: administrator } ]
+            identity: { }
+          - principals: [ { group: marketing } ]
+            regexp:
+              regexp: "^.*(@.*)$"
+              replacement: "****$1"
+          - principals: [ { group: fraud_and_risk } ]
+            identity: { }
+          - principals: [ ]
+            fixed:
+              value: "****"
+      - field:
+          name_parts: [ brand ]
+        transforms:
+          - principals: [ { group: administrator } ]
+            identity: { }
+          - principals: [ ]
+            sql_statement:
+              statement: "CASE WHEN brand = 'MacBook' THEN 'Apple' ELSE 'Other' END"
