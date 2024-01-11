@@ -104,11 +104,7 @@ class SynapseClient(
     }
 
     inner class SynapseDatabase(pp: ProcessingPlatformClient, id: String) :
-        ProcessingPlatformClient.Database(
-            pp,
-            id,
-            ProcessingPlatform.PlatformType.SYNAPSE
-        ) {
+        ProcessingPlatformClient.Database(pp, id, ProcessingPlatform.PlatformType.SYNAPSE) {
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
             throwUnimplemented("listSchemas on Synapse")
         }

@@ -82,7 +82,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
         executeRequest(request)
     }
 
-    override suspend fun listDatabases(ignored: PageParameters): PagedCollection<Database> =
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> =
         listOf(database).withPageInfo()
 
     override suspend fun listSchemas(
@@ -166,11 +166,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
     }
 
     inner class SnowflakeDatabase(pp: ProcessingPlatformClient, id: String) :
-        Database(
-            pp,
-            id,
-            ProcessingPlatform.PlatformType.SNOWFLAKE
-        ) {
+        Database(pp, id, ProcessingPlatform.PlatformType.SNOWFLAKE) {
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
             val sql = "SHOW SCHEMAS in DATABASE \"$id\""
 

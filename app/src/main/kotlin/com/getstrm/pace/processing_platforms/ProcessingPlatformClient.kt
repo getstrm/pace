@@ -65,8 +65,7 @@ abstract class ProcessingPlatformClient(
             pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
         ): PagedCollection<Schema>
 
-        override fun toString() =
-            dbType?.let { "Database($id, $dbType, $displayName)" } ?: "Database($id)"
+        override fun toString() = "Database($id, $dbType, $displayName)"
 
         abstract suspend fun getSchema(schemaId: String): Schema
 

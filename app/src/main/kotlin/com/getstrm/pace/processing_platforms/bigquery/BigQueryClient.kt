@@ -28,13 +28,14 @@ import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
 
 typealias LinkName = String
+
 typealias SqlString = String
 
 /**
  * Bigquery has the following mapping between Pace entities and Bigquery entities.
  *
  * PACE: Database -> Schema -> Table
- * 
+ *
  * BigQuery: Project -> DataSet -> Table
  */
 class BigQueryClient(
@@ -42,7 +43,7 @@ class BigQueryClient(
 ) : ProcessingPlatformClient(config) {
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
-    
+
     private val credentials: GoogleCredentials =
         GoogleCredentials.fromStream(config.serviceAccountJsonKey.byteInputStream())
             .createScoped(listOf("https://www.googleapis.com/auth/cloud-platform"))
@@ -62,7 +63,7 @@ class BigQueryClient(
     private val polClient: PolicyTagManagerClient = PolicyTagManagerClient.create()
 
     private val bigQueryDatabase = BigQueryDatabase(this, config.projectId)
-    
+
     /**
      * for now we have interact with only one Gcloud project, and call this the PACE Database. But
      * the access credentials might allow interaction with multiple projects, in which case the
@@ -189,7 +190,8 @@ class BigQueryClient(
     }
 
     private fun buildLineageList(fqn: String): Pair<List<Lineage>, List<Lineage>> {
-        bigQueryClient.getTable(fqn.stripBqPrefix().toTableId()) ?: throwNotFound(fqn, "BigQuery Table")
+        bigQueryClient.getTable(fqn.stripBqPrefix().toTableId())
+            ?: throwNotFound(fqn, "BigQuery Table")
         val downstreamLinks =
             lineageClient
                 .searchLinks(
@@ -301,7 +303,10 @@ class BigQueryClient(
                 .withPageInfo()
 
         override suspend fun getTable(tableId: String) =
-            BigQueryTable(this, bigQueryClient.getTable(TableId.of(dataset.datasetId.dataset, tableId)))
+            BigQueryTable(
+                this,
+                bigQueryClient.getTable(TableId.of(dataset.datasetId.dataset, tableId))
+            )
     }
 
     /** One BigQueryTable corresponds with one PACE Table. */
@@ -310,9 +315,10 @@ class BigQueryClient(
         private val bqTable: BQTable,
     ) : Table(schema, bqTable.tableId.table, bqTable.generatedId) {
         override suspend fun createBlueprint() = doCreateBlueprint(bqTable)
+
         override val fullName = bqTable.fullName()
     }
-    
+
     private fun doCreateBlueprint(bqTable: com.google.cloud.bigquery.Table): DataPolicy {
         // The reload ensures all metadata is fetched, including the schema
         val table = bqTable.reload()
