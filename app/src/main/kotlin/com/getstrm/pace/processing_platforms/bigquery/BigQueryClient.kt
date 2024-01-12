@@ -57,8 +57,6 @@ class BigQueryClient(
         LineageClient.create(
             LineageSettings.newBuilder().setCredentialsProvider { credentials }.build()
         )
-    // TODO determine eu or us!
-    val parent = "projects/${config.projectId}/locations/us"
 
     private val polClient: PolicyTagManagerClient = PolicyTagManagerClient.create()
 
@@ -190,8 +188,13 @@ class BigQueryClient(
     }
 
     private fun buildLineageList(fqn: String): Pair<List<Lineage>, List<Lineage>> {
-        bigQueryClient.getTable(fqn.stripBqPrefix().toTableId())
-            ?: throwNotFound(fqn, "BigQuery Table")
+        val bqTable =
+            bigQueryClient.getTable(fqn.stripBqPrefix().toTableId())
+                ?: throwNotFound(fqn, "BigQuery Table")
+        // TODO determine eu or us!
+        val dataset = bigQueryClient.getDataset(bqTable.tableId.dataset)
+        val location = dataset.location
+        val parent = "projects/${config.projectId}/locations/$location"
         val downstreamLinks =
             lineageClient
                 .searchLinks(
@@ -247,7 +250,11 @@ class BigQueryClient(
                         .getProcess(processLinks.process)
                         .attributesMap["bigquery_job_id"]
                         ?.stringValue
-                        ?.let { bigQueryClient.getJob(it) }
+                        ?.let {
+                            bigQueryClient.getJob(
+                                JobId.newBuilder().setJob(it).setLocation(location).build()
+                            )
+                        }
                 job?.getConfiguration<QueryJobConfiguration>()?.query
             }
 
