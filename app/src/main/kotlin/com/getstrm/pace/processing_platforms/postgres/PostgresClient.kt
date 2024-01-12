@@ -96,7 +96,7 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
     inner class PostgresDatabase(
         override val platformClient: ProcessingPlatformClient,
         id: String
-    ) : Database(platformClient, id, POSTGRES.name, id) {
+    ) : Database(platformClient, id, POSTGRES) {
 
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> =
             jooq

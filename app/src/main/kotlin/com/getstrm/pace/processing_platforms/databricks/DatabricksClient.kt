@@ -159,13 +159,7 @@ class DatabricksClient(
     inner class DatabricksDatabase(
         processingPlatformClient: ProcessingPlatformClient,
         name: String
-    ) :
-        Database(
-            platformClient = processingPlatformClient,
-            id = name,
-            dbType = DATABRICKS.name,
-            displayName = name,
-        ) {
+    ) : Database(processingPlatformClient, name, DATABRICKS) {
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> =
             listSchemas(id, pageParameters)
 

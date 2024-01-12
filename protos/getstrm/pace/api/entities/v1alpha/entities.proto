@@ -260,7 +260,7 @@ message DataCatalog {
 message Database {
   // The id of the database
   string id = 1 [(buf.validate.field) = {
-    ignore_empty: false,
+    ignore_empty: true,
     string: {min_len: 1}
   }];
   string type = 2;
@@ -282,7 +282,7 @@ message Database {
 message Schema {
   // The id used by the catalog.
   string id = 1 [(buf.validate.field) = {
-    ignore_empty: false,
+    ignore_empty: true,
     string: {min_len: 1}
   }];
   string name = 2 [(buf.validate.field) = {
@@ -300,7 +300,7 @@ message Schema {
 message Table {
   // The id used by the catalog.
   string id = 1 [(buf.validate.field) = {
-    ignore_empty: false,
+    ignore_empty: true,
     string: {min_len: 1}
   }];
   string name = 2 [(buf.validate.field) = {
@@ -322,5 +322,15 @@ message ProcessingPlatform {
     BIGQUERY = 3;
     POSTGRES = 4;
     SYNAPSE = 5;
+  }
+}
+
+message Lineage {
+  string fqn = 1;
+  string relation = 3;
+  repeated Field field_relations = 4;
+  message Field {
+    string source_attribute = 1;
+    string target_attribute = 2;
   }
 }

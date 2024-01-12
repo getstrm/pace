@@ -3,7 +3,10 @@ package com.getstrm.pace.processing_platforms
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.*
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageResponse
 import com.getstrm.pace.config.PPConfig
+import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
 import org.jooq.Field
@@ -41,20 +44,28 @@ abstract class ProcessingPlatformClient(
 
     abstract suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table
 
+    /** return the up- and downstream tables of a table identified by its fully qualified name. */
+    open fun getLineage(request: GetLineageRequest): GetLineageResponse {
+        throwUnimplemented("Lineage in platform ${config.type}")
+    }
+
+    /** create a blueprint via its fully qualified table name. */
+    open fun createBlueprint(fqn: String): DataPolicy {
+        throwUnimplemented("createBlueprint from fully qualified name in platform ${config.type}")
+    }
+
     /** meta information database */
     abstract class Database(
         open val platformClient: ProcessingPlatformClient,
         val id: String,
-        // Todo: make fields required
-        val dbType: String? = null,
-        val displayName: String? = null
+        val dbType: ProcessingPlatform.PlatformType,
+        val displayName: String? = id
     ) {
         abstract suspend fun listSchemas(
             pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
         ): PagedCollection<Schema>
 
-        override fun toString() =
-            dbType?.let { "Database($id, $dbType, $displayName)" } ?: "Database($id)"
+        override fun toString() = "Database($id, $dbType, $displayName)"
 
         abstract suspend fun getSchema(schemaId: String): Schema
 
@@ -64,7 +75,7 @@ abstract class ProcessingPlatformClient(
                     .setProcessingPlatform(platformClient.apiProcessingPlatform)
                     .setDisplayName(displayName.orEmpty())
                     .setId(id)
-                    .setType(dbType.orEmpty())
+                    .setType(dbType.name)
                     .build()
     }
 

@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.45
+    version: 1.0.0-alpha.46
 paths:
     /data-policies:
         get:
@@ -104,6 +104,10 @@ paths:
                   schema:
                     type: string
                 - name: tableId
+                  in: query
+                  schema:
+                    type: string
+                - name: fqn
                   in: query
                   schema:
                     type: string
@@ -794,6 +798,35 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /v1alpha/processing-platforms/{platformId}/tables/{fqn}/lineage:
+        get:
+            tags:
+                - ProcessingPlatformsService
+            operationId: ProcessingPlatformsService_GetLineage
+            parameters:
+                - name: platformId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: fqn
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetLineageResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /v1alpha/processing-platforms/{platformId}/tables/{table_id}/blueprint-policy:
         get:
             tags:
@@ -901,6 +934,10 @@ paths:
                     type: array
                     items:
                         type: string
+                - name: fqn
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -1316,6 +1353,17 @@ components:
             properties:
                 transform:
                     $ref: '#/components/schemas/GlobalTransform'
+        GetLineageResponse:
+            type: object
+            properties:
+                upstream:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Lineage'
+                downstream:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Lineage'
         GetPayloadJSONSchemaResponse:
             type: object
             properties:
@@ -1372,6 +1420,24 @@ components:
                     $ref: '#/components/schemas/DataPolicyGenerator_Result'
                 sampleDataGeneratorResult:
                     $ref: '#/components/schemas/SampleDataGenerator_Result'
+        Lineage:
+            type: object
+            properties:
+                fqn:
+                    type: string
+                relation:
+                    type: string
+                fieldRelations:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Lineage_Field'
+        Lineage_Field:
+            type: object
+            properties:
+                sourceAttribute:
+                    type: string
+                targetAttribute:
+                    type: string
         ListCatalogsResponse:
             type: object
             properties:
