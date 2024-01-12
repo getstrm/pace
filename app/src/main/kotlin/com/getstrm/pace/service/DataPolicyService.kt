@@ -1,8 +1,10 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ListDataPoliciesRequest
+import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ScanLineageRequest
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.UpsertDataPolicyRequest
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.getstrm.pace.dao.DataPolicyDao
 import com.getstrm.pace.exceptions.ResourceException
@@ -59,4 +61,34 @@ class DataPolicyService(
                     .setDescription("DataPolicy $id not found")
                     .build()
             )
+
+    suspend fun scanLineage(request: ScanLineageRequest): List<LineageSummary> {
+        val policies =
+            listDataPolicies(
+                ListDataPoliciesRequest.newBuilder()
+                    .setPageParameters(request.pageParameters)
+                    .build()
+            )
+        TODO()
+    }
+
+    suspend fun determineLineageDataPolicies(summary: LineageSummary): LineageSummary {
+        return with(summary.toBuilder()) {
+            downstreamBuilderList.forEach {
+                it.setHasDataPolicy(hasDataPolicy(it.fqn, it.platform.id))
+            }
+            upstreamBuilderList.forEach {
+                it.setHasDataPolicy(hasDataPolicy(it.fqn, it.platform.id))
+            }
+            build()
+        }
+    }
+
+    fun hasDataPolicy(fqn: String, platformId: String) =
+        try {
+            getLatestDataPolicy(fqn, platformId)
+            true
+        } catch (e: Exception) {
+            false
+        }
 }

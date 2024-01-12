@@ -3,12 +3,14 @@ package com.getstrm.pace.api
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.*
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
+import com.getstrm.pace.service.DataPolicyService
 import com.getstrm.pace.service.ProcessingPlatformsService
 import net.devh.boot.grpc.server.service.GrpcService
 
 @GrpcService
 class ProcessingPlatformsApi(
     private val processingPlatformsService: ProcessingPlatformsService,
+    private val dataPolicyService: DataPolicyService,
 ) : ProcessingPlatformsServiceGrpcKt.ProcessingPlatformsServiceCoroutineImplBase() {
 
     override suspend fun listProcessingPlatforms(
@@ -55,6 +57,14 @@ class ProcessingPlatformsApi(
         processingPlatformsService.getBlueprintPolicy(request)
 
     override suspend fun getLineage(request: GetLineageRequest): GetLineageResponse {
-        return processingPlatformsService.getLineage(request)
+        val lineage = processingPlatformsService.getLineage(request)
+        val withDataPolicyInfo =
+            dataPolicyService.determineLineageDataPolicies(lineage.lineageSummary)
+        val enriched =
+            with(lineage.toBuilder()) {
+                lineageSummary = withDataPolicyInfo
+                build()
+            }
+        return enriched
     }
 }

@@ -9,6 +9,8 @@ import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.GetDataPolicyRequest
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.GetDataPolicyResponse
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ListDataPoliciesRequest
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ListDataPoliciesResponse
+import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ScanLineageRequest
+import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ScanLineageResponse
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.UpsertDataPolicyRequest
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.UpsertDataPolicyResponse
 import com.getstrm.pace.service.DataPolicyEvaluationService
@@ -62,6 +64,12 @@ class DataPoliciesApi(
             .setDataPolicy(
                 dataPolicyService.getLatestDataPolicy(request.dataPolicyId, request.platformId)
             )
+            .build()
+    }
+
+    override suspend fun scanLineage(request: ScanLineageRequest): ScanLineageResponse {
+        return ScanLineageResponse.newBuilder()
+            .addAllLineageSummaries(dataPolicyService.scanLineage(request))
             .build()
     }
 }

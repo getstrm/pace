@@ -9,6 +9,11 @@ option go_package = "github.com/getstrm/pace/protos/api/entities;entities";
 option java_multiple_files = true;
 option java_package = "com.getstrm.pace.api.entities.v1alpha";
 
+message DataPolicyRef {
+  entities.v1alpha.ProcessingPlatform  platform = 1;
+  string fqn = 2;
+}
+
 message DataPolicy {
   string id = 1;
   Metadata metadata = 2;
@@ -191,6 +196,7 @@ message DataPolicy {
 
   message Source {
     // The ref is an identifier for the source, unique at the source platform level.
+    // TODO I think this should be renamed to fqn
     string ref = 1 [(buf.validate.field).string.min_len = 3];
     // A representation of the source data schema. Nested fields are supported.
     repeated Field fields = 4;
@@ -329,8 +335,20 @@ message Lineage {
   string fqn = 1;
   string relation = 3;
   repeated Field field_relations = 4;
+  ProcessingPlatform platform = 5;
+  bool has_data_policy = 6;
+  
   message Field {
     string source_attribute = 1;
     string target_attribute = 2;
   }
+}
+
+message LineageSummary {
+  // upstream is a source or parent resource
+  repeated Lineage upstream = 1;
+  // downstream is a target or child resource
+  repeated Lineage downstream = 2;
+  string fqn = 3;
+  ProcessingPlatform processing_platform = 4;
 }

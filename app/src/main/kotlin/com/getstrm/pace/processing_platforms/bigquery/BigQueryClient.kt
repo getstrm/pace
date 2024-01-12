@@ -2,6 +2,7 @@ package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Lineage
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.BIGQUERY
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
@@ -182,8 +183,13 @@ class BigQueryClient(
     override fun getLineage(request: GetLineageRequest): GetLineageResponse {
         val (upstream, downstream) = buildLineageList(request.fqn.addBqPrefix())
         return GetLineageResponse.newBuilder()
-            .addAllUpstream(upstream)
-            .addAllDownstream(downstream)
+            .setLineageSummary(
+                LineageSummary.newBuilder()
+                    .setFqn(request.fqn)
+                    .setProcessingPlatform(apiProcessingPlatform)
+                    .addAllUpstream(upstream)
+                    .addAllDownstream(downstream)
+            )
             .build()
     }
 

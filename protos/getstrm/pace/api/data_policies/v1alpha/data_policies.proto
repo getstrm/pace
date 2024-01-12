@@ -39,6 +39,10 @@ service DataPoliciesService {
   rpc GetDataPolicy(GetDataPolicyRequest) returns (GetDataPolicyResponse) {
     option (google.api.http) = {get: "/v1alpha/data-policies/{data_policy_id}/{platform_id}"};
   }
+  
+  rpc ScanLineage(ScanLineageRequest) returns (ScanLineageResponse) {
+    option (google.api.http) = {get: "/lineage"};
+  }
 }
 
 message GetDataPolicyRequest {
@@ -76,6 +80,16 @@ message ListDataPoliciesRequest {
 
 message ListDataPoliciesResponse {
   repeated entities.v1alpha.DataPolicy data_policies = 1;
+  api.paging.v1alpha.PageInfo page_info = 2;
+}
+
+
+message ScanLineageRequest {
+  api.paging.v1alpha.PageParameters page_parameters = 2;
+}
+
+message ScanLineageResponse {
+  repeated entities.v1alpha.LineageSummary lineage_summaries = 1;
   api.paging.v1alpha.PageInfo page_info = 2;
 }
 

@@ -32,8 +32,6 @@ import org.springframework.stereotype.Component
 @Component
 class ProcessingPlatformsService(
     config: ProcessingPlatformConfiguration,
-    private val globalTransformsService: GlobalTransformsService,
-    private val dataPolicyValidatorService: DataPolicyValidatorService,
 ) {
     final val platforms: Map<String, ProcessingPlatformClient>
 
@@ -174,9 +172,9 @@ class ProcessingPlatformsService(
         )
 
     fun getLineage(request: GetLineageRequest): GetLineageResponse {
-        return (platforms[request.platformId]
-                ?: throw processingPlatformNotFound(request.platformId))
-            .getLineage(request)
+        val platformClient =
+            (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
+        return platformClient.getLineage(request)
     }
 
     companion object {
