@@ -83,6 +83,7 @@ dependencies {
     implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.29.0"))
     implementation("com.google.cloud:google-cloud-bigquery")
     implementation("com.google.cloud:google-cloud-datacatalog")
+    implementation("com.google.cloud:google-cloud-datalineage")
 
     implementation("build.buf.gen:getstrm_pace_grpc_java:1.60.1.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.4.1.1.$generatedBufDependencyVersion")

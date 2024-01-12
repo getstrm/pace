@@ -53,4 +53,8 @@ class ProcessingPlatformsApi(
 
     override suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest) =
         processingPlatformsService.getBlueprintPolicy(request)
+
+    override suspend fun getLineage(request: GetLineageRequest): GetLineageResponse {
+        return processingPlatformsService.getLineage(request)
+    }
 }

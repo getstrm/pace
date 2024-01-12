@@ -5,6 +5,8 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database as ApiDatabase
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema as ApiSchema
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyResponse
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageResponse
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListDatabasesRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListGroupsRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListSchemasRequest
@@ -100,13 +102,18 @@ class ProcessingPlatformsService(
     suspend fun getBlueprintPolicy(request: GetBlueprintPolicyRequest): GetBlueprintPolicyResponse {
         val platformClient =
             platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
-        val table =
-            platformClient.getTable(
-                request.table.schema.database.id,
-                request.table.schema.id,
-                request.table.id
-            )
-        val blueprint = table.createBlueprint()
+        val blueprint =
+            if (request.fqn.isNotEmpty()) {
+                platformClient.createBlueprint(request.fqn)
+            } else {
+                val table =
+                    platformClient.getTable(
+                        request.table.schema.database.id,
+                        request.table.schema.id,
+                        request.table.id
+                    )
+                table.createBlueprint()
+            }
         return GetBlueprintPolicyResponse.newBuilder().setDataPolicy(blueprint).build()
     }
 
@@ -165,6 +172,12 @@ class ProcessingPlatformsService(
                 .apply { if (owner != null) setOwner(owner) }
                 .build()
         )
+
+    fun getLineage(request: GetLineageRequest): GetLineageResponse {
+        return (platforms[request.platformId]
+                ?: throw processingPlatformNotFound(request.platformId))
+            .getLineage(request)
+    }
 
     companion object {
         private const val PROCESSING_PLATFORM = "Processing Platform"

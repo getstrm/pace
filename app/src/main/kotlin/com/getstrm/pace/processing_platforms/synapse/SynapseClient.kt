@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.synapse
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SynapseConfig
 import com.getstrm.pace.exceptions.throwUnimplemented
@@ -103,10 +104,7 @@ class SynapseClient(
     }
 
     inner class SynapseDatabase(pp: ProcessingPlatformClient, id: String) :
-        ProcessingPlatformClient.Database(
-            pp,
-            id,
-        ) {
+        ProcessingPlatformClient.Database(pp, id, ProcessingPlatform.PlatformType.SYNAPSE) {
         override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
             throwUnimplemented("listSchemas on Synapse")
         }

@@ -50,6 +50,12 @@ service ProcessingPlatformsService {
           get: "/v1alpha/processing-platforms/{platform_id}/tables/{table_id}/blueprint-policy"
         };
     };
+
+    rpc GetLineage (GetLineageRequest) returns (GetLineageResponse) {
+      option (google.api.http) = {
+        get: "/v1alpha/processing-platforms/{platform_id}/tables/{fqn}/lineage"
+      };
+    }
 }
 
 message ListProcessingPlatformsRequest {
@@ -108,9 +114,20 @@ message ListGroupsResponse {
 message GetBlueprintPolicyRequest {
     string platform_id = 1 [(buf.validate.field).string = {min_len: 1}];
     entities.v1alpha.Table table = 2;
+    string fqn = 3;
 }
 
 message GetBlueprintPolicyResponse {
     entities.v1alpha.DataPolicy data_policy = 1;
     google.rpc.BadRequest.FieldViolation violation = 2;
+}
+
+message GetLineageRequest {
+  string platform_id = 1 [(buf.validate.field).string = {min_len: 1}];
+  string fqn = 3;
+}
+
+message GetLineageResponse {
+  repeated entities.v1alpha.Lineage upstream = 1;
+  repeated entities.v1alpha.Lineage downstream = 2;
 }
