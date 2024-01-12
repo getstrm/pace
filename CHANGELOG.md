@@ -1,3 +1,10 @@
+# [1.0.0-alpha.46](https://github.com/getstrm/pace/compare/v1.0.0-alpha.45...v1.0.0-alpha.46) (2024-01-12)
+
+
+### Features
+
+* **pace-111:** added lineage api ([#143](https://github.com/getstrm/pace/issues/143)) ([41adfa9](https://github.com/getstrm/pace/commit/41adfa9b6613a5c47af61821833a36ef2ce771ef))
+
 # [1.0.0-alpha.45](https://github.com/getstrm/pace/compare/v1.0.0-alpha.44...v1.0.0-alpha.45) (2024-01-05)
 
 
