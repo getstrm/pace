@@ -178,6 +178,10 @@ fun throwNotFound(id: String, type: String): Nothing {
 fun throwUnimplemented(what: String): Nothing {
     throw InternalException(
         InternalException.Code.INTERNAL,
-        DebugInfo.newBuilder().setDetail("$what is not implemented yet").build()
+        DebugInfo.newBuilder()
+            .setDetail(
+                "$what is not implemented yet. Create an issue on https://github.com/getstrm/pace if you need this"
+            )
+            .build()
     )
 }
