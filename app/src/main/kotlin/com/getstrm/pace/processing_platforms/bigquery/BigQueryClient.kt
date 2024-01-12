@@ -191,10 +191,13 @@ class BigQueryClient(
         val bqTable =
             bigQueryClient.getTable(fqn.stripBqPrefix().toTableId())
                 ?: throwNotFound(fqn, "BigQuery Table")
-        // TODO determine eu or us!
         val dataset = bigQueryClient.getDataset(bqTable.tableId.dataset)
-        val location = dataset.location
-        val parent = "projects/${config.projectId}/locations/$location"
+
+        // parent is a concept from the data-catalog/data-lineage api
+        // https://cloud.google.com/data-catalog/docs/reference/data-lineage/rest/v1/projects.locations/searchLinks
+        // it essentially defines the project and location where your data lives.
+        // location can be something continent wide
+        val parent = "projects/${config.projectId}/locations/${dataset.location.lowercase()}"
         val downstreamLinks =
             lineageClient
                 .searchLinks(
@@ -252,7 +255,7 @@ class BigQueryClient(
                         ?.stringValue
                         ?.let {
                             bigQueryClient.getJob(
-                                JobId.newBuilder().setJob(it).setLocation(location).build()
+                                JobId.newBuilder().setJob(it).setLocation(dataset.location).build()
                             )
                         }
                 job?.getConfiguration<QueryJobConfiguration>()?.query
