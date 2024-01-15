@@ -43,7 +43,7 @@ plugins {
     id("nu.studer.jooq")
     id("org.flywaydb.flyway")
     id("org.openapi.generator")
-    id("com.diffplug.spotless") version "6.23.3"
+    id("com.diffplug.spotless") version "6.24.0"
 }
 
 dependencies {
