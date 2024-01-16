@@ -128,6 +128,5 @@ message GetLineageRequest {
 }
 
 message GetLineageResponse {
-  repeated entities.v1alpha.Lineage upstream = 1;
-  repeated entities.v1alpha.Lineage downstream = 2;
+  entities.v1alpha.LineageSummary lineage_summary = 1;
 }

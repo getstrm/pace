@@ -45,7 +45,7 @@ abstract class ProcessingPlatformClient(
     abstract suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table
 
     /** return the up- and downstream tables of a table identified by its fully qualified name. */
-    open fun getLineage(request: GetLineageRequest): GetLineageResponse {
+    open suspend fun getLineage(request: GetLineageRequest): GetLineageResponse {
         throwUnimplemented("Lineage in platform ${config.type}")
     }
 

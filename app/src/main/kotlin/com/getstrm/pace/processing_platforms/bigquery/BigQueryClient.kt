@@ -1,7 +1,9 @@
 package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Lineage
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.BIGQUERY
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
@@ -179,11 +181,20 @@ class BigQueryClient(
                 ?: throwNotFound(fqn, "BigQuery Table")
         )
 
-    override fun getLineage(request: GetLineageRequest): GetLineageResponse {
+    override suspend fun getLineage(request: GetLineageRequest): GetLineageResponse {
         val (upstream, downstream) = buildLineageList(request.fqn.addBqPrefix())
         return GetLineageResponse.newBuilder()
-            .addAllUpstream(upstream)
-            .addAllDownstream(downstream)
+            .setLineageSummary(
+                LineageSummary.newBuilder()
+                    .setResourceRef(
+                        DataResourceRef.newBuilder()
+                            .setFqn(request.fqn)
+                            .setPlatform(apiProcessingPlatform)
+                            .build()
+                    )
+                    .addAllUpstream(upstream)
+                    .addAllDownstream(downstream)
+            )
             .build()
     }
 
@@ -266,13 +277,21 @@ class BigQueryClient(
             processesMap.mapValues { queryProcessMap[it.value] }
 
         return Pair(
-            upstreamLinks.map { makeLineage(queryMap[it.name], it.source.fullyQualifiedName) },
-            downstreamLinks.map { makeLineage(queryMap[it.name], it.target.fullyQualifiedName) }
+            upstreamLinks.map { lineageOf(queryMap[it.name], it.source.fullyQualifiedName) },
+            downstreamLinks.map { lineageOf(queryMap[it.name], it.target.fullyQualifiedName) }
         )
     }
 
-    private fun makeLineage(relation: String?, fqn: String): Lineage {
-        return Lineage.newBuilder().setRelation(relation ?: "unknown").setFqn(fqn).build()
+    private fun lineageOf(relation: String?, fqn: String): Lineage {
+        return Lineage.newBuilder()
+            .setRelation(relation ?: "unknown")
+            .setResourceRef(
+                DataResourceRef.newBuilder()
+                    .setFqn(fqn.stripBqPrefix())
+                    .setPlatform(apiProcessingPlatform)
+                    .build()
+            )
+            .build()
     }
 
     /** one BigQueryDatabase corresponds with one Gcloud project */
