@@ -68,6 +68,15 @@ dataPolicy:
       - userId
       type: INTEGER
 
+# get a datapolicy from a processing platform via its fully qualified name
+
+pace get data-policy \	
+	--processing-platform bigquery-dev    \
+	--blueprint \
+	--fqn=true  \
+	stream-machine-development.data_lineage_demo.total_green_trips_22_21
+
+...	
 
 # get a complete datapolicy (with rulesets) from the PACE database
 pace get data-policy --processing-platform bigquery-dev \
@@ -102,6 +111,7 @@ rule_sets:
   -b, --blueprint                    fetch a blueprint data policy from a catalog or a processing platform
   -c, --catalog string               id of catalog
   -d, --database string              database in the catalog
+      --fqn                          use argument as fqn
   -h, --help                         help for data-policy
   -p, --processing-platform string   id of processing platform
   -s, --schema string                schema in database on catalog

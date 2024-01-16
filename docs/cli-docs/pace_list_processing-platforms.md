@@ -32,7 +32,7 @@ pace list processing-platforms --output table
 
 ```
       --api-host string                         api host (default "localhost:50051")
-  -P, --page_size uint32                        the maximum number of records per page (default 10)
+  -P, --page-size uint32                        the maximum number of records per page (default 10)
   -S, --skip uint32                             the number of records that need to be skipped
       --telemetry-upload-interval-seconds int   Upload usage statistics every so often. Use -1 to disable (default 3600)
 ```
