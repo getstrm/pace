@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.46
+    version: 1.0.0-alpha.47
 paths:
     /data-policies:
         get:
@@ -346,7 +346,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
-    /v1alpha/data-policies/{dataPolicyId}/{platformId}/evaluate:
+    /v1alpha/data-policies/{data_policy_id}/{platform_id}/evaluate:
         post:
             tags:
                 - DataPoliciesService
@@ -355,12 +355,12 @@ paths:
                  and nested fields are not supported.
             operationId: DataPoliciesService_EvaluateDataPolicy
             parameters:
-                - name: dataPolicyId
+                - name: data_policy_id
                   in: path
                   required: true
                   schema:
                     type: string
-                - name: platformId
+                - name: platform_id
                   in: path
                   required: true
                   schema:
@@ -1087,6 +1087,13 @@ components:
             properties:
                 dataPolicy:
                     $ref: '#/components/schemas/DataPolicy'
+        DataPolicyRef:
+            type: object
+            properties:
+                platformId:
+                    type: string
+                dataPolicyId:
+                    type: string
         DataPolicy_Field:
             type: object
             properties:
@@ -1218,35 +1225,57 @@ components:
         EvaluateDataPolicyRequest:
             type: object
             properties:
-                dataPolicyId:
-                    type: string
-                platformId:
-                    type: string
-                fullEvaluation:
+                inlineDataPolicy:
+                    $ref: '#/components/schemas/DataPolicy'
+                dataPolicyRef:
+                    $ref: '#/components/schemas/DataPolicyRef'
+                principals:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/DataPolicy_Principal'
+                    description: |-
+                        Evaluate a data policy for these principals against a sample of data.
+                         If left empty, the policy will be evaluated against all principals.
+                         In order to evaluate the policy for a principal that does not occur in the policy, add a
+                         principal message without the `principal` field set. This will be treated as the `other` principal.
+                csvSample:
                     allOf:
-                        - $ref: '#/components/schemas/EvaluateDataPolicyRequest_FullEvaluation'
-                    description: Evaluate a complete data policy for all principals against a sample of data.
-        EvaluateDataPolicyRequest_FullEvaluation:
-            type: object
-            properties:
-                sampleCsv:
-                    type: string
+                        - $ref: '#/components/schemas/EvaluateDataPolicyRequest_CsvSample'
                     description: CSV-formatted sample data to evaluate the policy against. The first row must be a header row.
-        EvaluateDataPolicyResponse:
+        EvaluateDataPolicyRequest_CsvSample:
             type: object
             properties:
-                fullEvaluationResult:
-                    allOf:
-                        - $ref: '#/components/schemas/EvaluateDataPolicyResponse_FullEvaluationResult'
-                    description: The result of a full evaluation of a data policy against a sample of data.
-        EvaluateDataPolicyResponse_FullEvaluationResult:
+                csv:
+                    type: string
+                    description: The CSV-formatted sample data to evaluate the policy against. The first row must be a header row.
+        EvaluateDataPolicyResponse:
             type: object
             properties:
                 ruleSetResults:
                     type: array
                     items:
-                        $ref: '#/components/schemas/FullEvaluationResult_RuleSetResult'
+                        $ref: '#/components/schemas/EvaluateDataPolicyResponse_RuleSetResult'
                     description: The results of the evaluation, grouped by rule set.
+        EvaluateDataPolicyResponse_RuleSetResult:
+            type: object
+            properties:
+                target:
+                    allOf:
+                        - $ref: '#/components/schemas/DataPolicy_Target'
+                    description: The target of the evaluated rule set.
+                evaluationResults:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RuleSetResult_EvaluationResult'
+                    description: |-
+                        A result is returned for each principal specified in the rule set, as
+                         well as the case where there is no matching principal.
+        EvaluationResult_CsvEvaluation:
+            type: object
+            properties:
+                csv:
+                    type: string
+                    description: The result of the evaluation in CSV format, including headers.
         FieldTransform_Transform:
             type: object
             properties:
@@ -1311,20 +1340,6 @@ components:
                     items:
                         $ref: '#/components/schemas/RetentionFilter_Condition'
                     description: The last condition in the list must have 0 principals, as this acts as the default / else condition.
-        FullEvaluationResult_RuleSetResult:
-            type: object
-            properties:
-                target:
-                    allOf:
-                        - $ref: '#/components/schemas/DataPolicy_Target'
-                    description: The target of the evaluated rule set.
-                principalEvaluationResults:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/RuleSetResult_PrincipalEvaluationResult'
-                    description: |-
-                        A result is returned for each principal specified in the rule set, as
-                         well as the case where there is no matching principal.
         GenericFilter_Condition:
             type: object
             properties:
@@ -1596,15 +1611,16 @@ components:
                 days:
                     type: string
                     description: Number of days since the creation date.
-        RuleSetResult_PrincipalEvaluationResult:
+        RuleSetResult_EvaluationResult:
             type: object
             properties:
                 principal:
                     allOf:
                         - $ref: '#/components/schemas/DataPolicy_Principal'
                     description: The principal that was evaluated. If absent, this is the result for the case where there is no matching principal.
-                csv:
-                    type: string
+                csvEvaluation:
+                    allOf:
+                        - $ref: '#/components/schemas/EvaluationResult_CsvEvaluation'
                     description: The result of the evaluation in CSV format, including headers.
         RuleSet_FieldTransform:
             type: object

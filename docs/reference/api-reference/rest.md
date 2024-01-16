@@ -36,7 +36,7 @@
 [openapi.yaml](../../.gitbook/assets/openapi.yaml)
 {% endswagger %}
 
-{% swagger src="../../.gitbook/assets/openapi.yaml" path="/v1alpha/data-policies/{dataPolicyId}/{platformId}/evaluate" method="post" expanded="true" %}
+{% swagger src="../../.gitbook/assets/openapi.yaml" path="/v1alpha/data-policies/{data_policy_id}/{platform_id}/evaluate" method="post" expanded="true" %}
 [openapi.yaml](../../.gitbook/assets/openapi.yaml)
 {% endswagger %}
 
