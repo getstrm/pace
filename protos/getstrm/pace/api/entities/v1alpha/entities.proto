@@ -9,7 +9,7 @@ option go_package = "github.com/getstrm/pace/protos/api/entities;entities";
 option java_multiple_files = true;
 option java_package = "com.getstrm.pace.api.entities.v1alpha";
 
-message DataPolicyRef {
+message DataResourceRef {
   entities.v1alpha.ProcessingPlatform  platform = 1;
   string fqn = 2;
 }
@@ -332,11 +332,10 @@ message ProcessingPlatform {
 }
 
 message Lineage {
-  string fqn = 1;
+  DataResourceRef resource_ref = 1;
   string relation = 3;
   repeated Field field_relations = 4;
-  ProcessingPlatform platform = 5;
-  bool has_data_policy = 6;
+  bool notManagedByPace = 6;
   
   message Field {
     string source_attribute = 1;
@@ -345,10 +344,10 @@ message Lineage {
 }
 
 message LineageSummary {
+  // describes the data resource (table, view, ...)
+  DataResourceRef resource_ref = 1;
   // upstream is a source or parent resource
-  repeated Lineage upstream = 1;
+  repeated Lineage upstream = 2;
   // downstream is a target or child resource
-  repeated Lineage downstream = 2;
-  string fqn = 3;
-  ProcessingPlatform processing_platform = 4;
+  repeated Lineage downstream = 3;
 }

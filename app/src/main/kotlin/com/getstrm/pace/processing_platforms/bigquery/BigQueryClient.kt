@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Lineage
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.BIGQUERY
@@ -185,8 +186,12 @@ class BigQueryClient(
         return GetLineageResponse.newBuilder()
             .setLineageSummary(
                 LineageSummary.newBuilder()
-                    .setFqn(request.fqn)
-                    .setProcessingPlatform(apiProcessingPlatform)
+                    .setResourceRef(
+                        DataResourceRef.newBuilder()
+                            .setFqn(request.fqn)
+                            .setPlatform(apiProcessingPlatform)
+                            .build()
+                    )
                     .addAllUpstream(upstream)
                     .addAllDownstream(downstream)
             )
@@ -278,7 +283,15 @@ class BigQueryClient(
     }
 
     private fun makeLineage(relation: String?, fqn: String): Lineage {
-        return Lineage.newBuilder().setRelation(relation ?: "unknown").setFqn(fqn).build()
+        return Lineage.newBuilder()
+            .setRelation(relation ?: "unknown")
+            .setResourceRef(
+                DataResourceRef.newBuilder()
+                    .setFqn(fqn.stripBqPrefix())
+                    .setPlatform(apiProcessingPlatform)
+                    .build()
+            )
+            .build()
     }
 
     /** one BigQueryDatabase corresponds with one Gcloud project */

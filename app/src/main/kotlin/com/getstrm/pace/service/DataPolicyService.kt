@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ListDataPoliciesRequ
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ScanLineageRequest
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.UpsertDataPolicyRequest
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.getstrm.pace.dao.DataPolicyDao
@@ -75,20 +76,23 @@ class DataPolicyService(
     suspend fun determineLineageDataPolicies(summary: LineageSummary): LineageSummary {
         return with(summary.toBuilder()) {
             downstreamBuilderList.forEach {
-                it.setHasDataPolicy(hasDataPolicy(it.fqn, it.platform.id))
+                it.setNotManagedByPace(notManagedByPace(it.resourceRef))
             }
-            upstreamBuilderList.forEach {
-                it.setHasDataPolicy(hasDataPolicy(it.fqn, it.platform.id))
-            }
+            upstreamBuilderList.forEach { it.setNotManagedByPace(notManagedByPace(it.resourceRef)) }
             build()
         }
     }
 
-    fun hasDataPolicy(fqn: String, platformId: String) =
+    /**
+     * return true if a Data Resource is not managed by pace.
+     *
+     * FIXME https://github.com/getstrm/pace/issues/153 Should include views created by pace
+     */
+    fun notManagedByPace(ref: DataResourceRef) =
         try {
-            getLatestDataPolicy(fqn, platformId)
-            true
-        } catch (e: Exception) {
+            getLatestDataPolicy(ref.fqn, ref.platform.id)
             false
+        } catch (e: Exception) {
+            true
         }
 }
