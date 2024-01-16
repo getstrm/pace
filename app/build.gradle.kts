@@ -43,7 +43,7 @@ plugins {
     id("nu.studer.jooq")
     id("org.flywaydb.flyway")
     id("org.openapi.generator")
-    id("com.diffplug.spotless") version "6.23.3"
+    id("com.diffplug.spotless") version "6.24.0"
 }
 
 dependencies {
@@ -85,7 +85,7 @@ dependencies {
     implementation("com.google.cloud:google-cloud-datacatalog")
     implementation("com.google.cloud:google-cloud-datalineage")
 
-    implementation("build.buf.gen:getstrm_pace_grpc_java:1.60.1.1.$generatedBufDependencyVersion")
+    implementation("build.buf.gen:getstrm_pace_grpc_java:1.61.0.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.4.1.1.$generatedBufDependencyVersion")
     implementation(
         "build.buf.gen:getstrm_pace_protocolbuffers_java:25.2.0.1.$generatedBufDependencyVersion"
@@ -94,7 +94,7 @@ dependencies {
 
     implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
 
-    implementation("com.aallam.openai:openai-client:3.6.2")
+    implementation("com.aallam.openai:openai-client:3.6.3")
     implementation(platform("io.ktor:ktor-bom:2.3.7"))
     runtimeOnly("io.ktor:ktor-client-okhttp")
     implementation("io.ktor:ktor-client-logging")
