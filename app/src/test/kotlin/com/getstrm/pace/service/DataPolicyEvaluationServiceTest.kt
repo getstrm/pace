@@ -50,6 +50,34 @@ class DataPolicyEvaluationServiceTest {
     }
 
     @Test
+    fun `evaluate a basic policy with various transforms and a selection of principals`() {
+        // When
+        val request =
+            EvaluateDataPolicyRequest.newBuilder()
+                .setInlineDataPolicy(dataPolicy)
+                .setCsvSample(
+                    EvaluateDataPolicyRequest.CsvSample.newBuilder().setCsv(csvInput).build()
+                )
+                .addAllPrincipals(
+                    listOf("administrator".toPrincipal(), DataPolicy.Principal.getDefaultInstance())
+                )
+                .build()
+
+        val result = underTest.evaluate(request)
+
+        // Then
+        result.size shouldBe 1
+        result.first().target.fullname shouldBe "public.demo_view"
+        val resultsByPrincipal =
+            result.first().evaluationResultsList.associateBy { it.principal?.group }
+        resultsByPrincipal.size shouldBe 2
+        resultsByPrincipal["administrator"]!!.csvEvaluation.csv shouldBe administratorResult
+        resultsByPrincipal["administrator"]!!.principal shouldBe "administrator".toPrincipal()
+        resultsByPrincipal[""]!!.csvEvaluation.csv shouldBe fallbackResult
+        resultsByPrincipal[""]!!.hasPrincipal() shouldBe false
+    }
+
+    @Test
     fun `evaluate a policy with a retention filter`() {
         // Given
         val retentionCsvInput = generateRetentionCsvInput()
