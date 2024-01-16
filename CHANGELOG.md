@@ -1,3 +1,11 @@
+# [1.0.0-alpha.47](https://github.com/getstrm/pace/compare/v1.0.0-alpha.46...v1.0.0-alpha.47) (2024-01-16)
+
+
+### Features
+
+* **pace-103:** added many tables and schemas to data.sql ([#144](https://github.com/getstrm/pace/issues/144)) ([c3f2664](https://github.com/getstrm/pace/commit/c3f2664f70e04925652b2da3ca17161024e00722))
+* **pace-115:** allow arbitrary list of principals for data policy evaluation ([#152](https://github.com/getstrm/pace/issues/152)) ([9e581fd](https://github.com/getstrm/pace/commit/9e581fdc069a3f13f4ee6570fdf38d062731e26c))
+
 # [1.0.0-alpha.46](https://github.com/getstrm/pace/compare/v1.0.0-alpha.45...v1.0.0-alpha.46) (2024-01-12)
 
 
