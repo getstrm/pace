@@ -1,5 +1,6 @@
 package com.getstrm.pace.service
 
+import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.EvaluateDataPolicyRequest
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.toPrincipal
@@ -8,6 +9,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
+import io.mockk.mockk
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 import org.h2.jdbc.JdbcSQLSyntaxErrorException
@@ -15,29 +17,35 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 
 class DataPolicyEvaluationServiceTest {
-
-    private val underTest = DataPolicyEvaluationService()
+    private val dataPolicyServiceMock = mockk<DataPolicyService>()
+    private val underTest = DataPolicyEvaluationService(dataPolicyServiceMock)
 
     @Test
     fun `evaluate a basic policy with various transforms and principals`() {
         // When
-        val result = underTest.evaluatePolicy(dataPolicy, csvInput)
+        val request =
+            EvaluateDataPolicyRequest.newBuilder()
+                .setInlineDataPolicy(dataPolicy)
+                .setCsvSample(
+                    EvaluateDataPolicyRequest.CsvSample.newBuilder().setCsv(csvInput).build()
+                )
+                .build()
+
+        val result = underTest.evaluate(request)
 
         // Then
-        result.ruleSetResultsList.size shouldBe 1
-        result.ruleSetResultsList.first().target.fullname shouldBe "public.demo_view"
+        result.size shouldBe 1
+        result.first().target.fullname shouldBe "public.demo_view"
         val resultsByPrincipal =
-            result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
-                it.principal?.group
-            }
+            result.first().evaluationResultsList.associateBy { it.principal?.group }
         resultsByPrincipal.size shouldBe 4
-        resultsByPrincipal["administrator"]!!.csv shouldBe administratorResult
+        resultsByPrincipal["administrator"]!!.csvEvaluation.csv shouldBe administratorResult
         resultsByPrincipal["administrator"]!!.principal shouldBe "administrator".toPrincipal()
-        resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe fraudAndRiskResult
+        resultsByPrincipal["fraud_and_risk"]!!.csvEvaluation.csv shouldBe fraudAndRiskResult
         resultsByPrincipal["fraud_and_risk"]!!.principal shouldBe "fraud_and_risk".toPrincipal()
-        resultsByPrincipal["marketing"]!!.csv shouldBe marketingResult
+        resultsByPrincipal["marketing"]!!.csvEvaluation.csv shouldBe marketingResult
         resultsByPrincipal["marketing"]!!.principal shouldBe "marketing".toPrincipal()
-        resultsByPrincipal[""]!!.csv shouldBe fallbackResult
+        resultsByPrincipal[""]!!.csvEvaluation.csv shouldBe fallbackResult
         resultsByPrincipal[""]!!.hasPrincipal() shouldBe false
     }
 
@@ -45,17 +53,24 @@ class DataPolicyEvaluationServiceTest {
     fun `evaluate a policy with a retention filter`() {
         // Given
         val retentionCsvInput = generateRetentionCsvInput()
+        val request =
+            EvaluateDataPolicyRequest.newBuilder()
+                .setInlineDataPolicy(retentionPolicy)
+                .setCsvSample(
+                    EvaluateDataPolicyRequest.CsvSample.newBuilder()
+                        .setCsv(retentionCsvInput)
+                        .build()
+                )
+                .build()
 
         // When
-        val result = underTest.evaluatePolicy(retentionPolicy, retentionCsvInput)
+        val result = underTest.evaluate(request)
 
         // Then
-        result.ruleSetResultsList.size shouldBe 1
-        result.ruleSetResultsList.first().target.fullname shouldBe "public.retention_view"
+        result.size shouldBe 1
+        result.first().target.fullname shouldBe "public.retention_view"
         val resultsByPrincipal =
-            result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
-                it.principal?.group
-            }
+            result.first().evaluationResultsList.associateBy { it.principal?.group }
         resultsByPrincipal.size shouldBe 3
         fun expectedResult(maxDays: Int) =
             "transactionid,ts\n" +
@@ -64,11 +79,11 @@ class DataPolicyEvaluationServiceTest {
                     .drop(1)
                     .filter { it.split(",").first().toInt() < maxDays }
                     .joinToString("\n", postfix = "\n")
-        resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe retentionCsvInput + "\n"
+        resultsByPrincipal["fraud_and_risk"]!!.csvEvaluation.csv shouldBe retentionCsvInput + "\n"
         resultsByPrincipal["fraud_and_risk"]!!.principal shouldBe "fraud_and_risk".toPrincipal()
-        resultsByPrincipal["marketing"]!!.csv shouldBe expectedResult(10)
+        resultsByPrincipal["marketing"]!!.csvEvaluation.csv shouldBe expectedResult(10)
         resultsByPrincipal["marketing"]!!.principal shouldBe "marketing".toPrincipal()
-        resultsByPrincipal[""]!!.csv shouldBe expectedResult(5)
+        resultsByPrincipal[""]!!.csvEvaluation.csv shouldBe expectedResult(5)
         resultsByPrincipal[""]!!.hasPrincipal() shouldBe false
     }
 
@@ -83,19 +98,23 @@ class DataPolicyEvaluationServiceTest {
             """
                 .trimIndent()
 
+        val request =
+            EvaluateDataPolicyRequest.newBuilder()
+                .setInlineDataPolicy(retentionPolicy)
+                .setCsvSample(EvaluateDataPolicyRequest.CsvSample.newBuilder().setCsv(csv).build())
+                .build()
+
         // When
-        val result = underTest.evaluatePolicy(retentionPolicy, csv)
+        val result = underTest.evaluate(request)
 
         // Then
-        result.ruleSetResultsList.size shouldBe 1
-        result.ruleSetResultsList.first().target.fullname shouldBe "public.retention_view"
+        result.size shouldBe 1
+        result.first().target.fullname shouldBe "public.retention_view"
         val resultsByPrincipal =
-            result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
-                it.principal?.group
-            }
+            result.first().evaluationResultsList.associateBy { it.principal?.group }
         resultsByPrincipal.size shouldBe 3
         // Identity transforms preserve the null values inserted due to mismatching data types.
-        resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe
+        resultsByPrincipal["fraud_and_risk"]!!.csvEvaluation.csv shouldBe
             """
             transactionid,ts
             ,
@@ -104,9 +123,9 @@ class DataPolicyEvaluationServiceTest {
             """
                 .trimIndent()
         resultsByPrincipal["fraud_and_risk"]!!.principal shouldBe "fraud_and_risk".toPrincipal()
-        resultsByPrincipal["marketing"]!!.csv shouldBe "transactionid,ts\n"
+        resultsByPrincipal["marketing"]!!.csvEvaluation.csv shouldBe "transactionid,ts\n"
         resultsByPrincipal["marketing"]!!.principal shouldBe "marketing".toPrincipal()
-        resultsByPrincipal[""]!!.csv shouldBe "transactionid,ts\n"
+        resultsByPrincipal[""]!!.csvEvaluation.csv shouldBe "transactionid,ts\n"
         resultsByPrincipal[""]!!.hasPrincipal() shouldBe false
     }
 
@@ -120,22 +139,25 @@ class DataPolicyEvaluationServiceTest {
             2,2021-01-02T00:00:00Z
             """
                 .trimIndent()
+        val request =
+            EvaluateDataPolicyRequest.newBuilder()
+                .setInlineDataPolicy(retentionPolicy)
+                .setCsvSample(EvaluateDataPolicyRequest.CsvSample.newBuilder().setCsv(csv).build())
+                .build()
 
         // When
-        val result = underTest.evaluatePolicy(retentionPolicy, csv)
+        val result = underTest.evaluate(request)
 
         // Then
-        result.ruleSetResultsList.size shouldBe 1
+        result.size shouldBe 1
         val resultsByPrincipal =
-            result.ruleSetResultsList.first().principalEvaluationResultsList.associateBy {
-                it.principal?.group
-            }
+            result.first().evaluationResultsList.associateBy { it.principal?.group }
         resultsByPrincipal.size shouldBe 3
-        resultsByPrincipal["fraud_and_risk"]!!.csv shouldBe "transactionid,ts\n"
+        resultsByPrincipal["fraud_and_risk"]!!.csvEvaluation.csv shouldBe "transactionid,ts\n"
         resultsByPrincipal["fraud_and_risk"]!!.principal shouldBe "fraud_and_risk".toPrincipal()
-        resultsByPrincipal["marketing"]!!.csv shouldBe "transactionid,ts\n"
+        resultsByPrincipal["marketing"]!!.csvEvaluation.csv shouldBe "transactionid,ts\n"
         resultsByPrincipal["marketing"]!!.principal shouldBe "marketing".toPrincipal()
-        resultsByPrincipal[""]!!.csv shouldBe "transactionid,ts\n"
+        resultsByPrincipal[""]!!.csvEvaluation.csv shouldBe "transactionid,ts\n"
         resultsByPrincipal[""]!!.hasPrincipal() shouldBe false
     }
 
@@ -143,9 +165,14 @@ class DataPolicyEvaluationServiceTest {
     fun `evaluating a policy with unsupported sql`() {
         // Given
         val csv = "transactionid\n1\n2\n"
+        val request =
+            EvaluateDataPolicyRequest.newBuilder()
+                .setInlineDataPolicy(incompatiblePolicy)
+                .setCsvSample(EvaluateDataPolicyRequest.CsvSample.newBuilder().setCsv(csv).build())
+                .build()
 
         // Then
-        shouldThrow<InternalException> { underTest.evaluatePolicy(incompatiblePolicy, csv) }
+        shouldThrow<InternalException> { underTest.evaluate(request) }
             .apply {
                 code shouldBe InternalException.Code.UNKNOWN
                 cause should beInstanceOf<JdbcSQLSyntaxErrorException>()
