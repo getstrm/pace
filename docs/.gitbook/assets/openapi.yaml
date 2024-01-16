@@ -118,6 +118,13 @@ components:
         dataPolicy:
           $ref: '#/components/schemas/DataPolicy'
       type: object
+    DataPolicyRef:
+      properties:
+        dataPolicyId:
+          type: string
+        platformId:
+          type: string
+      type: object
     DataPolicy_Field:
       properties:
         nameParts:
@@ -256,38 +263,58 @@ components:
       type: object
     EvaluateDataPolicyRequest:
       properties:
-        dataPolicyId:
-          type: string
-        fullEvaluation:
+        csvSample:
           allOf:
-          - $ref: '#/components/schemas/EvaluateDataPolicyRequest_FullEvaluation'
-          description: Evaluate a complete data policy for all principals against
-            a sample of data.
-        platformId:
-          type: string
-      type: object
-    EvaluateDataPolicyRequest_FullEvaluation:
-      properties:
-        sampleCsv:
+          - $ref: '#/components/schemas/EvaluateDataPolicyRequest_CsvSample'
           description: CSV-formatted sample data to evaluate the policy against. The
             first row must be a header row.
+        dataPolicyRef:
+          $ref: '#/components/schemas/DataPolicyRef'
+        inlineDataPolicy:
+          $ref: '#/components/schemas/DataPolicy'
+        principals:
+          description: "Evaluate a data policy for these principals against a sample\
+            \ of data.\n If left empty, the policy will be evaluated against all principals.\n\
+            \ In order to evaluate the policy for a principal that does not occur\
+            \ in the policy, add a\n principal message without the `principal` field\
+            \ set. This will be treated as the `other` principal."
+          items:
+            $ref: '#/components/schemas/DataPolicy_Principal'
+          type: array
+      type: object
+    EvaluateDataPolicyRequest_CsvSample:
+      properties:
+        csv:
+          description: The CSV-formatted sample data to evaluate the policy against.
+            The first row must be a header row.
           type: string
       type: object
     EvaluateDataPolicyResponse:
       properties:
-        fullEvaluationResult:
-          allOf:
-          - $ref: '#/components/schemas/EvaluateDataPolicyResponse_FullEvaluationResult'
-          description: The result of a full evaluation of a data policy against a
-            sample of data.
-      type: object
-    EvaluateDataPolicyResponse_FullEvaluationResult:
-      properties:
         ruleSetResults:
           description: The results of the evaluation, grouped by rule set.
           items:
-            $ref: '#/components/schemas/FullEvaluationResult_RuleSetResult'
+            $ref: '#/components/schemas/EvaluateDataPolicyResponse_RuleSetResult'
           type: array
+      type: object
+    EvaluateDataPolicyResponse_RuleSetResult:
+      properties:
+        evaluationResults:
+          description: "A result is returned for each principal specified in the rule\
+            \ set, as\n well as the case where there is no matching principal."
+          items:
+            $ref: '#/components/schemas/RuleSetResult_EvaluationResult'
+          type: array
+        target:
+          allOf:
+          - $ref: '#/components/schemas/DataPolicy_Target'
+          description: The target of the evaluated rule set.
+      type: object
+    EvaluationResult_CsvEvaluation:
+      properties:
+        csv:
+          description: The result of the evaluation in CSV format, including headers.
+          type: string
       type: object
     FieldTransform_Transform:
       properties:
@@ -360,19 +387,6 @@ components:
           allOf:
           - $ref: '#/components/schemas/DataPolicy_Field'
           description: The field of type SQL date with timestamp.
-      type: object
-    FullEvaluationResult_RuleSetResult:
-      properties:
-        principalEvaluationResults:
-          description: "A result is returned for each principal specified in the rule\
-            \ set, as\n well as the case where there is no matching principal."
-          items:
-            $ref: '#/components/schemas/RuleSetResult_PrincipalEvaluationResult'
-          type: array
-        target:
-          allOf:
-          - $ref: '#/components/schemas/DataPolicy_Target'
-          description: The target of the evaluated rule set.
       type: object
     GenericFilter_Condition:
       properties:
@@ -660,11 +674,12 @@ components:
           description: Number of days since the creation date.
           type: string
       type: object
-    RuleSetResult_PrincipalEvaluationResult:
+    RuleSetResult_EvaluationResult:
       properties:
-        csv:
+        csvEvaluation:
+          allOf:
+          - $ref: '#/components/schemas/EvaluationResult_CsvEvaluation'
           description: The result of the evaluation in CSV format, including headers.
-          type: string
         principal:
           allOf:
           - $ref: '#/components/schemas/DataPolicy_Principal'
@@ -875,7 +890,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.46
+  version: 1.0.0-alpha.47
 openapi: 3.0.3
 paths:
   /data-policies:
@@ -1213,7 +1228,7 @@ paths:
       summary: ApplyDataPolicy
       tags:
       - DataPoliciesService
-  /v1alpha/data-policies/{dataPolicyId}/{platformId}/evaluate:
+  /v1alpha/data-policies/{data_policy_id}/{platform_id}/evaluate:
     post:
       description: "Evaluates a previously upserted DataPolicy against a provided\
         \ data sample. Platform-specific data types, transforms\n and nested fields\
@@ -1221,12 +1236,12 @@ paths:
       operationId: DataPoliciesService_EvaluateDataPolicy
       parameters:
       - in: path
-        name: dataPolicyId
+        name: data_policy_id
         required: true
         schema:
           type: string
       - in: path
-        name: platformId
+        name: platform_id
         required: true
         schema:
           type: string

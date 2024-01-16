@@ -356,3 +356,8 @@ message LineageSummary {
   // downstream is a target or child resource
   repeated Lineage downstream = 3;
 }
+
+message DataPolicyRef {
+  string platform_id = 1 [(buf.validate.field).string.min_len = 1];
+  string data_policy_id = 2 [(buf.validate.field).string.min_len = 1];
+}

@@ -1,6 +1,6 @@
 ## pace evaluate data-policy
 
-Evaluate an existing data policy by applying it to sample data provided in a csv file
+Evaluate a data policy by applying it to sample data provided in a csv file
 
 ### Synopsis
 
@@ -11,7 +11,7 @@ A comma should be used as the delimiter.
 Currently, only standard SQL data types are supported. For platform-specific transforms, test on the platform itself.
 
 ```
-pace evaluate data-policy (policy-id) [flags]
+pace evaluate data-policy [flags]
 ```
 
 ### Examples
@@ -55,8 +55,11 @@ All other principals
 ### Options
 
 ```
+      --data-policy-file string      path to a data policy file to evaluate on sample data, must be a yaml or json representation of a data policy
+      --data-policy-id string        an id of an existing data policy to evaluate on sample data
   -h, --help                         help for data-policy
   -o, --output string                output formats [table, yaml, json, json-raw] (default "table")
+      --principals other             comma separated list of principals to evaluate the data policy for, if unspecified, all principals will be evaluated. For example, --principals user1,user2. If you want to evaluate the other / `fallback` principal, use value `null` / `other` or `fallback`, for example --principals null
   -p, --processing-platform string   id of processing platform
       --sample-data string           path to a csv file containing sample data to evaluate a data policy
 ```

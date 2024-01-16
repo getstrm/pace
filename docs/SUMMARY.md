@@ -70,6 +70,7 @@
     * [get](cli-docs/pace\_get.md)
       * [data-policy](cli-docs/pace\_get\_data-policy.md)
       * [global-transform](cli-docs/pace\_get\_global-transform.md)
+      * [lineage](cli-docs/pace\_get\_lineage.md)
     * [invoke](cli-docs/pace\_invoke.md)
       * [plugin](cli-docs/pace\_invoke\_plugin.md)
     * [list](cli-docs/pace\_list.md)

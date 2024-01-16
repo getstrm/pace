@@ -10,7 +10,7 @@ return 0 or more entities of a certain type
 
 ```
   -h, --help               help for list
-  -P, --page_size uint32   the maximum number of records per page (default 10)
+  -P, --page-size uint32   the maximum number of records per page (default 10)
   -S, --skip uint32        the number of records that need to be skipped
 ```
 

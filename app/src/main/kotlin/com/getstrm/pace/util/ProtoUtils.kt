@@ -67,8 +67,14 @@ fun GeneratedMessageV3.toJsonWithDefaults(): String =
  * Convert a Proto Message to a YAML string, and include default values (Proto default values are
  * not included by default)
  */
-fun GeneratedMessageV3.toYaml(): String =
-    YAML_MAPPER.writeValueAsString(JSON_MAPPER.readTree(toJsonWithDefaults()))
+fun GeneratedMessageV3.toYaml(withDocStartMarker: Boolean = true): String =
+    if (withDocStartMarker) {
+        YAML_MAPPER.writeValueAsString(JSON_MAPPER.readTree(toJsonWithDefaults()))
+    } else {
+        YAML_MAPPER_NO_DOC_START_MARKER.writeValueAsString(
+            JSON_MAPPER.readTree(toJsonWithDefaults())
+        )
+    }
 
 /** Validate the message using the Protovalidate options that were configured for this message. */
 fun Message.validate() {

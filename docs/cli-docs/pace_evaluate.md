@@ -23,5 +23,5 @@ Evaluates an existing specification, such as a data policy
 ### SEE ALSO
 
 * [pace](pace.md)	 - PACE CLI dev
-* [pace evaluate data-policy](pace_evaluate_data-policy.md)	 - Evaluate an existing data policy by applying it to sample data provided in a csv file
+* [pace evaluate data-policy](pace_evaluate_data-policy.md)	 - Evaluate a data policy by applying it to sample data provided in a csv file
 
