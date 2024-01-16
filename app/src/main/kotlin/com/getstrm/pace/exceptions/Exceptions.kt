@@ -185,3 +185,14 @@ fun throwUnimplemented(what: String): Nothing {
             .build()
     )
 }
+
+fun internalExceptionOneOfNotProvided(): InternalException {
+    return InternalException(
+        InternalException.Code.INTERNAL,
+        DebugInfo.newBuilder()
+            .setDetail(
+                "oneof field not provided, this should not happen as protovalidate catches this."
+            )
+            .build()
+    )
+}

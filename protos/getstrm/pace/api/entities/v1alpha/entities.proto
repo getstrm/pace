@@ -334,3 +334,8 @@ message Lineage {
     string target_attribute = 2;
   }
 }
+
+message DataPolicyRef {
+  string platform_id = 1 [(buf.validate.field).string.min_len = 1];
+  string data_policy_id = 2 [(buf.validate.field).string.min_len = 1];
+}

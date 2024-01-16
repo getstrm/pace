@@ -1,5 +1,5 @@
 .PHONY: clean-common-protos, buf-create-descriptor-binpb, run-grpc-proxy, run-docker-local \
-    json-schema integration-test copy-json-schema-to-resources download-odd-oas
+    json-schema integration-test copy-json-schema-to-resources download-odd-oas start-pace-prerequisites stop-pace-prerequisites
 
 SHELL := /bin/bash
 
@@ -50,6 +50,13 @@ integration-test:
 	@ chmod go-rw integration-test/pgpass
 	@ make -C integration-test clean pace all
 
-
 download-odd-oas:
 	${MAKE} -C app/src/main/resources/data-catalogs/open-data-discovery/
+
+start-pace-prerequisites: stop-pace-prerequisites
+	@ docker rm -f postgres_pace
+	@ docker rm -f postgres_processing_platform
+	@ docker-compose -f scripts/dev-prerequisites/docker-compose-prerequisites.yaml up --renew-anon-volumes --force-recreate --remove-orphans
+
+stop-pace-prerequisites:
+	@ docker-compose -f scripts/dev-prerequisites/docker-compose-prerequisites.yaml down --remove-orphans

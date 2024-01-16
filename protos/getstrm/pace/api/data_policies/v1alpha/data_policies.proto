@@ -80,43 +80,53 @@ message ListDataPoliciesResponse {
 }
 
 message EvaluateDataPolicyRequest {
-  string data_policy_id = 1 [(buf.validate.field).string.min_len = 1];
-  string platform_id = 2 [(buf.validate.field).string.min_len = 1];
-
-  oneof evaluation {
-    // Evaluate a complete data policy for all principals against a sample of data.
-    FullEvaluation full_evaluation = 3;
+  oneof data_policy {
+    option (buf.validate.oneof).required = true;
+    pace.api.entities.v1alpha.DataPolicy inline_data_policy = 1;
+    entities.v1alpha.DataPolicyRef data_policy_ref = 2;
   }
 
-  message FullEvaluation {
+  // Evaluate a data policy for these principals against a sample of data.
+  // If left empty, the policy will be evaluated against all principals.
+  // In order to evaluate the policy for a principal that does not occur in the policy, add a
+  // principal message without the `principal` field set. This will be treated as the `other` principal.
+  repeated entities.v1alpha.DataPolicy.Principal principals = 3;
+
+  oneof sample_data {
+    option (buf.validate.oneof).required = true;
     // CSV-formatted sample data to evaluate the policy against. The first row must be a header row.
-    string sample_csv = 2;
+    CsvSample csv_sample = 4;
+  }
+
+  message CsvSample {
+    // The CSV-formatted sample data to evaluate the policy against. The first row must be a header row.
+    string csv = 1;
   }
 }
 
 message EvaluateDataPolicyResponse {
+  // The results of the evaluation, grouped by rule set.
+  repeated RuleSetResult rule_set_results = 1;
 
-  oneof evaluation_result {
-    // The result of a full evaluation of a data policy against a sample of data.
-    FullEvaluationResult full_evaluation_result = 1;
-  }
+  message RuleSetResult {
+    // The target of the evaluated rule set.
+    entities.v1alpha.DataPolicy.Target target = 1;
+    // A result is returned for each principal specified in the rule set, as
+    // well as the case where there is no matching principal.
+    repeated EvaluationResult evaluation_results = 2;
 
-  message FullEvaluationResult {
-    // The results of the evaluation, grouped by rule set.
-    repeated RuleSetResult rule_set_results = 1;
-
-    message RuleSetResult {
-      // The target of the evaluated rule set.
-      entities.v1alpha.DataPolicy.Target target = 1;
-      // A result is returned for each principal specified in the rule set, as
-      // well as the case where there is no matching principal.
-      repeated PrincipalEvaluationResult principal_evaluation_results = 2;
-
-      message PrincipalEvaluationResult {
-        // The principal that was evaluated. If absent, this is the result for the case where there is no matching principal.
-        optional entities.v1alpha.DataPolicy.Principal principal = 1;
+    message EvaluationResult {
+      // The principal that was evaluated. If absent, this is the result for the case where there is no matching principal.
+      optional entities.v1alpha.DataPolicy.Principal principal = 1;
+      // The result of the evaluation.
+      oneof evaluation {
         // The result of the evaluation in CSV format, including headers.
-        string csv = 2;
+        CsvEvaluation csv_evaluation = 2;
+      }
+
+      message CsvEvaluation {
+        // The result of the evaluation in CSV format, including headers.
+        string csv = 1;
       }
     }
   }
