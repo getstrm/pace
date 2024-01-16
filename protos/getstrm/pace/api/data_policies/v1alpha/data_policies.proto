@@ -41,7 +41,7 @@ service DataPoliciesService {
   }
   
   rpc ScanLineage(ScanLineageRequest) returns (ScanLineageResponse) {
-    option (google.api.http) = {get: "/lineage"};
+    option (google.api.http) = {get: "/v1alpha/data-policies/lineage"};
   }
 }
 

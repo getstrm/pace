@@ -9,6 +9,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.getstrm.pace.dao.DataPolicyDao
+import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
@@ -88,7 +89,8 @@ class DataPolicyService(
                                     .build()
                             )
                             .lineageSummary
-                    } catch (e: Exception) {
+                    } catch (e: InternalException) {
+                        // FIXME implement other platforms than BigQuery
                         LineageSummary.getDefaultInstance()
                     }
                 )
@@ -111,11 +113,11 @@ class DataPolicyService(
      *
      * FIXME https://github.com/getstrm/pace/issues/153 Should include views created by pace
      */
-    suspend fun notManagedByPace(ref: DataResourceRef) =
+    private suspend fun notManagedByPace(ref: DataResourceRef) =
         try {
             getLatestDataPolicy(ref.fqn, ref.platform.id)
             false
-        } catch (e: Exception) {
-            true
+        } catch (e: ResourceException) {
+            if (e.code == ResourceException.Code.NOT_FOUND) true else throw e
         }
 }

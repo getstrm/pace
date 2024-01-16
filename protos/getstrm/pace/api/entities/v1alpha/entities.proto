@@ -10,7 +10,12 @@ option java_multiple_files = true;
 option java_package = "com.getstrm.pace.api.entities.v1alpha";
 
 message DataResourceRef {
-  entities.v1alpha.ProcessingPlatform  platform = 1;
+  // defines the processing platform of the data resource.
+  // a data resource is something that holds data of a defined structure.
+  // SQL Tables and Views are good examples, but this is in essence open-ended,
+  // like for instance a Kafka topic with an Avro Schema.
+  entities.v1alpha.ProcessingPlatform platform = 1;
+  // the Fully Qualified Name of the data resource on the platform.
   string fqn = 2;
 }
 
@@ -335,7 +340,7 @@ message Lineage {
   DataResourceRef resource_ref = 1;
   string relation = 3;
   repeated Field field_relations = 4;
-  bool notManagedByPace = 6;
+  bool not_managed_by_pace = 6;
   
   message Field {
     string source_attribute = 1;

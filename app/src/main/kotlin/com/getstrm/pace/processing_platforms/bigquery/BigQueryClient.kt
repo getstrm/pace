@@ -277,12 +277,12 @@ class BigQueryClient(
             processesMap.mapValues { queryProcessMap[it.value] }
 
         return Pair(
-            upstreamLinks.map { makeLineage(queryMap[it.name], it.source.fullyQualifiedName) },
-            downstreamLinks.map { makeLineage(queryMap[it.name], it.target.fullyQualifiedName) }
+            upstreamLinks.map { lineageOf(queryMap[it.name], it.source.fullyQualifiedName) },
+            downstreamLinks.map { lineageOf(queryMap[it.name], it.target.fullyQualifiedName) }
         )
     }
 
-    private fun makeLineage(relation: String?, fqn: String): Lineage {
+    private fun lineageOf(relation: String?, fqn: String): Lineage {
         return Lineage.newBuilder()
             .setRelation(relation ?: "unknown")
             .setResourceRef(
