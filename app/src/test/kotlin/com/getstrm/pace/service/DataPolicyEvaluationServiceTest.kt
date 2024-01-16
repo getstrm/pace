@@ -2,9 +2,11 @@ package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.EvaluateDataPolicyRequest
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.toPrincipal
 import com.getstrm.pace.util.toProto
+import com.google.rpc.BadRequest
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -15,6 +17,7 @@ import java.time.temporal.ChronoUnit
 import org.h2.jdbc.JdbcSQLSyntaxErrorException
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class DataPolicyEvaluationServiceTest {
     private val dataPolicyServiceMock = mockk<DataPolicyService>()
@@ -75,6 +78,35 @@ class DataPolicyEvaluationServiceTest {
         resultsByPrincipal["administrator"]!!.principal shouldBe "administrator".toPrincipal()
         resultsByPrincipal[""]!!.csvEvaluation.csv shouldBe fallbackResult
         resultsByPrincipal[""]!!.hasPrincipal() shouldBe false
+    }
+
+    @Test
+    fun `evaluate a basic policy with various transforms and a non existent principal`() {
+        // When
+        val request =
+            EvaluateDataPolicyRequest.newBuilder()
+                .setInlineDataPolicy(dataPolicy)
+                .setCsvSample(
+                    EvaluateDataPolicyRequest.CsvSample.newBuilder().setCsv(csvInput).build()
+                )
+                .addAllPrincipals(listOf("does-not-exist".toPrincipal()))
+                .build()
+
+        val result = assertThrows<BadRequestException> { underTest.evaluate(request) }
+
+        // Then
+        result.code shouldBe BadRequestException.Code.INVALID_ARGUMENT
+        result.badRequest shouldBe
+            BadRequest.newBuilder()
+                .addFieldViolations(
+                    BadRequest.FieldViolation.newBuilder()
+                        .setField("principals")
+                        .setDescription(
+                            "One or more principals provided do not exist in a rule set. The rule set contains [group: \"fraud_and_risk\",group: \"administrator\",group: \"marketing\"]. Provided principals [group: \"does-not-exist\"]."
+                        )
+                        .build()
+                )
+                .build()
     }
 
     @Test

@@ -4,13 +4,16 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageInfo
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import kotlin.math.min
 import org.jooq.*
 
-internal val YAML_MAPPER = ObjectMapper(YAMLFactory())
-internal val JSON_MAPPER = ObjectMapper()
+internal val YAML_MAPPER = YAMLMapper()
+internal val YAML_MAPPER_NO_DOC_START_MARKER =
+    YAMLMapper().apply { configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false) }
+internal val JSON_MAPPER = JsonMapper()
 
 fun String.yamlToJson(shouldThrow: Boolean = false): String? {
     return try {

@@ -6,11 +6,14 @@ import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.EvaluateDataPolicyRe
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.EvaluateDataPolicyResponse.RuleSetResult.EvaluationResult.CsvEvaluation
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
+import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.internalExceptionOneOfNotProvided
 import com.getstrm.pace.processing_platforms.h2.H2Client
 import com.getstrm.pace.processing_platforms.h2.H2ViewGenerator
+import com.getstrm.pace.util.toYaml
 import com.getstrm.pace.util.uniquePrincipals
+import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
 import org.h2.jdbc.JdbcSQLSyntaxErrorException
 import org.jooq.CSVFormat
@@ -82,10 +85,30 @@ class DataPolicyEvaluationService(
         h2Client: H2Client,
         principals: List<Principal>
     ): List<EvaluationResult> {
+        val uniquePrincipals = ruleSet.uniquePrincipals()
+
         val principalsToEvaluate =
             if (principals.isEmpty()) {
-                ruleSet.uniquePrincipals() + null
+                uniquePrincipals + null
             } else {
+                val allPrincipalsExceptOther = principals - Principal.getDefaultInstance()
+
+                if (!uniquePrincipals.containsAll(allPrincipalsExceptOther)) {
+                    throw BadRequestException(
+                        BadRequestException.Code.INVALID_ARGUMENT,
+                        BadRequest.newBuilder()
+                            .addFieldViolations(
+                                BadRequest.FieldViolation.newBuilder()
+                                    .setField("principals")
+                                    .setDescription(
+                                        "One or more principals provided do not exist in a rule set. The rule set contains [${uniquePrincipals.commaSeparated()}]. Provided principals [${principals.commaSeparated()}]."
+                                    )
+                                    .build()
+                            )
+                            .build()
+                    )
+                }
+
                 principals.mapTo(mutableSetOf()) {
                     when (it.principalCase) {
                         Principal.PrincipalCase.GROUP -> it
@@ -116,4 +139,7 @@ class DataPolicyEvaluationService(
             }
         return results
     }
+
+    private fun Collection<Principal>.commaSeparated(): String =
+        joinToString(",") { it.toYaml(false).replace("\n", "") }
 }
