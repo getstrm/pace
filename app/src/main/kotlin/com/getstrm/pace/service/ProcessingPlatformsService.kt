@@ -171,7 +171,7 @@ class ProcessingPlatformsService(
                 .build()
         )
 
-    fun getLineage(request: GetLineageRequest): GetLineageResponse {
+    suspend fun getLineage(request: GetLineageRequest): GetLineageResponse {
         val platformClient =
             (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
         return platformClient.getLineage(request)

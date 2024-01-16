@@ -68,8 +68,10 @@ class DataPoliciesApi(
     }
 
     override suspend fun scanLineage(request: ScanLineageRequest): ScanLineageResponse {
+        val lineage = dataPolicyService.scanLineage(request)
         return ScanLineageResponse.newBuilder()
-            .addAllLineageSummaries(dataPolicyService.scanLineage(request))
+            .addAllLineageSummaries(lineage.data)
+            .setPageInfo(lineage.pageInfo)
             .build()
     }
 }

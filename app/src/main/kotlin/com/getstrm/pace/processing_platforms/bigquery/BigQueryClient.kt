@@ -181,7 +181,7 @@ class BigQueryClient(
                 ?: throwNotFound(fqn, "BigQuery Table")
         )
 
-    override fun getLineage(request: GetLineageRequest): GetLineageResponse {
+    override suspend fun getLineage(request: GetLineageRequest): GetLineageResponse {
         val (upstream, downstream) = buildLineageList(request.fqn.addBqPrefix())
         return GetLineageResponse.newBuilder()
             .setLineageSummary(

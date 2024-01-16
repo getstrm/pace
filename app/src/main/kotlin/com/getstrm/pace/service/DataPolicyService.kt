@@ -6,12 +6,14 @@ import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.UpsertDataPolicyRequ
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
+import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.getstrm.pace.dao.DataPolicyDao
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
 import com.getstrm.pace.util.toApiDataPolicy
+import com.getstrm.pace.util.withPageInfo
 import com.google.rpc.ResourceInfo
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -63,14 +65,35 @@ class DataPolicyService(
                     .build()
             )
 
-    suspend fun scanLineage(request: ScanLineageRequest): List<LineageSummary> {
+    suspend fun scanLineage(request: ScanLineageRequest): PagedCollection<LineageSummary> {
         val policies =
             listDataPolicies(
                 ListDataPoliciesRequest.newBuilder()
                     .setPageParameters(request.pageParameters)
                     .build()
             )
-        TODO()
+
+        // policies.map triggers this error
+        // https://stackoverflow.com/questions/57329658/getting-suspension-functions-can-be-called-only-within-coroutine-body-when-cal
+        // and I can't figure out to fix the utility function PagedCollection.map
+        val lineageSummaries =
+            policies.data.map { policy ->
+                determineLineageDataPolicies(
+                    try {
+                        processingPlatforms
+                            .getLineage(
+                                GetLineageRequest.newBuilder()
+                                    .setFqn(policy.source.ref)
+                                    .setPlatformId(policy.platform.id)
+                                    .build()
+                            )
+                            .lineageSummary
+                    } catch (e: Exception) {
+                        LineageSummary.getDefaultInstance()
+                    }
+                )
+            }
+        return lineageSummaries.withPageInfo(policies.pageInfo)
     }
 
     suspend fun determineLineageDataPolicies(summary: LineageSummary): LineageSummary {
@@ -88,7 +111,7 @@ class DataPolicyService(
      *
      * FIXME https://github.com/getstrm/pace/issues/153 Should include views created by pace
      */
-    fun notManagedByPace(ref: DataResourceRef) =
+    suspend fun notManagedByPace(ref: DataResourceRef) =
         try {
             getLatestDataPolicy(ref.fqn, ref.platform.id)
             false
