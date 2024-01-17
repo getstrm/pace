@@ -38,7 +38,7 @@ class DataPolicyEvaluationServiceTest {
 
         // Then
         result.size shouldBe 1
-        result.first().target.fullname shouldBe "public.demo_view"
+        result.first().target.ref.platformFqn shouldBe "public.demo_view"
         val resultsByPrincipal =
             result.first().evaluationResultsList.associateBy { it.principal?.group }
         resultsByPrincipal.size shouldBe 4
@@ -70,7 +70,7 @@ class DataPolicyEvaluationServiceTest {
 
         // Then
         result.size shouldBe 1
-        result.first().target.fullname shouldBe "public.demo_view"
+        result.first().target.ref.platformFqn shouldBe "public.demo_view"
         val resultsByPrincipal =
             result.first().evaluationResultsList.associateBy { it.principal?.group }
         resultsByPrincipal.size shouldBe 2
@@ -128,7 +128,7 @@ class DataPolicyEvaluationServiceTest {
 
         // Then
         result.size shouldBe 1
-        result.first().target.fullname shouldBe "public.retention_view"
+        result.first().target.ref.platformFqn shouldBe "public.retention_view"
         val resultsByPrincipal =
             result.first().evaluationResultsList.associateBy { it.principal?.group }
         resultsByPrincipal.size shouldBe 3
@@ -169,7 +169,7 @@ class DataPolicyEvaluationServiceTest {
 
         // Then
         result.size shouldBe 1
-        result.first().target.fullname shouldBe "public.retention_view"
+        result.first().target.ref.platformFqn shouldBe "public.retention_view"
         val resultsByPrincipal =
             result.first().evaluationResultsList.associateBy { it.principal?.group }
         resultsByPrincipal.size shouldBe 3
@@ -248,78 +248,80 @@ class DataPolicyEvaluationServiceTest {
         @Language("yaml")
         private val dataPolicy =
             """
-    metadata:
-      description: ""
-      version: 1
-      title: public.demo
-    source:
-      fields:
-        - name_parts:
-            - transactionid
-          required: true
-          type: integer
-        - name_parts:
-            - userid
-          required: true
-          type: integer
-        - name_parts:
-            - email
-          required: true
-          type: varchar
-        - name_parts:
-            - age
-          required: true
-          type: integer
-        - name_parts:
-            - brand
-          required: true
-          type: varchar
-        - name_parts:
-            - transactionamount
-          required: true
-          type: integer
-      ref: public.demo
-    rule_sets:
-      - target:
-          fullname: public.demo_view
-        filters:
-          - generic_filter:
-              conditions:
-                - principals: [ { group: administrator }, { group: fraud_and_risk } ]
-                  condition: "true"
-                - principals: [ ]
-                  condition: "age > 8"
-        field_transforms:
-          - field:
-              name_parts: [ userid ]
-            transforms:
-              - principals: [ { group: fraud_and_risk }, { group: administrator } ]
-                identity: { }
-              - principals: [ ]
-                fixed:
-                  value: "0000"
-          - field:
-              name_parts: [ email ]
-            transforms:
-              - principals: [ { group: administrator } ]
-                identity: { }
-              - principals: [ { group: marketing } ]
-                regexp:
-                  regexp: "^.*(@.*)${'$'}"
-                  replacement: "****${'$'}1"
-              - principals: [ { group: fraud_and_risk } ]
-                identity: { }
-              - principals: [ ]
-                fixed:
-                  value: "****"
-          - field:
-              name_parts: [ brand ]
-            transforms:
-              - principals: [ { group: administrator } ]
-                identity: { }
-              - principals: [ ]
-                sql_statement:
-                  statement: "CASE WHEN brand = 'MacBook' THEN 'Apple' ELSE 'Other' END"
+metadata:
+  description: ""
+  version: 1
+  title: public.demo
+source:
+  fields:
+    - name_parts:
+        - transactionid
+      required: true
+      type: integer
+    - name_parts:
+        - userid
+      required: true
+      type: integer
+    - name_parts:
+        - email
+      required: true
+      type: varchar
+    - name_parts:
+        - age
+      required: true
+      type: integer
+    - name_parts:
+        - brand
+      required: true
+      type: varchar
+    - name_parts:
+        - transactionamount
+      required: true
+      type: integer
+  ref:
+    platform_fqn: public.demo
+rule_sets:
+  - target:
+      ref: 
+        platform_fqn: public.demo_view
+    filters:
+      - generic_filter:
+          conditions:
+            - principals: [ { group: administrator }, { group: fraud_and_risk } ]
+              condition: "true"
+            - principals: [ ]
+              condition: "age > 8"
+    field_transforms:
+      - field:
+          name_parts: [ userid ]
+        transforms:
+          - principals: [ { group: fraud_and_risk }, { group: administrator } ]
+            identity: { }
+          - principals: [ ]
+            fixed:
+              value: "0000"
+      - field:
+          name_parts: [ email ]
+        transforms:
+          - principals: [ { group: administrator } ]
+            identity: { }
+          - principals: [ { group: marketing } ]
+            regexp:
+              regexp: "^.*(@.*)${'$'}"
+              replacement: "****${'$'}1"
+          - principals: [ { group: fraud_and_risk } ]
+            identity: { }
+          - principals: [ ]
+            fixed:
+              value: "****"
+      - field:
+          name_parts: [ brand ]
+        transforms:
+          - principals: [ { group: administrator } ]
+            identity: { }
+          - principals: [ ]
+            sql_statement:
+              statement: "CASE WHEN brand = 'MacBook' THEN 'Apple' ELSE 'Other' END"
         """
                 .toProto<DataPolicy>()
 
@@ -500,37 +502,39 @@ class DataPolicyEvaluationServiceTest {
         @Language("yaml")
         private val retentionPolicy =
             """
-    metadata:
-      description: ""
-      version: 1
-      title: public.demo
-    source:
-      fields:
-        - name_parts:
-            - transactionid
-          required: true
-          type: integer
-        - name_parts:
-            - ts
-          required: true
-          type: timestamptz
-      ref: public.demo
-    rule_sets:
-      - target:
-          fullname: public.retention_view
-        filters:
-          - retention_filter:
-              field:
-                name_parts:
-                  - ts
-              conditions:
-                - principals: [ {group: marketing} ]
-                  period:
-                    days: 10
-                - principals: [ {group: fraud_and_risk} ]
-                - principals: [] 
-                  period:
-                    days: 5
+metadata:
+  description: ""
+  version: 1
+  title: public.demo
+source:
+  fields:
+    - name_parts:
+        - transactionid
+      required: true
+      type: integer
+    - name_parts:
+        - ts
+      required: true
+      type: timestamptz
+  ref:
+    platform_fqn: public.demo
+rule_sets:
+  - target:
+      ref: 
+        platform_fqn: public.retention_view
+    filters:
+      - retention_filter:
+          field:
+            name_parts:
+              - ts
+          conditions:
+            - principals: [ {group: marketing} ]
+              period:
+                days: "10"
+            - principals: [ {group: fraud_and_risk} ]
+            - principals: []
+              period:
+                days: "5"
     """
                 .toProto<DataPolicy>()
 
@@ -554,27 +558,29 @@ class DataPolicyEvaluationServiceTest {
         @Language("yaml")
         private val incompatiblePolicy =
             """
-    metadata:
-      description: ""
-      version: 1
-      title: public.demo
-    source:
-      fields:
-        - name_parts:
-            - transactionid
-          required: true
-          type: integer
-      ref: public.demo
-    rule_sets:
-      - target:
-          fullname: public.demo_view
-        field_transforms:
-          - field:
-              name_parts: [ transactionid ]
-            transforms:
-              - principals: [ ]
-                sql_statement:
-                    statement: "some_unknown_function(transactionid)"
+metadata:
+  description: ""
+  version: 1
+  title: public.demo
+source:
+  fields:
+    - name_parts:
+        - transactionid
+      required: true
+      type: integer
+  ref:
+    platform_fqn: public.demo
+rule_sets:
+  - target:
+      ref: 
+        platform_fqn: public.demo_view
+    field_transforms:
+      - field:
+          name_parts: [ transactionid ]
+        transforms:
+          - principals: [ ]
+            sql_statement:
+              statement: "some_unknown_function(transactionid)"
     """
                 .toProto<DataPolicy>()
     }

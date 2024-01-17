@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import com.getstrm.pace.config.SnowflakeConfig
 import io.kotest.matchers.shouldBe
@@ -75,10 +76,13 @@ class SnowflakeClientTest {
         policy shouldBe
             DataPolicy.newBuilder()
                 .setMetadata(DataPolicy.Metadata.newBuilder().setTitle("test_schema.test_table"))
-                .setPlatform(platform)
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef("test_schema.test_table")
+                        .setRef(
+                            DataResourceRef.newBuilder()
+                                .setPlatformFqn("test_schema.test_table")
+                                .build()
+                        )
                         .addAllFields(
                             listOf(
                                 DataPolicy.Field.newBuilder()

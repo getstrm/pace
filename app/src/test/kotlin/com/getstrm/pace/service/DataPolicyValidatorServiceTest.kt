@@ -555,62 +555,65 @@ rule_sets:
         @Language("yaml")
         val dataPolicy =
             """
-                metadata:
-                  description: ""
-                  version: 1
-                  title: public.demo
-                platform:
-                  id: platform-id
-                  platform_type: POSTGRES
-                source:
-                  fields:
-                    - name_parts:
-                        - transactionid
-                      required: true
-                      type: integer
-                    - name_parts:
-                        - userid
-                      required: true
-                      type: integer
-                    - name_parts:
-                        - transactionamount
-                      required: true
-                      type: integer
-                  ref: public.demo_tokenized
-                rule_sets:
-                  - target:
-                      fullname: public.demo_view
-                    filters:
-                      - conditions:
-                          - principals: [ {group: fraud_and_risk} ]
-                            condition: "true"
-                          - principals : []
-                            condition: "transactionamount < 10"
-                    field_transforms:
-                      - field:
-                          name_parts: [ userid ]
-                        transforms:
-                          - principals: [ {group: fraud_and_risk} ]
-                            detokenize:
-                              token_source_ref: tokens.all_tokens
-                              token_field:
-                                name_parts: [ token ]
-                              value_field:
-                                name_parts: [ value ]
-                          - principals: []
-                            identity: {}
-                      - field:
-                          name_parts: [ transactionid ]
-                        transforms:
-                          - principals: [ {group: fraud_and_risk} ]
-                            detokenize:
-                              token_source_ref: tokens.all_tokens
-                              token_field:
-                                name_parts: [ token ]
-                              value_field:
-                                name_parts: [ value ]
-                          - principals: []
-                            identity: {}
+metadata:
+  description: ""
+  version: 1
+  title: public.demo
+source:
+  fields:
+    - name_parts:
+        - transactionid
+      required: true
+      type: integer
+    - name_parts:
+        - userid
+      required: true
+      type: integer
+    - name_parts:
+        - transactionamount
+      required: true
+      type: integer
+  ref:
+    platform_fqn: public.demo_tokenized
+    platform:
+      id: platform-id
+      platform_type: POSTGRES
+rule_sets:
+  - target:
+      ref: 
+        platform_fqn: public.demo_view
+    filters:
+      - generic_filter: 
+          conditions:
+            - principals: [ {group: fraud_and_risk} ]
+              condition: "true"
+            - principals : []
+              condition: "transactionamount < 10"
+    field_transforms:
+      - field:
+          name_parts: [ userid ]
+        transforms:
+          - principals: [ {group: fraud_and_risk} ]
+            detokenize:
+              token_source_ref: tokens.all_tokens
+              token_field:
+                name_parts: [ token ]
+              value_field:
+                name_parts: [ value ]
+          - principals: []
+            identity: {}
+      - field:
+          name_parts: [ transactionid ]
+        transforms:
+          - principals: [ {group: fraud_and_risk} ]
+            detokenize:
+              token_source_ref: tokens.all_tokens
+              token_field:
+                name_parts: [ token ]
+              value_field:
+                name_parts: [ value ]
+          - principals: []
+            identity: {}
     
             """
                 .trimIndent()
@@ -641,12 +644,12 @@ rule_sets:
  */
 const val policyBase =
     """
-platform:
-  platform_type: SNOWFLAKE
-  id: snowflake
-source: 
-  type: SQL_DDL
-  ref: mycatalog.my_schema.gddemo
+source:
+  ref:
+    platform_fqn: mycatalog.my_schema.gddemo
+    platform:
+      platform_type: SNOWFLAKE
+      id: snowflake
   fields:
     - name_parts: [transactionId]
       type: bigint

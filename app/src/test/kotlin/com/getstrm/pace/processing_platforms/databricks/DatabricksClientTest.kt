@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import com.databricks.sdk.service.catalog.ColumnInfo
 import com.databricks.sdk.service.catalog.TableInfo
@@ -91,10 +92,13 @@ class DatabricksClientTest {
                         .setCreateTime(createdTimestamp)
                         .setUpdateTime(updateTimestamp)
                 )
-                .setPlatform(platform)
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef("test_catalog.test_schema.test_table")
+                        .setRef(
+                            DataResourceRef.newBuilder()
+                                .setPlatformFqn("test_catalog.test_schema.test_table")
+                                .build()
+                        )
                         .addAllFields(
                             listOf(
                                 DataPolicy.Field.newBuilder()
