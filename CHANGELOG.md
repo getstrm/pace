@@ -1,3 +1,10 @@
+# [1.0.0-alpha.49](https://github.com/getstrm/pace/compare/v1.0.0-alpha.48...v1.0.0-alpha.49) (2024-01-17)
+
+
+### Bug Fixes
+
+* **pace-116:** validates ruleset target ([#157](https://github.com/getstrm/pace/issues/157)) ([dc6453b](https://github.com/getstrm/pace/commit/dc6453bc28ca4dd1a177615a9db582a6b08b520b))
+
 # [1.0.0-alpha.48](https://github.com/getstrm/pace/compare/v1.0.0-alpha.47...v1.0.0-alpha.48) (2024-01-17)
 
 
