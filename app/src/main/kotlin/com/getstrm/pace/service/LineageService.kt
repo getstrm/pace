@@ -5,7 +5,6 @@ import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ScanLineageRequest
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageResponse
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.PagedCollection
@@ -18,16 +17,8 @@ class LineageService(
     private val processingPlatformsService: ProcessingPlatformsService
 ) {
 
-    suspend fun getLineage(request: GetLineageRequest): GetLineageResponse {
-        val lineage = processingPlatformsService.getLineage(request)
-        val withDataPolicyInfo = determineLineageDataPolicies(lineage.lineageSummary)
-        val enriched =
-            with(lineage.toBuilder()) {
-                lineageSummary = withDataPolicyInfo
-                build()
-            }
-        return enriched
-    }
+    suspend fun getLineage(request: GetLineageRequest): LineageSummary =
+        determineIfManagedByPace(processingPlatformsService.getLineage(request))
 
     suspend fun scanLineage(request: ScanLineageRequest): PagedCollection<LineageSummary> {
         val policies =
@@ -42,16 +33,14 @@ class LineageService(
         // and I can't figure out to fix the utility function PagedCollection.map
         val lineageSummaries =
             policies.data.map { policy ->
-                determineLineageDataPolicies(
+                determineIfManagedByPace(
                     try {
-                        processingPlatformsService
-                            .getLineage(
-                                GetLineageRequest.newBuilder()
-                                    .setFqn(policy.source.ref)
-                                    .setPlatformId(policy.platform.id)
-                                    .build()
-                            )
-                            .lineageSummary
+                        processingPlatformsService.getLineage(
+                            GetLineageRequest.newBuilder()
+                                .setFqn(policy.source.ref)
+                                .setPlatformId(policy.platform.id)
+                                .build()
+                        )
                     } catch (e: InternalException) {
                         // FIXME implement other platforms than BigQuery
                         LineageSummary.getDefaultInstance()
@@ -61,15 +50,14 @@ class LineageService(
         return lineageSummaries.withPageInfo(policies.pageInfo)
     }
 
-    suspend fun determineLineageDataPolicies(summary: LineageSummary): LineageSummary {
-        return with(summary.toBuilder()) {
+    suspend fun determineIfManagedByPace(summary: LineageSummary): LineageSummary =
+        with(summary.toBuilder()) {
             downstreamBuilderList.forEach {
                 it.setNotManagedByPace(notManagedByPace(it.resourceRef))
             }
             upstreamBuilderList.forEach { it.setNotManagedByPace(notManagedByPace(it.resourceRef)) }
             build()
         }
-    }
 
     /**
      * return true if a Data Resource is not managed by pace.

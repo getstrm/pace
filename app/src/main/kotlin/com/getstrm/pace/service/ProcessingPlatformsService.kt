@@ -2,11 +2,11 @@ package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database as ApiDatabase
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema as ApiSchema
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyResponse
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageResponse
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListDatabasesRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListGroupsRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListSchemasRequest
@@ -171,7 +171,7 @@ class ProcessingPlatformsService(
                 .build()
         )
 
-    suspend fun getLineage(request: GetLineageRequest): GetLineageResponse {
+    suspend fun getLineage(request: GetLineageRequest): LineageSummary {
         val platformClient =
             (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
         return platformClient.getLineage(request)
