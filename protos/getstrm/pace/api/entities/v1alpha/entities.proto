@@ -16,14 +16,32 @@ message DataResourceRef {
   // like for instance a Kafka topic with an Avro Schema.
   entities.v1alpha.ProcessingPlatform platform = 1;
   // the Fully Qualified Name of the data resource on the platform.
-  string fqn = 2;
+  string platform_fqn = 2;
+  // Pace representation of platform specific hierarchy
+  ResourceUrn pace_urn = 3;
+}
+
+message ResourceUrn {
+  oneof integration {
+    option (buf.validate.oneof).required = true;
+    ProcessingPlatform platform = 1;
+    DataCatalog catalog = 2;
+  }
+  repeated ResourceNode resource_path = 3;
+}
+
+message ResourceNode {
+  // the bits between the slashes.
+  string name = 1;
+  //  dataset, schema, table, whatever... For display purposes only.
+  string platform_name = 2;
+  // data resource
+  bool is_leaf = 3;
 }
 
 message DataPolicy {
-  string id = 1;
+  Source source = 1;
   Metadata metadata = 2;
-  Source source = 3;
-  ProcessingPlatform platform = 4;
   repeated RuleSet rule_sets = 5;
 
   message Metadata {
@@ -193,11 +211,7 @@ message DataPolicy {
   message Target {
     TargetType type = 1;
     // The full and unique name to be used in the target platform. E.g. the view name.
-    string fullname = 2 [(buf.validate.field) = {
-      required: true,
-      ignore_empty: false,
-      string: {min_len: 1}
-    }];
+    DataResourceRef ref = 2;
     enum TargetType {
       TARGET_TYPE_UNSPECIFIED = 0;
       // A SQL view that can return different results for different querying users.
@@ -208,10 +222,10 @@ message DataPolicy {
   message Source {
     // The ref is an identifier for the source, unique at the source platform level.
     // TODO I think this should be renamed to fqn
-    string ref = 1 [(buf.validate.field).string.min_len = 3];
+    DataResourceRef ref = 1;
     // A representation of the source data schema. Nested fields are supported.
-    repeated Field fields = 4;
-    repeated string tags = 5;
+    repeated Field fields = 2;
+    repeated string tags = 3;
   }
 
   message Field {

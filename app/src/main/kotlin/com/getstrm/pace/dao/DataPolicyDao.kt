@@ -29,7 +29,7 @@ class DataPolicyDao(
             .withUnknownTotals()
 
     fun upsertDataPolicy(dataPolicy: DataPolicy): DataPoliciesRecord {
-        val id = dataPolicy.id.ifBlank { dataPolicy.source.ref }
+        val id = dataPolicy.source.ref.platformFqn
         val oldPolicy =
             getActiveDataPolicy(id, dataPolicy.platform.id)?.also {
                 checkStaleness(it.version!!, dataPolicy.metadata.version)

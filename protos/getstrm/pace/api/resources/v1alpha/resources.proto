@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package getstrm.pace.api.resources.v1alpha;
+
+import "getstrm/pace/api/entities/v1alpha/entities.proto";
+import "google/api/annotations.proto";
+import "getstrm/pace/api/paging/v1alpha/paging.proto";
+
+option go_package = "github.com/getstrm/pace/protos/api/processing_platforms;processing_platforms";
+option java_package = "com.getstrm.pace.api.processing_platforms.v1alpha";
+option java_multiple_files = true;
+
+service ResourcesService {
+  rpc ListResources(ListResourcesRequest) returns (ListResourcesResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha/resources"
+    };
+  }
+}
+
+message ListResourcesRequest {
+  entities.v1alpha.ResourceUrn urn = 1;
+  api.paging.v1alpha.PageParameters page_parameters = 2;
+}
+
+message ListResourcesResponse {
+  repeated entities.v1alpha.ResourceUrn resources = 1;
+  api.paging.v1alpha.PageInfo page_info = 2;
+}

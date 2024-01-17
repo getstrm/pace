@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.DATABRICKS
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.databricks.sdk.AccountClient
@@ -260,10 +261,9 @@ class DatabricksClient(
                         .setCreateTime(createdAt.toTimestamp())
                         .setUpdateTime(updatedAt.toTimestamp()),
                 )
-                .setPlatform(apiPlatform)
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(fullName)
+                        .setRef(DataResourceRef.newBuilder().setPlatformFqn(fullName).build())
                         .addAllFields(
                             columns.map { column ->
                                 DataPolicy.Field.newBuilder()

@@ -12,12 +12,13 @@ option java_package = "com.getstrm.pace.api.processing_platforms.v1alpha";
 option java_multiple_files = true;
 
 service ProcessingPlatformsService {
-    // Lists all configured processing platforms.
-    rpc ListProcessingPlatforms (ListProcessingPlatformsRequest) returns (ListProcessingPlatformsResponse) {
-        option (google.api.http) = {
-          get: "/v1alpha/processing-platforms"
-        };
-    };
+  // Lists all configured processing platforms.
+  rpc ListProcessingPlatforms (ListProcessingPlatformsRequest) returns (ListProcessingPlatformsResponse) {
+      option (google.api.http) = {
+        get: "/v1alpha/processing-platforms"
+      };
+  };
+    
   // Lists all databases for the given processing_platform.
   rpc ListDatabases (ListDatabasesRequest) returns (ListDatabasesResponse) {
     option (google.api.http) = {
