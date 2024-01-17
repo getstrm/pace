@@ -204,8 +204,8 @@ components:
             $ref: '#/components/schemas/DataPolicy_Field'
           type: array
         ref:
-          description: The ref is an identifier for the source, unique at the source
-            platform level.
+          description: "The ref is an identifier for the source, unique at the source\
+            \ platform level.\n TODO I think this should be renamed to fqn"
           type: string
         tags:
           items:
@@ -224,6 +224,19 @@ components:
           - SQL_VIEW
           format: enum
           type: string
+      type: object
+    DataResourceRef:
+      properties:
+        fqn:
+          description: the Fully Qualified Name of the data resource on the platform.
+          type: string
+        platform:
+          allOf:
+          - $ref: '#/components/schemas/ProcessingPlatform'
+          description: "defines the processing platform of the data resource.\n a\
+            \ data resource is something that holds data of a defined structure.\n\
+            \ SQL Tables and Views are good examples, but this is in essence open-ended,\n\
+            \ like for instance a Kafka topic with an Avro Schema."
       type: object
     Database:
       properties:
@@ -419,14 +432,8 @@ components:
       type: object
     GetLineageResponse:
       properties:
-        downstream:
-          items:
-            $ref: '#/components/schemas/Lineage'
-          type: array
-        upstream:
-          items:
-            $ref: '#/components/schemas/Lineage'
-          type: array
+        lineageSummary:
+          $ref: '#/components/schemas/LineageSummary'
       type: object
     GetPayloadJSONSchemaResponse:
       properties:
@@ -496,10 +503,29 @@ components:
           items:
             $ref: '#/components/schemas/Lineage_Field'
           type: array
-        fqn:
-          type: string
+        managedByPace:
+          type: boolean
         relation:
           type: string
+        resourceRef:
+          $ref: '#/components/schemas/DataResourceRef'
+      type: object
+    LineageSummary:
+      properties:
+        downstream:
+          description: downstream is a target or child resource
+          items:
+            $ref: '#/components/schemas/Lineage'
+          type: array
+        resourceRef:
+          allOf:
+          - $ref: '#/components/schemas/DataResourceRef'
+          description: describes the data resource (table, view, ...)
+        upstream:
+          description: upstream is a source or parent resource
+          items:
+            $ref: '#/components/schemas/Lineage'
+          type: array
       type: object
     Lineage_Field:
       properties:
@@ -723,6 +749,15 @@ components:
           format: enum
           type: string
       type: object
+    ScanLineageResponse:
+      properties:
+        lineageSummaries:
+          items:
+            $ref: '#/components/schemas/LineageSummary'
+          type: array
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+      type: object
     Schema:
       properties:
         database:
@@ -890,7 +925,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.47
+  version: 1.0.0-alpha.48
 openapi: 3.0.3
 paths:
   /data-policies:
@@ -1165,6 +1200,40 @@ paths:
                 $ref: '#/components/schemas/Status'
           description: Default error response
       summary: UpsertDataPolicy
+      tags:
+      - DataPoliciesService
+  /v1alpha/data-policies/lineage:
+    get:
+      operationId: DataPoliciesService_ScanLineage
+      parameters:
+      - description: "The provided skip value of the request.\n skip represents records\
+          \ to skip before returning results.\n If empty, skip is 0."
+        in: query
+        name: pageParameters.skip
+        schema:
+          format: uint32
+          type: integer
+      - description: "The provided page_size value of the request.\n If empty, page_size\
+          \ is 10."
+        in: query
+        name: pageParameters.pageSize
+        schema:
+          format: uint32
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanLineageResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: ScanLineage
       tags:
       - DataPoliciesService
   /v1alpha/data-policies/{dataPolicyId}/{platformId}:

@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.47
+    version: 1.0.0-alpha.48
 paths:
     /data-policies:
         get:
@@ -281,6 +281,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/UpsertDataPolicyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1alpha/data-policies/lineage:
+        get:
+            tags:
+                - DataPoliciesService
+            operationId: DataPoliciesService_ScanLineage
+            parameters:
+                - name: pageParameters.skip
+                  in: query
+                  description: |-
+                    The provided skip value of the request.
+                     skip represents records to skip before returning results.
+                     If empty, skip is 0.
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: pageParameters.pageSize
+                  in: query
+                  description: |-
+                    The provided page_size value of the request.
+                     If empty, page_size is 10.
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ScanLineageResponse'
                 default:
                     description: Default error response
                     content:
@@ -1164,7 +1200,9 @@ components:
             properties:
                 ref:
                     type: string
-                    description: The ref is an identifier for the source, unique at the source platform level.
+                    description: |-
+                        The ref is an identifier for the source, unique at the source platform level.
+                         TODO I think this should be renamed to fqn
                 fields:
                     type: array
                     items:
@@ -1186,6 +1224,20 @@ components:
                 fullname:
                     type: string
                     description: The full and unique name to be used in the target platform. E.g. the view name.
+        DataResourceRef:
+            type: object
+            properties:
+                platform:
+                    allOf:
+                        - $ref: '#/components/schemas/ProcessingPlatform'
+                    description: |-
+                        defines the processing platform of the data resource.
+                         a data resource is something that holds data of a defined structure.
+                         SQL Tables and Views are good examples, but this is in essence open-ended,
+                         like for instance a Kafka topic with an Avro Schema.
+                fqn:
+                    type: string
+                    description: the Fully Qualified Name of the data resource on the platform.
         Database:
             type: object
             properties:
@@ -1371,14 +1423,8 @@ components:
         GetLineageResponse:
             type: object
             properties:
-                upstream:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/Lineage'
-                downstream:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/Lineage'
+                lineageSummary:
+                    $ref: '#/components/schemas/LineageSummary'
         GetPayloadJSONSchemaResponse:
             type: object
             properties:
@@ -1438,14 +1484,33 @@ components:
         Lineage:
             type: object
             properties:
-                fqn:
-                    type: string
+                resourceRef:
+                    $ref: '#/components/schemas/DataResourceRef'
                 relation:
                     type: string
                 fieldRelations:
                     type: array
                     items:
                         $ref: '#/components/schemas/Lineage_Field'
+                managedByPace:
+                    type: boolean
+        LineageSummary:
+            type: object
+            properties:
+                resourceRef:
+                    allOf:
+                        - $ref: '#/components/schemas/DataResourceRef'
+                    description: describes the data resource (table, view, ...)
+                upstream:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Lineage'
+                    description: upstream is a source or parent resource
+                downstream:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Lineage'
+                    description: downstream is a target or child resource
         Lineage_Field:
             type: object
             properties:
@@ -1658,6 +1723,15 @@ components:
                         - CSV
                     type: string
                     format: enum
+        ScanLineageResponse:
+            type: object
+            properties:
+                lineageSummaries:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/LineageSummary'
+                pageInfo:
+                    $ref: '#/components/schemas/PageInfo'
         Schema:
             type: object
             properties:
