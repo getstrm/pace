@@ -100,8 +100,8 @@ rule_sets:
           - principals: [ {group: fraud-and-risk} ]
             identity: {}
           - fixed: {value: "****"}
-            """
-            policyWithRulesets shouldBe result.toProto()
+            """ .toProto<DataPolicy>()
+            policyWithRulesets shouldBe result
         }
     }
 
