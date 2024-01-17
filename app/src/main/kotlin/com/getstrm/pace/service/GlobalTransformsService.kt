@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform as ApiFieldTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform as ApiTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.TransformCase
 import com.getstrm.pace.config.AppConfiguration
@@ -86,8 +87,12 @@ class GlobalTransformsService(
                     RuleSet.newBuilder()
                         .setTarget(
                             DataPolicy.Target.newBuilder()
-                                .setFullname(
-                                    "${dataPolicy.source.ref}${appConfiguration.defaultViewSuffix}"
+                                .setRef(
+                                    DataResourceRef.newBuilder()
+                                        .setPlatformFqn(
+                                            "${dataPolicy.source.ref}${appConfiguration.defaultViewSuffix}"
+                                        )
+                                        .build()
                                 )
                                 .build()
                         )

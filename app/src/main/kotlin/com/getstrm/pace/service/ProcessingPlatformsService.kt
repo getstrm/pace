@@ -55,13 +55,13 @@ class ProcessingPlatformsService(
 
     fun getProcessingPlatform(dataPolicy: DataPolicy): ProcessingPlatformClient {
         val processingPlatform =
-            platforms[dataPolicy.platform.id]
+            platforms[dataPolicy.source.ref.platform.id]
                 ?: throw processingPlatformNotFound(
-                    dataPolicy.platform.id,
-                    dataPolicy.platform.platformType.name
+                    dataPolicy.source.ref.platform.id,
+                    dataPolicy.source.ref.platform.platformType.name
                 )
         return processingPlatform.also {
-            if (it.type != dataPolicy.platform.platformType) {
+            if (it.type != dataPolicy.source.ref.platform.platformType) {
                 throw BadRequestException(
                     BadRequestException.Code.INVALID_ARGUMENT,
                     BadRequest.newBuilder()
@@ -70,7 +70,7 @@ class ProcessingPlatformsService(
                                 BadRequest.FieldViolation.newBuilder()
                                     .setField("dataPolicy.platform.platformType")
                                     .setDescription(
-                                        "Platform type in DataPolicy ${dataPolicy.platform.platformType} does not correspond with configured platform ${dataPolicy.platform.id} of type ${it.type}"
+                                        "Platform type in DataPolicy ${dataPolicy.source.ref.platform.platformType} does not correspond with configured platform ${dataPolicy.source.ref.platform.id} of type ${it.type}"
                                     )
                                     .build()
                             )

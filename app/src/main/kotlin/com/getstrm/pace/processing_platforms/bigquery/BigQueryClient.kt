@@ -111,7 +111,10 @@ class BigQueryClient(
             authorizeViews(dataPolicy)
         } catch (e: BigQueryException) {
             if (e.message == "Duplicate authorized views") {
-                log.warn("Target view(s) for data policy {} already authorized.", dataPolicy.id)
+                log.warn(
+                    "Target view(s) for data policy {} already authorized.",
+                    dataPolicy.source.ref.platformFqn
+                )
             } else {
                 throw InternalException(
                     InternalException.Code.INTERNAL,
@@ -129,12 +132,13 @@ class BigQueryClient(
 
     // Fixme: better handle case where view was already authorized (currently caught above)
     private fun authorizeViews(dataPolicy: DataPolicy) {
-        val sourceDataSet = bigQueryClient.getDataset(dataPolicy.source.ref.toTableId().dataset)
+        val sourceDataSet =
+            bigQueryClient.getDataset(dataPolicy.source.ref.platformFqn.toTableId().dataset)
         val sourceAcl = sourceDataSet.acl
         val viewsAcl =
             dataPolicy.ruleSetsList.flatMap { ruleSet ->
                 // Allow the target view to view the source table
-                val targetAcl = Acl.of(Acl.View(ruleSet.target.fullname.toTableId()))
+                val targetAcl = Acl.of(Acl.View(ruleSet.target.ref.platformFqn.toTableId()))
                 // Allow the target view to view any applicable token source tables
                 val tokenSourceAcls =
                     ruleSet.fieldTransformsList.flatMap { fieldTransform ->
@@ -185,7 +189,7 @@ class BigQueryClient(
         return LineageSummary.newBuilder()
             .setResourceRef(
                 DataResourceRef.newBuilder()
-                    .setFqn(request.fqn)
+                    .setPlatformFqn(request.fqn)
                     .setPlatform(apiProcessingPlatform)
                     .build()
             )
@@ -283,7 +287,7 @@ class BigQueryClient(
             .setRelation(relation ?: "unknown")
             .setResourceRef(
                 DataResourceRef.newBuilder()
-                    .setFqn(fqn.stripBqPrefix())
+                    .setPlatformFqn(fqn.stripBqPrefix())
                     .setPlatform(apiProcessingPlatform)
                     .build()
             )
@@ -367,10 +371,13 @@ class BigQueryClient(
                     .setCreateTime(table.creationTime.toTimestamp())
                     .setUpdateTime(table.lastModifiedTime.toTimestamp()),
             )
-            .setPlatform(apiProcessingPlatform)
             .setSource(
                 DataPolicy.Source.newBuilder()
-                    .setRef(table.fullName())
+                    .setRef(
+                        DataResourceRef.newBuilder()
+                            .setPlatformFqn(table.fullName())
+                            .setPlatform(apiProcessingPlatform)
+                    )
                     .addAllFields(
                         table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map { field
                             ->

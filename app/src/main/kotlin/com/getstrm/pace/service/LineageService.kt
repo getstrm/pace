@@ -36,8 +36,8 @@ class LineageService(
                     try {
                         processingPlatformsService.getLineage(
                             GetLineageRequest.newBuilder()
-                                .setFqn(policy.source.ref)
-                                .setPlatformId(policy.platform.id)
+                                .setFqn(policy.source.ref.platformFqn)
+                                .setPlatformId(policy.source.ref.platform.id)
                                 .build()
                         )
                     } catch (e: InternalException) {

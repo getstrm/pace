@@ -76,7 +76,7 @@ abstract class ProcessingPlatformViewGenerator(
     open fun toDynamicViewSQL(): Queries {
         val queries =
             dataPolicy.ruleSetsList.map { ruleSet ->
-                val targetView = ruleSet.target.fullname
+                val targetView = ruleSet.target.ref.platformFqn
                 createOrReplaceView(renderName(targetView)).`as`(toSelectStatement(ruleSet))
             }
 
@@ -96,7 +96,7 @@ abstract class ProcessingPlatformViewGenerator(
                     )
                 },
             )
-            .from(renderName(dataPolicy.source.ref))
+            .from(renderName(dataPolicy.source.ref.platformFqn))
             .let { addDetokenizeJoins(it, ruleSet) }
             .where(createWhereStatement(ruleSet))
 
@@ -125,7 +125,7 @@ abstract class ProcessingPlatformViewGenerator(
                                 condition(
                                     "{0} = {1}",
                                     unquotedName(
-                                        "${renderName(dataPolicy.source.ref)}.${fieldTransform.field.fullName()}"
+                                        "${renderName(dataPolicy.source.ref.platformFqn)}.${fieldTransform.field.fullName()}"
                                     ),
                                     unquotedName(
                                         "${renderName(transform.detokenize.tokenSourceRef)}.${transform.detokenize.tokenField.fullName()}"
@@ -246,7 +246,7 @@ abstract class ProcessingPlatformViewGenerator(
                     transformer.detokenize(
                         field,
                         transform.detokenize,
-                        dataPolicy.source.ref,
+                        dataPolicy.source.ref.platformFqn,
                     )
                 NUMERIC_ROUNDING -> transformer.numericRounding(field, transform.numericRounding)
                 AGGREGATION -> transformer.aggregation(field, transform.aggregation)

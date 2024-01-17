@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.POSTGRES
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.PostgresConfig
@@ -22,7 +23,7 @@ import org.jooq.impl.DSL
  */
 class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformClient(config) {
     // To match the behavior of the other ProcessingPlatform implementations, we connect to a
-    // single database. If we want to add support for a single client to connect to mulitple
+    // single database. If we want to add support for a single client to connect to multiple
     // databases, more info can be found here:
     // https://www.codejava.net/java-se/jdbc/how-to-list-names-of-all-databases-in-java
     private val jooq =
@@ -143,10 +144,9 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
                         .setTitle(fullName)
                         .setDescription(table.comment)
                 )
-                .setPlatform(schema.database.platformClient.apiProcessingPlatform)
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(fullName)
+                        .setRef(DataResourceRef.newBuilder().setPlatformFqn(fullName).build())
                         .addAllFields(
                             table.fields().map { field ->
                                 DataPolicy.Field.newBuilder()

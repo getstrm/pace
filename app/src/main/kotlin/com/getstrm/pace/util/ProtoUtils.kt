@@ -224,11 +224,7 @@ fun DataPolicy.Source.toDDL(): String {
         .trimIndent()
 }
 
-fun DataPolicy.sourceDataResourceRef() =
-    DataResourceRef.newBuilder().setFqn(source.ref).setPlatform(platform).build()
+fun DataPolicy.sourceDataResourceRef(): DataResourceRef = source.ref
 
-fun DataPolicy.targetDataResourceRefs(): List<DataResourceRef> {
-    return this.ruleSetsList.map { ruleSet ->
-        DataResourceRef.newBuilder().setFqn(ruleSet.target.fullname).setPlatform(platform).build()
-    }
-}
+fun DataPolicy.targetDataResourceRefs(): List<DataResourceRef> =
+    this.ruleSetsList.map { ruleSet -> ruleSet.target.ref }

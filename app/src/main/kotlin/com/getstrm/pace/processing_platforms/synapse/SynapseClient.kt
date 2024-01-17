@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.synapse
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SynapseConfig
@@ -146,10 +147,9 @@ class SynapseClient(
                         .setTitle(fullName)
                         .setDescription(table.comment)
                 )
-                .setPlatform(apiPlatform)
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(fullName)
+                        .setRef(DataResourceRef.newBuilder().setPlatformFqn(fullName).build())
                         .addAllFields(
                             table.fields().map { field ->
                                 DataPolicy.Field.newBuilder()

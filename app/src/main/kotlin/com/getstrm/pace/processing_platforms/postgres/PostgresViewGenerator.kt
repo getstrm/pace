@@ -32,7 +32,7 @@ class PostgresViewGenerator(
     override fun additionalFooterStatements(): Queries {
         val grants =
             dataPolicy.ruleSetsList.flatMap { ruleSet ->
-                val viewName = ruleSet.target.fullname
+                val viewName = ruleSet.target.ref.platformFqn
 
                 ruleSet.uniquePrincipals().map {
                     DSL.query(

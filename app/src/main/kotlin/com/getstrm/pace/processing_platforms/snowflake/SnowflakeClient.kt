@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SnowflakeConfig
@@ -259,10 +260,9 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
                 .setMetadata(
                     DataPolicy.Metadata.newBuilder().setTitle(fullName),
                 )
-                .setPlatform(platform)
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(fullName)
+                        .setRef(DataResourceRef.newBuilder().setPlatformFqn(fullName).build())
                         .addAllFields(
                             // Todo: make this more type-safe
                             data.orEmpty().map { (name, type, _, nullable) ->

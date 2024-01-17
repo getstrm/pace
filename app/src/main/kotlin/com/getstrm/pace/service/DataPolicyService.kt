@@ -32,7 +32,7 @@ class DataPolicyService(
     suspend fun upsertDataPolicy(request: UpsertDataPolicyRequest): DataPolicy {
         dataPolicyValidatorService.validate(
             request.dataPolicy,
-            processingPlatforms.listGroupNames(request.dataPolicy.platform.id)
+            processingPlatforms.listGroupNames(request.dataPolicy.source.ref.platform.id)
         )
 
         return dataPolicyDao

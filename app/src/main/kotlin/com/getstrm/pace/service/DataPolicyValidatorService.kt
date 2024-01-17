@@ -23,13 +23,13 @@ class DataPolicyValidatorService {
      * group and path checks are case insensitive because in essence SQL is case insensitive.
      */
     fun validate(dataPolicy: DataPolicy, platformGroups: Set<String>) {
-        if (dataPolicy.source.ref.isNullOrEmpty()) {
+        if (dataPolicy.source.ref.platformFqn.isNullOrEmpty()) {
             throw invalidArgumentException(
                 "dataPolicy.source.ref",
                 "DataPolicy source ref is empty"
             )
         }
-        if (dataPolicy.platform.id.isNullOrEmpty()) {
+        if (dataPolicy.source.ref.platform.id.isNullOrEmpty()) {
             throw invalidArgumentException(
                 "dataPolicy.platform.id",
                 "DataPolicy platform id is empty"
@@ -48,7 +48,7 @@ class DataPolicyValidatorService {
                         FieldViolation.newBuilder()
                             .setField("principal")
                             .setDescription(
-                                "Principal ${principal.group} does not exist in platform ${dataPolicy.platform.id}"
+                                "Principal ${principal.group} does not exist in platform ${dataPolicy.source.ref.platform.id}"
                             )
                             .build()
                     }
