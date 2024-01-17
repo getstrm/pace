@@ -4,10 +4,13 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.*
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
+import com.apollographql.apollo3.mpp.platform
 import com.getstrm.pace.config.PPConfig
+import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
+import com.google.rpc.BadRequest
 import org.jooq.Field
 
 abstract class ProcessingPlatformClient(
@@ -25,6 +28,49 @@ abstract class ProcessingPlatformClient(
     abstract suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group>
 
     abstract suspend fun applyPolicy(dataPolicy: DataPolicy)
+
+    open suspend fun list(
+        resourceUrn: ResourceUrn,
+        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
+    ): PagedCollection<ResourceUrn> {
+        val platformResourceName = platformResourceName(resourceUrn.resourcePathCount)
+
+        return when (resourceUrn.resourcePathCount) {
+            0 ->
+                listDatabases(pageParameters).map {
+                    it.toResourceUrn(resourceUrn, platformResourceName)
+                }
+            1 ->
+                listSchemas(resourceUrn.resourcePathList[0].name, pageParameters).map {
+                    it.toResourceUrn(resourceUrn, platformResourceName)
+                }
+            2 ->
+                listTables(
+                        resourceUrn.resourcePathList[0].name,
+                        resourceUrn.resourcePathList[1].name,
+                        pageParameters
+                    )
+                    .map { it.toResourceUrn(resourceUrn, platformResourceName, true) }
+            else ->
+                throw BadRequestException(
+                    BadRequestException.Code.INVALID_ARGUMENT,
+                    BadRequest.newBuilder()
+                        .addAllFieldViolations(
+                            listOf(
+                                BadRequest.FieldViolation.newBuilder()
+                                    .setField("urn.resourcePathCount")
+                                    .setDescription(
+                                        "Resource path count ${resourceUrn.resourcePathCount} is not supported for integration type ${resourceUrn.platform.platformType}"
+                                    )
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+        }
+    }
+
+    abstract suspend fun platformResourceName(index: Int): String
 
     abstract suspend fun listDatabases(
         pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
@@ -53,13 +99,36 @@ abstract class ProcessingPlatformClient(
         throwUnimplemented("createBlueprint from fully qualified name in platform ${config.type}")
     }
 
+    interface Resource {
+        val id: String
+
+        fun toResourceUrn(
+            parentResourceUrn: ResourceUrn,
+            platformName: String,
+            isLeafNode: Boolean = false
+        ): ResourceUrn =
+            ResourceUrn.newBuilder()
+                .setPlatform(parentResourceUrn.platform)
+                .addAllResourcePath(
+                    parentResourceUrn.resourcePathList +
+                        listOf(
+                            ResourceNode.newBuilder()
+                                .setName(id)
+                                .setPlatformName(platformName)
+                                .setIsLeaf(isLeafNode)
+                                .build()
+                        )
+                )
+                .build()
+    }
+
     /** meta information database */
     abstract class Database(
         open val platformClient: ProcessingPlatformClient,
-        val id: String,
+        override val id: String,
         val dbType: ProcessingPlatform.PlatformType,
         val displayName: String? = id
-    ) {
+    ) : Resource {
         abstract suspend fun listSchemas(
             pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
         ): PagedCollection<Schema>
@@ -79,7 +148,8 @@ abstract class ProcessingPlatformClient(
     }
 
     /** A schema is a collection of tables. */
-    abstract class Schema(val database: Database, val id: String, val name: String) {
+    abstract class Schema(val database: Database, override val id: String, val name: String) :
+        Resource {
         abstract suspend fun listTables(
             pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
         ): PagedCollection<Table>
@@ -107,7 +177,7 @@ abstract class ProcessingPlatformClient(
     }
 
     /** A table is a collection of columns. */
-    abstract class Table(val schema: Schema, val id: String, val name: String) {
+    abstract class Table(val schema: Schema, override val id: String, val name: String) : Resource {
         /**
          * create a blueprint from the field information and possible the global transforms.
          *

@@ -44,6 +44,17 @@ class SynapseClient(
         ),
     )
 
+    override suspend fun platformResourceName(index: Int): String {
+        // TODO this should be updated, as the implementation is missing for Synapse to list the
+        // various levels in the hierarchy
+        return when (index) {
+            0 -> "database"
+            1 -> "schema"
+            2 -> "table"
+            else -> throw IllegalArgumentException("Unsupported index: $index")
+        }
+    }
+
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = SynapseViewGenerator(dataPolicy)
         // Explicitly dropping the views if they exist first and granting the 'select' to roles is

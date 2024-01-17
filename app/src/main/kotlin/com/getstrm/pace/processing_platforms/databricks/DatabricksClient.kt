@@ -49,6 +49,15 @@ class DatabricksClient(
             .setClientSecret(config.clientSecret)
             .let { config -> AccountClient(config) }
 
+    override suspend fun platformResourceName(index: Int): String {
+        return when (index) {
+            0 -> "catalog"
+            1 -> "schema"
+            2 -> "table"
+            else -> throw IllegalArgumentException("Unsupported index: $index")
+        }
+    }
+
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> =
         accountClient
             .groups()

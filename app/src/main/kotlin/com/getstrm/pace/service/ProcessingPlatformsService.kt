@@ -3,6 +3,7 @@ package com.getstrm.pace.service
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database as ApiDatabase
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema as ApiSchema
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyResponse
@@ -11,6 +12,7 @@ import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListDatabases
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListGroupsRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListSchemasRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListTablesRequest
+import build.buf.gen.getstrm.pace.api.resources.v1alpha.ListResourcesRequest
 import com.getstrm.pace.config.ProcessingPlatformConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.ResourceException
@@ -44,6 +46,13 @@ class ProcessingPlatformsService(
         val postgres = config.postgres.map { PostgresClient(it) }
         val synapse = config.synapse.map { SynapseClient(it) }
         platforms = (databricks + snowflake + bigQuery + postgres + synapse).associateBy { it.id }
+    }
+
+    suspend fun listResources(request: ListResourcesRequest): PagedCollection<ResourceUrn> {
+        val platformClient =
+            platforms[request.urn.platform.id]
+                ?: throw processingPlatformNotFound(request.urn.platform.id)
+        return platformClient.list(request.urn, request.pageParameters.orDefault())
     }
 
     suspend fun listGroups(platformId: String): PagedCollection<Group> =

@@ -43,6 +43,15 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
     // which is why we have a hardcoded one here
     val database = SnowflakeDatabase(this, config.database)
 
+    override suspend fun platformResourceName(index: Int): String {
+        return when (index) {
+            0 -> "warehouse"
+            1 -> "schema"
+            2 -> "table"
+            else -> throw IllegalArgumentException("Unsupported index: $index")
+        }
+    }
+
     fun executeRequest(request: SnowflakeRequest): ResponseEntity<SnowflakeResponse> {
         try {
             return restTemplate.postForEntity<SnowflakeResponse>(

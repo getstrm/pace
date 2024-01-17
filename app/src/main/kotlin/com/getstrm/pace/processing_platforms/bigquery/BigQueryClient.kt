@@ -13,7 +13,12 @@ import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.util.*
+import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
+import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.applyPageParameters
+import com.getstrm.pace.util.normalizeType
+import com.getstrm.pace.util.toTimestamp
+import com.getstrm.pace.util.withPageInfo
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.*
 import com.google.cloud.bigquery.Dataset as BQDataset
@@ -62,6 +67,15 @@ class BigQueryClient(
     private val polClient: PolicyTagManagerClient = PolicyTagManagerClient.create()
 
     private val bigQueryDatabase = BigQueryDatabase(this, config.projectId)
+
+    override suspend fun platformResourceName(index: Int): String {
+        return when (index) {
+            0 -> "project"
+            1 -> "dataset"
+            2 -> "table"
+            else -> throw IllegalArgumentException("Unsupported index: $index")
+        }
+    }
 
     /**
      * for now we have interact with only one Gcloud project, and call this the PACE Database. But
