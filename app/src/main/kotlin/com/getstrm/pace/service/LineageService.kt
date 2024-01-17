@@ -52,10 +52,8 @@ class LineageService(
 
     suspend fun determineIfManagedByPace(summary: LineageSummary): LineageSummary =
         with(summary.toBuilder()) {
-            downstreamBuilderList.forEach {
-                it.setNotManagedByPace(notManagedByPace(it.resourceRef))
-            }
-            upstreamBuilderList.forEach { it.setNotManagedByPace(notManagedByPace(it.resourceRef)) }
+            downstreamBuilderList.forEach { it.setManagedByPace(managedByPace(it.resourceRef)) }
+            upstreamBuilderList.forEach { it.setManagedByPace(managedByPace(it.resourceRef)) }
             build()
         }
 
@@ -64,11 +62,11 @@ class LineageService(
      *
      * FIXME https://github.com/getstrm/pace/issues/153 Should include views created by pace
      */
-    private suspend fun notManagedByPace(ref: DataResourceRef) =
+    private suspend fun managedByPace(ref: DataResourceRef) =
         try {
             dataPolicyService.getLatestDataPolicy(ref.fqn, ref.platform.id)
-            false
+            true
         } catch (e: ResourceException) {
-            if (e.code == ResourceException.Code.NOT_FOUND) true else throw e
+            if (e.code == ResourceException.Code.NOT_FOUND) false else throw e
         }
 }
