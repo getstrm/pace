@@ -7,7 +7,6 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.BIGQUERY
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
-import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageResponse
 import com.getstrm.pace.config.BigQueryConfig
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
@@ -181,20 +180,17 @@ class BigQueryClient(
                 ?: throwNotFound(fqn, "BigQuery Table")
         )
 
-    override suspend fun getLineage(request: GetLineageRequest): GetLineageResponse {
+    override suspend fun getLineage(request: GetLineageRequest): LineageSummary {
         val (upstream, downstream) = buildLineageList(request.fqn.addBqPrefix())
-        return GetLineageResponse.newBuilder()
-            .setLineageSummary(
-                LineageSummary.newBuilder()
-                    .setResourceRef(
-                        DataResourceRef.newBuilder()
-                            .setFqn(request.fqn)
-                            .setPlatform(apiProcessingPlatform)
-                            .build()
-                    )
-                    .addAllUpstream(upstream)
-                    .addAllDownstream(downstream)
+        return LineageSummary.newBuilder()
+            .setResourceRef(
+                DataResourceRef.newBuilder()
+                    .setFqn(request.fqn)
+                    .setPlatform(apiProcessingPlatform)
+                    .build()
             )
+            .addAllUpstream(upstream)
+            .addAllDownstream(downstream)
             .build()
     }
 

@@ -15,12 +15,14 @@ import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.UpsertDataPolicyRequ
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.UpsertDataPolicyResponse
 import com.getstrm.pace.service.DataPolicyEvaluationService
 import com.getstrm.pace.service.DataPolicyService
+import com.getstrm.pace.service.LineageService
 import net.devh.boot.grpc.server.service.GrpcService
 
 @GrpcService
 class DataPoliciesApi(
     private val dataPolicyService: DataPolicyService,
     private val dataPolicyEvaluationService: DataPolicyEvaluationService,
+    private val lineageService: LineageService,
 ) : DataPoliciesServiceGrpcKt.DataPoliciesServiceCoroutineImplBase() {
     override suspend fun listDataPolicies(
         request: ListDataPoliciesRequest
@@ -65,7 +67,7 @@ class DataPoliciesApi(
     }
 
     override suspend fun scanLineage(request: ScanLineageRequest): ScanLineageResponse {
-        val lineage = dataPolicyService.scanLineage(request)
+        val lineage = lineageService.scanLineage(request)
         return ScanLineageResponse.newBuilder()
             .addAllLineageSummaries(lineage.data)
             .setPageInfo(lineage.pageInfo)

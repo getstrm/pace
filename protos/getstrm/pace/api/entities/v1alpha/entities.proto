@@ -340,7 +340,7 @@ message Lineage {
   DataResourceRef resource_ref = 1;
   string relation = 3;
   repeated Field field_relations = 4;
-  bool not_managed_by_pace = 6;
+  bool managed_by_pace = 6;
   
   message Field {
     string source_attribute = 1;
