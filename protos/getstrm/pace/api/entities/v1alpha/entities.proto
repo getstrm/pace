@@ -39,7 +39,9 @@ message DataPolicy {
   }
 
   message RuleSet {
-    Target target = 1;
+    Target target = 1 [(buf.validate.field) = {
+      required: true
+    }];
     // Zero or more field transforms. Any field for which no field transform is specified will be included as-is.
     repeated FieldTransform field_transforms = 2;
     // Zero or more filters. Records that match the conditions are included in the result.
@@ -191,7 +193,11 @@ message DataPolicy {
   message Target {
     TargetType type = 1;
     // The full and unique name to be used in the target platform. E.g. the view name.
-    string fullname = 2 [(buf.validate.field).string.min_len = 1];
+    string fullname = 2 [(buf.validate.field) = {
+      required: true,
+      ignore_empty: false,
+      string: {min_len: 1}
+    }];
     enum TargetType {
       TARGET_TYPE_UNSPECIFIED = 0;
       // A SQL view that can return different results for different querying users.
@@ -284,7 +290,7 @@ message Database {
     DataCatalog catalog = 4;
     ProcessingPlatform processing_platform = 5;
   }
-  
+
   // The schemas in this database.
   repeated Schema schemas = 6;
   repeated string tags = 7;
@@ -341,7 +347,7 @@ message Lineage {
   string relation = 3;
   repeated Field field_relations = 4;
   bool managed_by_pace = 6;
-  
+
   message Field {
     string source_attribute = 1;
     string target_attribute = 2;
