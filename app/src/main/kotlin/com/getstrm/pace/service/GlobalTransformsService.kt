@@ -90,7 +90,7 @@ class GlobalTransformsService(
                                 .setRef(
                                     DataResourceRef.newBuilder()
                                         .setPlatformFqn(
-                                            "${dataPolicy.source.ref}${appConfiguration.defaultViewSuffix}"
+                                            "${dataPolicy.source.ref.platformFqn}${appConfiguration.defaultViewSuffix}"
                                         )
                                         .build()
                                 )
