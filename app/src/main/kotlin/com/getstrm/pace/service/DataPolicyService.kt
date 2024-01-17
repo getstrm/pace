@@ -3,11 +3,15 @@ package com.getstrm.pace.service
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ListDataPoliciesRequest
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.UpsertDataPolicyRequest
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.getstrm.pace.dao.DataPolicyDao
 import com.getstrm.pace.exceptions.ResourceException
+import com.getstrm.pace.util.MILLION_RECORDS
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
+import com.getstrm.pace.util.sourceDataResourceRef
+import com.getstrm.pace.util.targetDataResourceRefs
 import com.getstrm.pace.util.toApiDataPolicy
 import com.google.rpc.ResourceInfo
 import org.springframework.stereotype.Component
@@ -48,6 +52,17 @@ class DataPolicyService(
 
     fun getLatestDataPolicy(id: String, platformId: String): DataPolicy =
         getActiveDataPolicy(id, platformId).toApiDataPolicy()
+
+    suspend fun listAllManagedDataResourceRefs(): List<DataResourceRef> {
+        val dataPolicies =
+            listDataPolicies(
+                    ListDataPoliciesRequest.newBuilder().setPageParameters(MILLION_RECORDS).build()
+                )
+                .data
+        return dataPolicies.flatMap {
+            listOf(it.sourceDataResourceRef()) + it.targetDataResourceRefs()
+        }
+    }
 
     private fun getActiveDataPolicy(id: String, platformId: String): DataPoliciesRecord =
         dataPolicyDao.getActiveDataPolicy(id, platformId)

@@ -6,7 +6,6 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
 import com.getstrm.pace.exceptions.InternalException
-import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.withPageInfo
 import org.springframework.stereotype.Component
@@ -58,15 +57,13 @@ class LineageService(
         }
 
     /**
-     * return true if a Data Resource is not managed by pace.
+     * return true if a Data Resource is managed by pace.
+     * 
+     * so either a data-resource has a data-policy connected to it, or one
+     * of the ruleset targets is equal to ref.
      *
-     * FIXME https://github.com/getstrm/pace/issues/153 Should include views created by pace
+     * TODO improve stupid algorithm, performance is abysmal. But good enough for now.
      */
-    private suspend fun managedByPace(ref: DataResourceRef) =
-        try {
-            dataPolicyService.getLatestDataPolicy(ref.fqn, ref.platform.id)
-            true
-        } catch (e: ResourceException) {
-            if (e.code == ResourceException.Code.NOT_FOUND) false else throw e
-        }
+    private suspend fun managedByPace(ref: DataResourceRef): Boolean =
+        dataPolicyService.listAllManagedDataResourceRefs().firstOrNull { it == ref } != null
 }
