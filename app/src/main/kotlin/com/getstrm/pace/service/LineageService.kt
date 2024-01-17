@@ -58,9 +58,9 @@ class LineageService(
 
     /**
      * return true if a Data Resource is managed by pace.
-     * 
-     * so either a data-resource has a data-policy connected to it, or one
-     * of the ruleset targets is equal to ref.
+     *
+     * so either a data-resource has a data-policy connected to it, or one of the ruleset targets is
+     * equal to ref.
      *
      * TODO improve stupid algorithm, performance is abysmal. But good enough for now.
      */
