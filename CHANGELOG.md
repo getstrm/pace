@@ -1,3 +1,11 @@
+# [1.0.0-alpha.48](https://github.com/getstrm/pace/compare/v1.0.0-alpha.47...v1.0.0-alpha.48) (2024-01-17)
+
+
+### Features
+
+* **alpha:** force build ([daeae9d](https://github.com/getstrm/pace/commit/daeae9dab5afda013b0675e7d61e9781ddc3eaac))
+* **pace-118:** build pace-118 lineage command ([fe702a2](https://github.com/getstrm/pace/commit/fe702a2b372fe1948519592b7fd2f47fee8ddcc7))
+
 # [1.0.0-alpha.47](https://github.com/getstrm/pace/compare/v1.0.0-alpha.46...v1.0.0-alpha.47) (2024-01-16)
 
 
