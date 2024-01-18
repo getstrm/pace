@@ -16,19 +16,19 @@ import com.getstrm.pace.util.orDefault
 import com.google.rpc.BadRequest
 
 abstract class Level1 : Resource {
-    abstract suspend fun listSchemas(
+    abstract suspend fun listChildren(
         pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
     ): PagedCollection<Level2>
 
-    abstract suspend fun getSchema(schemaId: String): Level2
+    abstract suspend fun getChild(childId: String): Level2
 }
 
 abstract class Level2 : Resource {
-    abstract suspend fun listTables(
+    abstract suspend fun listChildren(
         pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
     ): PagedCollection<Level3>
 
-    abstract suspend fun getTable(tableId: String): Level3
+    abstract suspend fun getChild(childId: String): Level3
 }
 
 abstract class Level3 : Resource {
@@ -63,7 +63,7 @@ abstract class IntegrationClient {
     ): PagedCollection<Level2> =
         (listDatabases(MILLION_RECORDS).find { it.id == databaseId }
                 ?: throwNotFound(databaseId, "database"))
-            .listSchemas(pageParameters)
+            .listChildren(pageParameters)
 
     open suspend fun listTables(
         databaseId: String,
@@ -72,7 +72,7 @@ abstract class IntegrationClient {
     ): PagedCollection<Level3> =
         (listSchemas(databaseId, MILLION_RECORDS).find { it.id == schemaId }
                 ?: throwNotFound(schemaId, "schema"))
-            .listTables(pageParameters)
+            .listChildren(pageParameters)
 
     open suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Level3 =
         (listTables(databaseId, schemaId, MILLION_RECORDS).find { it.id == tableId }

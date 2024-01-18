@@ -38,17 +38,17 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
     inner class Database(override val catalog: DatahubCatalog) :
         DataCatalog.Database(catalog, catalog.id, "datahub", catalog.id) {
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> =
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level2> =
             listOf(schema).withPageInfo()
 
-        override suspend fun getSchema(schemaId: String): Level2 {
+        override suspend fun getChild(childId: String): Level2 {
             return schema
         }
     }
 
     inner class Schema(database: Database) :
         DataCatalog.Schema(database, database.id, database.id) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> {
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level3> {
             val response =
                 client
                     .query(ListDatasetsQuery(pageParameters.skip, pageParameters.pageSize))
@@ -60,7 +60,7 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             return tables.withTotal(response.data?.search?.total ?: -1)
         }
 
-        override suspend fun getTable(tableId: String): DataCatalog.Table {
+        override suspend fun getChild(tableId: String): DataCatalog.Table {
             val response = client.query(GetDatasetDetailsQuery(tableId)).execute()
             val dataset =
                 response.data!!.dataset

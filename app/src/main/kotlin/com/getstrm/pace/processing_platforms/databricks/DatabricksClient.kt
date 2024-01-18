@@ -173,16 +173,16 @@ class DatabricksClient(
         processingPlatformClient: ProcessingPlatformClient,
         name: String
     ) : Database(processingPlatformClient, name, DATABRICKS) {
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> =
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level2> =
             listSchemas(id, pageParameters)
 
-        override suspend fun getSchema(schemaId: String): Level2 {
+        override suspend fun getChild(childId: String): Level2 {
             try {
-                return workspaceClient.schemas().get(schemaId).let {
+                return workspaceClient.schemas().get(childId).let {
                     DatabricksSchema(this, it.name)
                 }
             } catch (t: Throwable) {
-                mapNotFoundError(t, "Databricks schema", schemaId)
+                mapNotFoundError(t, "Databricks schema", childId)
             }
         }
 
@@ -197,10 +197,10 @@ class DatabricksClient(
             id = name,
             name = name,
         ) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> =
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level3> =
             listTables(database.id, name, pageParameters)
 
-        override suspend fun getTable(tableId: String): Table {
+        override suspend fun getChild(tableId: String): Table {
             getTable(database.id, name, tableId).let {
                 return it
             }

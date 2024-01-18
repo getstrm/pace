@@ -118,11 +118,11 @@ class SynapseClient(
 
     inner class SynapseDatabase(pp: ProcessingPlatformClient, id: String) :
         ProcessingPlatformClient.Database(pp, id, ProcessingPlatform.PlatformType.SYNAPSE) {
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> {
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level2> {
             throwUnimplemented("listSchemas on Synapse")
         }
 
-        override suspend fun getSchema(schemaId: String): Schema {
+        override suspend fun getChild(schemaId: String): Schema {
             throwUnimplemented("getSchema on Synapse")
         }
 
@@ -133,7 +133,7 @@ class SynapseClient(
 
     inner class SynapseSchema(database: Database, id: String, name: String) :
         ProcessingPlatformClient.Schema(database, id, name) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> {
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level3> {
             return jooq
                 .meta()
                 .filterSchemas { !schemasToIgnore.contains(it.name) }
@@ -143,7 +143,7 @@ class SynapseClient(
                 .withPageInfo()
         }
 
-        override suspend fun getTable(tableId: String): Table {
+        override suspend fun getChild(tableId: String): Table {
             throwUnimplemented("getTable on Synapse")
         }
 

@@ -99,17 +99,17 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
     override suspend fun listSchemas(
         databaseId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Level2> = getDatabase(databaseId).listSchemas(pageParameters)
+    ): PagedCollection<Level2> = getDatabase(databaseId).listChildren(pageParameters)
 
     override suspend fun listTables(
         databaseId: String,
         schemaId: String,
         pageParameters: PageParameters
     ): PagedCollection<Level3> =
-        getDatabase(databaseId).getSchema(schemaId).listTables(pageParameters)
+        getDatabase(databaseId).getChild(schemaId).listChildren(pageParameters)
 
     override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Level3 =
-        getDatabase(databaseId).getSchema(schemaId).getTable(tableId)
+        getDatabase(databaseId).getChild(schemaId).getChild(tableId)
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
         val request =
@@ -178,7 +178,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
 
     inner class SnowflakeDatabase(pp: ProcessingPlatformClient, id: String) :
         Database(pp, id, ProcessingPlatform.PlatformType.SNOWFLAKE) {
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> {
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level2> {
             val sql = "SHOW SCHEMAS in DATABASE \"$id\""
 
             val request =
@@ -195,9 +195,9 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
                 .withPageInfo()
         }
 
-        override suspend fun getSchema(schemaId: String): Level2 {
-            return listSchemas(MILLION_RECORDS).find { it.id == schemaId }
-                ?: throwNotFound(schemaId, "Snowflake schema")
+        override suspend fun getChild(childId: String): Level2 {
+            return listChildren(MILLION_RECORDS).find { it.id == childId }
+                ?: throwNotFound(childId, "Snowflake schema")
         }
 
         override fun fqn(): String {
@@ -211,7 +211,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
             name,
             name,
         ) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> {
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level3> {
             val statement =
                 """SELECT table_schema, table_name, table_type,
                created as create_date,
@@ -236,10 +236,10 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
                 .withPageInfo()
         }
 
-        override suspend fun getTable(tableId: String): Level3 =
+        override suspend fun getChild(childId: String): Level3 =
             // TODO increase performance
-            listTables(database.id, id, MILLION_RECORDS).find { it.id == tableId }
-                ?: throwNotFound(tableId, "Snowflake table")
+            listTables(database.id, id, MILLION_RECORDS).find { it.id == childId }
+                ?: throwNotFound(childId, "Snowflake table")
 
         override fun fqn(): String {
             return "${database.id}.$id"

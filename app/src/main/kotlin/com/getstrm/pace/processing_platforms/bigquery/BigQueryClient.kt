@@ -95,16 +95,16 @@ class BigQueryClient(
             ?: throwNotFound(databaseId, "BigQuery Dataset")
 
     override suspend fun listSchemas(databaseId: String, pageParameters: PageParameters) =
-        getDatabase(databaseId).listSchemas(pageParameters)
+        getDatabase(databaseId).listChildren(pageParameters)
 
     override suspend fun listTables(
         databaseId: String,
         schemaId: String,
         pageParameters: PageParameters
-    ) = getDatabase(databaseId).getSchema(schemaId).listTables(pageParameters)
+    ) = getDatabase(databaseId).getChild(schemaId).listChildren(pageParameters)
 
     override suspend fun getTable(databaseId: String, schemaId: String, tableId: String) =
-        getDatabase(databaseId).getSchema(schemaId).getTable(tableId)
+        getDatabase(databaseId).getChild(schemaId).getChild(tableId)
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = BigQueryViewGenerator(dataPolicy, config.userGroupsTable)
@@ -321,7 +321,7 @@ class BigQueryClient(
     inner class BigQueryDatabase(platformClient: ProcessingPlatformClient, projectId: String) :
         Database(platformClient, projectId, BIGQUERY) {
 
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> {
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level2> {
             // FIXME pagedCalls function needs to understand page tokens
             // We'll pick that up after the merge of pace-84
             // for now just getting all of the datasets
@@ -336,7 +336,7 @@ class BigQueryClient(
             return info
         }
 
-        override suspend fun getSchema(schemaId: String): Schema =
+        override suspend fun getChild(schemaId: String): Schema =
             BigQuerySchema(this, bigQueryClient.getDataset(schemaId))
 
         override fun fqn(): String {
@@ -348,7 +348,7 @@ class BigQueryClient(
     inner class BigQuerySchema(database: BigQueryDatabase, val dataset: BQDataset) :
         Schema(database, dataset.datasetId.dataset, dataset.datasetId.dataset) {
 
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> =
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level3> =
             // FIXME pagedCalls function needs to understand page tokens
             bigQueryClient
                 .listTables(dataset.datasetId)
@@ -358,7 +358,7 @@ class BigQueryClient(
                 .map { BigQueryTable(this, it) }
                 .withPageInfo()
 
-        override suspend fun getTable(tableId: String) =
+        override suspend fun getChild(tableId: String) =
             BigQueryTable(
                 this,
                 bigQueryClient.getTable(TableId.of(dataset.datasetId.dataset, tableId))

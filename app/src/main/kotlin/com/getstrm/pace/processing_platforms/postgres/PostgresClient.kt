@@ -63,16 +63,16 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
     override suspend fun listSchemas(
         databaseId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Level2> = getDatabase(databaseId).listSchemas(pageParameters)
+    ): PagedCollection<Level2> = getDatabase(databaseId).listChildren(pageParameters)
 
     override suspend fun listTables(
         databaseId: String,
         schemaId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Level3> = getSchema(databaseId, schemaId).listTables(pageParameters)
+    ): PagedCollection<Level3> = getSchema(databaseId, schemaId).listChildren(pageParameters)
 
     override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Level3 =
-        getSchema(databaseId, schemaId).getTable(tableId)
+        getSchema(databaseId, schemaId).getChild(tableId)
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
         val oidsAndRoles =
@@ -111,7 +111,7 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
         id: String
     ) : Database(platformClient, id, POSTGRES) {
 
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> =
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level2> =
             jooq
                 .meta()
                 .schemas
@@ -120,7 +120,7 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
                 .sortedBy { it.name }
                 .withPageInfo()
 
-        override suspend fun getSchema(schemaId: String): Schema =
+        override suspend fun getChild(schemaId: String): Schema =
             (jooq.meta().schemas.firstOrNull { it.name == schemaId }
                     ?: throwNotFound(schemaId, "PostgreSQL schema"))
                 .let { PostgresSchema(this, it.name) }
@@ -131,7 +131,7 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
     }
 
     inner class PostgresSchema(database: PostgresDatabase, id: String) : Schema(database, id, id) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> =
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level3> =
             jooq
                 .meta()
                 .filterSchemas { it.name == id }
@@ -141,7 +141,7 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
                 .applyPageParameters(pageParameters)
                 .withPageInfo()
 
-        override suspend fun getTable(tableId: String): Table =
+        override suspend fun getChild(tableId: String): Table =
             (jooq.meta().filterSchemas { it.name == id }.tables.firstOrNull { it.name == tableId }
                     ?: throwNotFound(tableId, "PostgreSQL table"))
                 .let { PostgresTable(this, it) }

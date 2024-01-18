@@ -59,7 +59,7 @@ class DataCatalogsService(
 
     suspend fun listSchemas(request: ListSchemasRequest): PagedCollection<ApiSchema> =
         with(request) {
-            val schemas = getCatalog(catalogId).getDatabase(databaseId).listSchemas()
+            val schemas = getCatalog(catalogId).getDatabase(databaseId).listChildren()
             return@with schemas.map { (it as DataCatalog.Schema).apiSchema }
         }
 
@@ -67,8 +67,8 @@ class DataCatalogsService(
         with(request) {
             val catalog = getCatalog(catalogId)
             val database = catalog.getDatabase(databaseId)
-            val schema = database.getSchema(schemaId)
-            schema.listTables(request.pageParameters.orDefault()).map {
+            val schema = database.getChild(schemaId)
+            schema.listChildren(request.pageParameters.orDefault()).map {
                 (it as DataCatalog.Table).apiTable
             }
         }
@@ -79,8 +79,8 @@ class DataCatalogsService(
         schemaId: String,
         tableId: String,
     ): DataPolicy {
-        val schema = getCatalog(catalogId).getDatabase(databaseId).getSchema(schemaId)
-        val table = schema.getTable(tableId)
+        val schema = getCatalog(catalogId).getDatabase(databaseId).getChild(schemaId)
+        val table = schema.getChild(tableId)
         return table.createBlueprint()!!
     }
 

@@ -26,8 +26,8 @@ class PostgresClientTest : AbstractDatabaseTest() {
     fun `list tables`() {
         runBlocking {
             // Given
-            val schema = db.getSchema("public")
-            val tables = schema.listTables()
+            val schema = db.getChild("public")
+            val tables = schema.listChildren()
             // Then
             tables.data.map { it.id } shouldContainExactlyInAnyOrder
                 listOf("demo", "flyway_schema_history")
@@ -54,8 +54,8 @@ class PostgresClientTest : AbstractDatabaseTest() {
     @Test
     fun `test tags from field comment`() {
         runBlocking {
-            val schema = db.getSchema("public")
-            val tables = schema.getTable("demo")
+            val schema = db.getChild("public")
+            val tables = schema.getChild("demo")
             val policy: DataPolicy = tables.createBlueprint()
             val field = policy.source.fieldsList.find { it.pathString() == "email" }!!
             field.tagsList shouldContainExactlyInAnyOrder listOf("pii", "with whitespace", "email")

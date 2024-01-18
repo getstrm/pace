@@ -66,19 +66,19 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         /*
             Just returning a hardcoded schema with id 'schema' and name the same as that of the dataSource.
         */
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> {
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level2> {
             return listOf(Schema(catalog, this, "schema", dataSource.name)).withPageInfo()
         }
 
-        override suspend fun getSchema(schemaId: String): Level2 {
-            return listSchemas(THOUSAND_RECORDS).data.firstOrNull { it.id == schemaId }
+        override suspend fun getChild(childId: String): Level2 {
+            return listChildren(THOUSAND_RECORDS).data.firstOrNull { it.id == childId }
                 ?: throw ResourceException(
                     ResourceException.Code.NOT_FOUND,
                     ResourceInfo.newBuilder()
                         .setResourceType("Catalog Database Schema")
-                        .setResourceName(schemaId)
+                        .setResourceName(childId)
                         .setDescription(
-                            "Schema $schemaId not found in database $id of catalog $catalog.id"
+                            "Schema $childId not found in database $id of catalog $catalog.id"
                         )
                         .setOwner("Database: $id")
                         .build()
@@ -93,7 +93,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         id: String,
         name: String,
     ) : DataCatalog.Schema(oddDatabase, id, name) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> {
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level3> {
             val searchId = catalog.searchDataSetsInDataSource(oddDatabase.dataSource).searchId
             val tables =
                 catalog.getAllSearchResults(searchId).map {
@@ -102,14 +102,14 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
             return tables.withPageInfo()
         }
 
-        override suspend fun getTable(tableId: String): Level3 {
-            return listTables(THOUSAND_RECORDS).data.firstOrNull { it.id == tableId }
+        override suspend fun getChild(childId: String): Level3 {
+            return listChildren(THOUSAND_RECORDS).data.firstOrNull { it.id == childId }
                 ?: throw ResourceException(
                     ResourceException.Code.NOT_FOUND,
                     ResourceInfo.newBuilder()
                         .setResourceType("Table")
-                        .setResourceName(tableId)
-                        .setDescription("Table $tableId not found in schema $id")
+                        .setResourceName(childId)
+                        .setDescription("Table $childId not found in schema $id")
                         .setOwner("Schema: $id")
                         .build()
                 )

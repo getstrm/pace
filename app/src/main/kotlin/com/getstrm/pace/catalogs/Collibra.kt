@@ -74,7 +74,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         displayName: String
     ) : DataCatalog.Database(catalog, id, dbType, displayName) {
 
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> {
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level2> {
             val schemas =
                 pagedCalls(pageParameters) { skip, pageSize ->
                     client
@@ -94,10 +94,10 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             TODO("Not yet implemented")
         }
 
-        override suspend fun getSchema(schemaId: String): Level2 {
+        override suspend fun getChild(childId: String): Level2 {
             val schemaAsset =
                 catalog.client
-                    .query(GetSchemaQuery(schemaId))
+                    .query(GetSchemaQuery(childId))
                     .executeOrThrowError()
                     .assets
                     .firstNonNull()
@@ -112,7 +112,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         name: String
     ) : DataCatalog.Schema(database, id, name) {
 
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> {
+        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level3> {
             val tables =
                 pagedCalls(pageParameters) { skip, pageSize ->
                         // first() refers to the single schema
@@ -132,7 +132,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             return "${database.id}.$id"
         }
 
-        override suspend fun getTable(tableId: String): DataCatalog.Table {
+        override suspend fun getChild(tableId: String): DataCatalog.Table {
             val table =
                 catalog.client
                     .query(GetTableQuery(tableId))
