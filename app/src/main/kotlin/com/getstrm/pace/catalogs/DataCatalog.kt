@@ -6,9 +6,8 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema as ApiSchema
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
 import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.domain.IntegrationClient
-import com.getstrm.pace.domain.Level1
-import com.getstrm.pace.domain.Level2
-import com.getstrm.pace.domain.Level3
+import com.getstrm.pace.domain.LeafResource
+import com.getstrm.pace.domain.Resource
 
 /** Abstraction of the physical data concepts in a data catalog. */
 abstract class DataCatalog(
@@ -23,10 +22,11 @@ abstract class DataCatalog(
     val apiCatalog: ApiCatalog
         get() = ApiCatalog.newBuilder().setId(id).setType(config.type).build()
 
-    abstract suspend fun getDatabase(databaseId: String): Level1
+    abstract suspend fun getDatabase(databaseId: String): Resource
 
     /** A table is a collection of columns. */
-    abstract class Table(val schema: Schema, override val id: String, val name: String) : Level3() {
+    abstract class Table(val schema: Schema, override val id: String, val name: String) :
+        LeafResource() {
         override fun toString(): String = "Table($id, $name)"
 
         override fun fqn(): String {
@@ -40,7 +40,7 @@ abstract class DataCatalog(
 
     /** A schema is a collection of tables. */
     abstract class Schema(val database: Database, override val id: String, val name: String) :
-        Level2() {
+        Resource {
 
         override fun fqn(): String {
             return "${database.id}.$id"
@@ -63,7 +63,7 @@ abstract class DataCatalog(
         override val id: String,
         val dbType: String? = null,
         val displayName: String? = null
-    ) : Level1() {
+    ) : Resource {
 
         override fun fqn(): String {
             return id

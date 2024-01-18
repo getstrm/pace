@@ -14,9 +14,7 @@ import com.databricks.sdk.service.sql.ExecuteStatementRequest
 import com.databricks.sdk.service.sql.ExecuteStatementResponse
 import com.databricks.sdk.service.sql.StatementState
 import com.getstrm.pace.config.DatabricksConfig
-import com.getstrm.pace.domain.Level1
-import com.getstrm.pace.domain.Level2
-import com.getstrm.pace.domain.Level3
+import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.exceptions.throwNotFound
@@ -100,7 +98,7 @@ class DatabricksClient(
         }
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Level1> {
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Resource> {
         return workspaceClient
             .catalogs()
             .list()
@@ -112,7 +110,7 @@ class DatabricksClient(
     override suspend fun listSchemas(
         databaseId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Level2> {
+    ): PagedCollection<Resource> {
         try {
             return workspaceClient
                 .schemas()
@@ -131,7 +129,7 @@ class DatabricksClient(
         databaseId: String,
         schemaId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Level3> {
+    ): PagedCollection<Resource> {
         try {
             return workspaceClient
                 .tables()
@@ -173,10 +171,11 @@ class DatabricksClient(
         processingPlatformClient: ProcessingPlatformClient,
         name: String
     ) : Database(processingPlatformClient, name, DATABRICKS) {
-        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level2> =
-            listSchemas(id, pageParameters)
+        override suspend fun listChildren(
+            pageParameters: PageParameters
+        ): PagedCollection<Resource> = listSchemas(id, pageParameters)
 
-        override suspend fun getChild(childId: String): Level2 {
+        override suspend fun getChild(childId: String): Resource {
             try {
                 return workspaceClient.schemas().get(childId).let {
                     DatabricksSchema(this, it.name)
@@ -197,8 +196,9 @@ class DatabricksClient(
             id = name,
             name = name,
         ) {
-        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level3> =
-            listTables(database.id, name, pageParameters)
+        override suspend fun listChildren(
+            pageParameters: PageParameters
+        ): PagedCollection<Resource> = listTables(database.id, name, pageParameters)
 
         override suspend fun getChild(tableId: String): Table {
             getTable(database.id, name, tableId).let {

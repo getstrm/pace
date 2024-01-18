@@ -82,7 +82,9 @@ class ProcessingPlatformsService(
         }
     }
 
-    suspend fun listProcessingPlatformTables(request: ListTablesRequest): PagedCollection<Level3> {
+    suspend fun listProcessingPlatformTables(
+        request: ListTablesRequest
+    ): PagedCollection<Resource> {
         val processingPlatformClient: ProcessingPlatformClient =
             platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
         return processingPlatformClient.listTables(
@@ -108,7 +110,7 @@ class ProcessingPlatformsService(
                         request.table.schema.database.id,
                         request.table.schema.id,
                         request.table.id
-                    )
+                    ) as LeafResource
                 table.createBlueprint()
             }
         return GetBlueprintPolicyResponse.newBuilder().setDataPolicy(blueprint).build()

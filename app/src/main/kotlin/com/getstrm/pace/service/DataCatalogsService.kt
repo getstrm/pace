@@ -11,6 +11,7 @@ import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.catalogs.DatahubCatalog
 import com.getstrm.pace.catalogs.OpenDataDiscoveryCatalog
 import com.getstrm.pace.config.AppConfiguration
+import com.getstrm.pace.domain.LeafResource
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
@@ -80,7 +81,7 @@ class DataCatalogsService(
         tableId: String,
     ): DataPolicy {
         val schema = getCatalog(catalogId).getDatabase(databaseId).getChild(schemaId)
-        val table = schema.getChild(tableId)
+        val table = schema.getChild(tableId) as LeafResource
         return table.createBlueprint()!!
     }
 

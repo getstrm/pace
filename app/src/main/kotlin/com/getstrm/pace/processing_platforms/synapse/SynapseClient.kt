@@ -69,14 +69,14 @@ class SynapseClient(
         }
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Level1> {
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Resource> {
         throwUnimplemented("listDatabases on Synapse")
     }
 
     override suspend fun listSchemas(
         databaseId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Level2> {
+    ): PagedCollection<Resource> {
         throwUnimplemented("listSchemas on Synapse")
     }
 
@@ -84,7 +84,7 @@ class SynapseClient(
         databaseId: String,
         schemaId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Level3> {
+    ): PagedCollection<Resource> {
         throwUnimplemented("listTables on Synapse")
     }
 
@@ -118,7 +118,9 @@ class SynapseClient(
 
     inner class SynapseDatabase(pp: ProcessingPlatformClient, id: String) :
         ProcessingPlatformClient.Database(pp, id, ProcessingPlatform.PlatformType.SYNAPSE) {
-        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level2> {
+        override suspend fun listChildren(
+            pageParameters: PageParameters
+        ): PagedCollection<Resource> {
             throwUnimplemented("listSchemas on Synapse")
         }
 
@@ -133,7 +135,9 @@ class SynapseClient(
 
     inner class SynapseSchema(database: Database, id: String, name: String) :
         ProcessingPlatformClient.Schema(database, id, name) {
-        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level3> {
+        override suspend fun listChildren(
+            pageParameters: PageParameters
+        ): PagedCollection<Resource> {
             return jooq
                 .meta()
                 .filterSchemas { !schemasToIgnore.contains(it.name) }

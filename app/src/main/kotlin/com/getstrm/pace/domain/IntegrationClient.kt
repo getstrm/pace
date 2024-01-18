@@ -15,24 +15,15 @@ import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
 import com.google.rpc.BadRequest
 
-abstract class Level1 : Resource {
-    abstract suspend fun listChildren(
-        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-    ): PagedCollection<Level2>
+abstract class LeafResource : Resource {
 
-    abstract suspend fun getChild(childId: String): Level2
-}
+    override suspend fun getChild(childId: String): Resource {
+        throwNotFound(childId, "$id has no children")
+    }
 
-abstract class Level2 : Resource {
-    abstract suspend fun listChildren(
-        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-    ): PagedCollection<Level3>
-
-    abstract suspend fun getChild(childId: String): Level3
-}
-
-abstract class Level3 : Resource {
-
+    override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Resource> {
+        throwNotFound("", "$id has no children")
+    }
     /**
      * create a blueprint from the field information and possible the global transforms.
      *
@@ -43,7 +34,7 @@ abstract class Level3 : Resource {
     abstract suspend fun createBlueprint(): DataPolicy
 }
 
-// TODO make sealed, but then it has to be in the same package as the two client implemenations.
+// TODO make sealed, but then it has to be in the same package as the two client implementations.
 abstract class IntegrationClient {
     abstract val id: String
 
@@ -55,12 +46,12 @@ abstract class IntegrationClient {
 
     abstract suspend fun listDatabases(
         pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-    ): PagedCollection<Level1>
+    ): PagedCollection<Resource>
 
     open suspend fun listSchemas(
         databaseId: String,
         pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-    ): PagedCollection<Level2> =
+    ): PagedCollection<Resource> =
         (listDatabases(MILLION_RECORDS).find { it.id == databaseId }
                 ?: throwNotFound(databaseId, "database"))
             .listChildren(pageParameters)
@@ -69,12 +60,13 @@ abstract class IntegrationClient {
         databaseId: String,
         schemaId: String,
         pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-    ): PagedCollection<Level3> =
+    ): PagedCollection<Resource> =
         (listSchemas(databaseId, MILLION_RECORDS).find { it.id == schemaId }
                 ?: throwNotFound(schemaId, "schema"))
             .listChildren(pageParameters)
+            .map { it as LeafResource }
 
-    open suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Level3 =
+    open suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Resource =
         (listTables(databaseId, schemaId, MILLION_RECORDS).find { it.id == tableId }
             ?: throwNotFound(tableId, "table"))
 
@@ -124,6 +116,12 @@ interface Resource {
     val id: String
 
     fun fqn(): String
+
+    suspend fun listChildren(
+        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
+    ): PagedCollection<Resource>
+
+    suspend fun getChild(childId: String): Resource
 
     fun toResourceUrn(
         integrationClient: IntegrationClient,

@@ -9,9 +9,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
 import com.getstrm.pace.config.BigQueryConfig
-import com.getstrm.pace.domain.Level1
-import com.getstrm.pace.domain.Level2
-import com.getstrm.pace.domain.Level3
+import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.exceptions.throwNotFound
@@ -78,7 +76,8 @@ class BigQueryClient(
             1 -> "project"
             2 -> "dataset"
             3 -> "table"
-            else -> throw IllegalArgumentException("Unsupported index: $index")
+            // TODO unpleasant client interaction
+            else -> "Level-$index"
         }
     }
 
@@ -87,10 +86,10 @@ class BigQueryClient(
      * the access credentials might allow interaction with multiple projects, in which case the
      * result from this call would become greater.
      */
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Level1> =
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Resource> =
         listOf(bigQueryDatabase).withPageInfo()
 
-    private suspend fun getDatabase(databaseId: String): Level1 =
+    private suspend fun getDatabase(databaseId: String): Resource =
         listDatabases(DEFAULT_PAGE_PARAMETERS).find { it.id == databaseId }
             ?: throwNotFound(databaseId, "BigQuery Dataset")
 
@@ -321,7 +320,9 @@ class BigQueryClient(
     inner class BigQueryDatabase(platformClient: ProcessingPlatformClient, projectId: String) :
         Database(platformClient, projectId, BIGQUERY) {
 
-        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level2> {
+        override suspend fun listChildren(
+            pageParameters: PageParameters
+        ): PagedCollection<Resource> {
             // FIXME pagedCalls function needs to understand page tokens
             // We'll pick that up after the merge of pace-84
             // for now just getting all of the datasets
@@ -331,7 +332,7 @@ class BigQueryClient(
                 val page = bigQueryClient.listDatasets()
                 datasets += page.iterateAll()
             } while (page.hasNextPage())
-            val info: PagedCollection<Level2> =
+            val info: PagedCollection<Resource> =
                 datasets.map { BigQuerySchema(this, it) }.withPageInfo()
             return info
         }
@@ -348,7 +349,9 @@ class BigQueryClient(
     inner class BigQuerySchema(database: BigQueryDatabase, val dataset: BQDataset) :
         Schema(database, dataset.datasetId.dataset, dataset.datasetId.dataset) {
 
-        override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Level3> =
+        override suspend fun listChildren(
+            pageParameters: PageParameters
+        ): PagedCollection<Resource> =
             // FIXME pagedCalls function needs to understand page tokens
             bigQueryClient
                 .listTables(dataset.datasetId)

@@ -3,6 +3,7 @@ package com.getstrm.pace.processing_platforms.postgres
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.AbstractDatabaseTest
 import com.getstrm.pace.config.PostgresConfig
+import com.getstrm.pace.domain.LeafResource
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.pathString
@@ -55,7 +56,7 @@ class PostgresClientTest : AbstractDatabaseTest() {
     fun `test tags from field comment`() {
         runBlocking {
             val schema = db.getChild("public")
-            val tables = schema.getChild("demo")
+            val tables = schema.getChild("demo") as LeafResource
             val policy: DataPolicy = tables.createBlueprint()
             val field = policy.source.fieldsList.find { it.pathString() == "email" }!!
             field.tagsList shouldContainExactlyInAnyOrder listOf("pii", "with whitespace", "email")
