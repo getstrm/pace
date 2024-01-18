@@ -46,10 +46,11 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
 
     override suspend fun platformResourceName(index: Int): String {
         return when (index) {
-            0 -> "warehouse"
-            1 -> "schema"
-            2 -> "table"
-            else -> throw IllegalArgumentException("Unsupported index: $index")
+            0 -> "Snowflake"
+            1 -> "warehouse"
+            2 -> "schema"
+            3 -> "table"
+            else -> "Level-$index"
         }
     }
 

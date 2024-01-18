@@ -10,9 +10,7 @@ import com.getstrm.pace.domain.LeafResource
 import com.getstrm.pace.domain.Resource
 
 /** Abstraction of the physical data concepts in a data catalog. */
-abstract class DataCatalog(
-    val config: CatalogConfiguration,
-) : AutoCloseable, IntegrationClient() {
+abstract class DataCatalog(val config: CatalogConfiguration) : AutoCloseable, IntegrationClient() {
     override val id: String
         get() = config.id
 
@@ -29,9 +27,7 @@ abstract class DataCatalog(
         LeafResource() {
         override fun toString(): String = "Table($id, $name)"
 
-        override fun fqn(): String {
-            return "${schema.fqn()}.${id}"
-        }
+        override fun fqn(): String = "${schema.fqn()}.${id}"
 
         val apiTable: ApiTable
             get() =
@@ -42,9 +38,7 @@ abstract class DataCatalog(
     abstract class Schema(val database: Database, override val id: String, val name: String) :
         Resource {
 
-        override fun fqn(): String {
-            return "${database.id}.$id"
-        }
+        override fun fqn(): String = "${database.id}.$id"
 
         override fun toString(): String = "Schema($id, $name)"
 
@@ -57,7 +51,6 @@ abstract class DataCatalog(
                     .build()
     }
 
-    /** meta information database */
     abstract class Database(
         open val catalog: DataCatalog,
         override val id: String,
@@ -65,9 +58,7 @@ abstract class DataCatalog(
         val displayName: String? = null
     ) : Resource {
 
-        override fun fqn(): String {
-            return id
-        }
+        override fun fqn(): String = id
 
         override fun toString() =
             dbType?.let { "Database($id, $dbType, $displayName)" } ?: "Database($id)"

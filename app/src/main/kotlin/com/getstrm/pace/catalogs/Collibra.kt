@@ -90,10 +90,6 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                 .withUnknownTotals()
         }
 
-        override fun fqn(): String {
-            TODO("Not yet implemented")
-        }
-
         override suspend fun getChild(childId: String): Resource {
             val schemaAsset =
                 catalog.client
@@ -130,10 +126,6 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             return tables.withUnknownTotals()
         }
 
-        override fun fqn(): String {
-            return "${database.id}.$id"
-        }
-
         override suspend fun getChild(childId: String): DataCatalog.Table {
             val table =
                 catalog.client
@@ -162,9 +154,6 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         id: String,
         name: String
     ) : DataCatalog.Table(schema, id, name) {
-        override fun fqn(): String {
-            return "${schema.fqn()}.${id}"
-        }
 
         override suspend fun createBlueprint(): DataPolicy {
             val columns: List<ColumnTypesAndTagsQuery.Column> =

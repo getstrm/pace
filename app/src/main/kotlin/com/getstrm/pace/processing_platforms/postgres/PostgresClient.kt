@@ -42,9 +42,9 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
 
     override suspend fun platformResourceName(index: Int): String {
         return when (index) {
-            0 -> "database"
-            1 -> "schema"
-            2 -> "table"
+            1 -> "database"
+            2 -> "schema"
+            3 -> "table"
             else -> throw IllegalArgumentException("Unsupported index: $index")
         }
     }

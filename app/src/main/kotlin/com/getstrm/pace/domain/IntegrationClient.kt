@@ -15,26 +15,10 @@ import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
 import com.google.rpc.BadRequest
 
-abstract class LeafResource : Resource {
-
-    override suspend fun getChild(childId: String): Resource {
-        throwNotFound(childId, "$id has no children")
-    }
-
-    override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Resource> {
-        throwNotFound("", "$id has no children")
-    }
-    /**
-     * create a blueprint from the field information and possible the global transforms.
-     *
-     * NOTE: do not call this method `get...` (Bean convention) because then the lazy information
-     * gathering for creating blueprints becomes non-lazy. You can see this for instance with the
-     * DataHub implementation
-     */
-    abstract suspend fun createBlueprint(): DataPolicy
-}
-
-// TODO make sealed, but then it has to be in the same package as the two client implementations.
+/**
+ * TODO make sealed, but then it has to be in the same package as both the
+ * [ProcessingPlatformClient] and [DataCatalog] class.
+ */
 abstract class IntegrationClient {
     abstract val id: String
 
@@ -113,6 +97,7 @@ abstract class IntegrationClient {
 }
 
 interface Resource {
+    // TODO should become name!
     val id: String
 
     fun fqn(): String
@@ -150,4 +135,23 @@ interface Resource {
         }
         return builder.build()
     }
+}
+
+abstract class LeafResource : Resource {
+
+    override suspend fun getChild(childId: String): Resource {
+        throwNotFound(childId, "$id has no children")
+    }
+
+    override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Resource> {
+        throwNotFound(id, "has no children")
+    }
+    /**
+     * create a blueprint from the field information and possible the global transforms.
+     *
+     * NOTE: do not call this method `get...` (Bean convention) because then the lazy information
+     * gathering for creating blueprints becomes non-lazy. You can see this for instance with the
+     * DataHub implementation
+     */
+    abstract suspend fun createBlueprint(): DataPolicy
 }

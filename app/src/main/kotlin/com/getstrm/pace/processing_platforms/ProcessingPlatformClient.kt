@@ -12,10 +12,8 @@ import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.util.PagedCollection
 import org.jooq.Field
 
-abstract class ProcessingPlatformClient(
-    open val config: PPConfig,
-) : IntegrationClient() {
-    override val id: String
+abstract class ProcessingPlatformClient(open val config: PPConfig) : IntegrationClient() {
+    override val id
         get() = config.id
 
     val type: ProcessingPlatform.PlatformType
@@ -61,7 +59,6 @@ abstract class ProcessingPlatformClient(
     /** A schema is a collection of tables. */
     abstract class Schema(val database: Database, override val id: String, val name: String) :
         Resource {
-
         override fun toString(): String = "Schema($id, $name)"
 
         val apiSchema: build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema
@@ -73,33 +70,26 @@ abstract class ProcessingPlatformClient(
                     .build()
     }
 
-    companion object {
-        private val regex = """(?:pace)\:\:((?:\"[\w\s\-\_]+\"|[\w\-\_]+))""".toRegex()
-
-        fun <T> Field<T>.toTags(): List<String> {
-            val match = regex.findAll(comment)
-            return match.map { it.groupValues[1].trim('"') }.toList()
-        }
-    }
-
     /** A table is a collection of columns. */
     abstract class Table(val schema: Schema, override val id: String, val name: String) :
         LeafResource() {
-        /**
-         * create a blueprint from the field information and possible the global transforms.
-         *
-         * NOTE: do not call this method `get...` (Bean convention) because then the lazy
-         * information gathering for creating blueprints becomes non-lazy. You can see this for
-         * instance with the DataHub implementation
-         */
         override fun toString(): String = "${schema.database.id}.${schema.id}.$id"
 
         /** the full name to be used in SQL queries to get at the source data. */
         abstract val fullName: String
-        val apiPlatform = schema.database.platformClient.apiProcessingPlatform
         val apiTable: ApiTable
             get() =
                 ApiTable.newBuilder().setId(id).setSchema(schema.apiSchema).setName(name).build()
+    }
+
+    companion object {
+        private val regex = """(?:pace)\:\:((?:\"[\w\s\-\_]+\"|[\w\-\_]+))""".toRegex()
+
+        /** Used to create Pace tags from a SQL Comment on a jooq Field. */
+        fun <T> Field<T>.toTags(): List<String> {
+            val match = regex.findAll(comment)
+            return match.map { it.groupValues[1].trim('"') }.toList()
+        }
     }
 }
 
