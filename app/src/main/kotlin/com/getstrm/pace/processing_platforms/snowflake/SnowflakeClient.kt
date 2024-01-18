@@ -198,6 +198,10 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
             return listSchemas(MILLION_RECORDS).find { it.id == schemaId }
                 ?: throwNotFound(schemaId, "Snowflake schema")
         }
+
+        override fun fqn(): String {
+            return id
+        }
     }
 
     inner class SnowflakeSchema(database: Database, name: String) :
@@ -235,6 +239,10 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
             // TODO increase performance
             listTables(database.id, id, MILLION_RECORDS).find { it.id == tableId }
                 ?: throwNotFound(tableId, "Snowflake table")
+
+        override fun fqn(): String {
+            return "${database.id}.$id"
+        }
     }
 
     data class SnowflakeRequest(
@@ -260,6 +268,10 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
 
         override val fullName: String
             get() = "${schema.id}.${id}"
+
+        override fun fqn(): String {
+            return "${schema.fqn()}.${id}"
+        }
 
         private fun SnowflakeResponse.toDataPolicy(
             platform: ProcessingPlatform,

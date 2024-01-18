@@ -4,19 +4,22 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.*
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
-import com.apollographql.apollo3.mpp.platform
+import build.buf.gen.getstrm.pace.api.resources.v1alpha.ListResourcesRequest
 import com.getstrm.pace.config.PPConfig
+import com.getstrm.pace.domain.IntegrationClient
+import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.orDefault
 import com.google.rpc.BadRequest
 import org.jooq.Field
 
 abstract class ProcessingPlatformClient(
     open val config: PPConfig,
-) {
-    val id: String
+) : IntegrationClient {
+    override val id: String
         get() = config.id
 
     val type: ProcessingPlatform.PlatformType
@@ -24,6 +27,12 @@ abstract class ProcessingPlatformClient(
 
     val apiProcessingPlatform: ProcessingPlatform
         get() = ProcessingPlatform.newBuilder().setId(id).setPlatformType(config.type).build()
+
+    override suspend fun listResources(
+        request: ListResourcesRequest
+    ): PagedCollection<ResourceUrn> {
+        return list(request.urn, request.pageParameters.orDefault())
+    }
 
     abstract suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group>
 
@@ -36,21 +45,21 @@ abstract class ProcessingPlatformClient(
         val platformResourceName = platformResourceName(resourceUrn.resourcePathCount)
 
         return when (resourceUrn.resourcePathCount) {
-            0 ->
-                listDatabases(pageParameters).map {
-                    it.toResourceUrn(resourceUrn, platformResourceName)
-                }
             1 ->
-                listSchemas(resourceUrn.resourcePathList[0].name, pageParameters).map {
-                    it.toResourceUrn(resourceUrn, platformResourceName)
+                listDatabases(pageParameters).map {
+                    it.toResourceUrn(this, resourceUrn, platformResourceName)
                 }
             2 ->
+                listSchemas(resourceUrn.resourcePathList[1].name, pageParameters).map {
+                    it.toResourceUrn(this, resourceUrn, platformResourceName)
+                }
+            3 ->
                 listTables(
-                        resourceUrn.resourcePathList[0].name,
                         resourceUrn.resourcePathList[1].name,
+                        resourceUrn.resourcePathList[2].name,
                         pageParameters
                     )
-                    .map { it.toResourceUrn(resourceUrn, platformResourceName, true) }
+                    .map { it.toResourceUrn(this, resourceUrn, platformResourceName, true) }
             else ->
                 throw BadRequestException(
                     BadRequestException.Code.INVALID_ARGUMENT,
@@ -97,29 +106,6 @@ abstract class ProcessingPlatformClient(
     /** create a blueprint via its fully qualified table name. */
     open fun createBlueprint(fqn: String): DataPolicy {
         throwUnimplemented("createBlueprint from fully qualified name in platform ${config.type}")
-    }
-
-    interface Resource {
-        val id: String
-
-        fun toResourceUrn(
-            parentResourceUrn: ResourceUrn,
-            platformName: String,
-            isLeafNode: Boolean = false
-        ): ResourceUrn =
-            ResourceUrn.newBuilder()
-                .setPlatform(parentResourceUrn.platform)
-                .addAllResourcePath(
-                    parentResourceUrn.resourcePathList +
-                        listOf(
-                            ResourceNode.newBuilder()
-                                .setName(id)
-                                .setPlatformName(platformName)
-                                .setIsLeaf(isLeafNode)
-                                .build()
-                        )
-                )
-                .build()
     }
 
     /** meta information database */

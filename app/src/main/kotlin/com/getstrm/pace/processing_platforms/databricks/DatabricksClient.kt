@@ -182,6 +182,10 @@ class DatabricksClient(
                 mapNotFoundError(t, "Databricks schema", schemaId)
             }
         }
+
+        override fun fqn(): String {
+            return id
+        }
     }
 
     inner class DatabricksSchema(database: Database, name: String) :
@@ -197,6 +201,10 @@ class DatabricksClient(
             getTable(database.id, name, tableId).let {
                 return it
             }
+        }
+
+        override fun fqn(): String {
+            return "${database.id}.$id"
         }
     }
 
@@ -214,6 +222,10 @@ class DatabricksClient(
 
         override suspend fun createBlueprint(): DataPolicy {
             return tableInfo.toDataPolicy(getTags(tableInfo))
+        }
+
+        override fun fqn(): String {
+            return "${schema.fqn()}.${id}"
         }
 
         /* TODO the current databricks api does not expose column tags! :-(

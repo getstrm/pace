@@ -5,6 +5,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Lineage
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.BIGQUERY
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
 import com.getstrm.pace.config.BigQueryConfig
@@ -70,9 +71,10 @@ class BigQueryClient(
 
     override suspend fun platformResourceName(index: Int): String {
         return when (index) {
-            0 -> "project"
-            1 -> "dataset"
-            2 -> "table"
+            0 -> "BigQuery"
+            1 -> "project"
+            2 -> "dataset"
+            3 -> "table"
             else -> throw IllegalArgumentException("Unsupported index: $index")
         }
     }
@@ -204,6 +206,7 @@ class BigQueryClient(
             .setResourceRef(
                 DataResourceRef.newBuilder()
                     .setPlatformFqn(request.fqn)
+                    .setPaceUrn(ResourceUrn.newBuilder().setPlatformFqn(request.fqn).build())
                     .setPlatform(apiProcessingPlatform)
                     .build()
             )
@@ -302,6 +305,9 @@ class BigQueryClient(
             .setResourceRef(
                 DataResourceRef.newBuilder()
                     .setPlatformFqn(fqn.stripBqPrefix())
+                    .setPaceUrn(
+                        ResourceUrn.newBuilder().setPlatformFqn(fqn.stripBqPrefix()).build()
+                    )
                     .setPlatform(apiProcessingPlatform)
                     .build()
             )
@@ -329,6 +335,10 @@ class BigQueryClient(
 
         override suspend fun getSchema(schemaId: String): Schema =
             BigQuerySchema(this, bigQueryClient.getDataset(schemaId))
+
+        override fun fqn(): String {
+            return this.id
+        }
     }
 
     /** One BigQuerySchema corresponds with one BigQuery dataset */
@@ -350,6 +360,10 @@ class BigQueryClient(
                 this,
                 bigQueryClient.getTable(TableId.of(dataset.datasetId.dataset, tableId))
             )
+
+        override fun fqn(): String {
+            return "${database.id}.$id"
+        }
     }
 
     /** One BigQueryTable corresponds with one PACE Table. */
@@ -360,6 +374,10 @@ class BigQueryClient(
         override suspend fun createBlueprint() = doCreateBlueprint(bqTable)
 
         override val fullName = bqTable.fullName()
+
+        override fun fqn(): String {
+            return "${schema.fqn()}.${id}"
+        }
     }
 
     private fun doCreateBlueprint(bqTable: com.google.cloud.bigquery.Table): DataPolicy {
@@ -390,6 +408,9 @@ class BigQueryClient(
                     .setRef(
                         DataResourceRef.newBuilder()
                             .setPlatformFqn(table.fullName())
+                            .setPaceUrn(
+                                ResourceUrn.newBuilder().setPlatformFqn(table.fullName()).build()
+                            )
                             .setPlatform(apiProcessingPlatform)
                     )
                     .addAllFields(

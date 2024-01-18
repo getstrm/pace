@@ -124,6 +124,10 @@ class SynapseClient(
         override suspend fun getSchema(schemaId: String): Schema {
             throwUnimplemented("getSchema on Synapse")
         }
+
+        override fun fqn(): String {
+            return id
+        }
     }
 
     inner class SynapseSchema(database: Database, id: String, name: String) :
@@ -141,6 +145,10 @@ class SynapseClient(
         override suspend fun getTable(tableId: String): Table {
             throwUnimplemented("getTable on Synapse")
         }
+
+        override fun fqn(): String {
+            return "${database.id}.$id"
+        }
     }
 
     inner class SynapseTable(
@@ -150,6 +158,10 @@ class SynapseClient(
         name: String
     ) : Table(schema, id, name) {
         override val fullName: String = "${table.schema?.name}.${table.name}"
+
+        override fun fqn(): String {
+            return "${schema.fqn()}.${id}"
+        }
 
         override suspend fun createBlueprint(): DataPolicy {
             return DataPolicy.newBuilder()

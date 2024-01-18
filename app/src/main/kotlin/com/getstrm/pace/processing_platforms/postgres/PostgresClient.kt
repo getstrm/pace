@@ -121,6 +121,10 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
             (jooq.meta().schemas.firstOrNull { it.name == schemaId }
                     ?: throwNotFound(schemaId, "PostgreSQL schema"))
                 .let { PostgresSchema(this, it.name) }
+
+        override fun fqn(): String {
+            return id
+        }
     }
 
     inner class PostgresSchema(database: PostgresDatabase, id: String) : Schema(database, id, id) {
@@ -138,6 +142,10 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
             (jooq.meta().filterSchemas { it.name == id }.tables.firstOrNull { it.name == tableId }
                     ?: throwNotFound(tableId, "PostgreSQL table"))
                 .let { PostgresTable(this, it) }
+
+        override fun fqn(): String {
+            return id
+        }
     }
 
     inner class PostgresTable(
@@ -145,6 +153,10 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
         val table: org.jooq.Table<*>,
     ) : Table(schema, table.name, table.name) {
         override val fullName: String = "${table.schema?.name}.${table.name}"
+
+        override fun fqn(): String {
+            return "${schema.id}.$id"
+        }
 
         override suspend fun createBlueprint(): DataPolicy {
             return DataPolicy.newBuilder()
