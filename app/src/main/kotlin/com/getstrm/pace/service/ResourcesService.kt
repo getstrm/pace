@@ -13,32 +13,32 @@ class ResourcesService(
     val catalogsService: DataCatalogsService,
     val processingPlatformsService: ProcessingPlatformsService,
 ) {
-    val integrationClients: List<IntegrationClient>
+    private val integrationClients: List<IntegrationClient>
         get() = catalogsService.catalogs.values + processingPlatformsService.platforms.values
 
-    suspend fun listResources(request: ListResourcesRequest): PagedCollection<ResourceUrn> {
+    suspend fun listResources(request: ListResourcesRequest): PagedCollection<ResourceUrn> =
         if (request.urn.resourcePathList.isEmpty()) {
-            return (processingPlatformsService.platforms.values.map {
-                    ResourceUrn.newBuilder().setPlatform(it.apiProcessingPlatform).build()
-                } +
-                    catalogsService.catalogs.values.map {
-                        ResourceUrn.newBuilder().setCatalog(it.apiCatalog).build()
-                    })
-                .withPageInfo()
+            integrationClientUrns().withPageInfo()
+        } else {
+            integrationClient(request.urn).listResources(request)
         }
-        val client = GetResourcesClient(request.urn)
-        val resources = client.listResources(request)
-        return resources
-    }
 
-    private suspend fun GetResourcesClient(urn: ResourceUrn): IntegrationClient {
+    /** return a list of all Integration Client urn's, as configured during startup. */
+    private suspend fun integrationClientUrns() =
+        processingPlatformsService.platforms.values.map {
+            ResourceUrn.newBuilder().setPlatform(it.apiProcessingPlatform).build()
+        } +
+            catalogsService.catalogs.values.map {
+                ResourceUrn.newBuilder().setCatalog(it.apiCatalog).build()
+            }
+
+    /** find the integration client responding for handling a certain urn. */
+    private suspend fun integrationClient(urn: ResourceUrn): IntegrationClient {
         val integrationClientId =
             urn.resourcePathList.firstOrNull()?.name
-                ?: throwNotFound("${urn.resourcePathList}", "integration client")
-        val v =
-            integrationClients.find { it.id == integrationClientId }
-                ?: throwNotFound(integrationClientId, "integration client")
+                ?: throwNotFound(urn.resourcePathList.joinToString(), "integration client")
 
-        return v
+        return integrationClients.find { it.id == integrationClientId }
+            ?: throwNotFound(integrationClientId, "integration client")
     }
 }
