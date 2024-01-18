@@ -29,7 +29,7 @@ class PostgresClientTest : AbstractDatabaseTest() {
             val schema = db.getSchema("public")
             val tables = schema.listTables()
             // Then
-            tables.data.map { it.name } shouldContainExactlyInAnyOrder
+            tables.data.map { it.id } shouldContainExactlyInAnyOrder
                 listOf("demo", "flyway_schema_history")
         }
     }

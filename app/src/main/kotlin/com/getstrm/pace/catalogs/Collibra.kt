@@ -13,6 +13,9 @@ import com.collibra.generated.ListPhysicalDataAssetsQuery
 import com.collibra.generated.ListSchemaIdsQuery
 import com.collibra.generated.ListTablesInSchemaQuery
 import com.getstrm.pace.config.CatalogConfiguration
+import com.getstrm.pace.domain.Level1
+import com.getstrm.pace.domain.Level2
+import com.getstrm.pace.domain.Level3
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.BadRequestException.Code.INVALID_ARGUMENT
 import com.getstrm.pace.exceptions.InternalException
@@ -36,9 +39,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
     override fun close() = client.close()
 
-    override suspend fun listDatabases(
-        pageParameters: PageParameters
-    ): PagedCollection<DataCatalog.Database> =
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Level1> =
         pagedCalls(pageParameters) { skip: Int, pageSize: Int ->
                 client
                     .query(
@@ -73,9 +74,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         displayName: String
     ) : DataCatalog.Database(catalog, id, dbType, displayName) {
 
-        override suspend fun listSchemas(
-            pageParameters: PageParameters
-        ): PagedCollection<DataCatalog.Schema> {
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> {
             val schemas =
                 pagedCalls(pageParameters) { skip, pageSize ->
                     client
@@ -91,7 +90,11 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                 .withUnknownTotals()
         }
 
-        override suspend fun getSchema(schemaId: String): DataCatalog.Schema {
+        override fun fqn(): String {
+            TODO("Not yet implemented")
+        }
+
+        override suspend fun getSchema(schemaId: String): Level2 {
             val schemaAsset =
                 catalog.client
                     .query(GetSchemaQuery(schemaId))
@@ -109,9 +112,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         name: String
     ) : DataCatalog.Schema(database, id, name) {
 
-        override suspend fun listTables(
-            pageParameters: PageParameters
-        ): PagedCollection<DataCatalog.Table> {
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> {
             val tables =
                 pagedCalls(pageParameters) { skip, pageSize ->
                         // first() refers to the single schema
@@ -125,6 +126,10 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                     }
                     .map { Table(catalog, this, it.target.id.toString(), it.target.fullName) }
             return tables.withUnknownTotals()
+        }
+
+        override fun fqn(): String {
+            return "${database.id}.$id"
         }
 
         override suspend fun getTable(tableId: String): DataCatalog.Table {
@@ -155,8 +160,11 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         id: String,
         name: String
     ) : DataCatalog.Table(schema, id, name) {
+        override fun fqn(): String {
+            return "${schema.fqn()}.${id}"
+        }
 
-        override suspend fun createBlueprint(): DataPolicy? {
+        override suspend fun createBlueprint(): DataPolicy {
             val columns: List<ColumnTypesAndTagsQuery.Column> =
                 pagedCalls(MILLION_RECORDS) { skip, pageSize ->
                     catalog.client

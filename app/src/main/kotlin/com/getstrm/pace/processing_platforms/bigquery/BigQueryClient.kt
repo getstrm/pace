@@ -9,6 +9,9 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
 import com.getstrm.pace.config.BigQueryConfig
+import com.getstrm.pace.domain.Level1
+import com.getstrm.pace.domain.Level2
+import com.getstrm.pace.domain.Level3
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.exceptions.throwNotFound
@@ -84,10 +87,10 @@ class BigQueryClient(
      * the access credentials might allow interaction with multiple projects, in which case the
      * result from this call would become greater.
      */
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> =
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Level1> =
         listOf(bigQueryDatabase).withPageInfo()
 
-    private suspend fun getDatabase(databaseId: String): Database =
+    private suspend fun getDatabase(databaseId: String): Level1 =
         listDatabases(DEFAULT_PAGE_PARAMETERS).find { it.id == databaseId }
             ?: throwNotFound(databaseId, "BigQuery Dataset")
 
@@ -318,7 +321,7 @@ class BigQueryClient(
     inner class BigQueryDatabase(platformClient: ProcessingPlatformClient, projectId: String) :
         Database(platformClient, projectId, BIGQUERY) {
 
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> {
             // FIXME pagedCalls function needs to understand page tokens
             // We'll pick that up after the merge of pace-84
             // for now just getting all of the datasets
@@ -328,7 +331,7 @@ class BigQueryClient(
                 val page = bigQueryClient.listDatasets()
                 datasets += page.iterateAll()
             } while (page.hasNextPage())
-            val info: PagedCollection<Schema> =
+            val info: PagedCollection<Level2> =
                 datasets.map { BigQuerySchema(this, it) }.withPageInfo()
             return info
         }
@@ -345,7 +348,7 @@ class BigQueryClient(
     inner class BigQuerySchema(database: BigQueryDatabase, val dataset: BQDataset) :
         Schema(database, dataset.datasetId.dataset, dataset.datasetId.dataset) {
 
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> =
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> =
             // FIXME pagedCalls function needs to understand page tokens
             bigQueryClient
                 .listTables(dataset.datasetId)

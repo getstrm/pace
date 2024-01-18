@@ -4,6 +4,9 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.apollographql.apollo3.ApolloClient
 import com.getstrm.pace.config.CatalogConfiguration
+import com.getstrm.pace.domain.Level1
+import com.getstrm.pace.domain.Level2
+import com.getstrm.pace.domain.Level3
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.*
 import com.google.rpc.ResourceInfo
@@ -25,9 +28,7 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         client.close()
     }
 
-    override suspend fun listDatabases(
-        pageParameters: PageParameters
-    ): PagedCollection<DataCatalog.Database> {
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Level1> {
         return listOf(database).withPageInfo()
     }
 
@@ -37,18 +38,17 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
     inner class Database(override val catalog: DatahubCatalog) :
         DataCatalog.Database(catalog, catalog.id, "datahub", catalog.id) {
-        override suspend fun listSchemas(
-            pageParameters: PageParameters
-        ): PagedCollection<DataCatalog.Schema> = listOf(schema).withPageInfo()
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> =
+            listOf(schema).withPageInfo()
 
-        override suspend fun getSchema(schemaId: String) = schema
+        override suspend fun getSchema(schemaId: String): Level2 {
+            return schema
+        }
     }
 
     inner class Schema(database: Database) :
         DataCatalog.Schema(database, database.id, database.id) {
-        override suspend fun listTables(
-            pageParameters: PageParameters
-        ): PagedCollection<DataCatalog.Table> {
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> {
             val response =
                 client
                     .query(ListDatasetsQuery(pageParameters.skip, pageParameters.pageSize))
@@ -81,7 +81,7 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         // this property is lazily filled in when calling getDataPolicy
         lateinit var dataset: GetDatasetDetailsQuery.Dataset
 
-        override suspend fun createBlueprint(): DataPolicy? {
+        override suspend fun createBlueprint(): DataPolicy {
             val response = client.query(GetDatasetDetailsQuery(id)).execute()
             dataset = response.data!!.dataset!!
             if (response.hasErrors())

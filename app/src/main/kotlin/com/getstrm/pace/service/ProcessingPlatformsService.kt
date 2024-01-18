@@ -12,6 +12,7 @@ import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListGroupsReq
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListSchemasRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListTablesRequest
 import com.getstrm.pace.config.ProcessingPlatformConfiguration
+import com.getstrm.pace.domain.*
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.processing_platforms.Group
@@ -81,9 +82,7 @@ class ProcessingPlatformsService(
         }
     }
 
-    suspend fun listProcessingPlatformTables(
-        request: ListTablesRequest
-    ): PagedCollection<ProcessingPlatformClient.Table> {
+    suspend fun listProcessingPlatformTables(request: ListTablesRequest): PagedCollection<Level3> {
         val processingPlatformClient: ProcessingPlatformClient =
             platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
         return processingPlatformClient.listTables(
@@ -118,14 +117,14 @@ class ProcessingPlatformsService(
     suspend fun listDatabases(request: ListDatabasesRequest): PagedCollection<ApiDatabase> =
         (platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId))
             .listDatabases(request.pageParameters.orDefault())
-            .map { it.apiDatabase }
+            .map { (it as ProcessingPlatformClient.Database).apiDatabase }
 
     suspend fun listSchemas(request: ListSchemasRequest): PagedCollection<ApiSchema> {
         val platformClient =
             platforms[request.platformId] ?: throw processingPlatformNotFound(request.platformId)
         return platformClient
             .listSchemas(request.databaseId, request.pageParameters.orDefault())
-            .map { it.apiSchema }
+            .map { (it as ProcessingPlatformClient.Schema).apiSchema }
     }
 
     /*

@@ -4,21 +4,18 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.*
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
-import build.buf.gen.getstrm.pace.api.resources.v1alpha.ListResourcesRequest
 import com.getstrm.pace.config.PPConfig
 import com.getstrm.pace.domain.IntegrationClient
-import com.getstrm.pace.domain.Resource
-import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.domain.Level1
+import com.getstrm.pace.domain.Level2
+import com.getstrm.pace.domain.Level3
 import com.getstrm.pace.exceptions.throwUnimplemented
-import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
-import com.getstrm.pace.util.orDefault
-import com.google.rpc.BadRequest
 import org.jooq.Field
 
 abstract class ProcessingPlatformClient(
     open val config: PPConfig,
-) : IntegrationClient {
+) : IntegrationClient() {
     override val id: String
         get() = config.id
 
@@ -28,75 +25,9 @@ abstract class ProcessingPlatformClient(
     val apiProcessingPlatform: ProcessingPlatform
         get() = ProcessingPlatform.newBuilder().setId(id).setPlatformType(config.type).build()
 
-    override suspend fun listResources(
-        request: ListResourcesRequest
-    ): PagedCollection<ResourceUrn> {
-        return list(request.urn, request.pageParameters.orDefault())
-    }
-
     abstract suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group>
 
     abstract suspend fun applyPolicy(dataPolicy: DataPolicy)
-
-    open suspend fun list(
-        resourceUrn: ResourceUrn,
-        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-    ): PagedCollection<ResourceUrn> {
-        val platformResourceName = platformResourceName(resourceUrn.resourcePathCount)
-
-        return when (resourceUrn.resourcePathCount) {
-            1 ->
-                listDatabases(pageParameters).map {
-                    it.toResourceUrn(this, resourceUrn, platformResourceName)
-                }
-            2 ->
-                listSchemas(resourceUrn.resourcePathList[1].name, pageParameters).map {
-                    it.toResourceUrn(this, resourceUrn, platformResourceName)
-                }
-            3 ->
-                listTables(
-                        resourceUrn.resourcePathList[1].name,
-                        resourceUrn.resourcePathList[2].name,
-                        pageParameters
-                    )
-                    .map { it.toResourceUrn(this, resourceUrn, platformResourceName, true) }
-            else ->
-                throw BadRequestException(
-                    BadRequestException.Code.INVALID_ARGUMENT,
-                    BadRequest.newBuilder()
-                        .addAllFieldViolations(
-                            listOf(
-                                BadRequest.FieldViolation.newBuilder()
-                                    .setField("urn.resourcePathCount")
-                                    .setDescription(
-                                        "Resource path count ${resourceUrn.resourcePathCount} is not supported for integration type ${resourceUrn.platform.platformType}"
-                                    )
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-        }
-    }
-
-    abstract suspend fun platformResourceName(index: Int): String
-
-    abstract suspend fun listDatabases(
-        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-    ): PagedCollection<Database>
-
-    abstract suspend fun listSchemas(
-        databaseId: String,
-        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-    ): PagedCollection<Schema>
-
-    abstract suspend fun listTables(
-        databaseId: String,
-        schemaId: String,
-        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-    ): PagedCollection<Table>
-
-    abstract suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table
 
     /** return the up- and downstream tables of a table identified by its fully qualified name. */
     open suspend fun getLineage(request: GetLineageRequest): LineageSummary {
@@ -114,14 +45,9 @@ abstract class ProcessingPlatformClient(
         override val id: String,
         val dbType: ProcessingPlatform.PlatformType,
         val displayName: String? = id
-    ) : Resource {
-        abstract suspend fun listSchemas(
-            pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-        ): PagedCollection<Schema>
+    ) : Level1() {
 
         override fun toString() = "Database($id, $dbType, $displayName)"
-
-        abstract suspend fun getSchema(schemaId: String): Schema
 
         val apiDatabase: build.buf.gen.getstrm.pace.api.entities.v1alpha.Database
             get() =
@@ -135,10 +61,7 @@ abstract class ProcessingPlatformClient(
 
     /** A schema is a collection of tables. */
     abstract class Schema(val database: Database, override val id: String, val name: String) :
-        Resource {
-        abstract suspend fun listTables(
-            pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-        ): PagedCollection<Table>
+        Level2() {
 
         override fun toString(): String = "Schema($id, $name)"
 
@@ -149,8 +72,6 @@ abstract class ProcessingPlatformClient(
                     .setName(name)
                     .setDatabase(database.apiDatabase)
                     .build()
-
-        abstract suspend fun getTable(tableId: String): Table
     }
 
     companion object {
@@ -163,7 +84,7 @@ abstract class ProcessingPlatformClient(
     }
 
     /** A table is a collection of columns. */
-    abstract class Table(val schema: Schema, override val id: String, val name: String) : Resource {
+    abstract class Table(val schema: Schema, override val id: String, val name: String) : Level3() {
         /**
          * create a blueprint from the field information and possible the global transforms.
          *
@@ -171,8 +92,6 @@ abstract class ProcessingPlatformClient(
          * information gathering for creating blueprints becomes non-lazy. You can see this for
          * instance with the DataHub implementation
          */
-        abstract suspend fun createBlueprint(): DataPolicy
-
         override fun toString(): String = "${schema.database.id}.${schema.id}.$id"
 
         /** the full name to be used in SQL queries to get at the source data. */

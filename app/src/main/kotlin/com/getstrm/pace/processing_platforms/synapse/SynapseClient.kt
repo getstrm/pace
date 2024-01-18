@@ -5,6 +5,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SynapseConfig
+import com.getstrm.pace.domain.*
 import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
@@ -68,14 +69,14 @@ class SynapseClient(
         }
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Level1> {
         throwUnimplemented("listDatabases on Synapse")
     }
 
     override suspend fun listSchemas(
         databaseId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Schema> {
+    ): PagedCollection<Level2> {
         throwUnimplemented("listSchemas on Synapse")
     }
 
@@ -83,7 +84,7 @@ class SynapseClient(
         databaseId: String,
         schemaId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Table> {
+    ): PagedCollection<Level3> {
         throwUnimplemented("listTables on Synapse")
     }
 
@@ -117,7 +118,7 @@ class SynapseClient(
 
     inner class SynapseDatabase(pp: ProcessingPlatformClient, id: String) :
         ProcessingPlatformClient.Database(pp, id, ProcessingPlatform.PlatformType.SYNAPSE) {
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> {
             throwUnimplemented("listSchemas on Synapse")
         }
 
@@ -132,7 +133,7 @@ class SynapseClient(
 
     inner class SynapseSchema(database: Database, id: String, name: String) :
         ProcessingPlatformClient.Schema(database, id, name) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> {
             return jooq
                 .meta()
                 .filterSchemas { !schemasToIgnore.contains(it.name) }

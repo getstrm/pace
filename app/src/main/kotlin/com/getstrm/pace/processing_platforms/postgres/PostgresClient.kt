@@ -5,6 +5,9 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.POSTGRES
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.PostgresConfig
+import com.getstrm.pace.domain.Level1
+import com.getstrm.pace.domain.Level2
+import com.getstrm.pace.domain.Level3
 import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
@@ -54,21 +57,21 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
         withContext(Dispatchers.IO) { jooq.query(query).execute() }
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> =
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Level1> =
         listOf(database).withPageInfo()
 
     override suspend fun listSchemas(
         databaseId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Schema> = getDatabase(databaseId).listSchemas(pageParameters)
+    ): PagedCollection<Level2> = getDatabase(databaseId).listSchemas(pageParameters)
 
     override suspend fun listTables(
         databaseId: String,
         schemaId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Table> = getSchema(databaseId, schemaId).listTables(pageParameters)
+    ): PagedCollection<Level3> = getSchema(databaseId, schemaId).listTables(pageParameters)
 
-    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table =
+    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Level3 =
         getSchema(databaseId, schemaId).getTable(tableId)
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
@@ -108,7 +111,7 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
         id: String
     ) : Database(platformClient, id, POSTGRES) {
 
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> =
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> =
             jooq
                 .meta()
                 .schemas
@@ -128,7 +131,7 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
     }
 
     inner class PostgresSchema(database: PostgresDatabase, id: String) : Schema(database, id, id) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> =
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> =
             jooq
                 .meta()
                 .filterSchemas { it.name == id }

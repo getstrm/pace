@@ -3,6 +3,9 @@ package com.getstrm.pace.catalogs
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.CatalogConfiguration
+import com.getstrm.pace.domain.Level1
+import com.getstrm.pace.domain.Level2
+import com.getstrm.pace.domain.Level3
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.THOUSAND_RECORDS
@@ -28,9 +31,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
      * contain at least one dataset. This is because ODD does not provide information of this kind
      * in its api.
      */
-    override suspend fun listDatabases(
-        pageParameters: PageParameters
-    ): PagedCollection<DataCatalog.Database> =
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Level1> =
         dataSources.values
             .filter { dataSource ->
                 val searchId = searchDataSetsInDataSource(dataSource).searchId
@@ -42,7 +43,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
             .withPageInfo()
 
     // FIXME the ODD model seems broken. See comment with listDatabases.
-    override suspend fun getDatabase(databaseId: String): DataCatalog.Database {
+    override suspend fun getDatabase(databaseId: String): Level1 {
         return listDatabases(THOUSAND_RECORDS).data.find { it.id == databaseId }
             ?: throw ResourceException(
                 ResourceException.Code.NOT_FOUND,
@@ -65,13 +66,11 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         /*
             Just returning a hardcoded schema with id 'schema' and name the same as that of the dataSource.
         */
-        override suspend fun listSchemas(
-            pageParameters: PageParameters
-        ): PagedCollection<DataCatalog.Schema> {
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> {
             return listOf(Schema(catalog, this, "schema", dataSource.name)).withPageInfo()
         }
 
-        override suspend fun getSchema(schemaId: String): DataCatalog.Schema {
+        override suspend fun getSchema(schemaId: String): Level2 {
             return listSchemas(THOUSAND_RECORDS).data.firstOrNull { it.id == schemaId }
                 ?: throw ResourceException(
                     ResourceException.Code.NOT_FOUND,
@@ -94,9 +93,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         id: String,
         name: String,
     ) : DataCatalog.Schema(oddDatabase, id, name) {
-        override suspend fun listTables(
-            pageParameters: PageParameters
-        ): PagedCollection<DataCatalog.Table> {
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> {
             val searchId = catalog.searchDataSetsInDataSource(oddDatabase.dataSource).searchId
             val tables =
                 catalog.getAllSearchResults(searchId).map {
@@ -105,7 +102,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
             return tables.withPageInfo()
         }
 
-        override suspend fun getTable(tableId: String): DataCatalog.Table {
+        override suspend fun getTable(tableId: String): Level3 {
             return listTables(THOUSAND_RECORDS).data.firstOrNull { it.id == tableId }
                 ?: throw ResourceException(
                     ResourceException.Code.NOT_FOUND,
@@ -135,7 +132,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
             }
         }
 
-        override suspend fun createBlueprint(): DataPolicy? {
+        override suspend fun createBlueprint(): DataPolicy {
             val datasetStructure = catalog.datasetsClient.getDataSetStructureLatest(id.toLong())
             val fields = datasetStructure.fieldList
             val fieldsById = fields.associateBy { it.id }

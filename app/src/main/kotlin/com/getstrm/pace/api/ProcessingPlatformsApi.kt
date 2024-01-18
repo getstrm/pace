@@ -40,7 +40,7 @@ class ProcessingPlatformsApi(
     override suspend fun listTables(request: ListTablesRequest): ListTablesResponse {
         val (tables, pageInfo) = processingPlatformsService.listProcessingPlatformTables(request)
         return ListTablesResponse.newBuilder()
-            .addAllTables(tables.map(ProcessingPlatformClient.Table::apiTable))
+            .addAllTables(tables.map { (it as ProcessingPlatformClient.Table).apiTable })
             .setPageInfo(pageInfo)
             .build()
     }

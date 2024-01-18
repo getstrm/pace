@@ -54,13 +54,13 @@ class DataCatalogsService(
     suspend fun listDatabases(request: ListDatabasesRequest): PagedCollection<ApiDatabase> =
         with(request) {
             val databases = getCatalog(catalogId).listDatabases(pageParameters.orDefault())
-            databases.map { it.apiDatabase }
+            databases.map { (it as DataCatalog.Database).apiDatabase }
         }
 
     suspend fun listSchemas(request: ListSchemasRequest): PagedCollection<ApiSchema> =
         with(request) {
             val schemas = getCatalog(catalogId).getDatabase(databaseId).listSchemas()
-            return@with schemas.map { it.apiSchema }
+            return@with schemas.map { (it as DataCatalog.Schema).apiSchema }
         }
 
     suspend fun listTables(request: ListTablesRequest): PagedCollection<ApiTable> =
@@ -68,7 +68,9 @@ class DataCatalogsService(
             val catalog = getCatalog(catalogId)
             val database = catalog.getDatabase(databaseId)
             val schema = database.getSchema(schemaId)
-            schema.listTables(request.pageParameters.orDefault()).map { it.apiTable }
+            schema.listTables(request.pageParameters.orDefault()).map {
+                (it as DataCatalog.Table).apiTable
+            }
         }
 
     suspend fun getBlueprintPolicy(

@@ -5,6 +5,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SnowflakeConfig
+import com.getstrm.pace.domain.*
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.exceptions.throwNotFound
@@ -92,22 +93,22 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
         executeRequest(request)
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> =
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Level1> =
         listOf(database).withPageInfo()
 
     override suspend fun listSchemas(
         databaseId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Schema> = getDatabase(databaseId).listSchemas(pageParameters)
+    ): PagedCollection<Level2> = getDatabase(databaseId).listSchemas(pageParameters)
 
     override suspend fun listTables(
         databaseId: String,
         schemaId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Table> =
+    ): PagedCollection<Level3> =
         getDatabase(databaseId).getSchema(schemaId).listTables(pageParameters)
 
-    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table =
+    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Level3 =
         getDatabase(databaseId).getSchema(schemaId).getTable(tableId)
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
@@ -177,7 +178,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
 
     inner class SnowflakeDatabase(pp: ProcessingPlatformClient, id: String) :
         Database(pp, id, ProcessingPlatform.PlatformType.SNOWFLAKE) {
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
+        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Level2> {
             val sql = "SHOW SCHEMAS in DATABASE \"$id\""
 
             val request =
@@ -194,7 +195,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
                 .withPageInfo()
         }
 
-        override suspend fun getSchema(schemaId: String): Schema {
+        override suspend fun getSchema(schemaId: String): Level2 {
             return listSchemas(MILLION_RECORDS).find { it.id == schemaId }
                 ?: throwNotFound(schemaId, "Snowflake schema")
         }
@@ -210,7 +211,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
             name,
             name,
         ) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
+        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Level3> {
             val statement =
                 """SELECT table_schema, table_name, table_type,
                created as create_date,
@@ -235,7 +236,7 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
                 .withPageInfo()
         }
 
-        override suspend fun getTable(tableId: String): Table =
+        override suspend fun getTable(tableId: String): Level3 =
             // TODO increase performance
             listTables(database.id, id, MILLION_RECORDS).find { it.id == tableId }
                 ?: throwNotFound(tableId, "Snowflake table")
