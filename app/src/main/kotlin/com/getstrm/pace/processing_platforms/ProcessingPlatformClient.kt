@@ -8,7 +8,9 @@ import com.getstrm.pace.config.PPConfig
 import com.getstrm.pace.domain.IntegrationClient
 import com.getstrm.pace.domain.LeafResource
 import com.getstrm.pace.domain.Resource
+import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.exceptions.throwUnimplemented
+import com.getstrm.pace.util.MILLION_RECORDS
 import com.getstrm.pace.util.PagedCollection
 import org.jooq.Field
 
@@ -21,6 +23,13 @@ abstract class ProcessingPlatformClient(open val config: PPConfig) : Integration
 
     val apiProcessingPlatform: ProcessingPlatform
         get() = ProcessingPlatform.newBuilder().setId(id).setPlatformType(config.type).build()
+
+    override suspend fun getChild(childId: String): Resource =
+        listDatabases(MILLION_RECORDS).find { it.id == childId }
+            ?: throwNotFound(childId, "database")
+
+    override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Resource> =
+        listDatabases(pageParameters)
 
     abstract suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group>
 

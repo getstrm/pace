@@ -19,8 +19,10 @@ import com.google.rpc.BadRequest
  * TODO make sealed, but then it has to be in the same package as both the
  * [ProcessingPlatformClient] and [DataCatalog] class.
  */
-abstract class IntegrationClient {
-    abstract val id: String
+abstract class IntegrationClient : Resource {
+    abstract override val id: String
+
+    override fun fqn(): String = id
 
     open suspend fun listResources(request: ListResourcesRequest): PagedCollection<ResourceUrn> {
         return list(request.urn, request.pageParameters.orDefault())
@@ -59,6 +61,7 @@ abstract class IntegrationClient {
         pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
     ): PagedCollection<ResourceUrn> {
         val platformResourceName = platformResourceName(resourceUrn.resourcePathCount)
+        
 
         return when (resourceUrn.resourcePathCount) {
             1 ->

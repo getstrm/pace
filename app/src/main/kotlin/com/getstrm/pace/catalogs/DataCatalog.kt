@@ -4,10 +4,12 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database as ApiDatabase
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema as ApiSchema
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
+import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.domain.IntegrationClient
 import com.getstrm.pace.domain.LeafResource
 import com.getstrm.pace.domain.Resource
+import com.getstrm.pace.util.PagedCollection
 
 /** Abstraction of the physical data concepts in a data catalog. */
 abstract class DataCatalog(val config: CatalogConfiguration) : AutoCloseable, IntegrationClient() {
@@ -19,6 +21,11 @@ abstract class DataCatalog(val config: CatalogConfiguration) : AutoCloseable, In
 
     val apiCatalog: ApiCatalog
         get() = ApiCatalog.newBuilder().setId(id).setType(config.type).build()
+
+    override suspend fun getChild(childId: String): Resource = getDatabase(childId)
+
+    override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Resource> =
+        listDatabases(pageParameters)
 
     abstract suspend fun getDatabase(databaseId: String): Resource
 
