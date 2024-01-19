@@ -56,7 +56,7 @@ download-odd-oas:
 start-pace-prerequisites: stop-pace-prerequisites
 	@ docker rm -f postgres_pace
 	@ docker rm -f postgres_processing_platform
-	@ docker-compose -f scripts/dev-prerequisites/docker-compose-prerequisites.yaml up --renew-anon-volumes --force-recreate --remove-orphans
+	@ docker-compose -f scripts/dev-prerequisites/docker-compose-prerequisites.yaml up -d --renew-anon-volumes --force-recreate --remove-orphans
 
 stop-pace-prerequisites:
 	@ docker-compose -f scripts/dev-prerequisites/docker-compose-prerequisites.yaml down --remove-orphans

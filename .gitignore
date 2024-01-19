@@ -10,7 +10,7 @@ out/
 /app/build/
 output/
 
-app/src/main/resources/application-local.yaml
+app/src/main/resources/application-local*.yaml
 
 *.binpb
 protos/openapi.yaml

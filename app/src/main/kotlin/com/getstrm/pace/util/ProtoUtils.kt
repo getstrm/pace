@@ -3,6 +3,7 @@ package com.getstrm.pace.util
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
@@ -228,3 +229,6 @@ fun DataPolicy.sourceDataResourceRef(): DataResourceRef = source.ref
 
 fun DataPolicy.targetDataResourceRefs(): List<DataResourceRef> =
     this.ruleSetsList.map { ruleSet -> ruleSet.target.ref }
+
+fun ResourceUrn.parent(): ResourceUrn =
+    toBuilder().clearResourcePath().addAllResourcePath(this.resourcePathList.dropLast(1)).build()

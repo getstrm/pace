@@ -6,12 +6,16 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.resources.v1alpha.ListResourcesRequest
 import com.getstrm.pace.catalogs.DataCatalog
+import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.throwNotFound
+import com.getstrm.pace.exceptions.throwUnimplemented
+import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.MILLION_RECORDS
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
+import com.google.rpc.BadRequest
 
 /**
  * TODO make sealed, but then it has to be in the same package as both the
@@ -27,14 +31,38 @@ abstract class IntegrationClient : Resource {
 
     open suspend fun listResources(request: ListResourcesRequest): PagedCollection<ResourceUrn> {
         val platformResourceName = platformResourceName(request.urn.resourcePathCount)
-        val resource =
-            // drop the first entry, which just indicates the integration
-            request.urn.resourcePathList.drop(1).fold(this as Resource) { acc, path ->
-                acc.getChild(path.name)
-            }
-        return resource.listChildren(request.pageParameters.orDefault()).map {
+        return getResource(request.urn).listChildren(request.pageParameters.orDefault()).map {
             it.toResourceUrn(this, request.urn, platformResourceName)
         }
+    }
+
+    private suspend fun getResource(urn: ResourceUrn): Resource =
+        urn.resourcePathList.fold(this as Resource) { parent, node -> parent.getChild(node.name) }
+
+    open suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> =
+        throwUnimplemented(
+            "List groups is not implemented for integration $id of type ${this::class.simpleName}"
+        )
+
+    suspend fun getLeaf(leafResourceUrn: ResourceUrn): LeafResource {
+        val resource = getResource(leafResourceUrn)
+
+        if (resource !is LeafResource)
+            throw BadRequestException(
+                BadRequestException.Code.INVALID_ARGUMENT,
+                BadRequest.newBuilder()
+                    .addAllFieldViolations(
+                        listOf(
+                            BadRequest.FieldViolation.newBuilder()
+                                .setField("urn")
+                                .setDescription("The urn does not point to a leaf resource")
+                                .build(),
+                        )
+                    )
+                    .build()
+            )
+
+        return resource
     }
 
     open suspend fun platformResourceName(index: Int): String = "Level-$index"
@@ -78,6 +106,7 @@ interface Resource {
         pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
     ): PagedCollection<Resource>
 
+    // FIXME childId is the resourceNode.name, we should rename this
     suspend fun getChild(childId: String): Resource
 
     fun toResourceUrn(

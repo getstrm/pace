@@ -24,6 +24,7 @@ message DataResourceRef {
 
 message ResourceUrn {
   oneof integration {
+    option (buf.validate.oneof).required = true;
     ProcessingPlatform platform = 1;
     DataCatalog catalog = 2;
   }

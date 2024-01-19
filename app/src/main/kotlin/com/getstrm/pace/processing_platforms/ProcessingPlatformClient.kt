@@ -31,8 +31,6 @@ abstract class ProcessingPlatformClient(open val config: PPConfig) : Integration
     override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Resource> =
         listDatabases(pageParameters)
 
-    abstract suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group>
-
     abstract suspend fun applyPolicy(dataPolicy: DataPolicy)
 
     /** return the up- and downstream tables of a table identified by its fully qualified name. */
