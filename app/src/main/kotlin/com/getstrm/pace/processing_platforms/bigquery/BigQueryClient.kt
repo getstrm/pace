@@ -72,7 +72,6 @@ class BigQueryClient(
 
     override suspend fun platformResourceName(index: Int): String {
         return when (index) {
-            0 -> "BigQuery"
             1 -> "project"
             2 -> "dataset"
             3 -> "table"

@@ -46,7 +46,6 @@ class ProcessingPlatformsApi(
             .build()
 
     override suspend fun listDatabases(request: ListDatabasesRequest): ListDatabasesResponse {
-        println(request)
         val resourcesRequest =
             ListResourcesRequest.newBuilder()
                 .setUrn(

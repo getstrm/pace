@@ -52,7 +52,8 @@ class ProcessingPlatformsService(
             platforms[dataPolicy.source.ref.platform.id]
                 ?: throwNotFound(
                     dataPolicy.source.ref.platform.id,
-                    PROCESSING_PLATFORM, "Platform with id ${dataPolicy.source.ref.platform.id} not found, please ensure it is present in the configuration of the processing platforms.",
+                    PROCESSING_PLATFORM,
+                    "Platform with id ${dataPolicy.source.ref.platform.id} not found, please ensure it is present in the configuration of the processing platforms.",
                     dataPolicy.source.ref.platform.platformType.name
                 )
         return processingPlatform.also {
@@ -78,11 +79,12 @@ class ProcessingPlatformsService(
 
     suspend fun getLineage(request: GetLineageRequest): LineageSummary {
         val platformClient =
-            (platforms[request.platformId] ?: throwNotFound(
-                request.platformId,
-                PROCESSING_PLATFORM,
-                "Platform with id ${request.platformId} not found, please ensure it is present in the configuration of the processing platforms."
-            ))
+            (platforms[request.platformId]
+                ?: throwNotFound(
+                    request.platformId,
+                    PROCESSING_PLATFORM,
+                    "Platform with id ${request.platformId} not found, please ensure it is present in the configuration of the processing platforms."
+                ))
         return platformClient.getLineage(request)
     }
 

@@ -52,7 +52,6 @@ class DatabricksClient(
 
     override suspend fun platformResourceName(index: Int): String {
         return when (index) {
-            0 -> "Databricks"
             1 -> "catalog"
             2 -> "schema"
             3 -> "table"

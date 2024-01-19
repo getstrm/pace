@@ -46,7 +46,6 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
 
     override suspend fun platformResourceName(index: Int): String {
         return when (index) {
-            0 -> "Snowflake"
             1 -> "warehouse"
             2 -> "schema"
             3 -> "table"

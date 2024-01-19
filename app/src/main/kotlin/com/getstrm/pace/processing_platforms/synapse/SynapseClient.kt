@@ -49,7 +49,6 @@ class SynapseClient(
         // TODO this should be updated, as the implementation is missing for Synapse to list the
         // various levels in the hierarchy
         return when (index) {
-            0 -> "Synapse"
             1 -> "database"
             2 -> "schema"
             3 -> "table"

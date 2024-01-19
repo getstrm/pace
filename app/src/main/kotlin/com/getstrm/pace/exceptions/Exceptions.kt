@@ -168,7 +168,12 @@ class InternalException(val code: Code, val debugInfo: DebugInfo, cause: Throwab
     }
 }
 
-fun throwNotFound(id: String, type: String, description: String = "", owner: String? = null): Nothing {
+fun throwNotFound(
+    id: String,
+    type: String,
+    description: String = "",
+    owner: String? = null
+): Nothing {
     throw ResourceException(
         ResourceException.Code.NOT_FOUND,
         ResourceInfo.newBuilder()
