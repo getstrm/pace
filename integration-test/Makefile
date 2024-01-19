@@ -81,7 +81,7 @@ ${VIEW_CSVS}: %.csv: applied
 
 blueprint.yaml: launch-pace load-db-data
 	@ echo getting blueprint ${REF}
-	@ pace get data-policy --processing-platform ${PP} --database standalone --schema ${SCHEMA} --blueprint ${TABLE} > $@
+	@ pace get data-policy -o yaml --processing-platform ${PP} --database standalone --schema ${SCHEMA} --blueprint ${TABLE} > $@
 
 # the rulesets.patch file is part of the test and committed in git.
 policy.yaml: blueprint.yaml rulesets.patch
