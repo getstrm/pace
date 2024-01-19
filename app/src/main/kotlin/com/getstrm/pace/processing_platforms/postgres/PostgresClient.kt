@@ -40,14 +40,6 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
         )
     val database = PostgresDatabase(this, config.database)
 
-    override suspend fun platformResourceName(index: Int): String {
-        return when (index) {
-            2 -> "schema"
-            3 -> "table"
-            else -> throw IllegalArgumentException("Unsupported index: $index")
-        }
-    }
-
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = PostgresViewGenerator(dataPolicy)
         val query = viewGenerator.toDynamicViewSQL().sql
