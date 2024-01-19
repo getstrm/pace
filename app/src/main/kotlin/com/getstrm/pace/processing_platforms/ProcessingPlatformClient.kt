@@ -18,6 +18,9 @@ abstract class ProcessingPlatformClient(open val config: PPConfig) : Integration
     override val id
         get() = config.id
 
+    override val resourceUrn: ResourceUrn
+        get() = resourceUrn { platform = apiProcessingPlatform }
+
     val type: ProcessingPlatform.PlatformType
         get() = config.type
 

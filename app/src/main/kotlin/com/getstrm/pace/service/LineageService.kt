@@ -7,7 +7,6 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.util.PagedCollection
-import com.getstrm.pace.util.withPageInfo
 import org.springframework.stereotype.Component
 
 @Component
@@ -27,26 +26,21 @@ class LineageService(
                     .build()
             )
 
-        // policies.map triggers this error
-        // https://stackoverflow.com/questions/57329658/getting-suspension-functions-can-be-called-only-within-coroutine-body-when-cal
-        // and I can't figure out to fix the utility function PagedCollection.map
-        val lineageSummaries =
-            policies.data.map { policy ->
-                determineIfManagedByPace(
-                    try {
-                        processingPlatformsService.getLineage(
-                            GetLineageRequest.newBuilder()
-                                .setFqn(policy.source.ref.platformFqn)
-                                .setPlatformId(policy.source.ref.platform.id)
-                                .build()
-                        )
-                    } catch (e: InternalException) {
-                        // FIXME implement other platforms than BigQuery
-                        LineageSummary.getDefaultInstance()
-                    }
-                )
-            }
-        return lineageSummaries.withPageInfo(policies.pageInfo)
+        return policies.coMap { policy ->
+            determineIfManagedByPace(
+                try {
+                    processingPlatformsService.getLineage(
+                        GetLineageRequest.newBuilder()
+                            .setFqn(policy.source.ref.platformFqn)
+                            .setPlatformId(policy.source.ref.platform.id)
+                            .build()
+                    )
+                } catch (e: InternalException) {
+                    // FIXME implement other platforms than BigQuery
+                    LineageSummary.getDefaultInstance()
+                }
+            )
+        }
     }
 
     suspend fun determineIfManagedByPace(summary: LineageSummary): LineageSummary =

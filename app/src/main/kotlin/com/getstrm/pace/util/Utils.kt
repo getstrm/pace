@@ -8,6 +8,9 @@ import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import kotlin.math.min
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import org.jooq.*
 
 internal val YAML_MAPPER = YAMLMapper()
@@ -68,6 +71,9 @@ fun <T> Iterable<T>.applyPageParameters(p: PageParameters): List<T> =
 data class PagedCollection<T>(val data: Collection<T>, val pageInfo: PageInfo) {
     fun <V> map(transform: (T) -> V): PagedCollection<V> =
         data.map(transform).withPageInfo(pageInfo)
+
+    suspend fun <V> coMap(transform: suspend (T) -> V): PagedCollection<V> =
+        coroutineScope { data.map { async { transform(it) } }.awaitAll() }.withPageInfo(pageInfo)
 
     fun firstOrNull() = data.firstOrNull()
 

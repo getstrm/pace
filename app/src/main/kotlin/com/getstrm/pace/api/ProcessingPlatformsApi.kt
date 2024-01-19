@@ -3,8 +3,6 @@ package com.getstrm.pace.api
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceNode
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.processingPlatform
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyResponse
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
@@ -46,10 +44,7 @@ class ProcessingPlatformsApi(
             .build()
 
     override suspend fun listDatabases(request: ListDatabasesRequest): ListDatabasesResponse {
-        val (databases, pageInfo) =
-            legacyHierarchyService.listDatabases(
-                resourceUrn { platform = processingPlatform { id = request.platformId } }
-            )
+        val (databases, pageInfo) = legacyHierarchyService.listDatabases(request.platformId)
 
         return ListDatabasesResponse.newBuilder()
             .addAllDatabases(databases)
@@ -59,10 +54,7 @@ class ProcessingPlatformsApi(
 
     override suspend fun listSchemas(request: ListSchemasRequest): ListSchemasResponse {
         val (schemas, pageInfo) =
-            legacyHierarchyService.listSchemas(
-                resourceUrn { platform = processingPlatform { id = request.platformId } },
-                request.databaseId
-            )
+            legacyHierarchyService.listSchemas(request.platformId, request.databaseId)
 
         return ListSchemasResponse.newBuilder().addAllSchemas(schemas).setPageInfo(pageInfo).build()
     }
@@ -70,7 +62,7 @@ class ProcessingPlatformsApi(
     override suspend fun listTables(request: ListTablesRequest): ListTablesResponse {
         val (tables, pageInfo) =
             legacyHierarchyService.listTables(
-                resourceUrn { platform = processingPlatform { id = request.platformId } },
+                request.platformId,
                 request.databaseId,
                 request.schemaId
             )

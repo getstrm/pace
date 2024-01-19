@@ -1,8 +1,10 @@
 package com.getstrm.pace.domain
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceNode
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.copy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceNode
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.resources.v1alpha.ListResourcesRequest
 import com.getstrm.pace.catalogs.DataCatalog
@@ -23,6 +25,7 @@ import com.google.rpc.BadRequest
  */
 abstract class IntegrationClient : Resource {
     abstract override val id: String
+    abstract val resourceUrn: ResourceUrn
 
     override fun fqn(): String = id
 
@@ -30,9 +33,28 @@ abstract class IntegrationClient : Resource {
         get() = id
 
     open suspend fun listResources(request: ListResourcesRequest): PagedCollection<ResourceUrn> {
-        val platformResourceName = platformResourceName(request.urn.resourcePathCount)
-        return getResource(request.urn).listChildren(request.pageParameters.orDefault()).map {
-            it.toResourceUrn(this, request.urn, platformResourceName)
+        val parent =
+            resourceUrn.copy {
+                resourcePath.addAll(request.resourcePathList.map { resourceNode { name = it } })
+            }
+
+        return getResource(parent).listChildren(request.pageParameters.orDefault()).coMap { child ->
+            parent.extendWithChild(child)
+        }
+    }
+
+    private suspend fun ResourceUrn.extendWithChild(child: Resource): ResourceUrn {
+        val parent = this
+        val childResourceNode = resourceNode {
+            name = child.id
+            displayName = child.displayName
+            platformName = platformResourceName(parent.resourcePathCount)
+            isLeaf = child is LeafResource
+        }
+
+        return copy {
+            platformFqn = child.fqn()
+            resourcePath += childResourceNode
         }
     }
 
@@ -108,35 +130,6 @@ interface Resource {
 
     // FIXME childId is the resourceNode.name, we should rename this
     suspend fun getChild(childId: String): Resource
-
-    fun toResourceUrn(
-        integrationClient: IntegrationClient,
-        parentResourceUrn: ResourceUrn,
-        platformName: String,
-        isLeafNode: Boolean = false
-    ): ResourceUrn {
-        val builder =
-            ResourceUrn.newBuilder()
-                .setPlatformFqn(fqn())
-                .addAllResourcePath(
-                    parentResourceUrn.resourcePathList +
-                        listOf(
-                            ResourceNode.newBuilder()
-                                .setName(id)
-                                .setDisplayName(displayName)
-                                .setPlatformName(platformName)
-                                .setIsLeaf(isLeafNode)
-                                .build(),
-                        ),
-                )
-        when (integrationClient) {
-            is ProcessingPlatformClient ->
-                builder.setPlatform(integrationClient.apiProcessingPlatform)
-            is DataCatalog -> builder.setCatalog(integrationClient.apiCatalog)
-            else -> {}
-        }
-        return builder.build()
-    }
 }
 
 abstract class LeafResource : Resource {

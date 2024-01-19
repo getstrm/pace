@@ -2,8 +2,10 @@ package com.getstrm.pace.catalogs
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database as ApiDatabase
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema as ApiSchema
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.domain.IntegrationClient
@@ -15,6 +17,9 @@ import com.getstrm.pace.util.PagedCollection
 abstract class DataCatalog(val config: CatalogConfiguration) : AutoCloseable, IntegrationClient() {
     override val id: String
         get() = config.id
+
+    override val resourceUrn: ResourceUrn
+        get() = resourceUrn { catalog = apiCatalog }
 
     val type: ApiCatalog.Type
         get() = config.type

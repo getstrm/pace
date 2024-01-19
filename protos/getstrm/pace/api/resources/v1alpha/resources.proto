@@ -19,8 +19,11 @@ service ResourcesService {
 }
 
 message ListResourcesRequest {
-  entities.v1alpha.ResourceUrn urn = 1;
-  api.paging.v1alpha.PageParameters page_parameters = 2;
+  // A processing platform or data catalog id as configured in your PACE server
+  string integration_id = 1;
+  // A resource path to list resources under. If empty, the root path is used.
+  repeated string resource_path = 2;
+  api.paging.v1alpha.PageParameters page_parameters = 3;
 }
 
 message ListResourcesResponse {

@@ -7,12 +7,14 @@ import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.resources.v1alpha.ListResourcesRequest
 import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.domain.IntegrationClient
+import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.internalException
 import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.withPageInfo
+import com.google.rpc.BadRequest
 import kotlin.reflect.KClass
 import org.springframework.stereotype.Component
 
@@ -25,10 +27,22 @@ class ResourcesService(
         get() = catalogsService.catalogs + processingPlatformsService.platforms
 
     suspend fun listResources(request: ListResourcesRequest): PagedCollection<ResourceUrn> =
-        if (!request.hasUrn()) {
+        if (request.resourcePathCount == 0 && request.integrationId.isEmpty()) {
             integrationClientUrns().withPageInfo()
         } else {
-            request.urn.integrationClient().listResources(request)
+            if (request.integrationId.isEmpty())
+                throw BadRequestException(
+                    BadRequestException.Code.INVALID_ARGUMENT,
+                    BadRequest.newBuilder()
+                        .addFieldViolations(
+                            BadRequest.FieldViolation.newBuilder()
+                                .setField("integration_id")
+                                .setDescription("integration_id is required")
+                                .build()
+                        )
+                        .build()
+                )
+            integrationClient(request.integrationId).listResources(request)
         }
 
     suspend fun getBlueprintDataPolicy(resourceUrn: ResourceUrn): DataPolicy =
@@ -56,8 +70,8 @@ class ResourcesService(
                 ResourceUrn.newBuilder().setCatalog(it.apiCatalog).build()
             }
 
-    private fun ResourceUrn.integrationClient(): IntegrationClient =
-        integrationClient(
+    private fun ResourceUrn.integrationClient(): IntegrationClient {
+        return integrationClient(
             when (integrationCase) {
                 ResourceUrn.IntegrationCase.PLATFORM -> platform.id
                 ResourceUrn.IntegrationCase.CATALOG -> catalog.id
@@ -65,6 +79,7 @@ class ResourcesService(
                 null -> throw internalException("Integration case is not set for $this")
             }
         )
+    }
 
     private fun integrationClient(integrationClientId: String) =
         integrationClients[integrationClientId] ?: throwIntegrationClientNotFound()

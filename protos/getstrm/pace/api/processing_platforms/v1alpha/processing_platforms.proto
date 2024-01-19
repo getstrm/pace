@@ -115,7 +115,7 @@ message ListGroupsResponse {
 message GetBlueprintPolicyRequest {
     string platform_id = 1 [(buf.validate.field).string = {min_len: 1}];
     entities.v1alpha.Table table = 2;
-    string fqn = 3;
+    optional string fqn = 3;
 }
 
 message GetBlueprintPolicyResponse {
