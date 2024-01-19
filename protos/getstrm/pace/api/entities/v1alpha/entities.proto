@@ -35,11 +35,16 @@ message ResourceUrn {
 
 message ResourceNode {
   // the bits between the slashes.
+  // the technical path to the data.
+  // can be uuid (Collibra for instance)
   string name = 1;
   //  dataset, schema, table, whatever... For display purposes only.
+  // FIXME platform type
   string platform_name = 2;
   // data resource
   bool is_leaf = 3;
+  // human readable string. If absent use name.
+  string display_name = 4;
 }
 
 message DataPolicy {

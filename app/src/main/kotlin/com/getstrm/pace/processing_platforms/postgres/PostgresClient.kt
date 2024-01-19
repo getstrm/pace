@@ -117,7 +117,7 @@ class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformCl
                 .schemas
                 .filter { it.name !in listOf("information_schema", "pg_catalog") }
                 .map { PostgresSchema(this, it.name) }
-                .sortedBy { it.name }
+                .sortedBy { it.displayName }
                 .withPageInfo()
 
         override suspend fun getChild(childId: String): Schema =

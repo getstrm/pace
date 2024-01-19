@@ -30,30 +30,40 @@ abstract class DataCatalog(val config: CatalogConfiguration) : AutoCloseable, In
     abstract suspend fun getDatabase(databaseId: String): Resource
 
     /** A table is a collection of columns. */
-    abstract class Table(val schema: Schema, override val id: String, val name: String) :
-        LeafResource() {
-        override fun toString(): String = "Table($id, $name)"
+    abstract class Table(
+        val schema: Schema,
+        override val id: String,
+        override val displayName: String
+    ) : LeafResource() {
+        override fun toString(): String = "Table($id, $displayName)"
 
         override fun fqn(): String = "${schema.fqn()}.${id}"
 
         val apiTable: ApiTable
             get() =
-                ApiTable.newBuilder().setId(id).setSchema(schema.apiSchema).setName(name).build()
+                ApiTable.newBuilder()
+                    .setId(id)
+                    .setSchema(schema.apiSchema)
+                    .setName(displayName)
+                    .build()
     }
 
     /** A schema is a collection of tables. */
-    abstract class Schema(val database: Database, override val id: String, val name: String) :
-        Resource {
+    abstract class Schema(
+        val database: Database,
+        override val id: String,
+        override val displayName: String
+    ) : Resource {
 
         override fun fqn(): String = "${database.id}.$id"
 
-        override fun toString(): String = "Schema($id, $name)"
+        override fun toString(): String = "Schema($id, $displayName)"
 
         val apiSchema: ApiSchema
             get() =
                 ApiSchema.newBuilder()
                     .setId(id)
-                    .setName(name)
+                    .setName(displayName)
                     .setDatabase(database.apiDatabase)
                     .build()
     }
@@ -62,7 +72,7 @@ abstract class DataCatalog(val config: CatalogConfiguration) : AutoCloseable, In
         open val catalog: DataCatalog,
         override val id: String,
         val dbType: String? = null,
-        val displayName: String? = null
+        override val displayName: String = id
     ) : Resource {
 
         override fun fqn(): String = id

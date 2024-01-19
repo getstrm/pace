@@ -22,6 +22,9 @@ abstract class IntegrationClient : Resource {
 
     override fun fqn(): String = id
 
+    override val displayName: String
+        get() = id
+
     open suspend fun listResources(request: ListResourcesRequest): PagedCollection<ResourceUrn> {
         val platformResourceName = platformResourceName(request.urn.resourcePathCount)
         val resource =
@@ -67,6 +70,8 @@ interface Resource {
     // TODO should become name!
     val id: String
 
+    val displayName: String
+
     fun fqn(): String
 
     suspend fun listChildren(
@@ -89,6 +94,7 @@ interface Resource {
                         listOf(
                             ResourceNode.newBuilder()
                                 .setName(id)
+                                .setDisplayName(displayName)
                                 .setPlatformName(platformName)
                                 .setIsLeaf(isLeafNode)
                                 .build(),

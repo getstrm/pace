@@ -50,7 +50,7 @@ abstract class ProcessingPlatformClient(open val config: PPConfig) : Integration
         open val platformClient: ProcessingPlatformClient,
         override val id: String,
         val dbType: ProcessingPlatform.PlatformType,
-        val displayName: String? = id
+        override val displayName: String = id
     ) : Resource {
 
         override fun toString() = "Database($id, $dbType, $displayName)"
@@ -66,29 +66,39 @@ abstract class ProcessingPlatformClient(open val config: PPConfig) : Integration
     }
 
     /** A schema is a collection of tables. */
-    abstract class Schema(val database: Database, override val id: String, val name: String) :
-        Resource {
-        override fun toString(): String = "Schema($id, $name)"
+    abstract class Schema(
+        val database: Database,
+        override val id: String,
+        override val displayName: String
+    ) : Resource {
+        override fun toString(): String = "Schema($id, $displayName)"
 
         val apiSchema: build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema
             get() =
                 build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema.newBuilder()
                     .setId(id)
-                    .setName(name)
+                    .setName(displayName)
                     .setDatabase(database.apiDatabase)
                     .build()
     }
 
     /** A table is a collection of columns. */
-    abstract class Table(val schema: Schema, override val id: String, val name: String) :
-        LeafResource() {
+    abstract class Table(
+        val schema: Schema,
+        override val id: String,
+        override val displayName: String
+    ) : LeafResource() {
         override fun toString(): String = "${schema.database.id}.${schema.id}.$id"
 
         /** the full name to be used in SQL queries to get at the source data. */
         abstract val fullName: String
         val apiTable: ApiTable
             get() =
-                ApiTable.newBuilder().setId(id).setSchema(schema.apiSchema).setName(name).build()
+                ApiTable.newBuilder()
+                    .setId(id)
+                    .setSchema(schema.apiSchema)
+                    .setName(displayName)
+                    .build()
     }
 
     companion object {

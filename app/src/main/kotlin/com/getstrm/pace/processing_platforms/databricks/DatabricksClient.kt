@@ -195,14 +195,14 @@ class DatabricksClient(
         Schema(
             database = database,
             id = name,
-            name = name,
+            displayName = name,
         ) {
         override suspend fun listChildren(
             pageParameters: PageParameters
-        ): PagedCollection<Resource> = listTables(database.id, name, pageParameters)
+        ): PagedCollection<Resource> = listTables(database.id, displayName, pageParameters)
 
         override suspend fun getChild(tableId: String): Table {
-            getTable(database.id, name, tableId).let {
+            getTable(database.id, displayName, tableId).let {
                 return it
             }
         }
@@ -220,7 +220,7 @@ class DatabricksClient(
         Table(
             schema = schema,
             id = tableInfo.name,
-            name = tableInfo.name,
+            displayName = tableInfo.name,
         ) {
         private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

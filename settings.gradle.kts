@@ -17,6 +17,9 @@ pluginManagement {
         id("org.flywaydb.flyway") version "9.22.3"
     }
 }
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
+}
 
 buildscript {
      val kotlinVersion: String by settings

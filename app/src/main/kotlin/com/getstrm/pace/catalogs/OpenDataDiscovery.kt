@@ -167,7 +167,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
                 },
             )
             with(policyBuilder.metadataBuilder) {
-                title = name
+                title = displayName
                 description = schema.database.displayName
             }
             return policyBuilder.build()

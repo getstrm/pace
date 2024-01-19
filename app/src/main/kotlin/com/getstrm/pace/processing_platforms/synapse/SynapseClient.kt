@@ -144,7 +144,7 @@ class SynapseClient(
                 .filterSchemas { !schemasToIgnore.contains(it.name) }
                 .tables
                 .applyPageParameters(pageParameters)
-                .map { it -> SynapseTable(it, this, name, it.name) }
+                .map { it -> SynapseTable(it, this, displayName, it.name) }
                 .withPageInfo()
         }
 

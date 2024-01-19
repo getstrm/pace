@@ -167,7 +167,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                         .onlyNonNulls()
                 }
             return with(DataPolicy.newBuilder()) {
-                metadataBuilder.title = name
+                metadataBuilder.title = displayName
                 metadataBuilder.description = schema.database.displayName
                 columns.forEach { column -> sourceBuilder.addFields(column.toField()) }
                 build()
