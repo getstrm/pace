@@ -6,14 +6,12 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.resources.v1alpha.ListResourcesRequest
 import com.getstrm.pace.catalogs.DataCatalog
-import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.MILLION_RECORDS
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
-import com.google.rpc.BadRequest
 
 /**
  * TODO make sealed, but then it has to be in the same package as both the
@@ -25,7 +23,15 @@ abstract class IntegrationClient : Resource {
     override fun fqn(): String = id
 
     open suspend fun listResources(request: ListResourcesRequest): PagedCollection<ResourceUrn> {
-        return list(request.urn, request.pageParameters.orDefault())
+        val platformResourceName = platformResourceName(request.urn.resourcePathCount)
+        val resource =
+            // drop the first entry, which just indicates the integration
+            request.urn.resourcePathList.drop(1).fold(this as Resource) { acc, path ->
+                acc.getChild(path.name)
+            }
+        return resource.listChildren(request.pageParameters.orDefault()).map {
+            it.toResourceUrn(this, request.urn, platformResourceName)
+        }
     }
 
     open suspend fun platformResourceName(index: Int): String = "Level-$index"
@@ -55,48 +61,6 @@ abstract class IntegrationClient : Resource {
     open suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Resource =
         (listTables(databaseId, schemaId, MILLION_RECORDS).find { it.id == tableId }
             ?: throwNotFound(tableId, "table"))
-
-    open suspend fun list(
-        resourceUrn: ResourceUrn,
-        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-    ): PagedCollection<ResourceUrn> {
-        val platformResourceName = platformResourceName(resourceUrn.resourcePathCount)
-        
-
-        return when (resourceUrn.resourcePathCount) {
-            1 ->
-                listDatabases(pageParameters).map {
-                    it.toResourceUrn(this, resourceUrn, platformResourceName)
-                }
-            2 ->
-                listSchemas(resourceUrn.resourcePathList[1].name, pageParameters).map {
-                    it.toResourceUrn(this, resourceUrn, platformResourceName)
-                }
-            3 ->
-                listTables(
-                        resourceUrn.resourcePathList[1].name,
-                        resourceUrn.resourcePathList[2].name,
-                        pageParameters
-                    )
-                    .map { it.toResourceUrn(this, resourceUrn, platformResourceName, true) }
-            else ->
-                throw BadRequestException(
-                    BadRequestException.Code.INVALID_ARGUMENT,
-                    BadRequest.newBuilder()
-                        .addAllFieldViolations(
-                            listOf(
-                                BadRequest.FieldViolation.newBuilder()
-                                    .setField("urn.resourcePathCount")
-                                    .setDescription(
-                                        "Resource path count ${resourceUrn.resourcePathCount} is not supported for integration type ${resourceUrn.platform.platformType}"
-                                    )
-                                    .build()
-                            )
-                        )
-                        .build()
-                )
-        }
-    }
 }
 
 interface Resource {
