@@ -1,11 +1,10 @@
 package com.getstrm.pace.api
 
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceNode
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.processingPlatform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyResponse
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
@@ -21,8 +20,8 @@ import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListSchemasRe
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListTablesRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListTablesResponse
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ProcessingPlatformsServiceGrpcKt
-import build.buf.gen.getstrm.pace.api.resources.v1alpha.ListResourcesRequest
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
+import com.getstrm.pace.service.LegacyHierarchyService
 import com.getstrm.pace.service.LineageService
 import com.getstrm.pace.service.ResourcesService
 import com.getstrm.pace.util.orDefault
@@ -30,6 +29,7 @@ import net.devh.boot.grpc.server.service.GrpcService
 
 @GrpcService
 class ProcessingPlatformsApi(
+    private val legacyHierarchyService: LegacyHierarchyService,
     private val resourcesService: ResourcesService,
     private val lineageService: LineageService,
 ) : ProcessingPlatformsServiceGrpcKt.ProcessingPlatformsServiceCoroutineImplBase() {
@@ -46,23 +46,10 @@ class ProcessingPlatformsApi(
             .build()
 
     override suspend fun listDatabases(request: ListDatabasesRequest): ListDatabasesResponse {
-        val resourcesRequest =
-            ListResourcesRequest.newBuilder()
-                .setUrn(
-                    ResourceUrn.newBuilder()
-                        .setPlatform(
-                            ProcessingPlatform.newBuilder().setId(request.platformId).build()
-                        )
-                        .build()
-                )
-                .build()
-
         val (databases, pageInfo) =
-            resourcesService.listResources(resourcesRequest).map { urn ->
-                with(urn.resourcePathList[0]) {
-                    Database.newBuilder().setId(name).setDisplayName(displayName).build()
-                }
-            }
+            legacyHierarchyService.listDatabases(
+                resourceUrn { platform = processingPlatform { id = request.platformId } }
+            )
 
         return ListDatabasesResponse.newBuilder()
             .addAllDatabases(databases)
@@ -71,80 +58,22 @@ class ProcessingPlatformsApi(
     }
 
     override suspend fun listSchemas(request: ListSchemasRequest): ListSchemasResponse {
-        val resourcesRequest =
-            ListResourcesRequest.newBuilder()
-                .setUrn(
-                    ResourceUrn.newBuilder()
-                        .setPlatform(
-                            ProcessingPlatform.newBuilder().setId(request.platformId).build()
-                        )
-                        .addAllResourcePath(
-                            listOf(ResourceNode.newBuilder().setName(request.databaseId).build())
-                        )
-                        .build()
-                )
-                .build()
-
         val (schemas, pageInfo) =
-            resourcesService.listResources(resourcesRequest).map { urn ->
-                val database =
-                    urn.resourcePathList[0].let {
-                        Database.newBuilder().setId(it.name).setDisplayName(it.displayName).build()
-                    }
+            legacyHierarchyService.listSchemas(
+                resourceUrn { platform = processingPlatform { id = request.platformId } },
+                request.databaseId
+            )
 
-                urn.resourcePathList[1].let {
-                    Schema.newBuilder()
-                        .setId(it.name)
-                        .setName(it.displayName)
-                        .setDatabase(database)
-                        .build()
-                }
-            }
         return ListSchemasResponse.newBuilder().addAllSchemas(schemas).setPageInfo(pageInfo).build()
     }
 
     override suspend fun listTables(request: ListTablesRequest): ListTablesResponse {
-        val resourcesRequest =
-            ListResourcesRequest.newBuilder()
-                .setUrn(
-                    ResourceUrn.newBuilder()
-                        .setPlatform(
-                            ProcessingPlatform.newBuilder().setId(request.platformId).build()
-                        )
-                        .addAllResourcePath(
-                            listOf(
-                                ResourceNode.newBuilder().setName(request.databaseId).build(),
-                                ResourceNode.newBuilder().setName(request.schemaId).build()
-                            )
-                        )
-                        .build()
-                )
-                .build()
-
         val (tables, pageInfo) =
-            resourcesService.listResources(resourcesRequest).map { urn ->
-                val database =
-                    urn.resourcePathList[0].let {
-                        Database.newBuilder().setId(it.name).setDisplayName(it.displayName).build()
-                    }
-
-                val schema =
-                    urn.resourcePathList[1].let {
-                        Schema.newBuilder()
-                            .setId(it.name)
-                            .setName(it.displayName)
-                            .setDatabase(database)
-                            .build()
-                    }
-
-                urn.resourcePathList[2].let {
-                    Table.newBuilder()
-                        .setId(it.name)
-                        .setName(it.displayName)
-                        .setSchema(schema)
-                        .build()
-                }
-            }
+            legacyHierarchyService.listTables(
+                resourceUrn { platform = processingPlatform { id = request.platformId } },
+                request.databaseId,
+                request.schemaId
+            )
 
         return ListTablesResponse.newBuilder().addAllTables(tables).setPageInfo(pageInfo).build()
     }
