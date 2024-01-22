@@ -195,7 +195,7 @@ class BigQueryClient(
             .withPageInfo()
     }
 
-    override fun createBlueprint(fqn: String): DataPolicy =
+    override suspend fun createBlueprint(fqn: String): DataPolicy =
         doCreateBlueprint(
             bigQueryClient.getTable(fqn.stripBqPrefix().toTableId())
                 ?: throwNotFound(fqn, "BigQuery Table")

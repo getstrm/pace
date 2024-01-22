@@ -41,11 +41,6 @@ abstract class ProcessingPlatformClient(open val config: PPConfig) : Integration
         throwUnimplemented("Lineage in platform ${config.type}")
     }
 
-    /** create a blueprint via its fully qualified table name. */
-    open fun createBlueprint(fqn: String): DataPolicy {
-        throwUnimplemented("createBlueprint from fully qualified name in platform ${config.type}")
-    }
-
     /** meta information database */
     abstract class Database(
         open val platformClient: ProcessingPlatformClient,

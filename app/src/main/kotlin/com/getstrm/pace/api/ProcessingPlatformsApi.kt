@@ -1,8 +1,8 @@
 package com.getstrm.pace.api
 
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceNode
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.processingPlatform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceNode
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyRequest
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetBlueprintPolicyResponse
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
@@ -83,16 +83,23 @@ class ProcessingPlatformsApi(
         request: GetBlueprintPolicyRequest
     ): GetBlueprintPolicyResponse {
         val resourceUrn =
-            ResourceUrn.newBuilder()
-                .setPlatform(ProcessingPlatform.newBuilder().setId(request.platformId).build())
-                .addAllResourcePath(
-                    listOf(
-                        ResourceNode.newBuilder().setName(request.table.schema.database.id).build(),
-                        ResourceNode.newBuilder().setName(request.table.schema.id).build(),
-                        ResourceNode.newBuilder().setName(request.table.id).build()
+            if (request.hasFqn()) {
+                resourceUrn {
+                    platform = processingPlatform { id = request.platformId }
+                    platformFqn = request.fqn
+                }
+            } else {
+                resourceUrn {
+                    platform = processingPlatform { id = request.platformId }
+                    resourcePath.addAll(
+                        listOf(
+                            resourceNode { name = request.table.schema.database.id },
+                            resourceNode { name = request.table.schema.id },
+                            resourceNode { name = request.table.id }
+                        )
                     )
-                )
-                .build()
+                }
+            }
 
         return GetBlueprintPolicyResponse.newBuilder()
             .setDataPolicy(resourcesService.getBlueprintDataPolicy(resourceUrn))

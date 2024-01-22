@@ -89,6 +89,11 @@ abstract class IntegrationClient : Resource {
 
     open suspend fun platformResourceName(index: Int): String = "Level-$index"
 
+    open suspend fun createBlueprint(fqn: String): DataPolicy =
+        throwUnimplemented(
+            "createBlueprint from fully qualified name in integration $id of type ${this::class.simpleName}"
+        )
+
     abstract suspend fun listDatabases(
         pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
     ): PagedCollection<Resource>

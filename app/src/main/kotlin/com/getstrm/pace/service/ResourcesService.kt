@@ -45,8 +45,15 @@ class ResourcesService(
             integrationClient(request.integrationId).listResources(request)
         }
 
-    suspend fun getBlueprintDataPolicy(resourceUrn: ResourceUrn): DataPolicy =
-        resourceUrn.integrationClient().getLeaf(resourceUrn).createBlueprint()
+    suspend fun getBlueprintDataPolicy(resourceUrn: ResourceUrn): DataPolicy {
+        val client = resourceUrn.integrationClient()
+
+        return if (resourceUrn.hasPlatformFqn()) {
+            return client.createBlueprint(resourceUrn.platformFqn)
+        } else {
+            client.getLeaf(resourceUrn).createBlueprint()
+        }
+    }
 
     suspend fun listGroups(
         integrationId: String,
