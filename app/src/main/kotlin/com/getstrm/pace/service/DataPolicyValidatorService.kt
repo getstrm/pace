@@ -7,13 +7,11 @@ import com.getstrm.pace.util.pathString
 import com.getstrm.pace.util.pathStringUpper
 import com.google.rpc.BadRequest
 import com.google.rpc.BadRequest.FieldViolation
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.stereotype.Component
 
 // TODO improve readability
 //      the exceptions and nested functions make it hard to follow
 @Component
-@ConfigurationPropertiesScan("com.getstrm.pace.config")
 class DataPolicyValidatorService(private val configuration: ProcessingPlatformConfiguration) {
 
     /**
