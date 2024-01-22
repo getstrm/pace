@@ -75,7 +75,7 @@ class PostgresViewGenerator(
         }
     }
 
-    override fun renderName(name: String): String = jooq.renderNamedParams(DSL.unquotedName(name))
+    override fun renderName(name: String): String = jooq.renderNamedParams(DSL.quotedName(name))
 
     override fun selectWithAdditionalHeaderStatements(
         fields: List<Field<*>>

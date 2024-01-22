@@ -193,7 +193,7 @@ class PostgresViewGeneratorTest {
 
         // Then
         viewGenerator.toDynamicViewSQL().sql shouldBe
-            """create or replace view public.demo_view
+            """create or replace view "public.demo_view"
 as
 with
   user_groups as (
@@ -213,7 +213,7 @@ select
   validThrough,
   userid,
   transactionamount
-from public.demo_tokenized
+from "public.demo_tokenized"
 where (
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
@@ -239,7 +239,7 @@ grant SELECT on public.demo_view to "marketing";"""
 
         // Then
         viewGenerator.toDynamicViewSQL().sql shouldBe
-            """create or replace view public.demo_view
+            """create or replace view "public.demo_view"
 as
 with
   user_groups as (
@@ -258,7 +258,7 @@ select
   ts,
   userid,
   transactionamount
-from public.demo_tokenized
+from "public.demo_tokenized"
 where (
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
@@ -280,7 +280,7 @@ grant SELECT on public.demo_view to "marketing";"""
         val viewGenerator =
             PostgresViewGenerator(singleDetokenizePolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL().sql shouldBe
-            """create or replace view public.demo_view
+            """create or replace view "public.demo_view"
 as
 with
   user_groups as (
@@ -302,9 +302,9 @@ select
     else userid
   end as userid,
   transactionamount
-from public.demo_tokenized
-  left outer join tokens.userid_tokens
-    on (public.demo_tokenized.userid = tokens.userid_tokens.token)
+from "public.demo_tokenized"
+  left outer join "tokens.userid_tokens"
+    on ("public.demo_tokenized".userid = "tokens.userid_tokens".token)
 where case
   when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
   else transactionamount < 10
@@ -318,7 +318,7 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
         val viewGenerator =
             PostgresViewGenerator(multiDetokenizePolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL().sql shouldBe
-            """create or replace view public.demo_view
+            """create or replace view "public.demo_view"
 as
 with
   user_groups as (
@@ -343,11 +343,11 @@ select
     else userid
   end as userid,
   transactionamount
-from public.demo_tokenized
-  left outer join tokens.userid_tokens
-    on (public.demo_tokenized.userid = tokens.userid_tokens.token)
-  left outer join tokens.transactionid_tokens
-    on (public.demo_tokenized.transactionid = tokens.transactionid_tokens.token)
+from "public.demo_tokenized"
+  left outer join "tokens.userid_tokens"
+    on ("public.demo_tokenized".userid = "tokens.userid_tokens".token)
+  left outer join "tokens.transactionid_tokens"
+    on ("public.demo_tokenized".transactionid = "tokens.transactionid_tokens".token)
 where case
   when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
   else transactionamount < 10
@@ -363,7 +363,7 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
             .toDynamicViewSQL()
             .sql
             .shouldBe(
-                """create or replace view public.demo_view
+                """create or replace view "public.demo_view"
 as
 with
   user_groups as (
@@ -405,7 +405,7 @@ select
       2
     )
   end as transactionamount
-from public.demo
+from "public.demo"
 where (
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
