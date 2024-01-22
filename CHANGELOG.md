@@ -1,3 +1,10 @@
+# [1.0.0-alpha.50](https://github.com/getstrm/pace/compare/v1.0.0-alpha.49...v1.0.0-alpha.50) (2024-01-22)
+
+
+### Features
+
+* **pace-122:** pace bigquery iam check extension ([#161](https://github.com/getstrm/pace/issues/161)) ([9b5fa5a](https://github.com/getstrm/pace/commit/9b5fa5acc7f3e2b07ed3be245a139c9ffe47c0eb))
+
 # [1.0.0-alpha.49](https://github.com/getstrm/pace/compare/v1.0.0-alpha.48...v1.0.0-alpha.49) (2024-01-17)
 
 

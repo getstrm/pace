@@ -1,7 +1,6 @@
 package com.getstrm.pace.processing_platforms
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.AGGREGATION
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.DETOKENIZE
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.FIXED
