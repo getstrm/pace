@@ -1,17 +1,20 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.config.ProcessingPlatformConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.util.pathString
 import com.getstrm.pace.util.pathStringUpper
 import com.google.rpc.BadRequest
 import com.google.rpc.BadRequest.FieldViolation
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.stereotype.Component
 
 // TODO improve readability
 //      the exceptions and nested functions make it hard to follow
 @Component
-class DataPolicyValidatorService {
+@ConfigurationPropertiesScan("com.getstrm.pace.config")
+class DataPolicyValidatorService(private val configuration: ProcessingPlatformConfiguration) {
 
     /**
      * validate a data policy.
@@ -39,8 +42,14 @@ class DataPolicyValidatorService {
         val validFields =
             dataPolicy.source.fieldsList.map(DataPolicy.Field::pathStringUpper).toSet()
 
+        val useIamExtension =
+            configuration.bigquery
+                .firstOrNull { it.id == dataPolicy.platform.id }
+                ?.useIamCheckExtension ?: false
+
         // check that every principal exists in validGroups
         fun checkPrincipals(principals: List<DataPolicy.Principal>) {
+            if (useIamExtension) return
             val missingPrincipals = principals.filter { p -> p.group.uppercase() !in validGroups }
             if (missingPrincipals.isNotEmpty()) {
                 throw invalidArgumentException(

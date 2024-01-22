@@ -14,7 +14,7 @@ import org.jooq.impl.DSL.*
 class BigQueryViewGenerator(
     dataPolicy: DataPolicy,
     private val userGroupsTable: String,
-    private val useIamCheckExtension: Boolean = false,
+    val useIamCheckExtension: Boolean = false,
     customJooqSettings: Settings.() -> Unit = {},
 ) :
     ProcessingPlatformViewGenerator(
@@ -68,6 +68,7 @@ class BigQueryViewGenerator(
     override fun selectWithAdditionalHeaderStatements(
         fields: List<Field<*>>
     ): SelectSelectStep<Record> {
+        if (useIamCheckExtension) return DSL.select(fields)
         val userGroupSelect =
             DSL.unquotedName("user_groups")
                 .`as`(

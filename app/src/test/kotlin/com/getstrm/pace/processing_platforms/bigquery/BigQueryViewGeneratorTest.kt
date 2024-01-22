@@ -312,12 +312,6 @@ where (
             .shouldBe(
                 """create or replace view `my_target_project.my_target_dataset.my_target_view`
 as
-with
-  user_groups as (
-    select userGroup
-    from `my_project.my_dataset.my_user_groups`
-    where userEmail = SESSION_USER()
-  )
 select
   transactionId,
   case
