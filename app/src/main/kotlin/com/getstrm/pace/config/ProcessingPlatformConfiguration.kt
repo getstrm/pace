@@ -30,6 +30,7 @@ data class BigQueryConfig(
     val projectId: String,
     val userGroupsTable: String,
     val serviceAccountJsonKey: String,
+    val useIamCheckExtension: Boolean = false,
 ) : PPConfig(id, ProcessingPlatform.PlatformType.BIGQUERY)
 
 data class PostgresConfig(

@@ -88,7 +88,8 @@ class BigQueryClient(
         getDatabase(databaseId).getSchema(schemaId).getTable(tableId)
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
-        val viewGenerator = BigQueryViewGenerator(dataPolicy, config.userGroupsTable)
+        val viewGenerator =
+            BigQueryViewGenerator(dataPolicy, config.userGroupsTable, config.useIamCheckExtension)
         val query = viewGenerator.toDynamicViewSQL().sql
         val queryConfig = QueryJobConfiguration.newBuilder(query).setUseLegacySql(false).build()
         try {
