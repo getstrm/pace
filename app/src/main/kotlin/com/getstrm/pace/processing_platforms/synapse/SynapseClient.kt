@@ -4,7 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
-import com.getstrm.pace.config.SynapseConfig
+import com.getstrm.pace.config.SynapseConfiguration
 import com.getstrm.pace.domain.*
 import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.processing_platforms.Group
@@ -22,7 +22,7 @@ import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 
 class SynapseClient(
-    config: SynapseConfig,
+    config: SynapseConfiguration,
     private val jooq: DSLContext,
 ) : ProcessingPlatformClient(config) {
     // To match the behavior of the other ProcessingPlatform implementations, we connect to a
@@ -30,7 +30,7 @@ class SynapseClient(
     // databases, more info can be found here:
     // https://www.codejava.net/java-se/jdbc/how-to-list-names-of-all-databases-in-java
     constructor(
-        config: SynapseConfig
+        config: SynapseConfiguration
     ) : this(
         config,
         DSL.using(

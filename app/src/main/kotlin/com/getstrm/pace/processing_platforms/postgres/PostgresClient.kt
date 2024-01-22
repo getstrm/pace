@@ -4,7 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.POSTGRES
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
-import com.getstrm.pace.config.PostgresConfig
+import com.getstrm.pace.config.PostgresConfiguration
 import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
@@ -22,7 +22,8 @@ import org.jooq.impl.DSL
  *
  * PACE Postgres Database Single Postgres Database Schema Postgres schema Table Postgres table.
  */
-class PostgresClient(override val config: PostgresConfig) : ProcessingPlatformClient(config) {
+class PostgresClient(override val config: PostgresConfiguration) :
+    ProcessingPlatformClient(config) {
     // To match the behavior of the other ProcessingPlatform implementations, we connect to a
     // single database. If we want to add support for a single client to connect to multiple
     // databases, more info can be found here:

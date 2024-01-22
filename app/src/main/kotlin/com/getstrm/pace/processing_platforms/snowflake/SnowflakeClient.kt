@@ -4,7 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
-import com.getstrm.pace.config.SnowflakeConfig
+import com.getstrm.pace.config.SnowflakeConfiguration
 import com.getstrm.pace.domain.*
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
@@ -27,7 +27,8 @@ import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForEntity
 
-class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatformClient(config) {
+class SnowflakeClient(override val config: SnowflakeConfiguration) :
+    ProcessingPlatformClient(config) {
 
     private val snowflakeJwtIssuer =
         SnowflakeJwtIssuer.fromOrganizationAndAccountName(

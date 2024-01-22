@@ -3,7 +3,7 @@ package com.getstrm.pace.service
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
-import com.getstrm.pace.config.ProcessingPlatformConfiguration
+import com.getstrm.pace.config.ProcessingPlatformsConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class ProcessingPlatformsService(
-    config: ProcessingPlatformConfiguration,
+    config: ProcessingPlatformsConfiguration,
 ) {
     final val platforms: Map<String, ProcessingPlatformClient>
 

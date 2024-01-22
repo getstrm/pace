@@ -3,7 +3,7 @@ package com.getstrm.pace.processing_platforms.snowflake
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
-import com.getstrm.pace.config.SnowflakeConfig
+import com.getstrm.pace.config.SnowflakeConfiguration
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity
 class SnowflakeClientTest {
 
     private val config =
-        SnowflakeConfig(
+        SnowflakeConfiguration(
             id = "",
             serverUrl = "",
             database = "PACE",

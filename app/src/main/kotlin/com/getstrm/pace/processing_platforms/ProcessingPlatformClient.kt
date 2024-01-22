@@ -4,7 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.*
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
-import com.getstrm.pace.config.PPConfig
+import com.getstrm.pace.config.ProcessingPlatformConfiguration
 import com.getstrm.pace.domain.IntegrationClient
 import com.getstrm.pace.domain.LeafResource
 import com.getstrm.pace.domain.Resource
@@ -14,7 +14,8 @@ import com.getstrm.pace.util.MILLION_RECORDS
 import com.getstrm.pace.util.PagedCollection
 import org.jooq.Field
 
-abstract class ProcessingPlatformClient(open val config: PPConfig) : IntegrationClient() {
+abstract class ProcessingPlatformClient(open val config: ProcessingPlatformConfiguration) :
+    IntegrationClient() {
     override val id
         get() = config.id
 

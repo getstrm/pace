@@ -8,7 +8,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.Platfo
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
-import com.getstrm.pace.config.BigQueryConfig
+import com.getstrm.pace.config.BigQueryConfiguration
 import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
@@ -47,7 +47,7 @@ typealias SqlString = String
  * BigQuery: Project -> DataSet -> Table
  */
 class BigQueryClient(
-    override val config: BigQueryConfig,
+    override val config: BigQueryConfiguration,
 ) : ProcessingPlatformClient(config) {
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }

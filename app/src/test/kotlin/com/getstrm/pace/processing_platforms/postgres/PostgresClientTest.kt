@@ -2,7 +2,7 @@ package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.AbstractDatabaseTest
-import com.getstrm.pace.config.PostgresConfig
+import com.getstrm.pace.config.PostgresConfiguration
 import com.getstrm.pace.domain.LeafResource
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
@@ -14,7 +14,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class PostgresClientTest : AbstractDatabaseTest() {
-    val config = PostgresConfig("postgres", "localhost", port, "postgres", "postgres", "postgres")
+    val config =
+        PostgresConfiguration("postgres", "localhost", port, "postgres", "postgres", "postgres")
     private val underTest = PostgresClient(config)
     private val db = underTest.PostgresDatabase(underTest, "postgres")
 

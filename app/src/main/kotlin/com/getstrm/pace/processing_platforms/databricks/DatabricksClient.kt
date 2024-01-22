@@ -13,7 +13,7 @@ import com.databricks.sdk.service.iam.ListAccountGroupsRequest
 import com.databricks.sdk.service.sql.ExecuteStatementRequest
 import com.databricks.sdk.service.sql.ExecuteStatementResponse
 import com.databricks.sdk.service.sql.StatementState
-import com.getstrm.pace.config.DatabricksConfig
+import com.getstrm.pace.config.DatabricksConfiguration
 import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger(DatabricksClient::javaClass.name)
 
 class DatabricksClient(
-    override val config: DatabricksConfig,
+    override val config: DatabricksConfiguration,
 ) : ProcessingPlatformClient(config) {
 
     private val workspaceClient =

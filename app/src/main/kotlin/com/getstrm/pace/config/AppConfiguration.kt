@@ -8,6 +8,7 @@ data class AppConfiguration(
     val exposeApplicationExceptions: Boolean = false,
     val defaultViewSuffix: String = "",
     val catalogs: List<CatalogConfiguration> = emptyList(),
+    val processingPlatforms: ProcessingPlatformsConfiguration = ProcessingPlatformsConfiguration(),
 )
 
 data class CatalogConfiguration(
