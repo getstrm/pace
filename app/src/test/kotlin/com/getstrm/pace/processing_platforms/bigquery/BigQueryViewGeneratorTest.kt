@@ -299,6 +299,65 @@ where (
             )
     }
 
+    @Test
+    fun `transform test multiple transforms with iam check extensions`() {
+        // Given
+        underTest =
+            BigQueryViewGenerator(dataPolicy, defaultUserGroupsTable, true) {
+                withRenderFormatted(true)
+            }
+        underTest
+            .toDynamicViewSQL()
+            .sql
+            .shouldBe(
+                """create or replace view `my_target_project.my_target_dataset.my_target_view`
+as
+with
+  user_groups as (
+    select userGroup
+    from `my_project.my_dataset.my_user_groups`
+    where userEmail = SESSION_USER()
+  )
+select
+  transactionId,
+  case
+    when ("True" in (select principal_check_routines.check_principal_access("FRAUD_DETECTION"))) then CAST(userId AS string)
+    else TO_HEX(SHA256(CAST(userId AS string)))
+  end userId,
+  case
+    when (
+      ("True" in (select principal_check_routines.check_principal_access("ANALYTICS")))
+      or ("True" in (select principal_check_routines.check_principal_access("MARKETING")))
+    ) then regexp_replace(email, '^.*(@.*)$', '****\\1')
+    when (
+      ("True" in (select principal_check_routines.check_principal_access("FRAUD_DETECTION")))
+      or ("True" in (select principal_check_routines.check_principal_access("ADMIN")))
+    ) then email
+    else '****'
+  end email,
+  age,
+  size,
+  case when brand = 'MacBook' then 'Apple' else 'Other' end brand,
+  transactionAmount,
+  null items,
+  itemCount,
+  date,
+  purpose
+from `my_project.my_dataset.my_table`
+where (
+  case
+    when ("True" in (select principal_check_routines.check_principal_access("FRAUD_DETECTION"))) then true
+    else age > 18
+  end
+  and case
+    when ("True" in (select principal_check_routines.check_principal_access("MARKETING"))) then userId in ('1', '2', '3', '4')
+    else true
+  end
+  and transactionAmount < 10
+);"""
+            )
+    }
+
     companion object {
         @Language("yaml")
         val dataPolicy =

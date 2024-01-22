@@ -14,6 +14,7 @@ import org.jooq.impl.DSL.*
 class BigQueryViewGenerator(
     dataPolicy: DataPolicy,
     private val userGroupsTable: String,
+    private val useIamCheckExtension: Boolean = false,
     customJooqSettings: Settings.() -> Unit = {},
 ) :
     ProcessingPlatformViewGenerator(
@@ -36,10 +37,16 @@ class BigQueryViewGenerator(
                 principals.map { principal ->
                     when {
                         principal.hasGroup() ->
-                            DSL.condition(
-                                "{0} IN ( SELECT userGroup FROM user_groups )",
-                                principal.group
-                            )
+                            if (useIamCheckExtension)
+                                DSL.condition(
+                                    "\"True\" in (select principal_check_routines.check_principal_access({0}))",
+                                    DSL.quotedName(principal.group)
+                                )
+                            else
+                                DSL.condition(
+                                    "{0} IN ( SELECT userGroup FROM user_groups )",
+                                    principal.group
+                                )
                         else ->
                             throw InternalException(
                                 InternalException.Code.INTERNAL,
