@@ -2,9 +2,6 @@ metadata:
   description: ""
   version: 1
   title: public.demo
-platform:
-  id: standalone-sample-connection
-  platform_type: POSTGRES
 source:
   fields:
     - name_parts:
@@ -31,10 +28,18 @@ source:
         - transactionamount
       required: true
       type: integer
-  ref: public.demo
+  ref:
+    integration_fqn: public.demo
+    platform:
+      id: postgres-sample-connection
+      platform_type: POSTGRES
 rule_sets:
   - target:
-      fullname: public.demo_view
+      ref:
+        integration_fqn: public.demo_view
+        platform:
+          id: postgres-sample-connection
+          platform_type: POSTGRES
     filters:
       - generic_filter:
           conditions:

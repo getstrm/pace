@@ -15,8 +15,7 @@ message ResourceUrn {
     DataCatalog catalog = 2;
   }
   repeated ResourceNode resource_path = 3;
-  // the Fully Qualified Name of the data resource on the platform.
-  // only on processing platforms
+  // the Fully Qualified Name of the data resource on the processing platform / data catalog.
   optional string integration_fqn = 4;
 }
 

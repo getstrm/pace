@@ -71,9 +71,9 @@ class BigQueryClient(
 
     override suspend fun platformResourceName(index: Int): String {
         return when (index) {
-            1 -> "project"
-            2 -> "dataset"
-            3 -> "table"
+            0 -> "project"
+            1 -> "dataset"
+            2 -> "table"
             // TODO unpleasant client interaction
             else -> "Level-$index"
         }
@@ -331,8 +331,13 @@ class BigQueryClient(
             return info
         }
 
-        override suspend fun getChild(schemaId: String): Schema =
-            BigQuerySchema(this, bigQueryClient.getDataset(schemaId))
+        override suspend fun getChild(childId: String): Schema {
+            return try {
+                BigQuerySchema(this, bigQueryClient.getDataset(childId))
+            } catch (e: BigQueryException) {
+                throwNotFound(childId, "BigQuery Dataset")
+            }
+        }
 
         override fun fqn(): String {
             return this.id
@@ -355,11 +360,15 @@ class BigQueryClient(
                 .map { BigQueryTable(this, it) }
                 .withPageInfo()
 
-        override suspend fun getChild(tableId: String) =
-            BigQueryTable(
-                this,
-                bigQueryClient.getTable(TableId.of(dataset.datasetId.dataset, tableId))
-            )
+        override suspend fun getChild(tableId: String): BigQueryTable =
+            try {
+                BigQueryTable(
+                    this,
+                    bigQueryClient.getTable(TableId.of(dataset.datasetId.dataset, tableId))
+                )
+            } catch (e: BigQueryException) {
+                throwNotFound(tableId, "BigQuery Table")
+            }
 
         override fun fqn(): String {
             return "${database.id}.$id"

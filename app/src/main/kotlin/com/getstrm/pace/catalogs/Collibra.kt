@@ -14,9 +14,8 @@ import com.collibra.generated.ListSchemaIdsQuery
 import com.collibra.generated.ListTablesInSchemaQuery
 import com.getstrm.pace.config.CatalogConfiguration
 import com.getstrm.pace.domain.Resource
-import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.exceptions.BadRequestException.Code.INVALID_ARGUMENT
 import com.getstrm.pace.exceptions.InternalException
+import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.MILLION_RECORDS
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.firstNonNull
@@ -24,8 +23,8 @@ import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.onlyNonNulls
 import com.getstrm.pace.util.pagedCalls
 import com.getstrm.pace.util.withUnknownTotals
-import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
+import com.google.rpc.ResourceInfo
 import java.util.*
 import kotlinx.coroutines.flow.single
 import org.slf4j.LoggerFactory
@@ -55,6 +54,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             .map { Database(this, it.id.toString(), it.getDataSourceType(), it.displayName ?: "") }
 
     override suspend fun getDatabase(databaseId: String): DataCatalog.Database {
+        // FIXME Catch Not Found error and translate
         val database =
             client.query(GetDataBaseQuery(databaseId)).executeOrThrowError().assets.firstNonNull()
         return Database(
@@ -96,7 +96,17 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                     .query(GetSchemaQuery(childId))
                     .executeOrThrowError()
                     .assets
-                    .firstNonNull()
+                    ?.firstOrNull()
+                    ?: throw ResourceException(
+                        ResourceException.Code.NOT_FOUND,
+                        ResourceInfo.newBuilder()
+                            .setResourceType("Schema")
+                            .setResourceName(childId)
+                            .setDescription("Schema $childId not found in database $id")
+                            .setOwner("Database: $id")
+                            .build(),
+                        errorMessage = "schema $childId not found"
+                    )
             return Schema(catalog, this, schemaAsset.id.toString(), schemaAsset.fullName)
         }
     }
@@ -134,13 +144,13 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                     .assets
                     .onlyNonNulls()
                     .firstOrNull()
-                    ?: throw BadRequestException(
-                        INVALID_ARGUMENT,
-                        BadRequest.newBuilder()
-                            .addFieldViolations(
-                                BadRequest.FieldViolation.newBuilder()
-                                    .setDescription("table $childId not found")
-                            )
+                    ?: throw ResourceException(
+                        ResourceException.Code.NOT_FOUND,
+                        ResourceInfo.newBuilder()
+                            .setResourceType("Table")
+                            .setResourceName(childId)
+                            .setDescription("Table $childId not found in schema $id")
+                            .setOwner("Schema: $id")
                             .build(),
                         errorMessage = "table $childId not found"
                     )
