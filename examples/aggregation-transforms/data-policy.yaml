@@ -2,9 +2,6 @@ metadata:
   description: ""
   version: 1
   title: public.salary
-platform:
-  id: aggregation-transforms-sample-connection
-  platform_type: POSTGRES
 source:
   fields:
     - name_parts:
@@ -23,10 +20,12 @@ source:
         - salary
       required: true
       type: integer
-  ref: public.salary
+  ref:
+    integration_fqn: public.salary
 rule_sets:
   - target:
-      fullname: public.salary_view
+      ref: 
+        integration_fqn: public.salary_view
     filters:
       - generic_filter:
           conditions:

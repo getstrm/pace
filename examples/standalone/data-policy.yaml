@@ -37,9 +37,6 @@ rule_sets:
   - target:
       ref:
         integration_fqn: public.demo_view
-        platform:
-          id: postgres-sample-connection
-          platform_type: POSTGRES
     filters:
       - generic_filter:
           conditions:
