@@ -93,7 +93,7 @@ inline fun <reified T : GeneratedMessageV3> String.toProto(validate: Boolean = t
     val constructor = T::class.constructors.first { it.parameters.isEmpty() }
     constructor.javaConstructor?.trySetAccessible()
     val builder = constructor.call().toBuilder()
-    JsonFormat.parser().ignoringUnknownFields().merge(toJsonString(), builder)
+    JsonFormat.parser().merge(toJsonString(), builder)
     return (builder.build() as T).also { if (validate) it.validate() }
 }
 
