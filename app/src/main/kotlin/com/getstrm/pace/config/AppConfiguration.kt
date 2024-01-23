@@ -8,6 +8,7 @@ data class AppConfiguration(
     val exposeApplicationExceptions: Boolean = false,
     val defaultViewSuffix: String = "",
     val catalogs: List<CatalogConfiguration> = emptyList(),
+    val dataPolicies: DataPoliciesConfiguration = DataPoliciesConfiguration(),
 )
 
 data class CatalogConfiguration(
@@ -18,4 +19,8 @@ data class CatalogConfiguration(
     val userName: String?,
     val password: String?,
     val fetchSize: Int? = 1,
+)
+
+data class DataPoliciesConfiguration(
+    val autoIncrementVersion: Boolean = true,
 )
