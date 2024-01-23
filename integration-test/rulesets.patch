@@ -4,7 +4,7 @@
 -rule_sets:
 -  - target:
 -      ref: 
--        platform_fqn: public.demo_view
+-        integration_fqn: public.demo_view
 -    filters:
 -      - generic_filter:
 -          conditions:
@@ -49,7 +49,7 @@
 @@ -71,6 +29,4 @@
      type: integer
    ref:
-     platform_fqn: public.demo
+     integration_fqn: public.demo
 -    platform:
 -      platform_type: POSTGRES
 -      id: standalone-sample-connection

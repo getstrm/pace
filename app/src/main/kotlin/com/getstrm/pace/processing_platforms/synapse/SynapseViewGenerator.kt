@@ -30,7 +30,7 @@ class SynapseViewGenerator(dataPolicy: DataPolicy, customJooqSettings: Settings.
     fun grantSelectPrivileges(): Queries {
         val grants =
             dataPolicy.ruleSetsList.flatMap { ruleSet ->
-                val viewName = ruleSet.target.ref.platformFqn
+                val viewName = ruleSet.target.ref.integrationFqn
 
                 ruleSet.uniquePrincipals().map {
                     DSL.query(
@@ -51,7 +51,7 @@ class SynapseViewGenerator(dataPolicy: DataPolicy, customJooqSettings: Settings.
     fun dropViewsSQL() =
         jooq.queries(
             dataPolicy.ruleSetsList.map {
-                jooq.dropViewIfExists(renderName(it.target.ref.platformFqn))
+                jooq.dropViewIfExists(renderName(it.target.ref.integrationFqn))
             }
         )
 

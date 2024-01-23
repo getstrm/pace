@@ -17,6 +17,7 @@ protos/openapi.yaml
 integration-test/pace.log
 integration-test/awk
 integration-test/cut
+integration-test/policy.yaml*
 app/src/test/resources/openai.properties
 
 grpc-proxy/envoy-local.yaml

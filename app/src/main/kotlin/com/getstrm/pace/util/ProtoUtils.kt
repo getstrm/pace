@@ -1,7 +1,6 @@
 package com.getstrm.pace.util
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
@@ -225,9 +224,9 @@ fun DataPolicy.Source.toDDL(): String {
         .trimIndent()
 }
 
-fun DataPolicy.sourceDataResourceRef(): DataResourceRef = source.ref
+fun DataPolicy.sourceDataResourceRef(): ResourceUrn = source.ref
 
-fun DataPolicy.targetDataResourceRefs(): List<DataResourceRef> =
+fun DataPolicy.targetDataResourceRefs(): List<ResourceUrn> =
     this.ruleSetsList.map { ruleSet -> ruleSet.target.ref }
 
 fun ResourceUrn.parent(): ResourceUrn =

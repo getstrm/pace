@@ -1,11 +1,11 @@
 package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SnowflakeConfiguration
-import com.getstrm.pace.domain.*
+import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.exceptions.throwNotFound
@@ -289,7 +289,7 @@ class SnowflakeClient(override val config: SnowflakeConfiguration) :
                 )
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(DataResourceRef.newBuilder().setPlatformFqn(fullName).build())
+                        .setRef(resourceUrn { integrationFqn = fullName })
                         .addAllFields(
                             // Todo: make this more type-safe
                             data.orEmpty().map { (name, type, _, nullable) ->

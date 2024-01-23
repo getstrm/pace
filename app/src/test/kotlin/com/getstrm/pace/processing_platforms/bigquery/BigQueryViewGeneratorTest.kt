@@ -4,7 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import com.getstrm.pace.namedField
 import com.getstrm.pace.toPrincipals
 import com.getstrm.pace.toSql
@@ -26,9 +26,7 @@ class BigQueryViewGeneratorTest {
             DataPolicy.newBuilder()
                 .apply {
                     sourceBuilder.setRef(
-                        DataResourceRef.newBuilder()
-                            .setPlatformFqn("my-project.my_dataset.my_source_table")
-                            .build()
+                        resourceUrn { integrationFqn = "my-project.my_dataset.my_source_table" }
                     )
                 }
                 .build()
@@ -312,7 +310,7 @@ where (
             """
 source:
   ref:
-    platform_fqn: "my_project.my_dataset.my_table"
+    integration_fqn: "my_project.my_dataset.my_table"
     platform: 
       id: bigquery
       platform_type: BIGQUERY
@@ -342,7 +340,7 @@ source:
 rule_sets:
   - target:
       ref: 
-        platform_fqn: my_target_project.my_target_dataset.my_target_view
+        integration_fqn: my_target_project.my_target_dataset.my_target_view
       type: SQL_VIEW
     field_transforms:
       - field:
@@ -438,14 +436,14 @@ source:
       required: true
       type: integer
   ref: 
-    platform_fqn: my-project.my_dataset.my_source_table
+    integration_fqn: my-project.my_dataset.my_source_table
     platform:
       id: platform-id
       platform_type: POSTGRES
 rule_sets:
   - target:
       ref:
-        platform_fqn: my-project.my_dataset.my_target_view
+        integration_fqn: my-project.my_dataset.my_target_view
     filters:
       - generic_filter:
           conditions:
@@ -493,14 +491,14 @@ source:
       required: true
       type: integer
   ref:
-    platform_fqn: my-project.my_dataset.my_source_table
+    integration_fqn: my-project.my_dataset.my_source_table
     platform:
       id: platform-id
       platform_type: POSTGRES
 rule_sets:
   - target:
       ref:
-        platform_fqn: my-project.my_dataset.my_target_view
+        integration_fqn: my-project.my_dataset.my_target_view
     filters:
       - generic_filter:
           conditions:

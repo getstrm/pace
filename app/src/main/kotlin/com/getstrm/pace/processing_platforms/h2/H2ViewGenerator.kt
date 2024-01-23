@@ -1,7 +1,7 @@
 package com.getstrm.pace.processing_platforms.h2
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
 import org.jooq.Condition
 import org.jooq.conf.Settings
@@ -25,7 +25,7 @@ class H2ViewGenerator(
             .setSource(
                 dataPolicy.source
                     .toBuilder()
-                    .setRef(DataResourceRef.newBuilder().setPlatformFqn(sourceRefOverride).build())
+                    .setRef(resourceUrn { integrationFqn = sourceRefOverride })
                     .build()
             )
             .build(),

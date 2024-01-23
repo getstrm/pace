@@ -1,11 +1,11 @@
 package com.getstrm.pace.processing_platforms.synapse
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SynapseConfiguration
-import com.getstrm.pace.domain.*
+import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
@@ -177,7 +177,7 @@ class SynapseClient(
                 )
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(DataResourceRef.newBuilder().setPlatformFqn(fullName).build())
+                        .setRef(resourceUrn { integrationFqn = fullName })
                         .addAllFields(
                             table.fields().map { field ->
                                 DataPolicy.Field.newBuilder()

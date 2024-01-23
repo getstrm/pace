@@ -48,8 +48,8 @@ class ResourcesService(
     suspend fun getBlueprintDataPolicy(resourceUrn: ResourceUrn): DataPolicy {
         val client = resourceUrn.integrationClient()
 
-        return if (resourceUrn.hasPlatformFqn()) {
-            return client.createBlueprint(resourceUrn.platformFqn)
+        return if (resourceUrn.hasIntegrationFqn()) {
+            return client.createBlueprint(resourceUrn.integrationFqn)
         } else {
             client.getLeaf(resourceUrn).createBlueprint()
         }

@@ -50,7 +50,7 @@ class LegacyHierarchyService(private val resourcesService: ResourcesService) {
         schemaId: String
     ): PagedCollection<Table> {
         val resourcesRequest = listResourcesRequest {
-            this.integrationId
+            this.integrationId = integrationId
             this.resourcePath += databaseId
             this.resourcePath += schemaId
         }

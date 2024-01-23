@@ -3,7 +3,7 @@ package com.getstrm.pace.service
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ListDataPoliciesRequest
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.UpsertDataPolicyRequest
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.getstrm.pace.dao.DataPolicyDao
 import com.getstrm.pace.exceptions.ResourceException
@@ -53,7 +53,7 @@ class DataPolicyService(
     fun getLatestDataPolicy(id: String, platformId: String): DataPolicy =
         getActiveDataPolicy(id, platformId).toApiDataPolicy()
 
-    suspend fun listAllManagedDataResourceRefs(): List<DataResourceRef> {
+    suspend fun listAllManagedDataResourceRefs(): List<ResourceUrn> {
         val dataPolicies =
             listDataPolicies(
                     ListDataPoliciesRequest.newBuilder().setPageParameters(MILLION_RECORDS).build()

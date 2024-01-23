@@ -315,7 +315,7 @@ where (
             """
 source:
   ref:
-    platform_fqn: mydb.my_schema.gddemo
+    integration_fqn: mydb.my_schema.gddemo
   fields:
     - name_parts: [transactionId]
       type: bigint
@@ -343,7 +343,7 @@ source:
 rule_sets:
   - target:
       ref: 
-        platform_fqn: my_database.my_schema.gddemo_public
+        integration_fqn: my_database.my_schema.gddemo_public
       type: SQL_VIEW
     field_transforms:
       - field:
@@ -437,14 +437,14 @@ source:
       required: true
       type: integer
   ref:
-    platform_fqn: public.demo_tokenized
+    integration_fqn: public.demo_tokenized
     platform:
       id: platform-id
       platform_type: POSTGRES
 rule_sets:
   - target:
       ref: 
-        platform_fqn: public.demo_view
+        integration_fqn: public.demo_view
     filters:
       - generic_filter:
           conditions:
@@ -496,14 +496,14 @@ source:
       required: true
       type: integer
   ref:
-    platform_fqn: public.demo_tokenized
+    integration_fqn: public.demo_tokenized
     platform:
       id: platform-id
       platform_type: POSTGRES
 rule_sets:
   - target:
       ref: 
-        platform_fqn: public.demo_view
+        integration_fqn: public.demo_view
     filters:
       - generic_filter:
           conditions:

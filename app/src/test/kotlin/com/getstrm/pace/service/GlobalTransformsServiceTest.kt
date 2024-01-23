@@ -39,7 +39,7 @@ class GlobalTransformsServiceTest {
             """
 source:
   ref:
-    platform_fqn: public.test1
+    integration_fqn: public.test1
     platform:
       platform_type: SNOWFLAKE
       id: snowflake
@@ -64,7 +64,7 @@ source:
                 """
 source:
   ref:
-    platform_fqn: public.test1
+    integration_fqn: public.test1
     platform:
       platform_type: SNOWFLAKE
       id: snowflake
@@ -80,7 +80,7 @@ source:
 rule_sets:
   - target:
       ref: 
-        platform_fqn: "public.test1_view"
+        integration_fqn: "public.test1_view"
     field_transforms:  
       - field:
           name_parts:  [ name ]
@@ -115,7 +115,7 @@ rule_sets:
             """
 source:
   ref:
-    platform_fqn: test1
+    integration_fqn: test1
     platform:
       platform_type: SNOWFLAKE
       id: snowflake
@@ -139,7 +139,7 @@ source:
                 """
 source:
   ref:
-    platform_fqn: test1
+    integration_fqn: test1
     platform:
       platform_type: SNOWFLAKE
       id: snowflake
@@ -155,7 +155,7 @@ source:
 rule_sets:
   - target:
       ref: 
-        platform_fqn: "test1_view"
+        integration_fqn: "test1_view"
     field_transforms:  
       - field:
           name_parts: [ name ]
@@ -198,7 +198,7 @@ rule_sets:
             """
 source:
   ref:
-    platform_fqn: test1
+    integration_fqn: test1
     platform:
       platform_type: SNOWFLAKE
       id: snowflake
@@ -222,7 +222,7 @@ source:
                 """
 source:
   ref:
-    platform_fqn: test1
+    integration_fqn: test1
     platform:
       platform_type: SNOWFLAKE
       id: snowflake
@@ -238,7 +238,7 @@ source:
 rule_sets:
   - target:
       ref: 
-        platform_fqn: "test1_view"
+        integration_fqn: "test1_view"
     field_transforms:  
       - field:
           name_parts: [ name ]

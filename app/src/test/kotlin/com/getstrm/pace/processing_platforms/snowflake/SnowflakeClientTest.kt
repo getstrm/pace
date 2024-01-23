@@ -1,8 +1,8 @@
 package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import com.getstrm.pace.config.SnowflakeConfiguration
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -78,11 +78,7 @@ class SnowflakeClientTest {
                 .setMetadata(DataPolicy.Metadata.newBuilder().setTitle("test_schema.test_table"))
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(
-                            DataResourceRef.newBuilder()
-                                .setPlatformFqn("test_schema.test_table")
-                                .build()
-                        )
+                        .setRef(resourceUrn { integrationFqn = "test_schema.test_table" })
                         .addAllFields(
                             listOf(
                                 DataPolicy.Field.newBuilder()

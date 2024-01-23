@@ -53,7 +53,7 @@ abstract class IntegrationClient : Resource {
         }
 
         return copy {
-            platformFqn = child.fqn()
+            integrationFqn = child.fqn()
             resourcePath += childResourceNode
         }
     }

@@ -454,14 +454,14 @@ source:
       required: true
       type: integer
   ref:
-    platform_fqn: public.demo
+    integration_fqn: public.demo
     platform:
       id: platform-id
       platform_type: POSTGRES
 rule_sets:
   - target:
       ref: 
-        platform_fqn: public.demo_view
+        integration_fqn: public.demo_view
     filters:
       - generic_filter:
           conditions:
@@ -546,14 +546,14 @@ source:
       required: true
       type: integer
   ref:
-    platform_fqn: public.demo_tokenized
+    integration_fqn: public.demo_tokenized
     platform:
       id: platform-id
       platform_type: POSTGRES
 rule_sets:
   - target:
       ref: 
-        platform_fqn: public.demo_view
+        integration_fqn: public.demo_view
     filters:
       - generic_filter:
           conditions:
@@ -602,14 +602,14 @@ source:
       required: true
       type: integer
   ref:
-    platform_fqn: public.demo_tokenized
+    integration_fqn: public.demo_tokenized
     platform:
       id: platform-id
       platform_type: POSTGRES
 rule_sets:
   - target:
       ref: 
-        platform_fqn: public.demo_view
+        integration_fqn: public.demo_view
     filters:
       - generic_filter:
           conditions:
@@ -668,14 +668,14 @@ source:
       required: true
       type: integer
   ref:
-    platform_fqn: public.demo_tokenized
+    integration_fqn: public.demo_tokenized
     platform:
       id: platform-id
       platform_type: POSTGRES
 rule_sets:
   - target:
       ref: 
-        platform_fqn: public.demo_view
+        integration_fqn: public.demo_view
     filters:
       - generic_filter:
           conditions:
@@ -728,14 +728,14 @@ source:
       required: true
       type: integer
   ref:
-    platform_fqn: public.demo_tokenized
+    integration_fqn: public.demo_tokenized
     platform:
       id: platform-id
       platform_type: POSTGRES
 rule_sets:
   - target:
       ref: 
-        platform_fqn: public.demo_view
+        integration_fqn: public.demo_view
     filters:
       - generic_filter:
           conditions:

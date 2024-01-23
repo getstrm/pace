@@ -29,7 +29,7 @@ class DataPolicyDao(
             .withUnknownTotals()
 
     fun upsertDataPolicy(dataPolicy: DataPolicy): DataPoliciesRecord {
-        val id = dataPolicy.source.ref.platformFqn
+        val id = dataPolicy.source.ref.integrationFqn
         val oldPolicy =
             getActiveDataPolicy(id, dataPolicy.source.ref.platform.id)?.also {
                 checkStaleness(it.version!!, dataPolicy.metadata.version)
@@ -53,7 +53,7 @@ class DataPolicyDao(
             .newRecord(DATA_POLICIES)
             .apply {
                 this.policy = updatedPolicy.toJsonbWithDefaults()
-                this.id = updatedPolicy.source.ref.platformFqn
+                this.id = updatedPolicy.source.ref.integrationFqn
                 this.platformId = updatedPolicy.source.ref.platform.id
                 this.updatedAt = updateTimestamp
                 this.createdAt = updatedPolicy.metadata.createTime.toOffsetDateTime()

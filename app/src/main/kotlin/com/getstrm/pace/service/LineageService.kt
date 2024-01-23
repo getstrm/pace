@@ -2,8 +2,8 @@ package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ListDataPoliciesRequest
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ScanLineageRequest
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.util.PagedCollection
@@ -31,7 +31,7 @@ class LineageService(
                 try {
                     processingPlatformsService.getLineage(
                         GetLineageRequest.newBuilder()
-                            .setFqn(policy.source.ref.platformFqn)
+                            .setFqn(policy.source.ref.integrationFqn)
                             .setPlatformId(policy.source.ref.platform.id)
                             .build()
                     )
@@ -58,6 +58,6 @@ class LineageService(
      *
      * TODO improve stupid algorithm, performance is abysmal. But good enough for now.
      */
-    private suspend fun managedByPace(ref: DataResourceRef): Boolean =
+    private suspend fun managedByPace(ref: ResourceUrn): Boolean =
         dataPolicyService.listAllManagedDataResourceRefs().firstOrNull { it == ref } != null
 }

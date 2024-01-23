@@ -23,7 +23,7 @@ class DataPolicyValidatorService {
      * group and path checks are case insensitive because in essence SQL is case insensitive.
      */
     fun validate(dataPolicy: DataPolicy, platformGroups: Set<String>) {
-        if (dataPolicy.source.ref.platformFqn.isNullOrEmpty()) {
+        if (dataPolicy.source.ref.integrationFqn.isNullOrEmpty()) {
             throw invalidArgumentException(
                 "dataPolicy.source.ref",
                 "DataPolicy source ref is empty"

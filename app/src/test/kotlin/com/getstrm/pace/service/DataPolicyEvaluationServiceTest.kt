@@ -38,7 +38,7 @@ class DataPolicyEvaluationServiceTest {
 
         // Then
         result.size shouldBe 1
-        result.first().target.ref.platformFqn shouldBe "public.demo_view"
+        result.first().target.ref.integrationFqn shouldBe "public.demo_view"
         val resultsByPrincipal =
             result.first().evaluationResultsList.associateBy { it.principal?.group }
         resultsByPrincipal.size shouldBe 4
@@ -70,7 +70,7 @@ class DataPolicyEvaluationServiceTest {
 
         // Then
         result.size shouldBe 1
-        result.first().target.ref.platformFqn shouldBe "public.demo_view"
+        result.first().target.ref.integrationFqn shouldBe "public.demo_view"
         val resultsByPrincipal =
             result.first().evaluationResultsList.associateBy { it.principal?.group }
         resultsByPrincipal.size shouldBe 2
@@ -128,7 +128,7 @@ class DataPolicyEvaluationServiceTest {
 
         // Then
         result.size shouldBe 1
-        result.first().target.ref.platformFqn shouldBe "public.retention_view"
+        result.first().target.ref.integrationFqn shouldBe "public.retention_view"
         val resultsByPrincipal =
             result.first().evaluationResultsList.associateBy { it.principal?.group }
         resultsByPrincipal.size shouldBe 3
@@ -169,7 +169,7 @@ class DataPolicyEvaluationServiceTest {
 
         // Then
         result.size shouldBe 1
-        result.first().target.ref.platformFqn shouldBe "public.retention_view"
+        result.first().target.ref.integrationFqn shouldBe "public.retention_view"
         val resultsByPrincipal =
             result.first().evaluationResultsList.associateBy { it.principal?.group }
         resultsByPrincipal.size shouldBe 3
@@ -279,11 +279,11 @@ source:
       required: true
       type: integer
   ref:
-    platform_fqn: public.demo
+    integration_fqn: public.demo
 rule_sets:
   - target:
       ref: 
-        platform_fqn: public.demo_view
+        integration_fqn: public.demo_view
     filters:
       - generic_filter:
           conditions:
@@ -517,11 +517,11 @@ source:
       required: true
       type: timestamptz
   ref:
-    platform_fqn: public.demo
+    integration_fqn: public.demo
 rule_sets:
   - target:
       ref: 
-        platform_fqn: public.retention_view
+        integration_fqn: public.retention_view
     filters:
       - retention_filter:
           field:
@@ -569,11 +569,11 @@ source:
       required: true
       type: integer
   ref:
-    platform_fqn: public.demo
+    integration_fqn: public.demo
 rule_sets:
   - target:
       ref: 
-        platform_fqn: public.demo_view
+        integration_fqn: public.demo_view
     field_transforms:
       - field:
           name_parts: [ transactionid ]

@@ -47,7 +47,7 @@ class SnowflakeViewGenerator(
     override fun additionalFooterStatements(): Queries {
         val grants =
             dataPolicy.ruleSetsList.flatMap { ruleSet ->
-                val viewName = ruleSet.target.ref.platformFqn
+                val viewName = ruleSet.target.ref.integrationFqn
                 ruleSet.uniquePrincipals().map {
                     DSL.query(
                         jooq

@@ -1,11 +1,10 @@
 package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Lineage
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.BIGQUERY
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
 import com.getstrm.pace.config.BigQueryConfiguration
@@ -130,7 +129,7 @@ class BigQueryClient(
             if (e.message == "Duplicate authorized views") {
                 log.warn(
                     "Target view(s) for data policy {} already authorized.",
-                    dataPolicy.source.ref.platformFqn
+                    dataPolicy.source.ref.integrationFqn
                 )
             } else {
                 throw InternalException(
@@ -150,12 +149,12 @@ class BigQueryClient(
     // Fixme: better handle case where view was already authorized (currently caught above)
     private fun authorizeViews(dataPolicy: DataPolicy) {
         val sourceDataSet =
-            bigQueryClient.getDataset(dataPolicy.source.ref.platformFqn.toTableId().dataset)
+            bigQueryClient.getDataset(dataPolicy.source.ref.integrationFqn.toTableId().dataset)
         val sourceAcl = sourceDataSet.acl
         val viewsAcl =
             dataPolicy.ruleSetsList.flatMap { ruleSet ->
                 // Allow the target view to view the source table
-                val targetAcl = Acl.of(Acl.View(ruleSet.target.ref.platformFqn.toTableId()))
+                val targetAcl = Acl.of(Acl.View(ruleSet.target.ref.integrationFqn.toTableId()))
                 // Allow the target view to view any applicable token source tables
                 val tokenSourceAcls =
                     ruleSet.fieldTransformsList.flatMap { fieldTransform ->
@@ -205,11 +204,10 @@ class BigQueryClient(
         val (upstream, downstream) = buildLineageList(request.fqn.addBqPrefix())
         return LineageSummary.newBuilder()
             .setResourceRef(
-                DataResourceRef.newBuilder()
-                    .setPlatformFqn(request.fqn)
-                    .setPaceUrn(ResourceUrn.newBuilder().setPlatformFqn(request.fqn).build())
-                    .setPlatform(apiProcessingPlatform)
-                    .build()
+                resourceUrn {
+                    integrationFqn = request.fqn
+                    platform = apiProcessingPlatform
+                }
             )
             .addAllUpstream(upstream)
             .addAllDownstream(downstream)
@@ -304,13 +302,10 @@ class BigQueryClient(
         return Lineage.newBuilder()
             .setRelation(relation ?: "unknown")
             .setResourceRef(
-                DataResourceRef.newBuilder()
-                    .setPlatformFqn(fqn.stripBqPrefix())
-                    .setPaceUrn(
-                        ResourceUrn.newBuilder().setPlatformFqn(fqn.stripBqPrefix()).build()
-                    )
-                    .setPlatform(apiProcessingPlatform)
-                    .build()
+                resourceUrn {
+                    integrationFqn = fqn.stripBqPrefix()
+                    platform = apiProcessingPlatform
+                }
             )
             .build()
     }
@@ -411,12 +406,10 @@ class BigQueryClient(
             .setSource(
                 DataPolicy.Source.newBuilder()
                     .setRef(
-                        DataResourceRef.newBuilder()
-                            .setPlatformFqn(table.fullName())
-                            .setPaceUrn(
-                                ResourceUrn.newBuilder().setPlatformFqn(table.fullName()).build()
-                            )
-                            .setPlatform(apiProcessingPlatform)
+                        resourceUrn {
+                            integrationFqn = table.fullName()
+                            platform = apiProcessingPlatform
+                        }
                     )
                     .addAllFields(
                         table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map { field

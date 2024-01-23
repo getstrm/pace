@@ -1,15 +1,18 @@
 package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.POSTGRES
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.PostgresConfiguration
 import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.util.*
+import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.applyPageParameters
+import com.getstrm.pace.util.normalizeType
+import com.getstrm.pace.util.withPageInfo
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
@@ -164,7 +167,7 @@ class PostgresClient(override val config: PostgresConfiguration) :
                 )
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(DataResourceRef.newBuilder().setPlatformFqn(fullName).build())
+                        .setRef(resourceUrn { integrationFqn = fullName })
                         .addAllFields(
                             table.fields().map { field ->
                                 DataPolicy.Field.newBuilder()

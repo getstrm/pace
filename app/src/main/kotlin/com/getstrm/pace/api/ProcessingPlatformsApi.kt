@@ -86,7 +86,7 @@ class ProcessingPlatformsApi(
             if (request.hasFqn()) {
                 resourceUrn {
                     platform = processingPlatform { id = request.platformId }
-                    platformFqn = request.fqn
+                    integrationFqn = request.fqn
                 }
             } else {
                 resourceUrn {
