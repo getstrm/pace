@@ -177,7 +177,12 @@ class SynapseClient(
                 )
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(resourceUrn { integrationFqn = fullName })
+                        .setRef(
+                            resourceUrn {
+                                integrationFqn = fullName
+                                platform = apiProcessingPlatform
+                            }
+                        )
                         .addAllFields(
                             table.fields().map { field ->
                                 DataPolicy.Field.newBuilder()

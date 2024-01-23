@@ -91,13 +91,10 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
             // tags don't exist in schemaMetadata but only in editableSchemaMetadata!
             val addtributeTags =
-                dataset.editableSchemaMetadata
-                    ?.editableSchemaFieldInfo
-                    ?.map {
-                        it.fieldPath to
-                            it.tags?.tags?.map { it.tag.properties?.name.orEmpty() }.orEmpty()
-                    }
-                    ?.toMap() ?: emptyMap()
+                dataset.editableSchemaMetadata?.editableSchemaFieldInfo?.associate { fieldInfo ->
+                    fieldInfo.fieldPath to
+                        fieldInfo.tags?.tags?.map { it.tag.properties?.name.orEmpty() }.orEmpty()
+                } ?: emptyMap()
 
             policyBuilder.sourceBuilder.addAllFields(
                 dataset.schemaMetadata?.fields?.map {

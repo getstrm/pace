@@ -287,7 +287,12 @@ class DatabricksClient(
                 )
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(resourceUrn { integrationFqn = fullName })
+                        .setRef(
+                            resourceUrn {
+                                integrationFqn = fullName
+                                platform = apiProcessingPlatform
+                            }
+                        )
                         .addAllFields(
                             columns.map { column ->
                                 DataPolicy.Field.newBuilder()

@@ -289,7 +289,12 @@ class SnowflakeClient(override val config: SnowflakeConfiguration) :
                 )
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(resourceUrn { integrationFqn = fullName })
+                        .setRef(
+                            resourceUrn {
+                                integrationFqn = fullName
+                                this.platform = platform
+                            }
+                        )
                         .addAllFields(
                             // Todo: make this more type-safe
                             data.orEmpty().map { (name, type, _, nullable) ->
