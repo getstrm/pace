@@ -1,6 +1,9 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.config.AppConfiguration
+import com.getstrm.pace.config.PaceConfiguration
+import com.getstrm.pace.config.ProcessingPlatformsConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.util.toProto
 import com.google.rpc.BadRequest
@@ -13,7 +16,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 
 class DataPolicyValidatorServiceTest {
-    private val underTest: DataPolicyValidatorService = DataPolicyValidatorService()
+    private val appConfig =
+        PaceConfiguration(
+            appConfiguration =
+                AppConfiguration(processingPlatforms = ProcessingPlatformsConfiguration())
+        )
+    private val underTest: DataPolicyValidatorService = DataPolicyValidatorService(appConfig)
 
     @Test
     fun `validate complex happy flow`() {

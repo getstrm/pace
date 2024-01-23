@@ -4,8 +4,14 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.jooq.generated.tables.DataPolicies.Companion.DATA_POLICIES
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
+import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.util.*
+import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.toApiDataPolicy
+import com.getstrm.pace.util.toJsonbWithDefaults
+import com.getstrm.pace.util.toOffsetDateTime
+import com.getstrm.pace.util.toTimestamp
+import com.getstrm.pace.util.withUnknownTotals
 import com.google.rpc.BadRequest
 import java.time.OffsetDateTime
 import org.jooq.DSLContext
@@ -15,6 +21,7 @@ import org.springframework.stereotype.Component
 @Component
 class DataPolicyDao(
     private val jooq: DSLContext,
+    private val appConfiguration: AppConfiguration,
 ) {
 
     fun listDataPolicies(pageParameters: PageParameters): PagedCollection<DataPoliciesRecord> =
@@ -96,8 +103,11 @@ class DataPolicyDao(
             .limit(1)
             .fetchOneInto(DATA_POLICIES)
 
-    private fun checkStaleness(existingVersion: Int, newVersion: Int) {
-        if (existingVersion != newVersion) {
+    private fun checkStaleness(existingVersion: Int, upsertedVersion: Int) {
+        if (
+            !appConfiguration.dataPolicies.autoIncrementVersion &&
+                existingVersion != upsertedVersion
+        ) {
             throw BadRequestException(
                 BadRequestException.Code.INVALID_ARGUMENT,
                 BadRequest.newBuilder()
@@ -106,12 +116,12 @@ class DataPolicyDao(
                             BadRequest.FieldViolation.newBuilder()
                                 .setField("metadata.version")
                                 .setDescription(
-                                    "DataPolicy version '$newVersion' is not the latest version '$existingVersion'. Please make sure your update is based on the latest version."
+                                    "DataPolicy version '$upsertedVersion' is not the latest version '$existingVersion'. Please make sure your update is based on the latest version.",
                                 )
-                                .build()
-                        )
+                                .build(),
+                        ),
                     )
-                    .build()
+                    .build(),
             )
         }
     }

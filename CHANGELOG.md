@@ -1,3 +1,17 @@
+# [1.0.0-alpha.51](https://github.com/getstrm/pace/compare/v1.0.0-alpha.50...v1.0.0-alpha.51) (2024-01-23)
+
+
+### Features
+
+* **pace-133:** simplify data policy versioning in upsert call ([#163](https://github.com/getstrm/pace/issues/163)) ([81f10f0](https://github.com/getstrm/pace/commit/81f10f06b03383e593e394169bb5257523aff847))
+
+# [1.0.0-alpha.50](https://github.com/getstrm/pace/compare/v1.0.0-alpha.49...v1.0.0-alpha.50) (2024-01-22)
+
+
+### Features
+
+* **pace-122:** pace bigquery iam check extension ([#161](https://github.com/getstrm/pace/issues/161)) ([9b5fa5a](https://github.com/getstrm/pace/commit/9b5fa5acc7f3e2b07ed3be245a139c9ffe47c0eb))
+
 # [1.0.0-alpha.49](https://github.com/getstrm/pace/compare/v1.0.0-alpha.48...v1.0.0-alpha.49) (2024-01-17)
 
 
