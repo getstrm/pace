@@ -22,5 +22,5 @@ data class CatalogConfiguration(
 )
 
 data class DataPoliciesConfiguration(
-    val autoIncrementVersion: Boolean = false,
+    val autoIncrementVersion: Boolean = true,
 )
