@@ -38,7 +38,7 @@ class BigQueryViewGeneratorTest {
 
         // Then
         condition!!.toSql() shouldBe
-            "(('ANALYTICS' IN ( SELECT userGroup FROM user_groups )) or ('MARKETING' IN ( SELECT userGroup FROM user_groups )))"
+            "(('ANALYTICS' IN ( SELECT `userGroup` FROM `user_groups` )) or ('MARKETING' IN ( SELECT `userGroup` FROM `user_groups` )))"
     }
 
     @Test
@@ -50,7 +50,7 @@ class BigQueryViewGeneratorTest {
         val condition = underTest.toPrincipalCondition(principals)
 
         // Then
-        condition!!.toSql() shouldBe "('ANALYTICS' IN ( SELECT userGroup FROM user_groups ))"
+        condition!!.toSql() shouldBe "('ANALYTICS' IN ( SELECT `userGroup` FROM `user_groups` ))"
     }
 
     @Test
@@ -102,8 +102,7 @@ class BigQueryViewGeneratorTest {
 
         // Then
         jooqField.toSql() shouldBe
-            "case when (('ANALYTICS' IN ( SELECT userGroup FROM user_groups )) or ('MARKETING' IN ( SELECT userGroup FROM user_groups ))) then '****' when ('FRAUD_DETECTION' " +
-                "IN ( SELECT userGroup FROM user_groups )) then 'REDACTED EMAIL' else 'fixed-value' end \"email\""
+            "case when (('ANALYTICS' IN ( SELECT `userGroup` FROM `user_groups` )) or ('MARKETING' IN ( SELECT `userGroup` FROM `user_groups` ))) then '****' when ('FRAUD_DETECTION' IN ( SELECT `userGroup` FROM `user_groups` )) then 'REDACTED EMAIL' else 'fixed-value' end \"email\""
     }
 
     @Test
@@ -136,7 +135,7 @@ class BigQueryViewGeneratorTest {
 
         // Then
         condition.toSql() shouldBe
-            "case when ('fraud-and-risk' IN ( SELECT userGroup FROM user_groups )) then true when (('analytics' IN ( SELECT userGroup FROM user_groups )) or ('marketing' IN ( SELECT userGroup FROM user_groups ))) then age > 18 else false end"
+            "case when ('fraud-and-risk' IN ( SELECT `userGroup` FROM `user_groups` )) then true when (('analytics' IN ( SELECT `userGroup` FROM `user_groups` )) or ('marketing' IN ( SELECT `userGroup` FROM `user_groups` ))) then age > 18 else false end"
     }
 
     @Test
@@ -168,7 +167,7 @@ class BigQueryViewGeneratorTest {
         // Then
         condition.toSql() shouldBe
             """
-            case when ('marketing' IN ( SELECT userGroup FROM user_groups )) then TIMESTAMP_ADD(timestamp, INTERVAL 5 DAY) > current_timestamp when ('fraud-and-risk' IN ( SELECT userGroup FROM user_groups )) then true else TIMESTAMP_ADD(timestamp, INTERVAL 10 DAY) > current_timestamp end
+            case when ('marketing' IN ( SELECT `userGroup` FROM `user_groups` )) then TIMESTAMP_ADD(timestamp, INTERVAL 5 DAY) > current_timestamp when ('fraud-and-risk' IN ( SELECT `userGroup` FROM `user_groups` )) then true else TIMESTAMP_ADD(timestamp, INTERVAL 10 DAY) > current_timestamp end
         """
                 .trimIndent()
     }
@@ -190,17 +189,17 @@ with
     where userEmail = SESSION_USER()
   )
 select
-  transactionid,
+  `transactionid`,
   case
-    when ('fraud_and_risk' IN ( SELECT userGroup FROM user_groups )) then coalesce(`my-project.tokens.userid_tokens`.userid, `my-project.my_dataset.my_source_table`.userid)
-    else userid
+    when ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` )) then coalesce(`my-project.tokens.userid_tokens`.`userid`, `my-project.my_dataset.my_source_table`.`userid`)
+    else `userid`
   end userid,
-  transactionamount
+  `transactionamount`
 from `my-project.my_dataset.my_source_table`
   left outer join `my-project.tokens.userid_tokens`
     on (`my-project.my_dataset.my_source_table`.userid = `my-project.tokens.userid_tokens`.token)
 where case
-  when ('fraud_and_risk' IN ( SELECT userGroup FROM user_groups )) then true
+  when ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` )) then true
   else transactionamount < 10
 end;"""
     }
@@ -223,21 +222,21 @@ with
   )
 select
   case
-    when ('fraud_and_risk' IN ( SELECT userGroup FROM user_groups )) then coalesce(`my-project.tokens.transactionid_tokens`.transactionid, `my-project.my_dataset.my_source_table`.transactionid)
-    else transactionid
+    when ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` )) then coalesce(`my-project.tokens.transactionid_tokens`.`transactionid`, `my-project.my_dataset.my_source_table`.`transactionid`)
+    else `transactionid`
   end transactionid,
   case
-    when ('fraud_and_risk' IN ( SELECT userGroup FROM user_groups )) then coalesce(`my-project.tokens.userid_tokens`.userid, `my-project.my_dataset.my_source_table`.userid)
-    else userid
+    when ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` )) then coalesce(`my-project.tokens.userid_tokens`.`userid`, `my-project.my_dataset.my_source_table`.`userid`)
+    else `userid`
   end userid,
-  transactionamount
+  `transactionamount`
 from `my-project.my_dataset.my_source_table`
   left outer join `my-project.tokens.userid_tokens`
     on (`my-project.my_dataset.my_source_table`.userid = `my-project.tokens.userid_tokens`.token)
   left outer join `my-project.tokens.transactionid_tokens`
     on (`my-project.my_dataset.my_source_table`.transactionid = `my-project.tokens.transactionid_tokens`.token)
 where case
-  when ('fraud_and_risk' IN ( SELECT userGroup FROM user_groups )) then true
+  when ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` )) then true
   else transactionamount < 10
 end;"""
     }
@@ -260,38 +259,38 @@ with
     where userEmail = SESSION_USER()
   )
 select
-  transactionId,
+  `transactionId`,
   case
-    when ('FRAUD_DETECTION' IN ( SELECT userGroup FROM user_groups )) then CAST(userId AS string)
+    when ('FRAUD_DETECTION' IN ( SELECT `userGroup` FROM `user_groups` )) then CAST(userId AS string)
     else TO_HEX(SHA256(CAST(userId AS string)))
   end userId,
   case
     when (
-      ('ANALYTICS' IN ( SELECT userGroup FROM user_groups ))
-      or ('MARKETING' IN ( SELECT userGroup FROM user_groups ))
+      ('ANALYTICS' IN ( SELECT `userGroup` FROM `user_groups` ))
+      or ('MARKETING' IN ( SELECT `userGroup` FROM `user_groups` ))
     ) then regexp_replace(email, '^.*(@.*)${'$'}', '****\\1')
     when (
-      ('FRAUD_DETECTION' IN ( SELECT userGroup FROM user_groups ))
-      or ('ADMIN' IN ( SELECT userGroup FROM user_groups ))
-    ) then email
+      ('FRAUD_DETECTION' IN ( SELECT `userGroup` FROM `user_groups` ))
+      or ('ADMIN' IN ( SELECT `userGroup` FROM `user_groups` ))
+    ) then `email`
     else '****'
   end email,
-  age,
-  size,
+  `age`,
+  `size`,
   case when brand = 'MacBook' then 'Apple' else 'Other' end brand,
-  transactionAmount,
+  `transactionAmount`,
   null items,
-  itemCount,
-  date,
-  purpose
+  `itemCount`,
+  `date`,
+  `purpose`
 from `my_project.my_dataset.my_table`
 where (
   case
-    when ('FRAUD_DETECTION' IN ( SELECT userGroup FROM user_groups )) then true
+    when ('FRAUD_DETECTION' IN ( SELECT `userGroup` FROM `user_groups` )) then true
     else age > 18
   end
   and case
-    when ('MARKETING' IN ( SELECT userGroup FROM user_groups )) then userId in ('1', '2', '3', '4')
+    when ('MARKETING' IN ( SELECT `userGroup` FROM `user_groups` )) then userId in ('1', '2', '3', '4')
     else true
   end
   and transactionAmount < 10
@@ -313,7 +312,7 @@ where (
                 """create or replace view `my_target_project.my_target_dataset.my_target_view`
 as
 select
-  transactionId,
+  `transactionId`,
   case
     when ("True" in (select principal_check_routines.check_principal_access("FRAUD_DETECTION"))) then CAST(userId AS string)
     else TO_HEX(SHA256(CAST(userId AS string)))
@@ -322,21 +321,21 @@ select
     when (
       ("True" in (select principal_check_routines.check_principal_access("ANALYTICS")))
       or ("True" in (select principal_check_routines.check_principal_access("MARKETING")))
-    ) then regexp_replace(email, '^.*(@.*)$', '****\\1')
+    ) then regexp_replace(email, '^.*(@.*)${'$'}', '****\\1')
     when (
       ("True" in (select principal_check_routines.check_principal_access("FRAUD_DETECTION")))
       or ("True" in (select principal_check_routines.check_principal_access("ADMIN")))
-    ) then email
+    ) then `email`
     else '****'
   end email,
-  age,
-  size,
+  `age`,
+  `size`,
   case when brand = 'MacBook' then 'Apple' else 'Other' end brand,
-  transactionAmount,
+  `transactionAmount`,
   null items,
-  itemCount,
-  date,
-  purpose
+  `itemCount`,
+  `date`,
+  `purpose`
 from `my_project.my_dataset.my_table`
 where (
   case

@@ -63,6 +63,6 @@ class PostgresTransformerTest {
 
         // Then
         result.toSql() shouldBe
-            "round(avg(cast(transactionamount as decimal)) over(partition by brand, age), 0)"
+            "round(avg(cast(\"transactionamount\" as decimal)) over(partition by \"brand\", \"age\"), 0)"
     }
 }

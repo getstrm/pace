@@ -59,7 +59,12 @@ class SynapseViewGenerator(dataPolicy: DataPolicy, customJooqSettings: Settings.
      */
     override fun renderName(name: String): String {
         val reference = name.split(".", limit = 3)
-        return super.renderName(reference.drop(min(reference.size - 2, 1)).joinToString("."))
+
+        return if (reference.size == 1) {
+            super.renderName(name)
+        } else {
+            super.renderName(reference.drop(min(reference.size - 2, 1)).joinToString("."))
+        }
     }
 
     override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {

@@ -57,7 +57,7 @@ abstract class ProcessingPlatformViewGenerator(
                 "{0} > {1}",
                 Boolean::class.java,
                 timestampAdd(
-                    field(unquotedName(field.fullName()), Timestamp::class.java),
+                    field(renderName(field.fullName()), Timestamp::class.java),
                     this.period.days,
                     DatePart.DAY
                 ),
@@ -201,7 +201,7 @@ abstract class ProcessingPlatformViewGenerator(
     ): JooqField<*> {
         if (fieldTransform == null) {
             // If there is no transform, we return just the field path (joined by a dot for now)
-            return field(field.fullName())
+            return field(renderName(field.fullName()))
         }
         if (fieldTransform.transformsList.size == 1) {
             // If there is only one transform it should be the only option

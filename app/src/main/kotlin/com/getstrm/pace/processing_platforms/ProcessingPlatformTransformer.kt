@@ -38,14 +38,14 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
             DSL.field(
                 "regexp_extract({0}, {1})",
                 String::class.java,
-                DSL.unquotedName(field.fullName()),
+                renderName(field.fullName()),
                 DSL.`val`(regexp.regexp),
             )
         } else {
             DSL.field(
                 "regexp_replace({0}, {1}, {2})",
                 String::class.java,
-                DSL.unquotedName(field.fullName()),
+                renderName(field.fullName()),
                 DSL.`val`(regexp.regexp),
                 DSL.`val`(regexp.replacement),
             )
@@ -64,13 +64,13 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
                 "hash({0}, {1})",
                 Any::class.java,
                 DSL.`val`(hash.seed),
-                DSL.unquotedName(field.fullName()),
+                renderName(field.fullName()),
             )
         } else {
             DSL.field(
                 "hash({0})",
                 Any::class.java,
-                DSL.unquotedName(field.fullName()),
+                renderName(field.fullName()),
             )
         }
 
@@ -90,7 +90,7 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
 
     fun nullify(): JooqField<*> = DSL.inline<Any>(null)
 
-    fun identity(field: DataPolicy.Field): JooqField<*> = DSL.field(field.fullName())
+    fun identity(field: DataPolicy.Field): JooqField<*> = DSL.field(renderName(field.fullName()))
 
     fun detokenize(
         field: DataPolicy.Field,
@@ -101,36 +101,36 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
             "coalesce({0}, {1})",
             String::class.java,
             DSL.unquotedName(
-                "${renderName(detokenize.tokenSourceRef)}.${detokenize.valueField.fullName()}"
+                "${renderName(detokenize.tokenSourceRef)}.${renderName(detokenize.valueField.fullName())}"
             ),
-            DSL.unquotedName("${renderName(sourceRef)}.${field.fullName()}"),
+            DSL.unquotedName("${renderName(sourceRef)}.${renderName(field.fullName())}"),
         )
 
     fun numericRounding(field: DataPolicy.Field, numericRounding: NumericRounding): JooqField<*> =
         when (numericRounding.roundingCase) {
             NumericRounding.RoundingCase.CEIL ->
                 DSL.ceil(
-                        DSL.field(field.fullName(), Float::class.java)
+                        DSL.field(renderName(field.fullName()), Float::class.java)
                             .div(numericRounding.ceil.divisor)
                     )
                     .multiply(numericRounding.ceil.divisor)
             NumericRounding.RoundingCase.FLOOR ->
                 DSL.floor(
-                        DSL.field(field.fullName(), Float::class.java)
+                        DSL.field(renderName(field.fullName()), Float::class.java)
                             .div(numericRounding.floor.divisor)
                     )
                     .multiply(numericRounding.floor.divisor)
             NumericRounding.RoundingCase.ROUND -> {
                 if (numericRounding.round.hasDivisor()) {
                     DSL.round(
-                            DSL.field(field.fullName(), Float::class.java)
+                            DSL.field(renderName(field.fullName()), Float::class.java)
                                 .div(numericRounding.round.divisor),
                             numericRounding.round.precision
                         )
                         .multiply(numericRounding.round.divisor)
                 } else {
                     DSL.round(
-                        DSL.field(field.fullName(), Float::class.java),
+                        DSL.field(renderName(field.fullName()), Float::class.java),
                         numericRounding.round.precision
                     )
                 }
@@ -148,7 +148,7 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
         }
 
     fun aggregation(field: DataPolicy.Field, aggregation: Aggregation): JooqField<*> {
-        val jooqField = DSL.field(field.fullName(), Float::class.java)
+        val jooqField = DSL.field(renderName(field.fullName()), Float::class.java)
 
         val jooqAggregation =
             when (aggregation.aggregationTypeCase) {
@@ -183,7 +183,9 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
                 "{0} over({1})",
                 Float::class.java,
                 jooqAggregation,
-                DSL.partitionBy(aggregation.partitionByList.map { DSL.field(it.fullName()) })
+                DSL.partitionBy(
+                    aggregation.partitionByList.map { DSL.field(renderName(it.fullName())) }
+                )
             )
 
         return aggregation.avg

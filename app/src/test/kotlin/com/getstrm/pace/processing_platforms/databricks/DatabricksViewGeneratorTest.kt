@@ -155,7 +155,7 @@ class DatabricksViewGeneratorTest {
         val field = underTest.toJooqField(attribute, fieldTransform)
 
         // Then
-        field.toSql() shouldBe "regexp_replace(email, '^.*(@.*)\$', '****\$1') \"email\""
+        field.toSql() shouldBe "regexp_replace('email', '^.*(@.*)\$', '****\$1') \"email\""
     }
 
     @Test
@@ -321,13 +321,13 @@ select
   transactionId,
   case
     when (is_account_group_member('fraud-and-risk')) then userId
-    else hash(1234, userId)
+    else hash(1234, 'userId')
   end userId,
   case
     when (
       (is_account_group_member('analytics'))
       or (is_account_group_member('marketing'))
-    ) then regexp_replace(email, '^.*(@.*)${'$'}', '****${'$'}1')
+    ) then regexp_replace('email', '^.*(@.*)${'$'}', '****${'$'}1')
     when (
       (is_account_group_member('fraud-and-risk'))
       or (is_account_group_member('admin'))
@@ -372,13 +372,13 @@ select
   transactionId,
   case
     when (is_account_group_member('fraud-and-risk')) then userId
-    else hash(1234, userId)
+    else hash(1234, 'userId')
   end userId,
   case
     when (
       (is_account_group_member('analytics'))
       or (is_account_group_member('marketing'))
-    ) then regexp_replace(email, '^.*(@.*)${'$'}', '****${'$'}1')
+    ) then regexp_replace('email', '^.*(@.*)${'$'}', '****${'$'}1')
     when (
       (is_account_group_member('fraud-and-risk'))
       or (is_account_group_member('admin'))

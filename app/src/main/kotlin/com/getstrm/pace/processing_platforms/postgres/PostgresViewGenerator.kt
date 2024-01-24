@@ -75,7 +75,14 @@ class PostgresViewGenerator(
         }
     }
 
-    override fun renderName(name: String): String = jooq.renderNamedParams(DSL.quotedName(name))
+    override fun renderName(name: String): String {
+        if (name.contains('.')) {
+            // Full references containing schema and table name should be quoted separately
+            return name.split('.').joinToString(".") { jooq.renderNamedParams(DSL.quotedName(it)) }
+        }
+
+        return jooq.renderNamedParams(DSL.quotedName(name))
+    }
 
     override fun selectWithAdditionalHeaderStatements(
         fields: List<Field<*>>

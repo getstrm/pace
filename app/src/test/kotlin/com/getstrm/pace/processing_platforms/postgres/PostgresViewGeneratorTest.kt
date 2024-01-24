@@ -143,10 +143,7 @@ class PostgresViewGeneratorTest {
         val condition = underTest.toCondition(retention)
 
         // Then
-        condition.toSql() shouldBe
-            """
-            dateadd(day, 10, timestamp) > current_timestamp"""
-                .trimIndent()
+        condition.toSql() shouldBe "dateadd(day, 10, \"timestamp\") > current_timestamp"
     }
 
     @Test
@@ -180,7 +177,7 @@ class PostgresViewGeneratorTest {
         // Then
         condition.toSql() shouldBe
             """
-            case when ('marketing' IN ( SELECT rolname FROM user_groups )) then dateadd(day, 5, timestamp) > current_timestamp when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true else dateadd(day, 10, timestamp) > current_timestamp end"""
+case when ('marketing' IN ( SELECT rolname FROM user_groups )) then dateadd(day, 5, "timestamp") > current_timestamp when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true else dateadd(day, 10, "timestamp") > current_timestamp end"""
                 .trimIndent()
     }
 
@@ -193,7 +190,7 @@ class PostgresViewGeneratorTest {
 
         // Then
         viewGenerator.toDynamicViewSQL().sql shouldBe
-            """create or replace view "public.demo_view"
+            """create or replace view "public"."demo_view"
 as
 with
   user_groups as (
@@ -209,22 +206,22 @@ with
     )
   )
 select
-  ts,
-  validThrough,
-  userid,
-  transactionamount
-from "public.demo_tokenized"
+  "ts",
+  "validThrough",
+  "userid",
+  "transactionamount"
+from "public"."demo_tokenized"
 where (
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
     else transactionamount < 10
   end
   and case
-    when ('marketing' IN ( SELECT rolname FROM user_groups )) then (ts + 5 * interval '1 day') > current_timestamp
+    when ('marketing' IN ( SELECT rolname FROM user_groups )) then ("ts" + 5 * interval '1 day') > current_timestamp
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
-    else (ts + 10 * interval '1 day') > current_timestamp
+    else ("ts" + 10 * interval '1 day') > current_timestamp
   end
-  and (validThrough + 365 * interval '1 day') > current_timestamp
+  and ("validThrough" + 365 * interval '1 day') > current_timestamp
 );
 grant SELECT on public.demo_view to "fraud_and_risk";
 grant SELECT on public.demo_view to "marketing";"""
@@ -239,7 +236,7 @@ grant SELECT on public.demo_view to "marketing";"""
 
         // Then
         viewGenerator.toDynamicViewSQL().sql shouldBe
-            """create or replace view "public.demo_view"
+            """create or replace view "public"."demo_view"
 as
 with
   user_groups as (
@@ -255,19 +252,19 @@ with
     )
   )
 select
-  ts,
-  userid,
-  transactionamount
-from "public.demo_tokenized"
+  "ts",
+  "userid",
+  "transactionamount"
+from "public"."demo_tokenized"
 where (
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
     else transactionamount < 10
   end
   and case
-    when ('marketing' IN ( SELECT rolname FROM user_groups )) then (ts + 5 * interval '1 day') > current_timestamp
+    when ('marketing' IN ( SELECT rolname FROM user_groups )) then ("ts" + 5 * interval '1 day') > current_timestamp
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
-    else (ts + 10 * interval '1 day') > current_timestamp
+    else ("ts" + 10 * interval '1 day') > current_timestamp
   end
 );
 grant SELECT on public.demo_view to "fraud_and_risk";
@@ -280,7 +277,7 @@ grant SELECT on public.demo_view to "marketing";"""
         val viewGenerator =
             PostgresViewGenerator(singleDetokenizePolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL().sql shouldBe
-            """create or replace view "public.demo_view"
+            """create or replace view "public"."demo_view"
 as
 with
   user_groups as (
@@ -296,15 +293,15 @@ with
     )
   )
 select
-  transactionid,
+  "transactionid",
   case
-    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce(tokens.userid_tokens.userid, public.demo_tokenized.userid)
-    else userid
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce("tokens"."userid_tokens"."userid", "public"."demo_tokenized"."userid")
+    else "userid"
   end as userid,
-  transactionamount
-from "public.demo_tokenized"
-  left outer join "tokens.userid_tokens"
-    on ("public.demo_tokenized".userid = "tokens.userid_tokens".token)
+  "transactionamount"
+from "public"."demo_tokenized"
+  left outer join "tokens"."userid_tokens"
+    on ("public"."demo_tokenized".userid = "tokens"."userid_tokens".token)
 where case
   when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
   else transactionamount < 10
@@ -318,7 +315,7 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
         val viewGenerator =
             PostgresViewGenerator(multiDetokenizePolicy) { withRenderFormatted(true) }
         viewGenerator.toDynamicViewSQL().sql shouldBe
-            """create or replace view "public.demo_view"
+            """create or replace view "public"."demo_view"
 as
 with
   user_groups as (
@@ -335,19 +332,19 @@ with
   )
 select
   case
-    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce(tokens.transactionid_tokens.transactionid, public.demo_tokenized.transactionid)
-    else transactionid
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce("tokens"."transactionid_tokens"."transactionid", "public"."demo_tokenized"."transactionid")
+    else "transactionid"
   end as transactionid,
   case
-    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce(tokens.userid_tokens.userid, public.demo_tokenized.userid)
-    else userid
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce("tokens"."userid_tokens"."userid", "public"."demo_tokenized"."userid")
+    else "userid"
   end as userid,
-  transactionamount
-from "public.demo_tokenized"
-  left outer join "tokens.userid_tokens"
-    on ("public.demo_tokenized".userid = "tokens.userid_tokens".token)
-  left outer join "tokens.transactionid_tokens"
-    on ("public.demo_tokenized".transactionid = "tokens.transactionid_tokens".token)
+  "transactionamount"
+from "public"."demo_tokenized"
+  left outer join "tokens"."userid_tokens"
+    on ("public"."demo_tokenized".userid = "tokens"."userid_tokens".token)
+  left outer join "tokens"."transactionid_tokens"
+    on ("public"."demo_tokenized".transactionid = "tokens"."transactionid_tokens".token)
 where case
   when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
   else transactionamount < 10
@@ -363,7 +360,7 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
             .toDynamicViewSQL()
             .sql
             .shouldBe(
-                """create or replace view "public.demo_view"
+                """create or replace view "public"."demo_view"
 as
 with
   user_groups as (
@@ -379,33 +376,33 @@ with
     )
   )
 select
-  transactionid,
+  "transactionid",
   case
-    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then userid
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then "userid"
     else 123
   end as userid,
   case
     when ('marketing' IN ( SELECT rolname FROM user_groups )) then regexp_replace(email, '^.*(@.*)${'$'}', '****\1', 'g')
-    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then email
+    when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then "email"
     else '****'
   end as email,
-  age,
+  "age",
   CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END as brand,
   case
     when ('marketing' IN ( SELECT rolname FROM user_groups )) then round(
-      cast(avg(cast(transactionamount as decimal)) over(partition by brand) as numeric),
+      cast(avg(cast("transactionamount" as decimal)) over(partition by "brand") as numeric),
       2
     )
-    when ('sales' IN ( SELECT rolname FROM user_groups )) then sum(transactionamount) over(partition by
-      brand,
-      age
+    when ('sales' IN ( SELECT rolname FROM user_groups )) then sum("transactionamount") over(partition by
+      "brand",
+      "age"
     )
     else round(
-      cast(avg(cast(transactionamount as float64)) over() as numeric),
+      cast(avg(cast("transactionamount" as float64)) over() as numeric),
       2
     )
   end as transactionamount
-from "public.demo"
+from "public"."demo"
 where (
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true
