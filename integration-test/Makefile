@@ -1,4 +1,4 @@
-.PHONY: all check-mark check-far check-other
+.PHONY: all check-mark check-far check-other global-transform-check
 
 SHELL = /bin/bash
 # github actions downloads a `pace` cli, and puts it in this directory.
@@ -23,7 +23,7 @@ CHECKS           = $(addprefix check-, ${USERS})
 
 # default target sets up everything, reads the views from
 # the standalone database table and executes the checks.
-all: tables.yaml ${CHECKS} kill-pace
+all: tables.yaml ${CHECKS} global-transform-check kill-pace
 
 tables.yaml: applied
 	@ echo "checking 'pace list tables'"
@@ -33,6 +33,23 @@ tables.yaml: applied
 	@ echo "list tables ok"
 
 
+global-transform-check: blueprint_with_global_rules.yaml
+	@ diff -q $< blueprint_with_global_rules-expected.yaml || (echo "blueprint with global ruleset unexpected output"; \
+		cat $@; exit 1)
+	@ echo "blueprint with global transforms ok"
+
+
+blueprint_with_global_rules.yaml: upserted-global-tag-transform.yaml
+	@ echo getting blueprint global_test, expecting a rulesets section
+	@ pace get data-policy --blueprint --processing-platform ${PP} \
+		--database standalone --schema ${SCHEMA} \
+		global_test > $@ && \
+		echo "retrieved $@"
+
+
+upserted-global-tag-transform.yaml: launch-pace
+	@ echo upserting global-tag-transform.yaml
+	@ pace upsert global-transform global-tag-transform.yaml > $@
 
 check-mark: mark.csv demo.csv awk cut
 	@ echo ----- checking marketing with user mark -----
@@ -93,8 +110,8 @@ upserted.yaml: policy.yaml
 	@ pace upsert data-policy $< > $@
 
 applied: upserted.yaml
-	@ pace apply data-policy --processing-platform ${PP} ${REF} && date > $@
-	@ echo applied $< at $$(cat $@)
+	@ pace apply data-policy --processing-platform ${PP} ${REF} > $@
+	@ echo applied $<
 
 load-db-data:
 	@ echo Loading demo data into postgres
@@ -134,7 +151,8 @@ launch-pace: app.jar
 
 clean:
 	@ echo Cleaning all generated resources, pace policies and the ${REF} table.
-	@ rm -f blueprint.yaml policy.yaml upserted.yaml applied
+	@ rm -f blueprint.yaml policy.yaml upserted.yaml applied upserted-global-tag-transform.yaml
+	@ rm -f blueprint_with_global_rules.yaml
 	@ rm -f *.csv
 	@ rm -f load-db-data pace
 	@ rm -f awk cut

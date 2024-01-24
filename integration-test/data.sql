@@ -24,6 +24,20 @@ alter default privileges in schema public grant all on tables to other;
 
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO standalone;
 
+create table if not exists public.global_test
+(
+    transactionid     int     not null,
+    userid            int     not null,
+    name              varchar not null,
+    email             varchar not null,
+    age               int     not null,
+    salary            int     not null,
+    postalcode        varchar not null,
+    brand             varchar not null,
+    transactionamount int     not null
+);
+comment on column public.global_test.email IS 'This is a user email which should be considered as such. pace::pii-email';
+
 insert into public.demo (transactionid, userid, email, age, transactionamount, brand)
 values (861200791, 533445, 'jeffreypowell@hotmail.com', 33, 123, 'Lenovo')
      , (733970993, 468355, 'forbeserik@gmail.com', 16, 46, 'MacBook')

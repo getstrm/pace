@@ -8,3 +8,5 @@ launch-pace
 load-db-data
 pace
 tables.yaml
+upserted-global-tag-transform.yaml
+blueprint_with_global_rules.yaml
