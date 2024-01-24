@@ -24,7 +24,7 @@ CHECKS           = $(addprefix check-, ${USERS})
 
 # default target sets up everything, reads the views from
 # the standalone database table and executes the checks.
-all: tables.yaml ${CHECKS} global-transform-check kill-pace
+all: tables.yaml ${CHECKS} global-transform-check
 
 tables.yaml: applied
 	@ echo "checking 'pace list tables'"
