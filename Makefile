@@ -44,7 +44,7 @@ copy-json-schema-to-resources: json-schema
 	@ cp -r protos/json-schema protos/temp
 	@ cd protos/json-schema && find . -type f -name "*.json" -exec sh -c "cat {} | jq -r tostring > ../temp/{}" \;
 	@ cp -r protos/temp/* app/src/main/resources/jsonschema
-	@ rm -rf protos/temp
+	@ rm -rf protos/temp protos/json-schema
 
 integration-test:
 	@ chmod go-rw integration-test/pgpass
