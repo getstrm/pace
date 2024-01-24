@@ -19,6 +19,8 @@
   * [Field Transform](data-policy/rule-set/field-transform.md)
   * [Filter](data-policy/rule-set/filter.md)
 
+## [Lineage](lineage/lineage.md)
+
 ## Tutorials
 
 * [Detokenization](tutorials/detokenization.md)
