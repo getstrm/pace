@@ -14,6 +14,7 @@ Data entities (like tables, or table columns) have [_lineage_][wikipedia] which 
 The concept of lineage is well known, and supported more or less by most data processing platforms
 and data catalogs. Here's an example of a lineage view in BigQuery, taken from
 its [lineage tutorial][bq-tut]
+
 ![bigquery taxi lineage](bigquery-taxi-lineage.png)
 
 # Lineage in PACE
