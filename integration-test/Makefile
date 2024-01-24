@@ -35,7 +35,7 @@ tables.yaml: applied
 
 global-transform-check: blueprint_with_global_rules.yaml
 	@ diff -q $< blueprint_with_global_rules-expected.yaml || (echo "blueprint with global ruleset unexpected output"; \
-		cat $@; exit 1)
+		cat $<; exit 1)
 	@ echo "blueprint with global transforms ok"
 
 
