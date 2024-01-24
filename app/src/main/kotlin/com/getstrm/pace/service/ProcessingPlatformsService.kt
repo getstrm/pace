@@ -13,6 +13,8 @@ import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListSchemasRe
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.ListTablesRequest
 import com.getstrm.pace.config.ProcessingPlatformConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.exceptions.InternalException
+import com.getstrm.pace.exceptions.InternalException.Code.INTERNAL
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
@@ -25,6 +27,7 @@ import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
 import com.google.rpc.BadRequest
+import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -32,6 +35,7 @@ import org.springframework.stereotype.Component
 @Component
 class ProcessingPlatformsService(
     config: ProcessingPlatformConfiguration,
+    val globalTransformsService: GlobalTransformsService,
 ) {
     final val platforms: Map<String, ProcessingPlatformClient>
 
@@ -112,7 +116,19 @@ class ProcessingPlatformsService(
                     )
                 table.createBlueprint()
             }
-        return GetBlueprintPolicyResponse.newBuilder().setDataPolicy(blueprint).build()
+        val bluePrintWithRulesets =
+            try {
+                globalTransformsService.addRuleSet(blueprint)
+            } catch (e: Exception) {
+                log.warn("could not apply global-transforms to this blueprint", e)
+                throw InternalException(
+                    INTERNAL,
+                    DebugInfo.newBuilder()
+                        .setDetail("could not apply global-transforms to this blueprint")
+                        .build()
+                )
+            }
+        return GetBlueprintPolicyResponse.newBuilder().setDataPolicy(bluePrintWithRulesets).build()
     }
 
     suspend fun listDatabases(request: ListDatabasesRequest): PagedCollection<ApiDatabase> =
