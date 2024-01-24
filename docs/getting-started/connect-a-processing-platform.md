@@ -56,18 +56,33 @@ If your service principal or similar has read access to tables on the platform, 
 {% tabs %}
 {% tab title="CLI" %}
 ```bash
-pace list tables --processing-platform pace-databricks
-tables:
-- main.default.my_default_table
-- pace.protected.sample_input
-- pace.public.sample_input_with_policy
+pace list databases --processing-platform dbr-pace -o table
+ ID       NAME     TYPE
+
+ demo     demo     DATABRICKS
+ main     main     DATABRICKS
+ pace     pace     DATABRICKS
+ system   system   DATABRICKS
+
+pace list schemas --processing-platform dbr-pace --database demo -o table
+ ID                   NAME
+
+ default              default
+ information_schema   information_schema
+ public               public
+
+pace list tables --processing-platform dbr-pace --database demo\
+ --schema public  -o table 
+ 
+ ID             NAME           TAGS
+
+ transactions   transactions
+
 ```
 {% endtab %}
 
 {% tab title="curl" %}
 ```bash
-curl localhost:9090/processing-platforms/dbr-pace/tables
-{"tables":["main.default.my_default_table","pace.protected.sample_input","pace.public.sample_input_with_policy"]}
 ```
 {% endtab %}
 {% endtabs %}

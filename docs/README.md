@@ -29,7 +29,7 @@ If (one of) these sound familiar and you are using one of the currently supporte
 
 **Positioning**
 
-Once installed, PACE sits on top of or between your data definitions (often a [catalog](reference/cli-reference/pace/pace\_list/pace\_list\_catalogs.md)) and [processing platform](reference/cli-reference/pace/pace\_list/pace\_list\_processing-platforms.md):
+Once installed, PACE sits on top of or between your data definitions (often a [catalog](cli-docs/pace\_list\_catalogs.md)) and [processing platform](cli-docs/pace\_list\_processing-platforms.md):
 
 <figure><img src=".gitbook/assets/PACE-process-2.0@2x+interlace (1).png" alt=""><figcaption></figcaption></figure>
 

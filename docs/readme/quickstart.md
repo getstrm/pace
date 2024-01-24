@@ -236,21 +236,37 @@ Which results in the following groups, that have been configured by the `data.sq
 ```bash
 groups:
 - administrator
-- marketing
 - fraud_and_risk
+- marketing
+page_info:
+  total: 3
 ```
 
 Try to list the available tables.
 
 ```bash
-pace list tables --processing-platform standalone-sample-connection
+pace list tables --processing-platform standalone-sample-connection \
+    --database standalone --schema public
 ```
 
-Which results in the following tables:
+Which results in the following table:
 
 ```
+page_info:
+  total: 1
 tables:
-- public.demo
+- id: demo
+  name: demo
+  schema:
+    database:
+      display_name: standalone
+      id: standalone
+      processing_platform:
+        id: standalone-sample-connection
+        platform_type: POSTGRES
+      type: POSTGRES
+    id: public
+    name: public
 ```
 
 ### The Data Policy file
@@ -260,7 +276,10 @@ tables:
 We start with a blueprint policy (without any rule sets) by reading the description of a table on the processing platform.
 
 ```bash
-pace get data-policy --blueprint --processing-platform standalone-sample-connection public.demo
+pace get data-policy demo --blueprint \
+--processing-platform standalone-sample-connection \
+--database standalone \
+--schema public
 ```
 
 This results in the following YAML.
