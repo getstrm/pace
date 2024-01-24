@@ -11,9 +11,11 @@ import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.catalogs.DatahubCatalog
 import com.getstrm.pace.catalogs.OpenDataDiscoveryCatalog
 import com.getstrm.pace.config.AppConfiguration
+import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
+import com.google.rpc.DebugInfo
 import com.google.rpc.ResourceInfo
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Component
 @Component
 class DataCatalogsService(
     catalogsConfig: AppConfiguration,
+    val globalTransformsService: GlobalTransformsService,
 ) {
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -79,7 +82,20 @@ class DataCatalogsService(
     ): DataPolicy {
         val schema = getCatalog(catalogId).getDatabase(databaseId).getSchema(schemaId)
         val table = schema.getTable(tableId)
-        return table.createBlueprint()!!
+        val blueprint = table.createBlueprint()!!
+        val bluePrintWithRulesets =
+            try {
+                globalTransformsService.addRuleSet(blueprint)
+            } catch (e: Exception) {
+                log.warn("could not apply global-transforms to this blueprint", e)
+                throw InternalException(
+                    InternalException.Code.INTERNAL,
+                    DebugInfo.newBuilder()
+                        .setDetail("could not apply global-transforms to this blueprint")
+                        .build()
+                )
+            }
+        return bluePrintWithRulesets
     }
 
     private fun getCatalog(id: String): DataCatalog =
