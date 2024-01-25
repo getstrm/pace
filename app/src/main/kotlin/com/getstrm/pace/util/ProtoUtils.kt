@@ -136,7 +136,7 @@ fun Long.toTimestamp(): Timestamp {
 fun Timestamp.toOffsetDateTime(): OffsetDateTime =
     Instant.ofEpochMilli(Timestamps.toMillis(this)).toOffsetDateTime()
 
-fun Instant.toOffsetDateTime() = this.atOffset(ZoneOffset.UTC)
+fun Instant.toOffsetDateTime(): OffsetDateTime = this.atOffset(ZoneOffset.UTC)
 
 fun OffsetDateTime.toTimestamp() =
     Timestamp.newBuilder().setSeconds(toEpochSecond()).setNanos(nano).build()

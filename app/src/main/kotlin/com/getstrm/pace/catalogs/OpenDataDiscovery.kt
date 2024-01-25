@@ -3,6 +3,7 @@ package com.getstrm.pace.catalogs
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.CatalogConfiguration
+import com.getstrm.pace.domain.LeafResource
 import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.PagedCollection
@@ -27,15 +28,18 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
     private val searchClient = SearchApi(configuration.serverUrl)
     private val datasetsClient = DataSetApi(configuration.serverUrl)
     private val dataSourceClient = DataSourceApi(configuration.serverUrl)
-    // FIXME this will only get all datasource once, during Pace startup
+
+    // FIXME this will only get all datasources once, during Pace startup
     private val dataSources = getAllDataSources().associateBy { it.id }
+
+    override suspend fun getChild(childId: String): Resource = getDatabase(childId)
 
     /**
      * We're doing a weird workaround, where we search all dataSources, and then select those that
      * contain at least one dataset. This is because ODD does not provide information of this kind
      * in its api.
      */
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Resource> =
+    override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Resource> =
         dataSources.values
             .filter { dataSource ->
                 val searchId = searchDataSetsInDataSource(dataSource).searchId
@@ -43,12 +47,22 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
                 // any.
                 searchClient.getSearchResults(searchId, 1, 1).items.isNotEmpty()
             }
-            .map { Database(this, it, it.id.toString(), it.namespace?.name ?: "", it.name) }
+            .map { Database(it, it.id.toString(), it.name) }
             .withPageInfo()
 
     // FIXME the ODD model seems broken. See comment with listDatabases.
-    override suspend fun getDatabase(databaseId: String): Resource {
-        return listDatabases(THOUSAND_RECORDS).data.find { it.id == databaseId }
+    private fun getDatabase(databaseId: String): Resource {
+        return dataSources.values
+            .filter { dataSource ->
+                val searchId = searchDataSetsInDataSource(dataSource).searchId
+                // we try for one search result on the first page, we only want to know if there are
+                // any.
+                searchClient.getSearchResults(searchId, 1, 1).items.isNotEmpty()
+            }
+            .map { Database(it, it.id.toString(), it.name) }
+            .withPageInfo<Resource>()
+            .data
+            .find { it.id == databaseId }
             ?: throw ResourceException(
                 ResourceException.Code.NOT_FOUND,
                 ResourceInfo.newBuilder()
@@ -60,53 +74,47 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
             )
     }
 
-    class Database(
-        override val catalog: OpenDataDiscoveryCatalog,
+    private inner class Database(
         val dataSource: DataSource,
-        id: String,
-        dbType: String,
-        displayName: String
-    ) : DataCatalog.Database(catalog, id, dbType, displayName) {
+        override val id: String,
+        override val displayName: String
+    ) : Resource {
+        override fun fqn(): String = id
+
         /*
             Just returning a hardcoded schema with id 'schema' and name the same as that of the dataSource.
         */
         override suspend fun listChildren(
             pageParameters: PageParameters
-        ): PagedCollection<Resource> {
-            return listOf(Schema(catalog, this, "schema", dataSource.name)).withPageInfo()
-        }
+        ): PagedCollection<Resource> =
+            listOf(Schema(this, "schema", dataSource.name)).withPageInfo()
 
-        override suspend fun getChild(childId: String): Resource {
-            return listChildren(THOUSAND_RECORDS).data.firstOrNull { it.id == childId }
+        override suspend fun getChild(childId: String): Resource =
+            listChildren(THOUSAND_RECORDS).data.firstOrNull { it.id == childId }
                 ?: throw ResourceException(
                     ResourceException.Code.NOT_FOUND,
                     ResourceInfo.newBuilder()
                         .setResourceType("Catalog Database Schema")
                         .setResourceName(childId)
-                        .setDescription(
-                            "Schema $childId not found in database $id of catalog $catalog.id"
-                        )
+                        .setDescription("Schema $childId not found in database $id")
                         .setOwner("Database: $id")
                         .build()
                 )
-        }
     }
 
-    class Schema(
-        private val catalog: OpenDataDiscoveryCatalog,
-        // oddDatabase as a separate value, because we need to access its dataSource.
-        private val oddDatabase: Database,
-        id: String,
-        name: String,
-    ) : DataCatalog.Schema(oddDatabase, id, name) {
+    private inner class Schema(
+        val database: Database,
+        override val id: String,
+        override val displayName: String,
+    ) : Resource {
+        override fun fqn(): String = id
+
         override suspend fun listChildren(
             pageParameters: PageParameters
         ): PagedCollection<Resource> {
-            val searchId = catalog.searchDataSetsInDataSource(oddDatabase.dataSource).searchId
+            val searchId = searchDataSetsInDataSource(database.dataSource).searchId
             val tables =
-                catalog.getAllSearchResults(searchId).map {
-                    Table(catalog, this, "${it.id}", it.externalName)
-                }
+                getAllSearchResults(searchId).map { Table(this, "${it.id}", it.externalName) }
             return tables.withPageInfo()
         }
 
@@ -124,15 +132,13 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         }
     }
 
-    class Table(
-        private val catalog: OpenDataDiscoveryCatalog,
-        schema: DataCatalog.Schema,
-        id: String,
-        name: String
-    ) : DataCatalog.Table(schema, id, name) {
+    private inner class Table(
+        private val schema: Schema,
+        override val id: String,
+        override val displayName: String
+    ) : LeafResource() {
         private fun getAllParents(parentId: Long, fieldsById: Map<Long, DataSetField>): List<Long> {
             val parent = checkNotNull(fieldsById[parentId]) { "The parent field should exist" }
-
             return if (parent.parentFieldId != null) {
                 listOf(parent.id) + getAllParents(parent.parentFieldId, fieldsById)
             } else {
@@ -141,7 +147,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         }
 
         override suspend fun createBlueprint(): DataPolicy {
-            val datasetStructure = catalog.datasetsClient.getDataSetStructureLatest(id.toLong())
+            val datasetStructure = datasetsClient.getDataSetStructureLatest(id.toLong())
             val fields = datasetStructure.fieldList
             val fieldsById = fields.associateBy { it.id }
 
@@ -171,6 +177,10 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
                 description = schema.database.displayName
             }
             return policyBuilder.build()
+        }
+
+        override fun fqn(): String {
+            return id
         }
     }
 

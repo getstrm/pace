@@ -3,27 +3,34 @@ package com.getstrm.pace.processing_platforms.bigquery
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Lineage
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.BIGQUERY
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
 import com.getstrm.pace.config.BigQueryConfiguration
+import com.getstrm.pace.domain.LeafResource
 import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.applyPageParameters
 import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.toTimestamp
 import com.getstrm.pace.util.withPageInfo
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.bigquery.*
+import com.google.cloud.bigquery.Acl
+import com.google.cloud.bigquery.BigQuery
+import com.google.cloud.bigquery.BigQueryException
+import com.google.cloud.bigquery.BigQueryOptions
 import com.google.cloud.bigquery.Dataset as BQDataset
+import com.google.cloud.bigquery.Field
+import com.google.cloud.bigquery.JobId
+import com.google.cloud.bigquery.QueryJobConfiguration
 import com.google.cloud.bigquery.Table as BQTable
+import com.google.cloud.bigquery.TableDefinition
+import com.google.cloud.bigquery.TableId
 import com.google.cloud.datacatalog.lineage.v1.BatchSearchLinkProcessesRequest
 import com.google.cloud.datacatalog.lineage.v1.EntityReference
 import com.google.cloud.datacatalog.lineage.v1.LineageClient
@@ -67,41 +74,22 @@ class BigQueryClient(
 
     private val polClient: PolicyTagManagerClient = PolicyTagManagerClient.create()
 
-    private val bigQueryDatabase = BigQueryDatabase(this, config.projectId)
-
-    override suspend fun platformResourceName(index: Int): String {
-        return when (index) {
-            0 -> "project"
-            1 -> "dataset"
-            2 -> "table"
-            // TODO unpleasant client interaction
-            else -> "Level-$index"
-        }
-    }
+    private val bigQueryDatabase = BigQueryDatabase()
 
     /**
      * for now we have interact with only one Gcloud project, and call this the PACE Database. But
      * the access credentials might allow interaction with multiple projects, in which case the
      * result from this call would become greater.
      */
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Resource> =
+    override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Resource> =
         listOf(bigQueryDatabase).withPageInfo()
 
-    private suspend fun getDatabase(databaseId: String): Resource =
-        listDatabases(DEFAULT_PAGE_PARAMETERS).find { it.id == databaseId }
-            ?: throwNotFound(databaseId, "BigQuery Dataset")
+    override suspend fun getChild(childId: String): Resource =
+        listOf(bigQueryDatabase).withPageInfo<Resource>().find { it.id == childId }
+            ?: throwNotFound(childId, "BigQuery Dataset")
 
-    override suspend fun listSchemas(databaseId: String, pageParameters: PageParameters) =
-        getDatabase(databaseId).listChildren(pageParameters)
-
-    override suspend fun listTables(
-        databaseId: String,
-        schemaId: String,
-        pageParameters: PageParameters
-    ) = getDatabase(databaseId).getChild(schemaId).listChildren(pageParameters)
-
-    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String) =
-        getDatabase(databaseId).getChild(schemaId).getChild(tableId)
+    override suspend fun platformResourceName(index: Int): String =
+        listOf("project", "dataset", "table").getOrElse(index) { super.platformResourceName(index) }
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator =
@@ -312,8 +300,9 @@ class BigQueryClient(
     }
 
     /** one BigQueryDatabase corresponds with one Gcloud project */
-    inner class BigQueryDatabase(platformClient: ProcessingPlatformClient, projectId: String) :
-        Database(platformClient, projectId, BIGQUERY) {
+    private inner class BigQueryDatabase : Resource {
+        override val id = config.projectId
+        override val displayName = config.projectId
 
         override suspend fun listChildren(
             pageParameters: PageParameters
@@ -332,22 +321,19 @@ class BigQueryClient(
             return info
         }
 
-        override suspend fun getChild(childId: String): Schema {
-            return try {
+        override suspend fun getChild(childId: String): Resource =
+            try {
                 BigQuerySchema(this, bigQueryClient.getDataset(childId))
             } catch (e: BigQueryException) {
                 throwNotFound(childId, "BigQuery Dataset")
             }
-        }
 
-        override fun fqn(): String {
-            return this.id
-        }
+        override fun fqn(): String = this.id
     }
 
     /** One BigQuerySchema corresponds with one BigQuery dataset */
-    inner class BigQuerySchema(database: BigQueryDatabase, val dataset: BQDataset) :
-        Schema(database, dataset.datasetId.dataset, dataset.datasetId.dataset) {
+    private inner class BigQuerySchema(val database: BigQueryDatabase, val dataset: BQDataset) :
+        Resource {
 
         override suspend fun listChildren(
             pageParameters: PageParameters
@@ -361,33 +347,36 @@ class BigQueryClient(
                 .map { BigQueryTable(this, it) }
                 .withPageInfo()
 
-        override suspend fun getChild(tableId: String): BigQueryTable =
+        override suspend fun getChild(childId: String): BigQueryTable =
             try {
                 BigQueryTable(
                     this,
-                    bigQueryClient.getTable(TableId.of(dataset.datasetId.dataset, tableId))
+                    bigQueryClient.getTable(TableId.of(dataset.datasetId.dataset, childId))
                 )
             } catch (e: BigQueryException) {
-                throwNotFound(tableId, "BigQuery Table")
+                throwNotFound(childId, "BigQuery Table")
             }
 
-        override fun fqn(): String {
-            return "${database.id}.$id"
-        }
+        override val id: String
+            get() = dataset.datasetId.dataset
+
+        override val displayName: String
+            get() = id
+
+        override fun fqn(): String = "${database.id}.$id"
     }
 
     /** One BigQueryTable corresponds with one PACE Table. */
-    inner class BigQueryTable(
-        schema: Schema,
+    private inner class BigQueryTable(
+        val schema: BigQuerySchema,
         private val bqTable: BQTable,
-    ) : Table(schema, bqTable.tableId.table, bqTable.fullName()) {
+    ) : LeafResource() {
         override suspend fun createBlueprint() = doCreateBlueprint(bqTable)
 
-        override val fullName = bqTable.fullName()
+        override val id: String = bqTable.tableId.table
+        override val displayName = id
 
-        override fun fqn(): String {
-            return "${schema.fqn()}.${id}"
-        }
+        override fun fqn(): String = "${schema.fqn()}.${id}"
     }
 
     private fun doCreateBlueprint(bqTable: com.google.cloud.bigquery.Table): DataPolicy {

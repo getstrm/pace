@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 // TODO improve readability
 //      the exceptions and nested functions make it hard to follow
 @Component
-class DataPolicyValidatorService(private val paceConfiguration: PaceConfiguration) {
+class DataPolicyValidatorService(paceConfiguration: PaceConfiguration) {
     private val configuration = paceConfiguration.processingPlatformsConfiguration()
 
     /**

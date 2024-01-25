@@ -5,6 +5,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.SnowflakeConfiguration
+import com.getstrm.pace.domain.LeafResource
 import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
@@ -45,13 +46,17 @@ class SnowflakeClient(override val config: SnowflakeConfiguration) :
     // which is why we have a hardcoded one here
     val database = SnowflakeDatabase(this, config.database)
 
-    override suspend fun platformResourceName(index: Int): String {
-        return when (index) {
-            0 -> "warehouse"
-            1 -> "schema"
-            2 -> "table"
-            else -> "Level-$index"
+    override suspend fun platformResourceName(index: Int): String =
+        listOf("warehouse", "schema", "table").getOrElse(index) {
+            super.platformResourceName(index)
         }
+
+    override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Resource> {
+        return listDatabases()
+    }
+
+    override suspend fun getChild(childId: String): Resource {
+        return getDatabase(childId)
     }
 
     fun executeRequest(request: SnowflakeRequest): ResponseEntity<SnowflakeResponse> {
@@ -94,23 +99,7 @@ class SnowflakeClient(override val config: SnowflakeConfiguration) :
         executeRequest(request)
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Resource> =
-        listOf(database).withPageInfo()
-
-    override suspend fun listSchemas(
-        databaseId: String,
-        pageParameters: PageParameters
-    ): PagedCollection<Resource> = getDatabase(databaseId).listChildren(pageParameters)
-
-    override suspend fun listTables(
-        databaseId: String,
-        schemaId: String,
-        pageParameters: PageParameters
-    ): PagedCollection<Resource> =
-        getDatabase(databaseId).getChild(schemaId).listChildren(pageParameters)
-
-    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Resource =
-        getDatabase(databaseId).getChild(schemaId).getChild(tableId)
+    fun listDatabases(): PagedCollection<Resource> = listOf(database).withPageInfo()
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
         val request =
@@ -177,8 +166,11 @@ class SnowflakeClient(override val config: SnowflakeConfiguration) :
             )
     }
 
-    inner class SnowflakeDatabase(pp: ProcessingPlatformClient, id: String) :
-        Database(pp, id, ProcessingPlatform.PlatformType.SNOWFLAKE) {
+    inner class SnowflakeDatabase(
+        val platformClient: ProcessingPlatformClient,
+        override val id: String,
+        override val displayName: String = id
+    ) : Resource {
         override suspend fun listChildren(
             pageParameters: PageParameters
         ): PagedCollection<Resource> {
@@ -208,12 +200,7 @@ class SnowflakeClient(override val config: SnowflakeConfiguration) :
         }
     }
 
-    inner class SnowflakeSchema(database: Database, name: String) :
-        Schema(
-            database,
-            name,
-            name,
-        ) {
+    inner class SnowflakeSchema(val database: SnowflakeDatabase, val name: String) : Resource {
         override suspend fun listChildren(
             pageParameters: PageParameters
         ): PagedCollection<Resource> {
@@ -243,8 +230,14 @@ class SnowflakeClient(override val config: SnowflakeConfiguration) :
 
         override suspend fun getChild(childId: String): Resource =
             // TODO increase performance
-            listTables(database.id, id, MILLION_RECORDS).find { it.id == childId }
+            listChildren(MILLION_RECORDS).find { it.id == childId }
                 ?: throwNotFound(childId, "Snowflake table")
+
+        override val id: String
+            get() = name
+
+        override val displayName: String
+            get() = id
 
         override fun fqn(): String {
             return "${database.id}.$id"
@@ -262,9 +255,9 @@ class SnowflakeClient(override val config: SnowflakeConfiguration) :
     )
 
     inner class SnowflakeTable(
-        ppSchema: Schema,
-        tableName: String,
-    ) : Table(ppSchema, tableName, tableName) {
+        val schema: SnowflakeSchema,
+        private val tableName: String,
+    ) : LeafResource() {
         private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
         override suspend fun createBlueprint(): DataPolicy {
@@ -272,7 +265,13 @@ class SnowflakeClient(override val config: SnowflakeConfiguration) :
                 .toDataPolicy(schema.database.platformClient.apiProcessingPlatform, id)
         }
 
-        override val fullName: String
+        override val id: String
+            get() = tableName
+
+        override val displayName: String
+            get() = id
+
+        val fullName: String
             get() = "${schema.id}.${id}"
 
         override fun fqn(): String {
