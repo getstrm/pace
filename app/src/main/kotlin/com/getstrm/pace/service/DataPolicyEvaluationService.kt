@@ -114,6 +114,7 @@ class DataPolicyEvaluationService(
                         Principal.PrincipalCase.GROUP -> it
                         Principal.PrincipalCase.PRINCIPAL_NOT_SET,
                         null -> null
+                        else -> null
                     }
                 }
             }

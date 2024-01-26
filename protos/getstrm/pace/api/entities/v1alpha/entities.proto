@@ -239,6 +239,8 @@ message DataPolicy {
   message Principal {
     oneof principal {
       string group = 1 [(buf.validate.field).string.min_len = 1];
+      string role = 2 [(buf.validate.field).string.min_len = 1];
+      string permission = 3 [(buf.validate.field).string.min_len = 1];
     }
   }
 }
