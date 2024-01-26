@@ -1,4 +1,4 @@
-.PHONY: all check-mark check-far check-other global-transform-check done
+.PHONY: all check-mark check-far check-other global-transform-check done list-resources
 
 SHELL = /bin/bash
 # github actions downloads a `pace` cli, and puts it in this directory.
@@ -8,7 +8,8 @@ SHELL = /bin/bash
 export PATH := .:${PATH}
 
 PSQL             = PGPASSFILE=pgpass psql -h localhost -q
-PP               = standalone-sample-connection # the processing platform
+# the processing platform
+PP               = standalone-sample-connection
 TABLE            = demo
 SCHEMA           = public
 REF              = ${SCHEMA}.${TABLE}
@@ -22,9 +23,34 @@ USERS            = mark far other
 VIEW_CSVS        = $(addsuffix .csv, ${USERS})
 CHECKS           = $(addprefix check-, ${USERS})
 
+RESOURCES        = resources-0.yaml resources-1.yaml resources-2.yaml resources-3.yaml 
 # default target sets up everything, reads the views from
 # the standalone database table and executes the checks.
-all: tables.yaml ${CHECKS} global-transform-check done
+all: tables.yaml ${CHECKS} global-transform-check list-resources done
+
+list-resources: ${RESOURCES}
+
+resources-0.yaml:  load-db-data
+	@ echo -n checking 'pace list resources'
+	@ ${PACE_CLI} list resources > $@
+	@ diff -q $@ resources-0-expected.yaml || (echo "$@ not as expected"; cat $@; exit 1)
+	@ echo " ok"
+
+resources-1.yaml:  load-db-data
+	@ echo -n checking "pace list resources ${PP}"
+	@ ${PACE_CLI} list resources ${PP}> $@
+	@ diff -q $@ resources-1-expected.yaml || (echo "$@ not as expected"; cat $@; exit 1)
+	@ echo " ok"
+resources-2.yaml:  load-db-data
+	@ echo -n checking "list resources ${PP}/standalone"
+	@ ${PACE_CLI} list resources ${PP}/standalone > $@
+	@ diff -q $@ resources-2-expected.yaml || (echo "$@ not as expected"; cat $@; exit 1)
+	@ echo " ok"
+resources-3.yaml:  load-db-data
+	@ echo -n checking "list resources ${PP}/standalone/public"
+	@ ${PACE_CLI} list resources ${PP}/standalone/public > $@
+	@ diff -q $@ resources-3-expected.yaml || (echo "$@ not as expected"; cat $@; exit 1)
+	@ echo " ok"
 
 tables.yaml: applied
 	@ echo "checking 'pace list tables'"
@@ -157,6 +183,7 @@ launch-pace: app.jar
 clean_files:
 	@ rm -f blueprint.yaml policy.yaml upserted.yaml applied upserted-global-tag-transform.yaml
 	@ rm -f blueprint_with_global_rules.yaml
+	@ rm -f resources-?.*
 	@ rm -f *.csv
 
 clean: clean_files
