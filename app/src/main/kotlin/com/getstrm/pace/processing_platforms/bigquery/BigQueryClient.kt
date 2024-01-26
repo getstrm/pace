@@ -77,16 +77,6 @@ class BigQueryClient(
 
     private val bigQueryDatabase = BigQueryDatabase()
 
-    override suspend fun platformResourceName(index: Int): String {
-        return when (index) {
-            0 -> "project"
-            1 -> "dataset"
-            2 -> "table"
-            // TODO unpleasant client interaction
-            else -> "Level-$index"
-        }
-    }
-
     /**
      * for now we have interact with only one Gcloud project, and call this the PACE Database. But
      * the access credentials might allow interaction with multiple projects, in which case the

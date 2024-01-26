@@ -155,13 +155,7 @@ class SynapseClient(
     ) : LeafResource() {
         val fullName: String = "${table.schema?.name}.${table.name}"
 
-        override fun fqn(): String {
-            return "${schema.fqn()}.${id}"
-        }
-
-        override fun fqn(): String {
-            return "${schema.fqn()}.${id}"
-        }
+        override fun fqn(): String = "${schema.fqn()}.${id}"
 
         override suspend fun createBlueprint(): DataPolicy {
             return DataPolicy.newBuilder()

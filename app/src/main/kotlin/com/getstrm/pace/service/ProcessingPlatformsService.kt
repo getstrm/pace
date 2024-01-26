@@ -16,7 +16,6 @@ import com.getstrm.pace.processing_platforms.synapse.SynapseClient
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
 import com.google.rpc.BadRequest
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component

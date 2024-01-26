@@ -1,8 +1,5 @@
 package com.getstrm.pace.service
 
-import build.buf.gen.getstrm.pace.api.data_catalogs.v1alpha.ListDatabasesRequest
-import build.buf.gen.getstrm.pace.api.data_catalogs.v1alpha.ListSchemasRequest
-import build.buf.gen.getstrm.pace.api.data_catalogs.v1alpha.ListTablesRequest
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
 import com.getstrm.pace.catalogs.CollibraCatalog
 import com.getstrm.pace.catalogs.DataCatalog
