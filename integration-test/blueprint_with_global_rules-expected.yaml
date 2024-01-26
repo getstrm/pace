@@ -1,9 +1,6 @@
 metadata:
   description: ""
   title: public.global_test
-platform:
-  id: standalone-sample-connection
-  platform_type: POSTGRES
 rule_sets:
 - field_transforms:
   - field:
@@ -24,7 +21,8 @@ rule_sets:
         replacement: '****$1'
     - nullify: {}
   target:
-    fullname: public.global_test_pace_view
+    ref:
+      integration_fqn: public.global_test_pace_view
 source:
   fields:
   - name_parts:
@@ -65,5 +63,9 @@ source:
     - transactionamount
     required: true
     type: integer
-  ref: public.global_test
+  ref:
+    integration_fqn: public.global_test
+    platform:
+      id: standalone-sample-connection
+      platform_type: POSTGRES
 

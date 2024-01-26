@@ -13,29 +13,10 @@ tables:
     database:
       id: standalone
     id: public
-    name: public
 - id: global_test
   name: global_test
   schema:
     database:
-      display_name: standalone
       id: standalone
-      processing_platform:
-        id: standalone-sample-connection
-        platform_type: POSTGRES
-      type: POSTGRES
     id: public
-    name: public
-- id: global_test
-  name: global_test
-  schema:
-    database:
-      display_name: standalone
-      id: standalone
-      processing_platform:
-        id: standalone-sample-connection
-        platform_type: POSTGRES
-      type: POSTGRES
-    id: public
-    name: public
 

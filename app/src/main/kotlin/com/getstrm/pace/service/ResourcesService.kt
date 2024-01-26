@@ -8,6 +8,7 @@ import build.buf.gen.getstrm.pace.api.resources.v1alpha.ListResourcesRequest
 import com.getstrm.pace.catalogs.DataCatalog
 import com.getstrm.pace.domain.IntegrationClient
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.internalException
 import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
@@ -15,14 +16,18 @@ import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.withPageInfo
 import com.google.rpc.BadRequest
+import com.google.rpc.DebugInfo
 import kotlin.reflect.KClass
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
 class ResourcesService(
     val catalogsService: DataCatalogsService,
     val processingPlatformsService: ProcessingPlatformsService,
+    val globalTransformsService: GlobalTransformsService,
 ) {
+    private val log by lazy { LoggerFactory.getLogger(javaClass) }
     private val integrationClients: Map<String, IntegrationClient>
         get() = catalogsService.catalogs + processingPlatformsService.platforms
 
@@ -48,11 +53,25 @@ class ResourcesService(
     suspend fun getBlueprintDataPolicy(resourceUrn: ResourceUrn): DataPolicy {
         val client = resourceUrn.integrationClient()
 
-        return if (resourceUrn.hasIntegrationFqn()) {
-            return client.createBlueprint(resourceUrn.integrationFqn)
-        } else {
-            client.getLeaf(resourceUrn).createBlueprint()
-        }
+        val blueprint =
+            if (resourceUrn.hasIntegrationFqn()) {
+                return client.createBlueprint(resourceUrn.integrationFqn)
+            } else {
+                client.getLeaf(resourceUrn).createBlueprint()
+            }
+        val bluePrintWithRulesets =
+            try {
+                globalTransformsService.addRuleSet(blueprint)
+            } catch (e: Exception) {
+                log.warn("could not apply global-transforms to this blueprint", e)
+                throw InternalException(
+                    InternalException.Code.INTERNAL,
+                    DebugInfo.newBuilder()
+                        .setDetail("could not apply global-transforms to this blueprint")
+                        .build()
+                )
+            }
+        return bluePrintWithRulesets
     }
 
     suspend fun listGroups(

@@ -136,7 +136,7 @@ pace:
 
 app.jar:
 	@ echo building $@ and copying it here.
-	@ (cd .. ; ./gradlew build ) && rm -f app.jar && cp ../app/build/libs/app.jar $@
+	@ (cd .. ; ./gradlew build -x test) && rm -f app.jar && cp ../app/build/libs/app.jar $@
 
 launch-pace: app.jar
 	@ echo checking postgres ports 5431 and 5433
@@ -150,11 +150,13 @@ launch-pace: app.jar
 	@ echo port 50051 is open
 	@ chmod 0600 pgpass
 
-clean:
-	@ echo Cleaning all generated resources, pace policies and the ${REF} table.
+clean_files:
 	@ rm -f blueprint.yaml policy.yaml upserted.yaml applied upserted-global-tag-transform.yaml
 	@ rm -f blueprint_with_global_rules.yaml
 	@ rm -f *.csv
+
+clean: clean_files
+	@ echo Cleaning all generated resources, pace policies and the ${REF} table.
 	@ rm -f load-db-data pace
 	@ rm -f awk cut
 	@ rm -f app.jar

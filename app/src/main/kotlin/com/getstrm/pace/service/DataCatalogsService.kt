@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component
 @Component
 class DataCatalogsService(
     catalogsConfig: AppConfiguration,
-    val globalTransformsService: GlobalTransformsService,
 ) {
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
