@@ -31,7 +31,7 @@ source:
   ref:
     integration_fqn: public.demo
     platform:
-      id: postgres-sample-connection
+      id: standalone-sample-connection
       platform_type: POSTGRES
 rule_sets:
   - target:

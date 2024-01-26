@@ -22,6 +22,9 @@ source:
       type: integer
   ref:
     integration_fqn: public.salary
+    platform:
+      id: aggregation-transforms-sample-connection
+      platform_type: POSTGRES
 rule_sets:
   - target:
       ref: 
