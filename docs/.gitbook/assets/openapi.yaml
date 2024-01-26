@@ -638,6 +638,9 @@ components:
       type: object
     PageInfo:
       properties:
+        nextPageToken:
+          description: token for the next page
+          type: string
         total:
           description: The (estimated) total number of records. If the total is unknown,
             this value is -1.
@@ -951,7 +954,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.55
+  version: 1.0.0-alpha.56
 openapi: 3.0.3
 paths:
   /data-policies:
@@ -973,6 +976,11 @@ paths:
         schema:
           format: uint32
           type: integer
+      - description: use this to start from a certain page.
+        in: query
+        name: pageParameters.pageToken
+        schema:
+          type: string
       responses:
         '200':
           content:
@@ -1008,6 +1016,11 @@ paths:
         schema:
           format: uint32
           type: integer
+      - description: use this to start from a certain page.
+        in: query
+        name: pageParameters.pageToken
+        schema:
+          type: string
       responses:
         '200':
           content:
@@ -1093,6 +1106,11 @@ paths:
         schema:
           format: uint32
           type: integer
+      - description: use this to start from a certain page.
+        in: query
+        name: pageParameters.pageToken
+        schema:
+          type: string
       responses:
         '200':
           content:
@@ -1137,6 +1155,11 @@ paths:
         schema:
           format: uint32
           type: integer
+      - description: use this to start from a certain page.
+        in: query
+        name: pageParameters.pageToken
+        schema:
+          type: string
       responses:
         '200':
           content:
@@ -1185,6 +1208,11 @@ paths:
         schema:
           format: uint32
           type: integer
+      - description: use this to start from a certain page.
+        in: query
+        name: pageParameters.pageToken
+        schema:
+          type: string
       responses:
         '200':
           content:
@@ -1246,6 +1274,11 @@ paths:
         schema:
           format: uint32
           type: integer
+      - description: use this to start from a certain page.
+        in: query
+        name: pageParameters.pageToken
+        schema:
+          type: string
       responses:
         '200':
           content:
@@ -1631,6 +1664,11 @@ paths:
         schema:
           format: uint32
           type: integer
+      - description: use this to start from a certain page.
+        in: query
+        name: pageParameters.pageToken
+        schema:
+          type: string
       responses:
         '200':
           content:
@@ -1671,6 +1709,11 @@ paths:
         schema:
           format: uint32
           type: integer
+      - description: use this to start from a certain page.
+        in: query
+        name: pageParameters.pageToken
+        schema:
+          type: string
       responses:
         '200':
           content:
@@ -1715,6 +1758,11 @@ paths:
         schema:
           format: uint32
           type: integer
+      - description: use this to start from a certain page.
+        in: query
+        name: pageParameters.pageToken
+        schema:
+          type: string
       responses:
         '200':
           content:
@@ -1763,6 +1811,11 @@ paths:
         schema:
           format: uint32
           type: integer
+      - description: use this to start from a certain page.
+        in: query
+        name: pageParameters.pageToken
+        schema:
+          type: string
       responses:
         '200':
           content:
@@ -1968,6 +2021,11 @@ paths:
         schema:
           format: uint32
           type: integer
+      - description: use this to start from a certain page.
+        in: query
+        name: pageParameters.pageToken
+        schema:
+          type: string
       responses:
         '200':
           content:

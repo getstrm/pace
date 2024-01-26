@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.55
+    version: 1.0.0-alpha.56
 paths:
     /data-policies:
         get:
@@ -30,6 +30,11 @@ paths:
                   schema:
                     type: integer
                     format: uint32
+                - name: pageParameters.pageToken
+                  in: query
+                  description: use this to start from a certain page.
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -67,6 +72,11 @@ paths:
                   schema:
                     type: integer
                     format: uint32
+                - name: pageParameters.pageToken
+                  in: query
+                  description: use this to start from a certain page.
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -153,6 +163,11 @@ paths:
                   schema:
                     type: integer
                     format: uint32
+                - name: pageParameters.pageToken
+                  in: query
+                  description: use this to start from a certain page.
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -199,6 +214,11 @@ paths:
                   schema:
                     type: integer
                     format: uint32
+                - name: pageParameters.pageToken
+                  in: query
+                  description: use this to start from a certain page.
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -249,6 +269,11 @@ paths:
                   schema:
                     type: integer
                     format: uint32
+                - name: pageParameters.pageToken
+                  in: query
+                  description: use this to start from a certain page.
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -310,6 +335,11 @@ paths:
                   schema:
                     type: integer
                     format: uint32
+                - name: pageParameters.pageToken
+                  in: query
+                  description: use this to start from a certain page.
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -683,6 +713,11 @@ paths:
                   schema:
                     type: integer
                     format: uint32
+                - name: pageParameters.pageToken
+                  in: query
+                  description: use this to start from a certain page.
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -725,6 +760,11 @@ paths:
                   schema:
                     type: integer
                     format: uint32
+                - name: pageParameters.pageToken
+                  in: query
+                  description: use this to start from a certain page.
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -771,6 +811,11 @@ paths:
                   schema:
                     type: integer
                     format: uint32
+                - name: pageParameters.pageToken
+                  in: query
+                  description: use this to start from a certain page.
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -821,6 +866,11 @@ paths:
                   schema:
                     type: integer
                     format: uint32
+                - name: pageParameters.pageToken
+                  in: query
+                  description: use this to start from a certain page.
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -1022,6 +1072,11 @@ paths:
                   schema:
                     type: integer
                     format: uint32
+                - name: pageParameters.pageToken
+                  in: query
+                  description: use this to start from a certain page.
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -1669,6 +1724,9 @@ components:
                     type: integer
                     description: The (estimated) total number of records. If the total is unknown, this value is -1.
                     format: int32
+                nextPageToken:
+                    type: string
+                    description: token for the next page
         Plugin:
             type: object
             properties:
