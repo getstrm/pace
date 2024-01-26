@@ -1,4 +1,4 @@
-.PHONY: all check-mark check-far check-other global-transform-check
+.PHONY: all check-mark check-far check-other global-transform-check done
 
 SHELL = /bin/bash
 # github actions downloads a `pace` cli, and puts it in this directory.
@@ -24,7 +24,7 @@ CHECKS           = $(addprefix check-, ${USERS})
 
 # default target sets up everything, reads the views from
 # the standalone database table and executes the checks.
-all: tables.yaml ${CHECKS} global-transform-check
+all: tables.yaml ${CHECKS} global-transform-check done
 
 tables.yaml: applied
 	@ echo "checking 'pace list tables'"
@@ -87,6 +87,9 @@ check-other: other.csv demo.csv awk cut
 	@ echo checking that the number of records in $< is less than the source table ${REF}
 	@ ! [[ $$(wc -l < demo.csv) -eq $$(wc -l < other.csv) ]]
 	@ echo ----- other users verified -----
+
+done: check-mark check-far check-other
+	@ echo ----- all checks passed -----
 
 demo.csv: load-db-data
 	@ echo downloading ${REF} to $@ as user standalone
