@@ -155,7 +155,9 @@ rule_sets:
   "rule_sets": [
     {
       "target": {
-        "fullname": "pace-db.pace-schema.pace-view"
+        "ref": {
+          "integration_fqn": "pace-db.pace-schema.pace-view"
+        }
       }
     }
   ]
@@ -337,7 +339,9 @@ rule_sets:
   "rule_sets": [
     {
       "target": {
-        "fullname": "pace-db.pace-schema.pace-view"
+        "ref": {
+          "integration_fqn": "pace-db.pace-schema.pace-view"
+        }
       },
       "field_transforms": [
         {
