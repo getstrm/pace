@@ -161,6 +161,8 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         override val displayName: String
     ) : LeafResource() {
 
+        override fun fqn(): String = id
+
         override suspend fun createBlueprint(): DataPolicy {
             val columns: List<ColumnTypesAndTagsQuery.Column> =
                 pagedCalls(MILLION_RECORDS) { skip, pageSize ->
@@ -179,8 +181,6 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                 build()
             }
         }
-
-        override fun fqn(): String = id
 
         private fun ColumnTypesAndTagsQuery.Column.toField(): DataPolicy.Field =
             with(DataPolicy.Field.newBuilder()) {

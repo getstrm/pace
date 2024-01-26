@@ -170,7 +170,9 @@ class DatabricksClient(
 
         override suspend fun getChild(childId: String): Resource =
             try {
-                workspaceClient.schemas().get(childId).let { DatabricksSchema(this, it.name) }
+                workspaceClient.schemas().get("${fqn()}.$childId").let {
+                    DatabricksSchema(this, it.name)
+                }
             } catch (t: Throwable) {
                 mapNotFoundError(t, "Databricks schema", childId)
             }

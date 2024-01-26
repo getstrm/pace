@@ -66,6 +66,7 @@ class BigQueryClient(
             .setCredentials(credentials)
             .setProjectId(config.projectId)
             .build()
+            .apply { this.throwNotFound = true }
             .service
     private val lineageClient =
         LineageClient.create(
