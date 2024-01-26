@@ -94,7 +94,7 @@ upserted.yaml: policy.yaml
 	@ ${PACE_CLI} upsert data-policy $< > $@
 
 applied: upserted.yaml
-	@ ${PACE_CLI} apply data-policy --processing-platform ${PP} ${REF} && date > $@
+	@ ${PACE_CLI} apply data-policy --processing-platform ${PP} ${REF} > $@
 	@ echo applied $< at $$(cat $@)
 
 load-db-data:
