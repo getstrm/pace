@@ -13,7 +13,7 @@ buf-publish-current-branch: copy-json-schema-to-resources
 	[ ! -z "$$commit_hash" ] && commit_hash_short=$$(echo "$$commit_hash" | cut -c1-12) && $$SED -i "s|generatedBufDependencyVersion=.*|generatedBufDependencyVersion=00000000000000.$$commit_hash_short|g" gradle.properties && echo $$commit_hash || echo "No changes to protos, gradle.properties not updated"
 
 run-docker-local:
-	./gradlew buildDocker && docker run -p 8080:8080 -p 9090:9090 -p 50051:50051 -e SPRING_PROFILES_ACTIVE=dockerdev pace:latest
+	./gradlew clean buildDocker && docker run -p 8080:8080 -p 9090:9090 -p 50051:50051 -e SPRING_PROFILES_ACTIVE=dockerdev pace:latest
 
 buf-create-descriptor-binpb: # PHONY on purpose, as we want to regenerate every time
 	rm -f ${descriptor_file} && \
@@ -56,7 +56,7 @@ download-odd-oas:
 start-pace-prerequisites: stop-pace-prerequisites
 	@ docker rm -f postgres_pace
 	@ docker rm -f postgres_processing_platform
-	@ docker-compose -f scripts/dev-prerequisites/docker-compose-prerequisites.yaml up --renew-anon-volumes --force-recreate --remove-orphans
+	@ docker-compose -f scripts/dev-prerequisites/docker-compose-prerequisites.yaml up -d --renew-anon-volumes --force-recreate --remove-orphans
 
 stop-pace-prerequisites:
 	@ docker-compose -f scripts/dev-prerequisites/docker-compose-prerequisites.yaml down --remove-orphans

@@ -31,7 +31,11 @@ NOTE: Make sure both the PACE service credential, as well as any user that might
 We have used a demo table with an `age` integer column in it, and downloaded a blueprint data policy:
 
 ```
-pace get data-policy --blueprint --processing-platform dbr-pace pace.alpha_test.demo > policy.yaml
+pace get data-policy --blueprint \
+    --processing-platform dbr-pace \
+    --database pace \
+    --schema alpha_test \
+    demo > policy.yaml
 ```
 
 We have then edited the policy file, and included the following field transformation:

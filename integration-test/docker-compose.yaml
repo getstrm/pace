@@ -1,8 +1,8 @@
 version: '3.8'
 
 services:
-  postgres_pace:
-    container_name: postgres_pace
+  integration_test_postgres_pace:
+    container_name: integration_test_postgres_pace
     image: postgres
     environment:
       POSTGRES_USER: pace
@@ -17,10 +17,10 @@ services:
     ports:
       - "5433:5432"
     networks:
-      - postgres_pace
+      - integration_test_postgres_pace
 
-  postgres_processing_platform:
-    container_name: postgres_processing_platform
+  integration_test_postgres_processing_platform:
+    container_name: integration_test_postgres_processing_platform
     image: postgres
     environment:
       POSTGRES_USER: standalone
@@ -36,12 +36,12 @@ services:
     ports:
       - "5431:5432"
     networks:
-      - postgres_processing_platform
+      - integration_test_postgres_processing_platform
 
 networks:
-  postgres_pace:
-    name: postgres_pace
+  integration_test_postgres_pace:
+    name: integration_test_postgres_pace
     driver: bridge
-  postgres_processing_platform:
-    name: postgres_processing_platform
+  integration_test_postgres_processing_platform:
+    name: integration_test_postgres_processing_platform
     driver: bridge

@@ -4,8 +4,14 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.jooq.generated.tables.DataPolicies.Companion.DATA_POLICIES
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
+import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.util.*
+import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.toApiDataPolicy
+import com.getstrm.pace.util.toJsonbWithDefaults
+import com.getstrm.pace.util.toOffsetDateTime
+import com.getstrm.pace.util.toTimestamp
+import com.getstrm.pace.util.withUnknownTotals
 import com.google.rpc.BadRequest
 import java.time.OffsetDateTime
 import org.jooq.DSLContext
@@ -15,6 +21,7 @@ import org.springframework.stereotype.Component
 @Component
 class DataPolicyDao(
     private val jooq: DSLContext,
+    private val appConfiguration: AppConfiguration,
 ) {
 
     fun listDataPolicies(pageParameters: PageParameters): PagedCollection<DataPoliciesRecord> =
@@ -29,9 +36,9 @@ class DataPolicyDao(
             .withUnknownTotals()
 
     fun upsertDataPolicy(dataPolicy: DataPolicy): DataPoliciesRecord {
-        val id = dataPolicy.id.ifBlank { dataPolicy.source.ref }
+        val id = dataPolicy.source.ref.integrationFqn
         val oldPolicy =
-            getActiveDataPolicy(id, dataPolicy.platform.id)?.also {
+            getActiveDataPolicy(id, dataPolicy.source.ref.platform.id)?.also {
                 checkStaleness(it.version!!, dataPolicy.metadata.version)
                 deactivateDataPolicy(it)
             }
@@ -40,7 +47,6 @@ class DataPolicyDao(
         val updatedPolicy =
             dataPolicy
                 .toBuilder()
-                .setId(id)
                 .setMetadata(
                     dataPolicy.metadata
                         .toBuilder()
@@ -54,8 +60,8 @@ class DataPolicyDao(
             .newRecord(DATA_POLICIES)
             .apply {
                 this.policy = updatedPolicy.toJsonbWithDefaults()
-                this.id = updatedPolicy.id
-                this.platformId = updatedPolicy.platform.id
+                this.id = updatedPolicy.source.ref.integrationFqn
+                this.platformId = updatedPolicy.source.ref.platform.id
                 this.updatedAt = updateTimestamp
                 this.createdAt = updatedPolicy.metadata.createTime.toOffsetDateTime()
                 this.active = true
@@ -97,8 +103,11 @@ class DataPolicyDao(
             .limit(1)
             .fetchOneInto(DATA_POLICIES)
 
-    private fun checkStaleness(existingVersion: Int, newVersion: Int) {
-        if (existingVersion != newVersion) {
+    private fun checkStaleness(existingVersion: Int, upsertedVersion: Int) {
+        if (
+            !appConfiguration.dataPolicies.autoIncrementVersion &&
+                existingVersion != upsertedVersion
+        ) {
             throw BadRequestException(
                 BadRequestException.Code.INVALID_ARGUMENT,
                 BadRequest.newBuilder()
@@ -107,12 +116,12 @@ class DataPolicyDao(
                             BadRequest.FieldViolation.newBuilder()
                                 .setField("metadata.version")
                                 .setDescription(
-                                    "DataPolicy version '$newVersion' is not the latest version '$existingVersion'. Please make sure your update is based on the latest version."
+                                    "DataPolicy version '$upsertedVersion' is not the latest version '$existingVersion'. Please make sure your update is based on the latest version.",
                                 )
-                                .build()
-                        )
+                                .build(),
+                        ),
                     )
-                    .build()
+                    .build(),
             )
         }
     }

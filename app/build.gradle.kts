@@ -43,12 +43,13 @@ plugins {
     id("nu.studer.jooq")
     id("org.flywaydb.flyway")
     id("org.openapi.generator")
-    id("com.diffplug.spotless") version "6.24.0"
+    id("com.diffplug.spotless") version "6.25.0"
 }
 
 dependencies {
     // Dependencies managed by Spring
     implementation("org.springframework.boot:spring-boot-starter-jooq")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
     // TODO remove once we upgrade Spring: override SnakeYAML dependency, as the one managed by
     // Spring is too old and is vulnerable
     implementation("org.yaml:snakeyaml:2.2")
@@ -69,7 +70,7 @@ dependencies {
 
     // Self-managed dependencies
     implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
-    implementation("com.databricks:databricks-sdk-java:0.16.0")
+    implementation("com.databricks:databricks-sdk-java:0.17.0")
     implementation("com.github.drapostolos:type-parser:0.8.1")
     implementation("com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre11")
 

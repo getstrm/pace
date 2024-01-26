@@ -2,7 +2,8 @@ package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.AbstractDatabaseTest
-import com.getstrm.pace.config.PostgresConfig
+import com.getstrm.pace.config.PostgresConfiguration
+import com.getstrm.pace.domain.LeafResource
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.pathString
@@ -13,9 +14,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class PostgresClientTest : AbstractDatabaseTest() {
-    val config = PostgresConfig("postgres", "localhost", port, "postgres", "postgres", "postgres")
+    val config =
+        PostgresConfiguration("postgres", "localhost", port, "postgres", "postgres", "postgres")
     private val underTest = PostgresClient(config)
-    private val db = underTest.PostgresDatabase(underTest, "postgres")
+    private val db = underTest.PostgresDatabase("postgres")
 
     @BeforeEach
     fun setupDatabase() {
@@ -26,10 +28,10 @@ class PostgresClientTest : AbstractDatabaseTest() {
     fun `list tables`() {
         runBlocking {
             // Given
-            val schema = db.getSchema("public")
-            val tables = schema.listTables()
+            val schema = db.getChild("public")
+            val tables = schema.listChildren()
             // Then
-            tables.data.map { it.name } shouldContainExactlyInAnyOrder
+            tables.data.map { it.id } shouldContainExactlyInAnyOrder
                 listOf("demo", "flyway_schema_history")
         }
     }
@@ -54,8 +56,8 @@ class PostgresClientTest : AbstractDatabaseTest() {
     @Test
     fun `test tags from field comment`() {
         runBlocking {
-            val schema = db.getSchema("public")
-            val tables = schema.getTable("demo")
+            val schema = db.getChild("public")
+            val tables = schema.getChild("demo") as LeafResource
             val policy: DataPolicy = tables.createBlueprint()
             val field = policy.source.fieldsList.find { it.pathString() == "email" }!!
             field.tagsList shouldContainExactlyInAnyOrder listOf("pii", "with whitespace", "email")

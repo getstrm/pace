@@ -1,7 +1,7 @@
 package com.getstrm.pace.processing_platforms.databricks
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.DATABRICKS
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.databricks.sdk.AccountClient
 import com.databricks.sdk.WorkspaceClient
@@ -12,12 +12,15 @@ import com.databricks.sdk.service.iam.ListAccountGroupsRequest
 import com.databricks.sdk.service.sql.ExecuteStatementRequest
 import com.databricks.sdk.service.sql.ExecuteStatementResponse
 import com.databricks.sdk.service.sql.StatementState
-import com.getstrm.pace.config.DatabricksConfig
+import com.getstrm.pace.config.DatabricksConfiguration
+import com.getstrm.pace.domain.LeafResource
+import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
+import com.getstrm.pace.util.MILLION_RECORDS
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.applyPageParameters
 import com.getstrm.pace.util.normalizeType
@@ -30,7 +33,7 @@ import org.slf4j.LoggerFactory
 private val log = LoggerFactory.getLogger(DatabricksClient::javaClass.name)
 
 class DatabricksClient(
-    override val config: DatabricksConfig,
+    override val config: DatabricksConfiguration,
 ) : ProcessingPlatformClient(config) {
 
     private val workspaceClient =
@@ -47,6 +50,16 @@ class DatabricksClient(
             .setClientId(config.clientId)
             .setClientSecret(config.clientSecret)
             .let { config -> AccountClient(config) }
+
+    override suspend fun platformResourceName(index: Int): String =
+        listOf("catalog", "schema", "table").getOrElse(index) { super.platformResourceName(index) }
+
+    override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Resource> =
+        listDatabases(pageParameters)
+
+    override suspend fun getChild(childId: String): Resource =
+        listDatabases(MILLION_RECORDS).find { it.id == childId }
+            ?: throwNotFound(childId, "Databricks database")
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> =
         accountClient
@@ -87,40 +100,31 @@ class DatabricksClient(
         }
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
-        return workspaceClient
+    fun listDatabases(pageParameters: PageParameters): PagedCollection<Resource> =
+        workspaceClient
             .catalogs()
             .list()
             .applyPageParameters(pageParameters)
-            .map { catalogInfo -> DatabricksDatabase(this, catalogInfo.name) }
+            .map { catalogInfo -> DatabricksDatabase(catalogInfo.name) }
             .withPageInfo()
-    }
 
-    override suspend fun listSchemas(
-        databaseId: String,
-        pageParameters: PageParameters
-    ): PagedCollection<Schema> {
+    fun listSchemas(databaseId: String): PagedCollection<Resource> =
         try {
-            return workspaceClient
+            workspaceClient
                 .schemas()
                 .list(databaseId)
                 .map { schemaInfo ->
-                    val database = DatabricksDatabase(this, schemaInfo.catalogName)
+                    val database = DatabricksDatabase(schemaInfo.catalogName)
                     DatabricksSchema(database, schemaInfo.name)
                 }
                 .withPageInfo()
         } catch (t: Throwable) {
             mapNotFoundError(t, "Databricks catalog", databaseId)
         }
-    }
 
-    override suspend fun listTables(
-        databaseId: String,
-        schemaId: String,
-        pageParameters: PageParameters
-    ): PagedCollection<Table> {
+    fun listTables(databaseId: String, schemaId: String): PagedCollection<Resource> =
         try {
-            return workspaceClient
+            workspaceClient
                 .tables()
                 .list(databaseId, schemaId)
                 .map { tableInfo -> tableInfo.toTable() }
@@ -128,18 +132,16 @@ class DatabricksClient(
         } catch (t: Throwable) {
             mapNotFoundError(t, "Databricks schema", schemaId)
         }
-    }
 
-    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table {
+    private fun getTable(databaseId: String, schemaId: String, tableId: String): DatabricksTable =
         try {
-            return workspaceClient.tables().get("$databaseId.$schemaId.$tableId").toTable()
+            workspaceClient.tables().get("$databaseId.$schemaId.$tableId").toTable()
         } catch (t: Throwable) {
             mapNotFoundError(t, "Databricks table", tableId)
         }
-    }
 
     private fun TableInfo.toTable(): DatabricksTable {
-        val database = DatabricksDatabase(this@DatabricksClient, catalogName)
+        val database = DatabricksDatabase(catalogName)
         val schema = DatabricksSchema(database, schemaName)
         return DatabricksTable(schema, this)
     }
@@ -156,55 +158,53 @@ class DatabricksClient(
         }
     }
 
-    inner class DatabricksDatabase(
-        processingPlatformClient: ProcessingPlatformClient,
-        name: String
-    ) : Database(processingPlatformClient, name, DATABRICKS) {
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> =
-            listSchemas(id, pageParameters)
+    inner class DatabricksDatabase(name: String) : Resource {
+        override val id = name
+        override val displayName = id
 
-        override suspend fun getSchema(schemaId: String): Schema {
+        override fun fqn(): String = id
+
+        override suspend fun listChildren(
+            pageParameters: PageParameters
+        ): PagedCollection<Resource> = listSchemas(id)
+
+        override suspend fun getChild(childId: String): Resource =
             try {
-                return workspaceClient.schemas().get(schemaId).let {
+                workspaceClient.schemas().get("${fqn()}.$childId").let {
                     DatabricksSchema(this, it.name)
                 }
             } catch (t: Throwable) {
-                mapNotFoundError(t, "Databricks schema", schemaId)
+                mapNotFoundError(t, "Databricks schema", childId)
             }
-        }
     }
 
-    inner class DatabricksSchema(database: Database, name: String) :
-        Schema(
-            database = database,
-            id = name,
-            name = name,
-        ) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> =
-            listTables(database.id, name, pageParameters)
+    inner class DatabricksSchema(val database: DatabricksDatabase, name: String) : Resource {
 
-        override suspend fun getTable(tableId: String): Table {
-            getTable(database.id, name, tableId).let {
-                return it
-            }
-        }
+        override val id = name
+        override val displayName = name
+
+        override fun fqn(): String = "${database.id}.$id"
+
+        override suspend fun listChildren(
+            pageParameters: PageParameters
+        ): PagedCollection<Resource> = listTables(database.id, displayName)
+
+        override suspend fun getChild(childId: String): Resource =
+            getTable(database.id, displayName, childId)
     }
 
     inner class DatabricksTable(
-        schema: Schema,
+        val schema: DatabricksSchema,
         private val tableInfo: TableInfo,
-        override val fullName: String = tableInfo.fullName,
-    ) :
-        Table(
-            schema = schema,
-            id = tableInfo.name,
-            name = tableInfo.name,
-        ) {
-        private val log by lazy { LoggerFactory.getLogger(javaClass) }
+    ) : LeafResource() {
 
-        override suspend fun createBlueprint(): DataPolicy {
-            return tableInfo.toDataPolicy(getTags(tableInfo))
-        }
+        override val id: String = tableInfo.name
+        override val displayName = id
+
+        override fun fqn(): String = "${schema.fqn()}.${id}"
+
+        override suspend fun createBlueprint(): DataPolicy =
+            tableInfo.toDataPolicy(getTags(tableInfo))
 
         /* TODO the current databricks api does not expose column tags! :-(
         The hack we use is to execute a sql query
@@ -260,10 +260,14 @@ class DatabricksClient(
                         .setCreateTime(createdAt.toTimestamp())
                         .setUpdateTime(updatedAt.toTimestamp()),
                 )
-                .setPlatform(apiPlatform)
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(fullName)
+                        .setRef(
+                            resourceUrn {
+                                integrationFqn = fullName
+                                platform = apiProcessingPlatform
+                            }
+                        )
                         .addAllFields(
                             columns.map { column ->
                                 DataPolicy.Field.newBuilder()

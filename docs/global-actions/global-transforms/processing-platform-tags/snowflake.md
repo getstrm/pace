@@ -17,9 +17,10 @@ Even though you've created a lowercase `pii_email` tag, it will be transformed t
 Note that you **must** give the tag a value, even though PACE doesn't use it. Now that you've added the tag to Snowflake, it becomes visible in the blueprint policies.
 
 ```
-pace get data-policy --processing-platform sf-pace ALPHA_TEST.GDDEMO
+pace get data-policy --processing-platform sf-pace \
+  --database PACE --schema ALPHA_TEST GDDEMO
 metadata:
-  title: ALPHA_TEST.GDDEMO
+  title: GDDEMO
 platform:
   id: sf-pace
   platform_type: SNOWFLAKE
@@ -33,7 +34,7 @@ source:
     - PII_EMAIL
     type: varchar
   - ...
-  ref: ALPHA_TEST.GDDEMO
+  ref: GDDEMO
 
 
 ```

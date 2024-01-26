@@ -11,7 +11,6 @@
   * [Example use case](readme/example-use-case.md)
 
 ## Data policy
-
 * [Schema](data-policy/schema.md)
 * [Principals](data-policy/principals.md)
 * [Rule Set](data-policy/rule-set/README.md)
@@ -19,8 +18,10 @@
   * [Field Transform](data-policy/rule-set/field-transform.md)
   * [Filter](data-policy/rule-set/filter.md)
 
-## Tutorials
+## Lineage
+* [Overview](lineage/lineage.md)
 
+## Tutorials
 * [Detokenization](tutorials/detokenization.md)
 * [Global Tag Transforms](tutorials/global-tag-transforms.md)
 * [User Defined Functions in Python](tutorials/udfs.md)
@@ -31,7 +32,6 @@
 * [Aggregation](tutorials/aggregation.md)
 
 ## Global Actions
-
 * [Global Transforms](global-actions/global-transforms/README.md)
   * [Processing Platform Tags](global-actions/global-transforms/processing-platform-tags/README.md)
     * [BigQuery](global-actions/global-transforms/processing-platform-tags/bigquery.md)
@@ -41,14 +41,12 @@
   * [Data Catalog Tags](global-actions/global-transforms/data-catalog-tags.md)
 
 ## Plugins
-
 * [Definition](plugins/definition.md)
 * [Built In](plugins/built-in/README.md)
   * [OpenAI](plugins/built-in/openai.md)
 * [SDK](plugins/sdk.md)
 
 ## Reference
-
 * [API Reference](reference/api-reference/README.md)
   * [gRPC API](reference/api-reference/grpc.md)
   * [REST API](reference/api-reference/rest.md)
@@ -82,6 +80,7 @@
       * [lineage](cli-docs/pace\_list\_lineage.md)
       * [plugins](cli-docs/pace\_list\_plugins.md)
       * [processing-platforms](cli-docs/pace\_list\_processing-platforms.md)
+      * [resources](cli-docs/pace\_list\_resources.md)
       * [schemas](cli-docs/pace\_list\_schemas.md)
       * [tables](cli-docs/pace\_list\_tables.md)
     * [upsert](cli-docs/pace\_upsert.md)

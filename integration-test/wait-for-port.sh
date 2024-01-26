@@ -2,7 +2,7 @@
 
 HOST=${2:-localhost}
 PORT=${1:-50051}
-MAX_WAIT_TIME=15
+MAX_WAIT_TIME=30
 SECONDS_WAITED=0
 echo Waiting for $HOST:$PORT to become available
 

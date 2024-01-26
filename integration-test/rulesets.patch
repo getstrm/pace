@@ -1,67 +1,10 @@
---- data-policy.yaml	2023-11-23 09:42:36.069737853 +0100
-+++ policy.yaml	2023-11-23 09:21:41.931467334 +0100
-@@ -1,75 +1,34 @@
- metadata:
-   description: ""
--  version: 1
-   title: public.demo
- platform:
-   id: standalone-sample-connection
-   platform_type: POSTGRES
- source:
-   fields:
--    - name_parts:
--        - transactionid
--      required: true
--      type: integer
--    - name_parts:
--        - userid
--      required: true
--      type: integer
--    - name_parts:
--        - email
--      required: true
--      type: varchar
--    - name_parts:
--        - age
--      required: true
--      type: integer
--    - name_parts:
--        - brand
--      required: true
--      type: varchar
--    - name_parts:
--        - transactionamount
--      required: true
--      type: integer
-+  - name_parts:
-+    - transactionid
-+    required: true
-+    type: integer
-+  - name_parts:
-+    - userid
-+    required: true
-+    type: integer
-+  - name_parts:
-+    - email
-+    required: true
-+    type: varchar
-+  - name_parts:
-+    - age
-+    required: true
-+    type: integer
-+  - name_parts:
-+    - brand
-+    required: true
-+    type: varchar
-+  - name_parts:
-+    - transactionamount
-+    required: true
-+    type: integer
-   ref: public.demo
+--- policy.yaml	2024-01-23 15:46:00.186154669 +0100
++++ blueprint.yaml	2024-01-23 15:44:03.091216601 +0100
+@@ -1,45 +1,3 @@
 -rule_sets:
 -  - target:
--      fullname: public.demo_view
+-      ref: 
+-        integration_fqn: public.demo_view
 -    filters:
 -      - generic_filter:
 -          conditions:
@@ -100,4 +43,6 @@
 -          - principals: [ ]
 -            sql_statement:
 -              statement: "CASE WHEN brand = 'MacBook' THEN 'Apple' ELSE 'Other' END"
-+
+ metadata:
+   description: ""
+   title: public.demo

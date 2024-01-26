@@ -1,7 +1,7 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import com.getstrm.pace.config.ProcessingPlatformConfiguration
+import com.getstrm.pace.config.PaceConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.util.pathString
 import com.getstrm.pace.util.pathStringUpper
@@ -12,7 +12,8 @@ import org.springframework.stereotype.Component
 // TODO improve readability
 //      the exceptions and nested functions make it hard to follow
 @Component
-class DataPolicyValidatorService(private val configuration: ProcessingPlatformConfiguration) {
+class DataPolicyValidatorService(paceConfiguration: PaceConfiguration) {
+    private val configuration = paceConfiguration.processingPlatformsConfiguration()
 
     /**
      * validate a data policy.
@@ -24,13 +25,13 @@ class DataPolicyValidatorService(private val configuration: ProcessingPlatformCo
      * group and path checks are case insensitive because in essence SQL is case insensitive.
      */
     fun validate(dataPolicy: DataPolicy, platformGroups: Set<String>) {
-        if (dataPolicy.source.ref.isNullOrEmpty()) {
+        if (dataPolicy.source.ref.integrationFqn.isNullOrEmpty()) {
             throw invalidArgumentException(
                 "dataPolicy.source.ref",
                 "DataPolicy source ref is empty"
             )
         }
-        if (dataPolicy.platform.id.isNullOrEmpty()) {
+        if (dataPolicy.source.ref.platform.id.isNullOrEmpty()) {
             throw invalidArgumentException(
                 "dataPolicy.platform.id",
                 "DataPolicy platform id is empty"
@@ -42,7 +43,7 @@ class DataPolicyValidatorService(private val configuration: ProcessingPlatformCo
 
         val useIamExtension =
             configuration.bigquery
-                .firstOrNull { it.id == dataPolicy.platform.id }
+                .firstOrNull { it.id == dataPolicy.source.ref.platform?.id }
                 ?.useIamCheckExtension ?: false
 
         // check that every principal exists in validGroups
@@ -55,7 +56,7 @@ class DataPolicyValidatorService(private val configuration: ProcessingPlatformCo
                         FieldViolation.newBuilder()
                             .setField("principal")
                             .setDescription(
-                                "Principal ${principal.group} does not exist in platform ${dataPolicy.platform.id}"
+                                "Principal ${principal.group} does not exist in platform ${dataPolicy.source.ref.platform.id}"
                             )
                             .build()
                     }

@@ -1,7 +1,9 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import com.getstrm.pace.config.ProcessingPlatformConfiguration
+import com.getstrm.pace.config.AppConfiguration
+import com.getstrm.pace.config.PaceConfiguration
+import com.getstrm.pace.config.ProcessingPlatformsConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.util.toProto
 import com.google.rpc.BadRequest
@@ -14,9 +16,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 
 class DataPolicyValidatorServiceTest {
-    private val configuration = ProcessingPlatformConfiguration()
-    private val underTest: DataPolicyValidatorService =
-        DataPolicyValidatorService(configuration = configuration)
+    private val appConfig =
+        PaceConfiguration(
+            appConfiguration =
+                AppConfiguration(processingPlatforms = ProcessingPlatformsConfiguration())
+        )
+    private val underTest: DataPolicyValidatorService = DataPolicyValidatorService(appConfig)
 
     @Test
     fun `validate complex happy flow`() {
@@ -26,8 +31,8 @@ class DataPolicyValidatorServiceTest {
 $policyBase
 rule_sets: 
 - target:
-    type: DYNAMIC_VIEW
-    fullname: 'my_catalog.my_schema.gddemo_public'
+    ref:
+      integration_fqn: my_catalog.my_schema.gddemo_public
   field_transforms:
     - field:
         name_parts: [ email ]
@@ -68,8 +73,6 @@ rule_sets:
             statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
   filters:
     - generic_filter:
-        field:
-          name_parts: [ age ]
         conditions:
           - principals:
               - group: fraud-and-risk
@@ -77,8 +80,6 @@ rule_sets:
           - principals: []
             condition: "age > 18"
     - generic_filter:
-        field:
-          name_parts: [ userId ]
         conditions:
           - principals:
               - group: marketing
@@ -86,8 +87,6 @@ rule_sets:
           - principals: []
             condition: "true"
     - generic_filter:
-        field:
-          name_parts: [ transactionAmount ]
         conditions:
           - principals: []
             condition: "transactionAmount < 10"
@@ -110,8 +109,8 @@ rule_sets:
 $policyBase
 rule_sets: 
 - target:
-    type: DYNAMIC_VIEW
-    fullname: 'my_catalog.my_schema.gddemo_public'
+    ref:
+      integration_fqn: 'my_catalog.my_schema.gddemo_public'
   field_transforms:
     - field:
         name_parts: [ EMAil ]
@@ -152,8 +151,6 @@ rule_sets:
             statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
   filters:
     - generic_filter:
-        field:
-          name_parts: [ age ]
         conditions:
           - principals:
               - group: fraud-and-risk
@@ -161,8 +158,6 @@ rule_sets:
           - principals: []
             condition: "age > 18"
     - generic_filter:
-        field:
-          name_parts: [ userId ]
         conditions:
           - principals:
               - group: marketing
@@ -170,8 +165,6 @@ rule_sets:
           - principals: []
             condition: "true"
     - generic_filter:
-        field:
-          name_parts: [ transactionAmount ]
         conditions:
           - principals: []
             condition: "transactionAmount < 10"
@@ -194,8 +187,8 @@ rule_sets:
 $policyBase
 rule_sets: 
 - target:
-    type: DYNAMIC_VIEW
-    fullname: 'my_catalog.my_schema.gddemo_public'
+    ref:
+      integration_fqn: my_catalog.my_schema.gddemo_public
   field_transforms:
     - field:
         name_parts: [ email ]
@@ -236,27 +229,24 @@ rule_sets:
           sql_statement:
             statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
   filters:
-    - field:
-        name_parts: [ age ]
-      conditions:
-        - principals:
-          - group: fraud-and-risk
-          condition: "true"
-        - principals: []
-          condition: "age > 18"
-    - field:
-        name_parts: [ userId ]
-      conditions:
-        - principals:
-          - group: marketing
-          condition: "userId in ('1', '2', '3', '4')"
-        - principals: []
-          condition: "true"
-    - field:
-        name_parts: [ transactionAmount ]
-      conditions:
-        - principals: []
-          condition: "transactionAmount < 10"
+    - generic_filter:
+          conditions:
+            - principals:
+              - group: fraud-and-risk
+              condition: "true"
+            - principals: []
+              condition: "age > 18"
+    - generic_filter:
+          conditions:
+            - principals:
+              - group: marketing
+              condition: "userId in ('1', '2', '3', '4')"
+            - principals: []
+              condition: "true"
+    - generic_filter:
+          conditions:
+            - principals: []
+              condition: "transactionAmount < 10"
           """
                 .toProto<DataPolicy>(false)
 
@@ -287,8 +277,8 @@ rule_sets:
 $policyBase
 rule_sets: 
 - target:
-    type: DYNAMIC_VIEW
-    fullname: 'my_catalog.my_schema.gddemo_public'
+    ref:
+      integration_fqn: my_catalog.my_schema.gddemo_public
   field_transforms:
     - field:
         name_parts:
@@ -332,27 +322,24 @@ rule_sets:
           sql_statement:
             statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
   filters:
-    - field:
-        name_parts: [ age ]
-      conditions:
-        - principals:
-            - group: fraud-and-risk
-          condition: "true"
-        - principals: []
-          condition: "age > 18"
-    - field:
-        name_parts: [ userId ]
-      conditions:
-        - principals:
-            - group: marketing
-          condition: "userId in ('1', '2', '3', '4')"
-        - principals: []
-          condition: "true"
-    - field:
-        name_parts: [ transactionAmount ]
-      conditions:
-        - principals: []
-          condition: "transactionAmount < 10"
+    - generic_filter:
+          conditions:
+            - principals:
+                - group: fraud-and-risk
+              condition: "true"
+            - principals: []
+              condition: "age > 18"
+    - generic_filter:
+          conditions:
+            - principals:
+                - group: marketing
+              condition: "userId in ('1', '2', '3', '4')"
+            - principals: []
+              condition: "true"
+    - generic_filter:
+          conditions:
+            - principals: []
+              condition: "transactionAmount < 10"
           """
                 .toProto<DataPolicy>(false)
 
@@ -377,8 +364,8 @@ rule_sets:
 $policyBase
 rule_sets: 
 - target:
-    type: DYNAMIC_VIEW
-    fullname: 'my_catalog.my_schema.gddemo_public'
+    ref:
+      integration_fqn: my_catalog.my_schema.gddemo_public
   field_transforms:
     - field:
         name_parts: [ email ]
@@ -421,27 +408,24 @@ rule_sets:
           sql_statement:
             statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
   filters:
-    - field:
-        name_parts: [ age ]
-      conditions:
-        - principals:
-            - group: fraud-and-risk
-          condition: "true"
-        - principals: []
-          condition: "age > 18"
-    - field:
-        name_parts: [ userId ]
-      conditions:
-        - principals:
-            - group: marketing
-          condition: "userId in ('1', '2', '3', '4')"
-        - principals: []
-          condition: "true"
-    - field:
-        name_parts: [ transactionAmount ]
-      conditions:
-        - principals: []
-          condition: "transactionAmount < 10"
+    - generic_filter:
+          conditions:
+            - principals:
+                - group: fraud-and-risk
+              condition: "true"
+            - principals: []
+              condition: "age > 18"
+    - generic_filter:
+          conditions:
+            - principals:
+                - group: marketing
+              condition: "userId in ('1', '2', '3', '4')"
+            - principals: []
+              condition: "true"
+    - generic_filter:
+          conditions:
+            - principals: []
+              condition: "transactionAmount < 10"
           """
                 .toProto<DataPolicy>(false)
 
@@ -469,8 +453,8 @@ rule_sets:
 $policyBase
 rule_sets: 
 - target:
-    type: DYNAMIC_VIEW
-    fullname: 'my_catalog.my_schema.gddemo_public'
+    ref:
+      integration_fqn: my_catalog.my_schema.gddemo_public
   field_transforms:
     - field:
         name_parts: [ email ]
@@ -511,8 +495,6 @@ rule_sets:
             statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
   filters:
     - generic_filter:
-        field:
-          name_parts: [ age ]
         conditions:
           - principals:
               - group: fraud-and-risk
@@ -520,8 +502,6 @@ rule_sets:
           - principals: []
             condition: "age > 18"
     - generic_filter:
-        field:
-          name_parts: [ userId ]
         conditions:
           - principals:
               - group: marketing
@@ -529,8 +509,6 @@ rule_sets:
           - principals: []
             condition: "true"
     - generic_filter:
-        field:
-          name_parts: [ transactionAmount ]
         conditions:
           - principals: []
             condition: "transactionAmount < 10"
@@ -558,62 +536,65 @@ rule_sets:
         @Language("yaml")
         val dataPolicy =
             """
-                metadata:
-                  description: ""
-                  version: 1
-                  title: public.demo
-                platform:
-                  id: platform-id
-                  platform_type: POSTGRES
-                source:
-                  fields:
-                    - name_parts:
-                        - transactionid
-                      required: true
-                      type: integer
-                    - name_parts:
-                        - userid
-                      required: true
-                      type: integer
-                    - name_parts:
-                        - transactionamount
-                      required: true
-                      type: integer
-                  ref: public.demo_tokenized
-                rule_sets:
-                  - target:
-                      fullname: public.demo_view
-                    filters:
-                      - conditions:
-                          - principals: [ {group: fraud_and_risk} ]
-                            condition: "true"
-                          - principals : []
-                            condition: "transactionamount < 10"
-                    field_transforms:
-                      - field:
-                          name_parts: [ userid ]
-                        transforms:
-                          - principals: [ {group: fraud_and_risk} ]
-                            detokenize:
-                              token_source_ref: tokens.all_tokens
-                              token_field:
-                                name_parts: [ token ]
-                              value_field:
-                                name_parts: [ value ]
-                          - principals: []
-                            identity: {}
-                      - field:
-                          name_parts: [ transactionid ]
-                        transforms:
-                          - principals: [ {group: fraud_and_risk} ]
-                            detokenize:
-                              token_source_ref: tokens.all_tokens
-                              token_field:
-                                name_parts: [ token ]
-                              value_field:
-                                name_parts: [ value ]
-                          - principals: []
-                            identity: {}
+metadata:
+  description: ""
+  version: 1
+  title: public.demo
+source:
+  fields:
+    - name_parts:
+        - transactionid
+      required: true
+      type: integer
+    - name_parts:
+        - userid
+      required: true
+      type: integer
+    - name_parts:
+        - transactionamount
+      required: true
+      type: integer
+  ref:
+    integration_fqn: public.demo_tokenized
+    platform:
+      id: platform-id
+      platform_type: POSTGRES
+rule_sets:
+  - target:
+      ref: 
+        integration_fqn: public.demo_view
+    filters:
+      - generic_filter: 
+          conditions:
+            - principals: [ {group: fraud_and_risk} ]
+              condition: "true"
+            - principals : []
+              condition: "transactionamount < 10"
+    field_transforms:
+      - field:
+          name_parts: [ userid ]
+        transforms:
+          - principals: [ {group: fraud_and_risk} ]
+            detokenize:
+              token_source_ref: tokens.all_tokens
+              token_field:
+                name_parts: [ token ]
+              value_field:
+                name_parts: [ value ]
+          - principals: []
+            identity: {}
+      - field:
+          name_parts: [ transactionid ]
+        transforms:
+          - principals: [ {group: fraud_and_risk} ]
+            detokenize:
+              token_source_ref: tokens.all_tokens
+              token_field:
+                name_parts: [ token ]
+              value_field:
+                name_parts: [ value ]
+          - principals: []
+            identity: {}
     
             """
                 .trimIndent()
@@ -644,12 +625,12 @@ rule_sets:
  */
 const val policyBase =
     """
-platform:
-  platform_type: SNOWFLAKE
-  id: snowflake
-source: 
-  type: SQL_DDL
-  ref: mycatalog.my_schema.gddemo
+source:
+  ref:
+    integration_fqn: mycatalog.my_schema.gddemo
+    platform:
+      platform_type: SNOWFLAKE
+      id: snowflake
   fields:
     - name_parts: [transactionId]
       type: bigint

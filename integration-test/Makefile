@@ -14,6 +14,7 @@ SCHEMA           = public
 REF              = ${SCHEMA}.${TABLE}
 VIEW             = ${REF}_view
 STANDALONE_FLAGS = -t -A -p 5431 standalone # psql flags non-aligned tuples
+PACE_CLI         = PACE_OUTPUT=yaml pace
 
 # These are the login users defined in data-sql. We download the
 # view for each one, and execute check-<user>
@@ -27,7 +28,7 @@ all: tables.yaml ${CHECKS} kill-pace
 
 tables.yaml: applied
 	@ echo "checking 'pace list tables'"
-	@ pace list tables --processing-platform ${PP} --database standalone --schema ${SCHEMA} -o yaml > $@
+	@ ${PACE_CLI} list tables --processing-platform ${PP} --database standalone --schema ${SCHEMA} > $@
 	@ diff -q $@ tables-expected.yaml || (echo "list tables command produced wrong output"; \
 		cat $@; exit 1)
 	@ echo "list tables ok"
@@ -81,7 +82,7 @@ ${VIEW_CSVS}: %.csv: applied
 
 blueprint.yaml: launch-pace load-db-data
 	@ echo getting blueprint ${REF}
-	@ pace get data-policy --processing-platform ${PP} --database standalone --schema ${SCHEMA} --blueprint ${TABLE} > $@
+	@ ${PACE_CLI} get data-policy --processing-platform ${PP} --database standalone --schema ${SCHEMA} --blueprint ${TABLE} > $@
 
 # the rulesets.patch file is part of the test and committed in git.
 policy.yaml: blueprint.yaml rulesets.patch
@@ -90,10 +91,10 @@ policy.yaml: blueprint.yaml rulesets.patch
 
 upserted.yaml: policy.yaml
 	@ echo upserting $< and creating $@
-	@ pace upsert data-policy $< > $@
+	@ ${PACE_CLI} upsert data-policy $< > $@
 
 applied: upserted.yaml
-	@ pace apply data-policy --processing-platform ${PP} ${REF} && date > $@
+	@ ${PACE_CLI} apply data-policy --processing-platform ${PP} ${REF} > $@
 	@ echo applied $< at $$(cat $@)
 
 load-db-data:
@@ -114,7 +115,7 @@ kill-pace:
 pace:
 	@ echo downloading latest pace cli release
 	@ ./download-cli.sh
-	@ echo pace version: $$(pace version)
+	@ echo pace version: $$(${PACE_CLI} version)
 
 app.jar:
 	@ echo building $@ and copying it here.
