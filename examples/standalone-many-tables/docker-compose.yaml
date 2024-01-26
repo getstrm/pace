@@ -29,7 +29,7 @@ services:
       PGDATA: /data/postgres
       PGUSER: standalone # Required for health check
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready" ]
+      test: [ "CMD-SHELL", "pg_isready && psql -t -c \"select * from sales.ProductSchedule\"" ]
       interval: 2s
       timeout: 2s
       retries: 10
