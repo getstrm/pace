@@ -93,12 +93,8 @@ components:
       type: object
     DataPolicy:
       properties:
-        id:
-          type: string
         metadata:
           $ref: '#/components/schemas/DataPolicy_Metadata'
-        platform:
-          $ref: '#/components/schemas/ProcessingPlatform'
         ruleSets:
           items:
             $ref: '#/components/schemas/DataPolicy_RuleSet'
@@ -204,9 +200,10 @@ components:
             $ref: '#/components/schemas/DataPolicy_Field'
           type: array
         ref:
+          allOf:
+          - $ref: '#/components/schemas/ResourceUrn'
           description: "The ref is an identifier for the source, unique at the source\
             \ platform level.\n TODO I think this should be renamed to fqn"
-          type: string
         tags:
           items:
             type: string
@@ -214,29 +211,17 @@ components:
       type: object
     DataPolicy_Target:
       properties:
-        fullname:
+        ref:
+          allOf:
+          - $ref: '#/components/schemas/ResourceUrn'
           description: The full and unique name to be used in the target platform.
             E.g. the view name.
-          type: string
         type:
           enum:
           - TARGET_TYPE_UNSPECIFIED
           - SQL_VIEW
           format: enum
           type: string
-      type: object
-    DataResourceRef:
-      properties:
-        fqn:
-          description: the Fully Qualified Name of the data resource on the platform.
-          type: string
-        platform:
-          allOf:
-          - $ref: '#/components/schemas/ProcessingPlatform'
-          description: "defines the processing platform of the data resource.\n a\
-            \ data resource is something that holds data of a defined structure.\n\
-            \ SQL Tables and Views are good examples, but this is in essence open-ended,\n\
-            \ like for instance a Kafka topic with an Avro Schema."
       type: object
     Database:
       properties:
@@ -508,7 +493,7 @@ components:
         relation:
           type: string
         resourceRef:
-          $ref: '#/components/schemas/DataResourceRef'
+          $ref: '#/components/schemas/ResourceUrn'
       type: object
     LineageSummary:
       properties:
@@ -519,7 +504,7 @@ components:
           type: array
         resourceRef:
           allOf:
-          - $ref: '#/components/schemas/DataResourceRef'
+          - $ref: '#/components/schemas/ResourceUrn'
           description: describes the data resource (table, view, ...)
         upstream:
           description: upstream is a source or parent resource
@@ -589,6 +574,15 @@ components:
         processingPlatforms:
           items:
             $ref: '#/components/schemas/ProcessingPlatform'
+          type: array
+      type: object
+    ListResourcesResponse:
+      properties:
+        pageInfo:
+          $ref: '#/components/schemas/PageInfo'
+        resources:
+          items:
+            $ref: '#/components/schemas/ResourceUrn'
           type: array
       type: object
     ListSchemasResponse:
@@ -680,6 +674,38 @@ components:
           - SYNAPSE
           format: enum
           type: string
+      type: object
+    ResourceNode:
+      properties:
+        displayName:
+          description: human readable string. If absent use name.
+          type: string
+        isLeaf:
+          description: data resource
+          type: boolean
+        name:
+          description: "the bits between the slashes.\n the technical path to the\
+            \ data.\n can be uuid (Collibra for instance)"
+          type: string
+        platformName:
+          description: "dataset, schema, table, whatever... For display purposes only.\n\
+            \ FIXME platform type"
+          type: string
+      type: object
+    ResourceUrn:
+      properties:
+        catalog:
+          $ref: '#/components/schemas/DataCatalog'
+        integrationFqn:
+          description: the Fully Qualified Name of the data resource on the processing
+            platform / data catalog.
+          type: string
+        platform:
+          $ref: '#/components/schemas/ProcessingPlatform'
+        resourcePath:
+          items:
+            $ref: '#/components/schemas/ResourceNode'
+          type: array
       type: object
     RetentionFilter_Condition:
       properties:
@@ -925,7 +951,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.52
+  version: 1.0.0-alpha.53
 openapi: 3.0.3
 paths:
   /data-policies:
@@ -1910,6 +1936,54 @@ paths:
       summary: GetBlueprintPolicy
       tags:
       - ProcessingPlatformsService
+  /v1alpha/resources:
+    get:
+      operationId: ResourcesService_ListResources
+      parameters:
+      - description: A processing platform or data catalog id as configured in your
+          PACE server
+        in: query
+        name: integrationId
+        schema:
+          type: string
+      - description: A resource path to list resources under. If empty, the root path
+          is used.
+        in: query
+        name: resourcePath
+        schema:
+          items:
+            type: string
+          type: array
+      - description: "The provided skip value of the request.\n skip represents records\
+          \ to skip before returning results.\n If empty, skip is 0."
+        in: query
+        name: pageParameters.skip
+        schema:
+          format: uint32
+          type: integer
+      - description: "The provided page_size value of the request.\n If empty, page_size\
+          \ is 10."
+        in: query
+        name: pageParameters.pageSize
+        schema:
+          format: uint32
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResourcesResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: ListResources
+      tags:
+      - ResourcesService
 tags:
 - name: DataCatalogsService
 - name: DataPoliciesService
@@ -1917,3 +1991,4 @@ tags:
   name: GlobalTransformsService
 - name: PluginsService
 - name: ProcessingPlatformsService
+- name: ResourcesService
