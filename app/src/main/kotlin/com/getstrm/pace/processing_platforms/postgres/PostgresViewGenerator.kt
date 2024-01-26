@@ -88,19 +88,19 @@ class PostgresViewGenerator(
         fields: List<Field<*>>
     ): SelectSelectStep<Record> {
         val userGroupSelect =
-            DSL.unquotedName("user_groups")
+            DSL.quotedName("user_groups")
                 .`as`(
-                    DSL.select(DSL.field("rolname"))
-                        .from(DSL.table(DSL.unquotedName("pg_roles")))
+                    DSL.select(DSL.field(DSL.quotedName("rolname")))
+                        .from(DSL.table(DSL.quotedName("pg_roles")))
                         .where(
-                            DSL.field("rolcanlogin")
+                            DSL.field(DSL.quotedName("rolcanlogin"))
                                 .eq(false)
                                 .and(
                                     DSL.function(
                                         "pg_has_role",
                                         Boolean::class.java,
-                                        DSL.field("session_user"),
-                                        DSL.field("oid"),
+                                        DSL.field(DSL.quotedName("session_user")),
+                                        DSL.field(DSL.quotedName("oid")),
                                         DSL.inline("member")
                                     )
                                 )

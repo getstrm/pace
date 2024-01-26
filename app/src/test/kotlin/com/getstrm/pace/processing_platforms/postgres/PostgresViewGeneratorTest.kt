@@ -193,16 +193,12 @@ case when ('marketing' IN ( SELECT rolname FROM user_groups )) then dateadd(day,
             """create or replace view "public"."demo_view"
 as
 with
-  user_groups as (
-    select rolname
-    from pg_roles
+  "user_groups" as (
+    select "rolname"
+    from "pg_roles"
     where (
-      rolcanlogin = false
-      and pg_has_role(
-        session_user,
-        oid,
-        'member'
-      )
+      "rolcanlogin" = false
+      and pg_has_role("session_user", "oid", 'member')
     )
   )
 select
@@ -239,16 +235,12 @@ grant SELECT on public.demo_view to "marketing";"""
             """create or replace view "public"."demo_view"
 as
 with
-  user_groups as (
-    select rolname
-    from pg_roles
+  "user_groups" as (
+    select "rolname"
+    from "pg_roles"
     where (
-      rolcanlogin = false
-      and pg_has_role(
-        session_user,
-        oid,
-        'member'
-      )
+      "rolcanlogin" = false
+      and pg_has_role("session_user", "oid", 'member')
     )
   )
 select
@@ -280,16 +272,12 @@ grant SELECT on public.demo_view to "marketing";"""
             """create or replace view "public"."demo_view"
 as
 with
-  user_groups as (
-    select rolname
-    from pg_roles
+  "user_groups" as (
+    select "rolname"
+    from "pg_roles"
     where (
-      rolcanlogin = false
-      and pg_has_role(
-        session_user,
-        oid,
-        'member'
-      )
+      "rolcanlogin" = false
+      and pg_has_role("session_user", "oid", 'member')
     )
   )
 select
@@ -318,16 +306,12 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
             """create or replace view "public"."demo_view"
 as
 with
-  user_groups as (
-    select rolname
-    from pg_roles
+  "user_groups" as (
+    select "rolname"
+    from "pg_roles"
     where (
-      rolcanlogin = false
-      and pg_has_role(
-        session_user,
-        oid,
-        'member'
-      )
+      "rolcanlogin" = false
+      and pg_has_role("session_user", "oid", 'member')
     )
   )
 select
@@ -363,16 +347,12 @@ grant SELECT on public.demo_view to "fraud_and_risk";"""
                 """create or replace view "public"."demo_view"
 as
 with
-  user_groups as (
-    select rolname
-    from pg_roles
+  "user_groups" as (
+    select "rolname"
+    from "pg_roles"
     where (
-      rolcanlogin = false
-      and pg_has_role(
-        session_user,
-        oid,
-        'member'
-      )
+      "rolcanlogin" = false
+      and pg_has_role("session_user", "oid", 'member')
     )
   )
 select

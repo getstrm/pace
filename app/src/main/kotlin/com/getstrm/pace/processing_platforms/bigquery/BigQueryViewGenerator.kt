@@ -65,8 +65,8 @@ class BigQueryViewGenerator(
                                 DSL.condition(
                                     "{0} IN ( SELECT {1} FROM {2} )",
                                     principal.group,
-                                    field(renderName("userGroup")),
-                                    field(renderName("user_groups"))
+                                    DSL.field(renderName("userGroup")),
+                                    DSL.field(renderName("user_groups"))
                                 )
                         else ->
                             throw InternalException(
