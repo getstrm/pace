@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component
 @Component
 class ProcessingPlatformsService(
     config: ProcessingPlatformsConfiguration,
-    val globalTransformsService: GlobalTransformsService,
 ) {
     final val platforms: Map<String, ProcessingPlatformClient>
 
