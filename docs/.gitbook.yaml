@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.56
+    version: 1.0.0-alpha.57
 paths:
     /data-policies:
         get:
