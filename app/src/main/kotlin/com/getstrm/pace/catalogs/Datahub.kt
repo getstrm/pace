@@ -11,6 +11,7 @@ import com.getstrm.pace.util.*
 import com.google.rpc.ResourceInfo
 import io.datahubproject.generated.GetDatasetDetailsQuery
 import io.datahubproject.generated.ListDatasetsQuery
+import org.slf4j.LoggerFactory
 
 /**
  * interaction with Datahub.
@@ -19,9 +20,16 @@ import io.datahubproject.generated.ListDatasetsQuery
  * one schema, and a large set of tables.
  */
 class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
+    private val log by lazy { LoggerFactory.getLogger(javaClass) }
     val client = apolloClient()
     private val database = Database()
     private val schema = Schema()
+
+    override suspend fun platformResourceName(index: Int): String {
+        return listOf("datahub", "platform", "dataset").getOrElse(index) {
+            super.platformResourceName(index)
+        }
+    }
 
     override fun close() {
         client.close()
@@ -46,9 +54,7 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
     }
 
     private inner class Schema : Resource {
-        override val id: String
-            get() = schema.id
-
+        override val id = "schema"
         override val displayName = id
 
         override fun fqn(): String = id
@@ -57,9 +63,14 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             pageParameters: PageParameters
         ): PagedCollection<Resource> {
             val response =
-                client
-                    .query(ListDatasetsQuery(pageParameters.skip, pageParameters.pageSize))
-                    .execute()
+                try {
+                    client
+                        .query(ListDatasetsQuery(pageParameters.skip, pageParameters.pageSize))
+                        .execute()
+                } catch (e: Exception) {
+                    log.warn("error", e)
+                    throw RuntimeException("Error fetching databases: ${e.message}")
+                }
             if (response.hasErrors())
                 throw RuntimeException("Error fetching databases: ${response.errors}")
             val tables =
@@ -88,7 +99,8 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         // this property is lazily filled in when calling getDataPolicy
         lateinit var dataset: GetDatasetDetailsQuery.Dataset
         override val id = urn
-        override val displayName = id
+        override val displayName: String
+            get() = urnPattern.matchEntire(id)?.groupValues?.last() ?: id
 
         override fun fqn(): String = id
 

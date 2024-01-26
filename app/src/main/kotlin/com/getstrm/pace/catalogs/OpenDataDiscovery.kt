@@ -32,6 +32,11 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
     // FIXME this will only get all datasources once, during Pace startup
     private val dataSources = getAllDataSources().associateBy { it.id }
 
+    override suspend fun platformResourceName(index: Int): String =
+        listOf("datasource", "schema", "table").getOrElse(index) {
+            super.platformResourceName(index)
+        }
+
     override suspend fun getChild(childId: String): Resource = getDatabase(childId)
 
     /**
