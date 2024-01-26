@@ -13,7 +13,6 @@ import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
-import com.getstrm.pace.util.MILLION_RECORDS
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.orDefault
 import com.google.rpc.BadRequest
@@ -92,32 +91,6 @@ abstract class IntegrationClient : Resource {
         throwUnimplemented(
             "createBlueprint from fully qualified name in integration $id of type ${this::class.simpleName}"
         )
-
-    abstract suspend fun listDatabases(
-        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-    ): PagedCollection<Resource>
-
-    open suspend fun listSchemas(
-        databaseId: String,
-        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-    ): PagedCollection<Resource> =
-        (listDatabases(MILLION_RECORDS).find { it.id == databaseId }
-                ?: throwNotFound(databaseId, "database"))
-            .listChildren(pageParameters)
-
-    open suspend fun listTables(
-        databaseId: String,
-        schemaId: String,
-        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-    ): PagedCollection<Resource> =
-        (listSchemas(databaseId, MILLION_RECORDS).find { it.id == schemaId }
-                ?: throwNotFound(schemaId, "schema"))
-            .listChildren(pageParameters)
-            .map { it as LeafResource }
-
-    open suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Resource =
-        (listTables(databaseId, schemaId, MILLION_RECORDS).find { it.id == tableId }
-            ?: throwNotFound(tableId, "table"))
 }
 
 interface Resource {

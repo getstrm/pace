@@ -63,7 +63,7 @@ class DatabricksClientTest {
                             )
                         )
                 )
-        val database = client.DatabricksDatabase(client, "my_catalog")
+        val database = client.DatabricksDatabase("my_catalog")
         val schema = client.DatabricksSchema(database, "my_schema")
         val table = client.DatabricksTable(schema, tableInfo)
 

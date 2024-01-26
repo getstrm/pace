@@ -19,7 +19,9 @@ import com.google.rpc.BadRequest
 import org.springframework.stereotype.Component
 
 @Component
-class ProcessingPlatformsService(config: ProcessingPlatformsConfiguration) {
+class ProcessingPlatformsService(
+    config: ProcessingPlatformsConfiguration,
+) {
     final val platforms: Map<String, ProcessingPlatformClient>
 
     init {

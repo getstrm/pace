@@ -30,9 +30,6 @@ source:
       type: integer
   ref:
     integration_fqn: public.demo
-    platform:
-      id: standalone-sample-connection
-      platform_type: POSTGRES
 rule_sets:
   - target:
       ref:
