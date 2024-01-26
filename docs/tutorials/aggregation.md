@@ -147,16 +147,18 @@ There should be quite a bit of logging, ending with the startup logs of the PACE
 If all went well, the `pace list tables` CLI command should return two tables:
 
 ```bash
-pace list tables --processing-platform aggregation-transforms-sample-connection
-tables:
-- public.salary
+pace list tables --processing-platform aggregation-transforms-sample-connection \
+  --database aggregation --schema public  --output table
+ ID       NAME     TAGS
+
+ salary   salary
 ```
 
 There should be no existing data policies:
 
 ```bash
-pace list data-policies
-{}
+pace list data-policies  --output table
+No entities of this resource type exist.
 ```
 
 ### Available DB roles and users
@@ -212,7 +214,11 @@ We can use the PACE CLI to retrieve a blueprint policy for the `transactions` ta
 
 {% code fullWidth="false" %}
 ```bash
-pace get data-policy --blueprint --processing-platform aggregation-transforms-sample-connection public.salary
+pace get data-policy --blueprint \
+    --processing-platform aggregation-transforms-sample-connection \
+    --database aggregation \
+    --schema public \
+    salary 
 ```
 {% endcode %}
 

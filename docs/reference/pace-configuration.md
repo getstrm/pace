@@ -24,8 +24,7 @@ logging #  Spring logging [configuration][spring-logging]. You can skip this sec
   level #
     some.java.package: [DEBUG|INFO|WARN|OFF][spring-logging]
 app #  This is the actual PACE configuration
-  processing # -platforms Defines a list of processing platforms that PACE connects to on startup.
-    ..
+  processing # Defines a list of processing platforms that PACE connects to on startup.
   catalogs #  Defines a list of data catalogs that PACE connects to on startup.
     ..
   global-transforms:

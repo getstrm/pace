@@ -6,15 +6,22 @@ import com.getstrm.pace.exceptions.PaceStatusException
 import com.getstrm.pace.processing_platforms.ProcessingPlatformViewGenerator
 import com.getstrm.pace.util.fullName
 import com.google.rpc.DebugInfo
-import org.jooq.*
+import org.jooq.Condition
+import org.jooq.DSLContext
+import org.jooq.Field
+import org.jooq.Record
+import org.jooq.SQLDialect
+import org.jooq.SelectSelectStep
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
-import org.jooq.impl.DSL.*
+import org.jooq.impl.DSL.currentTimestamp
+import org.jooq.impl.DSL.select
+import org.jooq.impl.DSL.trueCondition
 
 class BigQueryViewGenerator(
     dataPolicy: DataPolicy,
-    private val userGroupsTable: String,
-    val useIamCheckExtension: Boolean = false,
+    private val userGroupsTable: String?,
+    private val useIamCheckExtension: Boolean = false,
     customJooqSettings: Settings.() -> Unit = {},
 ) :
     ProcessingPlatformViewGenerator(
@@ -28,6 +35,18 @@ class BigQueryViewGenerator(
      * abuse this here.
      */
     private val bigQueryDsl: DSLContext = DSL.using(SQLDialect.MYSQL)
+
+    init {
+        if (userGroupsTable.isNullOrBlank() and !useIamCheckExtension)
+            throw InternalException(
+                InternalException.Code.INTERNAL,
+                DebugInfo.newBuilder()
+                    .setDetail(
+                        "userGroupsTable must be set if useIamCheckExtension is false. ${PaceStatusException.ILLEGAL_ARGUMENT}"
+                    )
+                    .build()
+            )
+    }
 
     override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
         return if (principals.isEmpty()) {
@@ -73,7 +92,7 @@ class BigQueryViewGenerator(
             DSL.unquotedName("user_groups")
                 .`as`(
                     select(DSL.field("userGroup"))
-                        .from(DSL.table(renderName(userGroupsTable)))
+                        .from(DSL.table(renderName(userGroupsTable!!)))
                         .where(
                             DSL.field("userEmail")
                                 .eq(DSL.function("SESSION_USER", Boolean::class.java))

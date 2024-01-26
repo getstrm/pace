@@ -15,8 +15,9 @@ You don't _have to enforce_ the BigQuery Policy tags, for PACE we only use the P
 The taxonomy name is ignored by PACE but the `pii_email` Policy tag name becomes available as a PACE tag.
 
 ```
-pace get data-policy --processing-platform bigquery-dev\
-  stream-machine-development.dynamic_views.pace_demo
+pace get data-policy --blueprint --processing-platform bigquery-dev\
+  --database stream-machine-development --schema dynamic_views \
+  pace_demo
 metadata:
   create_time: "2023-11-09T13:57:40.336Z"
   title: stream-machine-development.dynamic_views.pace_demo

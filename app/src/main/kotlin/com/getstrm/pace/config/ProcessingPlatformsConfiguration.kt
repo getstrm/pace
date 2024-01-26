@@ -29,7 +29,7 @@ data class SnowflakeConfiguration(
 data class BigQueryConfiguration(
     override val id: String,
     val projectId: String,
-    val userGroupsTable: String,
+    val userGroupsTable: String?,
     val serviceAccountJsonKey: String,
     val useIamCheckExtension: Boolean = false,
 ) : ProcessingPlatformConfiguration(id, ProcessingPlatform.PlatformType.BIGQUERY)
