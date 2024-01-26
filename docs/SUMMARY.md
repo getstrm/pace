@@ -80,6 +80,7 @@
       * [lineage](cli-docs/pace\_list\_lineage.md)
       * [plugins](cli-docs/pace\_list\_plugins.md)
       * [processing-platforms](cli-docs/pace\_list\_processing-platforms.md)
+      * [resources](cli-docs/pace\_list\_resources.md)
       * [schemas](cli-docs/pace\_list\_schemas.md)
       * [tables](cli-docs/pace\_list\_tables.md)
     * [upsert](cli-docs/pace\_upsert.md)

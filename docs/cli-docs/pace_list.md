@@ -33,6 +33,7 @@ return 0 or more entities of a certain type
 * [pace list lineage](pace_list_lineage.md)	 - List lineage for all stored data-policies
 * [pace list plugins](pace_list_plugins.md)	 - List plugins
 * [pace list processing-platforms](pace_list_processing-platforms.md)	 - List Processing Platforms
+* [pace list resources](pace_list_resources.md)	 - list resources
 * [pace list schemas](pace_list_schemas.md)	 - List Schemas
 * [pace list tables](pace_list_tables.md)	 - List Tables
 
