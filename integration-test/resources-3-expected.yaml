@@ -1,0 +1,37 @@
+page_info:
+  total: 3
+resources:
+- integration_fqn: public.demo
+  platform:
+    id: standalone-sample-connection
+    platform_type: POSTGRES
+  resource_path:
+  - name: standalone
+  - name: public
+  - display_name: demo
+    is_leaf: true
+    name: demo
+    platform_name: table
+- integration_fqn: public.demo_view
+  platform:
+    id: standalone-sample-connection
+    platform_type: POSTGRES
+  resource_path:
+  - name: standalone
+  - name: public
+  - display_name: demo_view
+    is_leaf: true
+    name: demo_view
+    platform_name: table
+- integration_fqn: public.global_test
+  platform:
+    id: standalone-sample-connection
+    platform_type: POSTGRES
+  resource_path:
+  - name: standalone
+  - name: public
+  - display_name: global_test
+    is_leaf: true
+    name: global_test
+    platform_name: table
+

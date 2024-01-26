@@ -1,0 +1,12 @@
+page_info:
+  total: 1
+resources:
+- integration_fqn: standalone
+  platform:
+    id: standalone-sample-connection
+    platform_type: POSTGRES
+  resource_path:
+  - display_name: standalone
+    name: standalone
+    platform_name: database
+
