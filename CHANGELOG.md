@@ -1,3 +1,10 @@
+# [1.0.0-alpha.56](https://github.com/getstrm/pace/compare/v1.0.0-alpha.55...v1.0.0-alpha.56) (2024-01-26)
+
+
+### Features
+
+* **pace-85:** page token support ([#177](https://github.com/getstrm/pace/issues/177)) ([d15f0aa](https://github.com/getstrm/pace/commit/d15f0aa00e72713b762a06c06defbdaca0895148))
+
 # [1.0.0-alpha.55](https://github.com/getstrm/pace/compare/v1.0.0-alpha.54...v1.0.0-alpha.55) (2024-01-26)
 
 
