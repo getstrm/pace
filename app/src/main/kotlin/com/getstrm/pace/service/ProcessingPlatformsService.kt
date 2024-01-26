@@ -16,16 +16,11 @@ import com.getstrm.pace.processing_platforms.synapse.SynapseClient
 import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
 import com.getstrm.pace.util.PagedCollection
 import com.google.rpc.BadRequest
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class ProcessingPlatformsService(
-    config: ProcessingPlatformsConfiguration,
-) {
+class ProcessingPlatformsService(config: ProcessingPlatformsConfiguration) {
     final val platforms: Map<String, ProcessingPlatformClient>
-
-    private val log = LoggerFactory.getLogger(DatabricksClient::javaClass.name)
 
     init {
         val databricks = config.databricks.map { DatabricksClient(it) }

@@ -1,3 +1,10 @@
+# [1.0.0-alpha.52](https://github.com/getstrm/pace/compare/v1.0.0-alpha.51...v1.0.0-alpha.52) (2024-01-24)
+
+
+### Bug Fixes
+
+* **pace-137:** restored addRuleset ([#167](https://github.com/getstrm/pace/issues/167)) ([0d80d10](https://github.com/getstrm/pace/commit/0d80d10e29e9df649b73f1a0c52d5e7578c14298))
+
 # [1.0.0-alpha.51](https://github.com/getstrm/pace/compare/v1.0.0-alpha.50...v1.0.0-alpha.51) (2024-01-23)
 
 
