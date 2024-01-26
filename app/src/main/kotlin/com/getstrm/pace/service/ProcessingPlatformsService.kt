@@ -25,8 +25,6 @@ class ProcessingPlatformsService(
 ) {
     final val platforms: Map<String, ProcessingPlatformClient>
 
-    private val log = LoggerFactory.getLogger(DatabricksClient::javaClass.name)
-
     init {
         val databricks = config.databricks.map { DatabricksClient(it) }
         val snowflake = config.snowflake.map { SnowflakeClient(it) }

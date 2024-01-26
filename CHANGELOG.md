@@ -1,3 +1,17 @@
+# [1.0.0-alpha.53](https://github.com/getstrm/pace/compare/v1.0.0-alpha.52...v1.0.0-alpha.53) (2024-01-26)
+
+
+### Features
+
+* **pace-100:** handles generic hierarchy ([#158](https://github.com/getstrm/pace/issues/158)) ([bfac512](https://github.com/getstrm/pace/commit/bfac5123662977561eec076c6bc552acf43d997a))
+
+# [1.0.0-alpha.52](https://github.com/getstrm/pace/compare/v1.0.0-alpha.51...v1.0.0-alpha.52) (2024-01-24)
+
+
+### Bug Fixes
+
+* **pace-137:** restored addRuleset ([#167](https://github.com/getstrm/pace/issues/167)) ([0d80d10](https://github.com/getstrm/pace/commit/0d80d10e29e9df649b73f1a0c52d5e7578c14298))
+
 # [1.0.0-alpha.51](https://github.com/getstrm/pace/compare/v1.0.0-alpha.50...v1.0.0-alpha.51) (2024-01-23)
 
 

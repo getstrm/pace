@@ -1,6 +1,8 @@
 package com.getstrm.pace.service
 
-import build.buf.gen.getstrm.pace.api.data_catalogs.v1alpha.*
+import build.buf.gen.getstrm.pace.api.data_catalogs.v1alpha.ListDatabasesRequest
+import build.buf.gen.getstrm.pace.api.data_catalogs.v1alpha.ListSchemasRequest
+import build.buf.gen.getstrm.pace.api.data_catalogs.v1alpha.ListTablesRequest
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
 import com.getstrm.pace.catalogs.CollibraCatalog
 import com.getstrm.pace.catalogs.DataCatalog
@@ -11,9 +13,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class DataCatalogsService(
-    catalogsConfig: AppConfiguration,
-) {
+class DataCatalogsService(catalogsConfig: AppConfiguration) {
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
     val catalogs: Map<String, DataCatalog> =

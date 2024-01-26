@@ -206,6 +206,10 @@ class DatabricksClient(
         override suspend fun createBlueprint(): DataPolicy =
             tableInfo.toDataPolicy(getTags(tableInfo))
 
+        override fun fqn(): String {
+            return "${schema.fqn()}.${id}"
+        }
+
         /* TODO the current databricks api does not expose column tags! :-(
         The hack we use is to execute a sql query
          */

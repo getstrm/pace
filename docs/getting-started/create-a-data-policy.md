@@ -6,7 +6,7 @@ description: Complete walkthrough of creating a Data Policy
 
 ## Introduction
 
-For this section, we assume you have either created a connection to a [`Processing Platform`](../reference/integrations/processing-platform-integrations/) or a [`Data Catalog`](../reference/integrations/data-catalog-integrations/) or you are familiar with the structure of your source data. You will, naturally, also need to have an instance of `PACE` running. We give a step-by-step walkthrough on how to create a `Data Policy`.
+For this section, we assume you have either created a connection to a [`Processing Platform`](../reference/integrations/processing-platform-integrations/) or a [`Data Catalog`](../reference/integrations/data-catalog-integrations/) or you are familiar with the structure of your source data. You will, naturally, also need to have an instance of `PACE` running. We give a step-by-step walkthrough on how to create a `Data Policy`.&#x20;
 
 Please refer to the [schema.md](../data-policy/schema.md "mention"), [principals.md](../data-policy/principals.md "mention") and [rule-set](../data-policy/rule-set/ "mention") sections for additional explanations.
 
@@ -23,14 +23,14 @@ Let the id of your connected `Processing Platform` be `pace-pp` and the source r
 {% tabs %}
 {% tab title="CLI" %}
 ```bash
-pace get data-policy --blueprint -p pace-pp pace-db.pace-schema.pace-table
+pace get data-policy --blueprint -p pace-pp \
+    --database pace-db --schema pace-schema pace-table
 ```
 {% endtab %}
 
 {% tab title="curl" %}
 {% code overflow="wrap" %}
 ```bash
-curl localhost:9090/processing-platforms/pace-pp/tables/pace-db.pace-schema.pace-table/blueprint-policy
 ```
 {% endcode %}
 {% endtab %}
@@ -172,9 +172,6 @@ We define one `Field Transform` and add it to the `Rule Set`. Our transform conc
 - field:
     name_parts: 
       - email
-    type: "string"
-    required: true
-    tags: []
   transforms:
     - principals: 
         - group: "MKTNG"
@@ -247,12 +244,13 @@ To completely filter out rows, we here define one `Filter` based on the `age` fi
 {% code lineNumbers="true" %}
 ```yaml
 filters:
-  - conditions:
-    - principals:
-      - group: "F&R"
-      condition: "true"
-    - principals: []
-      condition: "age > 18"
+  - generic_filter:
+      conditions:
+      - principals:
+        - group: "F&R"
+        condition: "true"
+      - principals: []
+        condition: "age > 18"
 ```
 {% endcode %}
 {% endtab %}
@@ -316,12 +314,13 @@ rule_sets:
             fixed:
               value: "****"
     filters:
-      - conditions:
-        - principals:
-          - group: "F&R"
-          condition: "true"
-        - principals: []
-          condition: "age > 18"
+      - generic_filter:
+        - conditions:
+          - principals:
+            - group: "F&R"
+            condition: "true"
+          - principals: []
+            condition: "age > 18"
 ```
 {% endcode %}
 {% endtab %}
@@ -408,55 +407,64 @@ Below you will find the resulting Data Policy.
 {% tab title="YAML" %}
 {% code title="data_policy.yaml" lineNumbers="true" %}
 ```yaml
-data_policy:
-  id: ""
-  metadata:
-    title: pace-db.pace-schema.pace-table
-    description: ""
-    version: ""
-    create_time: 2023-11-03T12:00:00.000Z
-    update_time: 2023-11-03T12:00:00.000Z
-    tags: []
-  source:
-    ref: pace-db.pace-schema.pace-table
-    fields:
-      - name_parts:
-          - email
-        type: STRING
-        required: false
-        tags: []
-      - name_parts:
-          - age
-        type: INTEGER
-        required: false
-        tags: []
-    tags: []
-  platform:
-    platform_type: <PLATFORM_TYPE>
-    id: pace-pp
-  rule_sets:
-    - target:
-        fullname: "pace-db.pace-schema.pace-view"
-      field_transforms:
-        - field:
-            name_parts: 
-              - email
-            type: "string"
-            required: true
-            tags: []
-          transforms:
-            - principals:
-              - group: "MKTING"
-              regexp:
-                regexp: "^.*(@.*)$"
-                replacement: "****$1"
-            - principals:
-              - group: "F&R"
-              identity: {}
-            - principals: []
-              fixed:
-                value: "****"
-      filters:
+metadata:
+  description: ""
+  version: 1
+  title: public.demo
+platform:
+  id: standalone-sample-connection
+  platform_type: POSTGRES
+source:
+  fields:
+    - name_parts:
+        - transactionid
+      required: true
+      type: integer
+    - name_parts:
+        - userid
+      required: true
+      type: integer
+    - name_parts:
+        - email
+      required: true
+      type: varchar
+    - name_parts:
+        - age
+      required: true
+      type: integer
+    - name_parts:
+        - brand
+      required: true
+      type: varchar
+    - name_parts:
+        - transactionamount
+      required: true
+      type: integer
+  ref: public.demo
+rule_sets:
+  - target:
+      fullname: "pace-db.pace-schema.pace-view"
+    field_transforms:
+      - field:
+          name_parts: 
+            - email
+          type: "string"
+          required: true
+          tags: []
+        transforms:
+          - principals:
+            - group: "MKTING"
+            regexp:
+              regexp: "^.*(@.*)$"
+              replacement: "****$1"
+          - principals:
+            - group: "F&R"
+            identity: {}
+          - principals: []
+            fixed:
+              value: "****"
+    filters:
+      - generic_filter:
         - conditions:
           - principals:
             - group: "F&R"

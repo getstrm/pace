@@ -159,6 +159,10 @@ class SynapseClient(
             return "${schema.fqn()}.${id}"
         }
 
+        override fun fqn(): String {
+            return "${schema.fqn()}.${id}"
+        }
+
         override suspend fun createBlueprint(): DataPolicy {
             return DataPolicy.newBuilder()
                 .setMetadata(

@@ -10,8 +10,12 @@ optionally applies it to the target platform (default false).
 The file to upsert is checked for validity, a transformation is generated
 for the processing platform, and then applied on it.
 
-When updating an existing policy, the latest existing version should be set
+By default, the version does not need to be set in the metadata, PACE will
+auto-increment it. If, however, PACE has been configured to not do so, then 
+when updating an existing policy, the latest existing version should be set
 in the metadata. When creating a new policy, no version needs to be specified.
+This is the case when the property `app.data-policies.auto-increment-version`
+is set to false in the PACE configuration file.
 
 ```
 pace upsert data-policy (yaml or json file) [flags]
