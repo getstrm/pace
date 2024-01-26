@@ -1,0 +1,13 @@
+page_info:
+  total: 1
+resources:
+- integration_fqn: public
+  platform:
+    id: standalone-sample-connection
+    platform_type: POSTGRES
+  resource_path:
+  - name: standalone
+  - display_name: public
+    name: public
+    platform_name: schema
+

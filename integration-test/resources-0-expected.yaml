@@ -1,0 +1,7 @@
+page_info:
+  total: 1
+resources:
+- platform:
+    id: standalone-sample-connection
+    platform_type: POSTGRES
+
