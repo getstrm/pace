@@ -37,21 +37,22 @@ class GlobalTransformsServiceTest {
         @Language("yaml")
         val dataPolicy =
             """
-                platform: 
-                  platform_type: SNOWFLAKE
-                  id: snowflake
-                source:
-                  ref: test1
-                  type: SNOWFLAKE
-                  fields:
-                    - name_parts: [name]
-                      type: varchar
-                      tags: [ pii, tag123 ]
-                    - name_parts: [email]
-                      type: varchar
-                      tags: [ email ]
-                    - name_parts: [description]
-                      type: varchar
+source:
+  ref:
+    integration_fqn: public.test1
+    platform:
+      platform_type: SNOWFLAKE
+      id: snowflake
+  fields:
+    - name_parts: [name]
+      type: varchar
+      tags: [ pii, tag123 ]
+    - name_parts: [email]
+      type: varchar
+      tags: [ email ]
+    - name_parts: [description]
+      type: varchar
+
               """
                 .toProto<DataPolicy>()
 
@@ -61,45 +62,47 @@ class GlobalTransformsServiceTest {
             @Language("yaml")
             val result =
                 """
-                source:
-                  ref: test1
-                  type: SNOWFLAKE
-                  fields:
-                  - nameParts:  [ name ]
-                    type: varchar
-                    tags:  [ pii, tag123 ]
-                  - nameParts:  [ email ]
-                    type: varchar
-                    tags:  [ email ]
-                  - name_parts: [description]
-                    type: varchar
-                platform:
-                  platformType: SNOWFLAKE
-                  id: snowflake
-                ruleSets:
-                - target:
-                    fullname: "test1_view"
-                  fieldTransforms:
-                  - field:
-                      nameParts:  [ name ]
-                      type: varchar
-                      tags:  [ pii, tag123 ]
-                    transforms:
-                    - principals: [ {group: fraud-and-risk} ]
-                      identity: {}
-                    - hash: {seed: "1234"}
-                  - field:
-                      nameParts:  [ email ]
-                      type: "varchar"
-                      tags:  [ "email" ]
-                    transforms:
-                    - principals:  [ group: marketing ]
-                      regexp: {regexp: "^.*(@.*)$", replacement: "$1"}
-                    - principals: [ {group: fraud-and-risk} ]
-                      identity: {}
-                    - fixed: {value: "****"}
+source:
+  ref:
+    integration_fqn: public.test1
+    platform:
+      platform_type: SNOWFLAKE
+      id: snowflake
+  fields:
+    - name_parts:  [ name ]
+      type: varchar
+      tags:  [ pii, tag123 ]
+    - name_parts:  [ email ]
+      type: varchar
+      tags:  [ email ]
+    - name_parts: [description]
+      type: varchar
+rule_sets:
+  - target:
+      ref: 
+        integration_fqn: "public.test1_view"
+    field_transforms:  
+      - field:
+          name_parts:  [ name ]
+          type: varchar
+          tags:  [ pii, tag123 ]
+        transforms:
+          - principals: [ {group: fraud-and-risk} ]
+            identity: {}
+          - hash: {seed: "1234"}
+      - field:
+          name_parts:  [ email ]
+          type: "varchar"
+          tags:  [ "email" ]
+        transforms:
+          - principals:  [ group: marketing ]
+            regexp: {regexp: "^.*(@.*)$", replacement: "$1"}
+          - principals: [ {group: fraud-and-risk} ]
+            identity: {}
+          - fixed: {value: "****"}
             """
-            policyWithRulesets shouldBe result.toProto()
+                    .toProto<DataPolicy>()
+            policyWithRulesets shouldBe result
         }
     }
 
@@ -110,21 +113,21 @@ class GlobalTransformsServiceTest {
         @Language("yaml")
         val dataPolicy =
             """
-                platform: 
-                  platform_type: SNOWFLAKE
-                  id: snowflake
-                source:
-                  ref: test1
-                  type: SNOWFLAKE
-                  fields:
-                    - name_parts: [name]
-                      type: varchar
-                      tags: [ pii, tag123, overlap ]
-                    - name_parts: [email]
-                      type: varchar
-                      tags: [ email, overlap ]
-                    - name_parts: [description]
-                      type: varchar
+source:
+  ref:
+    integration_fqn: test1
+    platform:
+      platform_type: SNOWFLAKE
+      id: snowflake
+  fields:
+    - name_parts: [name]
+      type: varchar
+      tags: [ pii, tag123, overlap ]
+    - name_parts: [email]
+      type: varchar
+      tags: [ email, overlap ]
+    - name_parts: [description]
+      type: varchar
               """
                 .toProto<DataPolicy>()
 
@@ -134,49 +137,50 @@ class GlobalTransformsServiceTest {
             @Language("yaml")
             val expected =
                 """
-                    source:
-                      ref: test1
-                      type: SNOWFLAKE
-                      fields:
-                      - nameParts:  [ name ]
-                        type: varchar
-                        tags: [ pii,  tag123, overlap ]
-                      - nameParts:  [ email ]
-                        type: varchar
-                        tags: [  email, overlap ]
-                      - nameParts: [ description ]
-                        type: varchar
-                    platform:
-                      platformType: SNOWFLAKE
-                      id: snowflake
-                    ruleSets:
-                    - target:
-                        fullname: "test1_view"
-                      fieldTransforms:
-                      - field:
-                          nameParts: [ name ]
-                          type: "varchar"
-                          tags: [  pii, tag123, overlap ]
-                        transforms:
-                        - principals:  [ {group: fraud-and-risk} ]
-                          identity: {}
-                        - principals: [ {group: marketing} ]
-                          fixed: {value: fixed-value2}
-                        - principals: [ group: "analytics" ]
-                          hash: {seed: "3"}
-                        - hash: {seed: "1234"}
-                      - field:
-                          nameParts: [ email ]
-                          type: varchar
-                          tags: [  email,  overlap ]
-                        transforms:
-                        - principals: [ {group: marketing} ]
-                          regexp: {regexp: "^.*(@.*)$", replacement: "$1"}
-                        - principals: [ {group: fraud-and-risk} ]
-                          identity: {}
-                        - principals: [ {group: analytics} ]
-                          hash: {seed: "3" }
-                        - fixed: {value: "****" }
+source:
+  ref:
+    integration_fqn: test1
+    platform:
+      platform_type: SNOWFLAKE
+      id: snowflake
+  fields:
+    - name_parts:  [ name ]
+      type: varchar
+      tags: [ pii,  tag123, overlap ]
+    - name_parts:  [ email ]
+      type: varchar
+      tags: [  email, overlap ]
+    - name_parts: [ description ]
+      type: varchar
+rule_sets:
+  - target:
+      ref: 
+        integration_fqn: "test1_view"
+    field_transforms:  
+      - field:
+          name_parts: [ name ]
+          type: "varchar"
+          tags: [  pii, tag123, overlap ]
+        transforms:
+          - principals:  [ {group: fraud-and-risk} ]
+            identity: {}
+          - principals: [ {group: marketing} ]
+            fixed: {value: fixed-value2}
+          - principals: [ group: "analytics" ]
+            hash: {seed: "3"}
+          - hash: {seed: "1234"}
+      - field:
+          name_parts: [ email ]
+          type: varchar
+          tags: [  email,  overlap ]
+        transforms:
+          - principals: [ {group: marketing} ]
+            regexp: {regexp: "^.*(@.*)$", replacement: "$1"}
+          - principals: [ {group: fraud-and-risk} ]
+            identity: {}
+          - principals: [ {group: analytics} ]
+            hash: {seed: "3" }
+          - fixed: {value: "****" }
                  """
                     .trimIndent()
                     .toProto<DataPolicy>()
@@ -192,21 +196,21 @@ class GlobalTransformsServiceTest {
         @Language("yaml")
         val dataPolicy =
             """
-                platform: 
-                  platform_type: SNOWFLAKE
-                  id: snowflake
-                source:
-                  ref: test1
-                  type: SNOWFLAKE
-                  fields:
-                    - name_parts: [name]
-                      type: varchar
-                      tags: [ overlap, pii, tag123 ]
-                    - name_parts: [email]
-                      type: varchar
-                      tags: [ overlap, email ]
-                    - name_parts: [description]
-                      type: varchar
+source:
+  ref:
+    integration_fqn: test1
+    platform:
+      platform_type: SNOWFLAKE
+      id: snowflake
+  fields:
+    - name_parts: [name]
+      type: varchar
+      tags: [ overlap, pii, tag123 ]
+    - name_parts: [email]
+      type: varchar
+      tags: [ overlap, email ]
+    - name_parts: [description]
+      type: varchar
               """
                 .toProto<DataPolicy>()
 
@@ -216,50 +220,51 @@ class GlobalTransformsServiceTest {
             @Language("yaml")
             val expected =
                 """
-                    source:
-                      ref: test1
-                      type: SNOWFLAKE
-                      fields:
-                      - nameParts:  [ name ]
-                        type: varchar
-                        tags: [  overlap, pii,  tag123 ]
-                      - nameParts:  [ email ]
-                        type: varchar
-                        tags: [  overlap, email ]
-                      - nameParts: [ description ]
-                        type: varchar
-                    platform:
-                      platformType: SNOWFLAKE
-                      id: snowflake
-                    ruleSets:
-                    - target:
-                        fullname: "test1_view"
-                      fieldTransforms:
-                      - field:
-                          nameParts: [ name ]
-                          type: varchar
-                          # checks ignoring unknown tags
-                          tags: [  overlap, pii, tag123  ]
-                        transforms:
-                        - principals: [ {group: marketing} ]
-                          fixed: {value: fixed-value2}
-                        - principals: [ {group: analytics} ]
-                          hash: {seed: "3"}
-                        - principals: [ {group: fraud-and-risk} ]
-                          nullify: {}
-                        - fixed: {value: fixed-value}
-                      - field:
-                          nameParts: [ email ]
-                          type: "varchar"
-                          tags: [  overlap, email  ]
-                        transforms:
-                        - principals: [ {group: marketing} ]
-                          fixed: {value: fixed-value2}
-                        - principals: [ {group: analytics} ]
-                          hash: {seed: "3" }
-                        - principals: [ {group: fraud-and-risk} ]
-                          nullify: {}
-                        - fixed: {value: "fixed-value" }
+source:
+  ref:
+    integration_fqn: test1
+    platform:
+      platform_type: SNOWFLAKE
+      id: snowflake
+  fields:
+    - name_parts:  [ name ]
+      type: varchar
+      tags: [  overlap, pii,  tag123 ]
+    - name_parts:  [ email ]
+      type: varchar
+      tags: [  overlap, email ]
+    - name_parts: [ description ]
+      type: varchar
+rule_sets:
+  - target:
+      ref: 
+        integration_fqn: "test1_view"
+    field_transforms:  
+      - field:
+          name_parts: [ name ]
+          type: varchar
+          # checks ignoring unknown tags
+          tags: [  overlap, pii, tag123  ]
+        transforms:
+          - principals: [ {group: marketing} ]
+            fixed: {value: fixed-value2}
+          - principals: [ {group: analytics} ]
+            hash: {seed: "3"}
+          - principals: [ {group: fraud-and-risk} ]
+            nullify: {}
+          - fixed: {value: fixed-value}
+      - field:
+          name_parts: [ email ]
+          type: "varchar"
+          tags: [  overlap, email  ]
+        transforms:
+          - principals: [ {group: marketing} ]
+            fixed: {value: fixed-value2}
+          - principals: [ {group: analytics} ]
+            hash: {seed: "3" }
+          - principals: [ {group: fraud-and-risk} ]
+            nullify: {}
+          - fixed: {value: "fixed-value" }
                     """
                     .trimIndent()
                     .toProto<DataPolicy>()

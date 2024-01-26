@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.apollographql.apollo3.ApolloClient
 import com.getstrm.pace.config.CatalogConfiguration
+import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.*
 import com.google.rpc.ResourceInfo
@@ -25,9 +26,7 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         client.close()
     }
 
-    override suspend fun listDatabases(
-        pageParameters: PageParameters
-    ): PagedCollection<DataCatalog.Database> {
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Resource> {
         return listOf(database).withPageInfo()
     }
 
@@ -37,18 +36,20 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
     inner class Database(override val catalog: DatahubCatalog) :
         DataCatalog.Database(catalog, catalog.id, "datahub", catalog.id) {
-        override suspend fun listSchemas(
+        override suspend fun listChildren(
             pageParameters: PageParameters
-        ): PagedCollection<DataCatalog.Schema> = listOf(schema).withPageInfo()
+        ): PagedCollection<Resource> = listOf(schema).withPageInfo()
 
-        override suspend fun getSchema(schemaId: String) = schema
+        override suspend fun getChild(childId: String): Resource {
+            return schema
+        }
     }
 
     inner class Schema(database: Database) :
         DataCatalog.Schema(database, database.id, database.id) {
-        override suspend fun listTables(
+        override suspend fun listChildren(
             pageParameters: PageParameters
-        ): PagedCollection<DataCatalog.Table> {
+        ): PagedCollection<Resource> {
             val response =
                 client
                     .query(ListDatasetsQuery(pageParameters.skip, pageParameters.pageSize))
@@ -60,16 +61,16 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             return tables.withTotal(response.data?.search?.total ?: -1)
         }
 
-        override suspend fun getTable(tableId: String): DataCatalog.Table {
-            val response = client.query(GetDatasetDetailsQuery(tableId)).execute()
+        override suspend fun getChild(childId: String): DataCatalog.Table {
+            val response = client.query(GetDatasetDetailsQuery(childId)).execute()
             val dataset =
                 response.data!!.dataset
                     ?: throw ResourceException(
                         ResourceException.Code.NOT_FOUND,
                         ResourceInfo.newBuilder()
                             .setResourceType("Table")
-                            .setResourceName(tableId)
-                            .setDescription("Table $tableId not found in schema $id")
+                            .setResourceName(childId)
+                            .setDescription("Table $childId not found in schema $id")
                             .setOwner("Schema: $id")
                             .build()
                     )
@@ -81,7 +82,7 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         // this property is lazily filled in when calling getDataPolicy
         lateinit var dataset: GetDatasetDetailsQuery.Dataset
 
-        override suspend fun createBlueprint(): DataPolicy? {
+        override suspend fun createBlueprint(): DataPolicy {
             val response = client.query(GetDatasetDetailsQuery(id)).execute()
             dataset = response.data!!.dataset!!
             if (response.hasErrors())
@@ -90,13 +91,10 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
             // tags don't exist in schemaMetadata but only in editableSchemaMetadata!
             val addtributeTags =
-                dataset.editableSchemaMetadata
-                    ?.editableSchemaFieldInfo
-                    ?.map {
-                        it.fieldPath to
-                            it.tags?.tags?.map { it.tag.properties?.name.orEmpty() }.orEmpty()
-                    }
-                    ?.toMap() ?: emptyMap()
+                dataset.editableSchemaMetadata?.editableSchemaFieldInfo?.associate { fieldInfo ->
+                    fieldInfo.fieldPath to
+                        fieldInfo.tags?.tags?.map { it.tag.properties?.name.orEmpty() }.orEmpty()
+                } ?: emptyMap()
 
             policyBuilder.sourceBuilder.addAllFields(
                 dataset.schemaMetadata?.fields?.map {

@@ -2,8 +2,10 @@ package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
-import com.getstrm.pace.config.SnowflakeConfig
+import com.getstrm.pace.config.SnowflakeConfiguration
+import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.exceptions.throwNotFound
@@ -25,7 +27,8 @@ import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForEntity
 
-class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatformClient(config) {
+class SnowflakeClient(override val config: SnowflakeConfiguration) :
+    ProcessingPlatformClient(config) {
 
     private val snowflakeJwtIssuer =
         SnowflakeJwtIssuer.fromOrganizationAndAccountName(
@@ -41,6 +44,15 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
     // Currently our Snowflake Processing configured to connect to just one Database
     // which is why we have a hardcoded one here
     val database = SnowflakeDatabase(this, config.database)
+
+    override suspend fun platformResourceName(index: Int): String {
+        return when (index) {
+            0 -> "warehouse"
+            1 -> "schema"
+            2 -> "table"
+            else -> "Level-$index"
+        }
+    }
 
     fun executeRequest(request: SnowflakeRequest): ResponseEntity<SnowflakeResponse> {
         try {
@@ -82,23 +94,23 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
         executeRequest(request)
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> =
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Resource> =
         listOf(database).withPageInfo()
 
     override suspend fun listSchemas(
         databaseId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Schema> = getDatabase(databaseId).listSchemas(pageParameters)
+    ): PagedCollection<Resource> = getDatabase(databaseId).listChildren(pageParameters)
 
     override suspend fun listTables(
         databaseId: String,
         schemaId: String,
         pageParameters: PageParameters
-    ): PagedCollection<Table> =
-        getDatabase(databaseId).getSchema(schemaId).listTables(pageParameters)
+    ): PagedCollection<Resource> =
+        getDatabase(databaseId).getChild(schemaId).listChildren(pageParameters)
 
-    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table =
-        getDatabase(databaseId).getSchema(schemaId).getTable(tableId)
+    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Resource =
+        getDatabase(databaseId).getChild(schemaId).getChild(tableId)
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
         val request =
@@ -167,7 +179,9 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
 
     inner class SnowflakeDatabase(pp: ProcessingPlatformClient, id: String) :
         Database(pp, id, ProcessingPlatform.PlatformType.SNOWFLAKE) {
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
+        override suspend fun listChildren(
+            pageParameters: PageParameters
+        ): PagedCollection<Resource> {
             val sql = "SHOW SCHEMAS in DATABASE \"$id\""
 
             val request =
@@ -184,9 +198,13 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
                 .withPageInfo()
         }
 
-        override suspend fun getSchema(schemaId: String): Schema {
-            return listSchemas(MILLION_RECORDS).find { it.id == schemaId }
-                ?: throwNotFound(schemaId, "Snowflake schema")
+        override suspend fun getChild(childId: String): Resource {
+            return listChildren(MILLION_RECORDS).find { it.id == childId }
+                ?: throwNotFound(childId, "Snowflake schema")
+        }
+
+        override fun fqn(): String {
+            return id
         }
     }
 
@@ -196,7 +214,9 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
             name,
             name,
         ) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
+        override suspend fun listChildren(
+            pageParameters: PageParameters
+        ): PagedCollection<Resource> {
             val statement =
                 """SELECT table_schema, table_name, table_type,
                created as create_date,
@@ -221,10 +241,14 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
                 .withPageInfo()
         }
 
-        override suspend fun getTable(tableId: String): Table =
+        override suspend fun getChild(childId: String): Resource =
             // TODO increase performance
-            listTables(database.id, id, MILLION_RECORDS).find { it.id == tableId }
-                ?: throwNotFound(tableId, "Snowflake table")
+            listTables(database.id, id, MILLION_RECORDS).find { it.id == childId }
+                ?: throwNotFound(childId, "Snowflake table")
+
+        override fun fqn(): String {
+            return "${database.id}.$id"
+        }
     }
 
     data class SnowflakeRequest(
@@ -251,6 +275,10 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
         override val fullName: String
             get() = "${schema.id}.${id}"
 
+        override fun fqn(): String {
+            return "${schema.fqn()}.${id}"
+        }
+
         private fun SnowflakeResponse.toDataPolicy(
             platform: ProcessingPlatform,
             fullName: String
@@ -259,10 +287,14 @@ class SnowflakeClient(override val config: SnowflakeConfig) : ProcessingPlatform
                 .setMetadata(
                     DataPolicy.Metadata.newBuilder().setTitle(fullName),
                 )
-                .setPlatform(platform)
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(fullName)
+                        .setRef(
+                            resourceUrn {
+                                integrationFqn = fullName
+                                this.platform = platform
+                            }
+                        )
                         .addAllFields(
                             // Todo: make this more type-safe
                             data.orEmpty().map { (name, type, _, nullable) ->

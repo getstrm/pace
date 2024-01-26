@@ -13,9 +13,9 @@ import com.collibra.generated.ListPhysicalDataAssetsQuery
 import com.collibra.generated.ListSchemaIdsQuery
 import com.collibra.generated.ListTablesInSchemaQuery
 import com.getstrm.pace.config.CatalogConfiguration
-import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.exceptions.BadRequestException.Code.INVALID_ARGUMENT
+import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.InternalException
+import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.MILLION_RECORDS
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.firstNonNull
@@ -23,8 +23,8 @@ import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.onlyNonNulls
 import com.getstrm.pace.util.pagedCalls
 import com.getstrm.pace.util.withUnknownTotals
-import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
+import com.google.rpc.ResourceInfo
 import java.util.*
 import kotlinx.coroutines.flow.single
 import org.slf4j.LoggerFactory
@@ -36,9 +36,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
     override fun close() = client.close()
 
-    override suspend fun listDatabases(
-        pageParameters: PageParameters
-    ): PagedCollection<DataCatalog.Database> =
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Resource> =
         pagedCalls(pageParameters) { skip: Int, pageSize: Int ->
                 client
                     .query(
@@ -56,6 +54,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             .map { Database(this, it.id.toString(), it.getDataSourceType(), it.displayName ?: "") }
 
     override suspend fun getDatabase(databaseId: String): DataCatalog.Database {
+        // FIXME Catch Not Found error and translate
         val database =
             client.query(GetDataBaseQuery(databaseId)).executeOrThrowError().assets.firstNonNull()
         return Database(
@@ -73,9 +72,11 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         displayName: String
     ) : DataCatalog.Database(catalog, id, dbType, displayName) {
 
-        override suspend fun listSchemas(
+        override fun fqn(): String = id
+
+        override suspend fun listChildren(
             pageParameters: PageParameters
-        ): PagedCollection<DataCatalog.Schema> {
+        ): PagedCollection<Resource> {
             val schemas =
                 pagedCalls(pageParameters) { skip, pageSize ->
                     client
@@ -91,13 +92,23 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                 .withUnknownTotals()
         }
 
-        override suspend fun getSchema(schemaId: String): DataCatalog.Schema {
+        override suspend fun getChild(childId: String): Resource {
             val schemaAsset =
                 catalog.client
-                    .query(GetSchemaQuery(schemaId))
+                    .query(GetSchemaQuery(childId))
                     .executeOrThrowError()
                     .assets
-                    .firstNonNull()
+                    ?.firstOrNull()
+                    ?: throw ResourceException(
+                        ResourceException.Code.NOT_FOUND,
+                        ResourceInfo.newBuilder()
+                            .setResourceType("Schema")
+                            .setResourceName(childId)
+                            .setDescription("Schema $childId not found in database $id")
+                            .setOwner("Database: $id")
+                            .build(),
+                        errorMessage = "schema $childId not found"
+                    )
             return Schema(catalog, this, schemaAsset.id.toString(), schemaAsset.fullName)
         }
     }
@@ -109,9 +120,11 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         name: String
     ) : DataCatalog.Schema(database, id, name) {
 
-        override suspend fun listTables(
+        override fun fqn(): String = id
+
+        override suspend fun listChildren(
             pageParameters: PageParameters
-        ): PagedCollection<DataCatalog.Table> {
+        ): PagedCollection<Resource> {
             val tables =
                 pagedCalls(pageParameters) { skip, pageSize ->
                         // first() refers to the single schema
@@ -127,25 +140,25 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             return tables.withUnknownTotals()
         }
 
-        override suspend fun getTable(tableId: String): DataCatalog.Table {
+        override suspend fun getChild(childId: String): DataCatalog.Table {
             val table =
                 catalog.client
-                    .query(GetTableQuery(tableId))
+                    .query(GetTableQuery(childId))
                     .executeOrThrowError()
                     .assets
                     .onlyNonNulls()
                     .firstOrNull()
-                    ?: throw BadRequestException(
-                        INVALID_ARGUMENT,
-                        BadRequest.newBuilder()
-                            .addFieldViolations(
-                                BadRequest.FieldViolation.newBuilder()
-                                    .setDescription("table $tableId not found")
-                            )
+                    ?: throw ResourceException(
+                        ResourceException.Code.NOT_FOUND,
+                        ResourceInfo.newBuilder()
+                            .setResourceType("Table")
+                            .setResourceName(childId)
+                            .setDescription("Table $childId not found in schema $id")
+                            .setOwner("Schema: $id")
                             .build(),
-                        errorMessage = "table $tableId not found"
+                        errorMessage = "table $childId not found"
                     )
-            return Table(catalog, this, tableId, table.fullName)
+            return Table(catalog, this, childId, table.fullName)
         }
     }
 
@@ -156,7 +169,9 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         name: String
     ) : DataCatalog.Table(schema, id, name) {
 
-        override suspend fun createBlueprint(): DataPolicy? {
+        override fun fqn(): String = id
+
+        override suspend fun createBlueprint(): DataPolicy {
             val columns: List<ColumnTypesAndTagsQuery.Column> =
                 pagedCalls(MILLION_RECORDS) { skip, pageSize ->
                     catalog.client
@@ -168,7 +183,7 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
                         .onlyNonNulls()
                 }
             return with(DataPolicy.newBuilder()) {
-                metadataBuilder.title = name
+                metadataBuilder.title = displayName
                 metadataBuilder.description = schema.database.displayName
                 columns.forEach { column -> sourceBuilder.addFields(column.toField()) }
                 build()

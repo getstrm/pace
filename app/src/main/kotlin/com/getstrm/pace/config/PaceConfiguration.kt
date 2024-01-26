@@ -4,6 +4,7 @@ import com.getstrm.pace.grpc.ExceptionHandlerInterceptor
 import com.getstrm.pace.grpc.ValidationInterceptor
 import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
@@ -16,4 +17,9 @@ class PaceConfiguration(
         ExceptionHandlerInterceptor(appConfiguration.exposeApplicationExceptions)
 
     @GrpcGlobalServerInterceptor fun validationInterceptor() = ValidationInterceptor()
+
+    @Bean
+    fun processingPlatformsConfiguration(): ProcessingPlatformsConfiguration {
+        return appConfiguration.processingPlatforms
+    }
 }

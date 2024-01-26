@@ -1,8 +1,8 @@
 package com.getstrm.pace.util
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.InternalException
@@ -93,7 +93,7 @@ inline fun <reified T : GeneratedMessageV3> String.toProto(validate: Boolean = t
     val constructor = T::class.constructors.first { it.parameters.isEmpty() }
     constructor.javaConstructor?.trySetAccessible()
     val builder = constructor.call().toBuilder()
-    JsonFormat.parser().ignoringUnknownFields().merge(toJsonString(), builder)
+    JsonFormat.parser().merge(toJsonString(), builder)
     return (builder.build() as T).also { if (validate) it.validate() }
 }
 
@@ -224,11 +224,10 @@ fun DataPolicy.Source.toDDL(): String {
         .trimIndent()
 }
 
-fun DataPolicy.sourceDataResourceRef() =
-    DataResourceRef.newBuilder().setFqn(source.ref).setPlatform(platform).build()
+fun DataPolicy.sourceDataResourceRef(): ResourceUrn = source.ref
 
-fun DataPolicy.targetDataResourceRefs(): List<DataResourceRef> {
-    return this.ruleSetsList.map { ruleSet ->
-        DataResourceRef.newBuilder().setFqn(ruleSet.target.fullname).setPlatform(platform).build()
-    }
-}
+fun DataPolicy.targetDataResourceRefs(): List<ResourceUrn> =
+    this.ruleSetsList.map { ruleSet -> ruleSet.target.ref }
+
+fun ResourceUrn.parent(): ResourceUrn =
+    toBuilder().clearResourcePath().addAllResourcePath(this.resourcePathList.dropLast(1)).build()

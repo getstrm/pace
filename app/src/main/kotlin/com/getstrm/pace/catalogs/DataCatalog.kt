@@ -1,21 +1,25 @@
 package com.getstrm.pace.catalogs
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog as ApiCatalog
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Database as ApiDatabase
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Schema as ApiSchema
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Table as ApiTable
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.CatalogConfiguration
-import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
+import com.getstrm.pace.domain.IntegrationClient
+import com.getstrm.pace.domain.LeafResource
+import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.util.PagedCollection
 
 /** Abstraction of the physical data concepts in a data catalog. */
-abstract class DataCatalog(
-    val config: CatalogConfiguration,
-) : AutoCloseable {
-    val id: String
+abstract class DataCatalog(val config: CatalogConfiguration) : AutoCloseable, IntegrationClient() {
+    override val id: String
         get() = config.id
+
+    override val resourceUrn: ResourceUrn
+        get() = resourceUrn { catalog = apiCatalog }
 
     val type: ApiCatalog.Type
         get() = config.type
@@ -23,64 +27,63 @@ abstract class DataCatalog(
     val apiCatalog: ApiCatalog
         get() = ApiCatalog.newBuilder().setId(id).setType(config.type).build()
 
-    abstract suspend fun listDatabases(
-        pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-    ): PagedCollection<Database>
+    override suspend fun getChild(childId: String): Resource = getDatabase(childId)
 
-    abstract suspend fun getDatabase(databaseId: String): Database
+    override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Resource> =
+        listDatabases(pageParameters)
+
+    abstract suspend fun getDatabase(databaseId: String): Resource
 
     /** A table is a collection of columns. */
-    abstract class Table(val schema: Schema, val id: String, val name: String) {
-        /**
-         * create a blueprint from the field information and possible the global transforms.
-         *
-         * NOTE: do not call this method `get...` (Bean convention) because then the lazy
-         * information gathering for creating blueprints becomes non-lazy. You can see this for
-         * instance with the DataHub implementation
-         */
-        abstract suspend fun createBlueprint(): DataPolicy?
+    abstract class Table(
+        val schema: Schema,
+        override val id: String,
+        override val displayName: String
+    ) : LeafResource() {
+        override fun toString(): String = "Table($id, $displayName)"
 
-        override fun toString(): String = "Table($id, $name)"
+        override fun fqn(): String = "${schema.fqn()}.${id}"
 
         val apiTable: ApiTable
             get() =
-                ApiTable.newBuilder().setId(id).setSchema(schema.apiSchema).setName(name).build()
+                ApiTable.newBuilder()
+                    .setId(id)
+                    .setSchema(schema.apiSchema)
+                    .setName(displayName)
+                    .build()
     }
 
     /** A schema is a collection of tables. */
-    abstract class Schema(val database: Database, val id: String, val name: String) {
-        abstract suspend fun listTables(
-            pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-        ): PagedCollection<Table>
+    abstract class Schema(
+        val database: Database,
+        override val id: String,
+        override val displayName: String
+    ) : Resource {
 
-        override fun toString(): String = "Schema($id, $name)"
+        override fun fqn(): String = "${database.id}.$id"
+
+        override fun toString(): String = "Schema($id, $displayName)"
 
         val apiSchema: ApiSchema
             get() =
                 ApiSchema.newBuilder()
                     .setId(id)
-                    .setName(name)
+                    .setName(displayName)
                     .setDatabase(database.apiDatabase)
                     .build()
-
-        abstract suspend fun getTable(tableId: String): Table
     }
 
-    /** meta information database */
     abstract class Database(
         open val catalog: DataCatalog,
-        val id: String,
+        override val id: String,
         val dbType: String? = null,
-        val displayName: String? = null
-    ) {
-        abstract suspend fun listSchemas(
-            pageParameters: PageParameters = DEFAULT_PAGE_PARAMETERS
-        ): PagedCollection<Schema>
+        override val displayName: String = id
+    ) : Resource {
+
+        override fun fqn(): String = id
 
         override fun toString() =
             dbType?.let { "Database($id, $dbType, $displayName)" } ?: "Database($id)"
-
-        abstract suspend fun getSchema(schemaId: String): Schema
 
         val apiDatabase: ApiDatabase
             get() =

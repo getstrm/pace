@@ -3,6 +3,7 @@ package com.getstrm.pace.catalogs
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.getstrm.pace.config.CatalogConfiguration
+import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.THOUSAND_RECORDS
@@ -13,7 +14,13 @@ import java.util.*
 import org.opendatadiscovery.generated.api.DataSetApi
 import org.opendatadiscovery.generated.api.DataSourceApi
 import org.opendatadiscovery.generated.api.SearchApi
-import org.opendatadiscovery.generated.model.*
+import org.opendatadiscovery.generated.model.DataEntity
+import org.opendatadiscovery.generated.model.DataSetField
+import org.opendatadiscovery.generated.model.DataSource
+import org.opendatadiscovery.generated.model.SearchFacetsData
+import org.opendatadiscovery.generated.model.SearchFilterState
+import org.opendatadiscovery.generated.model.SearchFormData
+import org.opendatadiscovery.generated.model.SearchFormDataFilters
 
 /** Interface to ODD Data Catalogs. */
 class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalog(configuration) {
@@ -28,9 +35,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
      * contain at least one dataset. This is because ODD does not provide information of this kind
      * in its api.
      */
-    override suspend fun listDatabases(
-        pageParameters: PageParameters
-    ): PagedCollection<DataCatalog.Database> =
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Resource> =
         dataSources.values
             .filter { dataSource ->
                 val searchId = searchDataSetsInDataSource(dataSource).searchId
@@ -42,7 +47,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
             .withPageInfo()
 
     // FIXME the ODD model seems broken. See comment with listDatabases.
-    override suspend fun getDatabase(databaseId: String): DataCatalog.Database {
+    override suspend fun getDatabase(databaseId: String): Resource {
         return listDatabases(THOUSAND_RECORDS).data.find { it.id == databaseId }
             ?: throw ResourceException(
                 ResourceException.Code.NOT_FOUND,
@@ -65,21 +70,21 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         /*
             Just returning a hardcoded schema with id 'schema' and name the same as that of the dataSource.
         */
-        override suspend fun listSchemas(
+        override suspend fun listChildren(
             pageParameters: PageParameters
-        ): PagedCollection<DataCatalog.Schema> {
+        ): PagedCollection<Resource> {
             return listOf(Schema(catalog, this, "schema", dataSource.name)).withPageInfo()
         }
 
-        override suspend fun getSchema(schemaId: String): DataCatalog.Schema {
-            return listSchemas(THOUSAND_RECORDS).data.firstOrNull { it.id == schemaId }
+        override suspend fun getChild(childId: String): Resource {
+            return listChildren(THOUSAND_RECORDS).data.firstOrNull { it.id == childId }
                 ?: throw ResourceException(
                     ResourceException.Code.NOT_FOUND,
                     ResourceInfo.newBuilder()
                         .setResourceType("Catalog Database Schema")
-                        .setResourceName(schemaId)
+                        .setResourceName(childId)
                         .setDescription(
-                            "Schema $schemaId not found in database $id of catalog $catalog.id"
+                            "Schema $childId not found in database $id of catalog $catalog.id"
                         )
                         .setOwner("Database: $id")
                         .build()
@@ -94,9 +99,9 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
         id: String,
         name: String,
     ) : DataCatalog.Schema(oddDatabase, id, name) {
-        override suspend fun listTables(
+        override suspend fun listChildren(
             pageParameters: PageParameters
-        ): PagedCollection<DataCatalog.Table> {
+        ): PagedCollection<Resource> {
             val searchId = catalog.searchDataSetsInDataSource(oddDatabase.dataSource).searchId
             val tables =
                 catalog.getAllSearchResults(searchId).map {
@@ -105,14 +110,14 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
             return tables.withPageInfo()
         }
 
-        override suspend fun getTable(tableId: String): DataCatalog.Table {
-            return listTables(THOUSAND_RECORDS).data.firstOrNull { it.id == tableId }
+        override suspend fun getChild(childId: String): Resource {
+            return listChildren(THOUSAND_RECORDS).data.firstOrNull { it.id == childId }
                 ?: throw ResourceException(
                     ResourceException.Code.NOT_FOUND,
                     ResourceInfo.newBuilder()
                         .setResourceType("Table")
-                        .setResourceName(tableId)
-                        .setDescription("Table $tableId not found in schema $id")
+                        .setResourceName(childId)
+                        .setDescription("Table $childId not found in schema $id")
                         .setOwner("Schema: $id")
                         .build()
                 )
@@ -135,7 +140,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
             }
         }
 
-        override suspend fun createBlueprint(): DataPolicy? {
+        override suspend fun createBlueprint(): DataPolicy {
             val datasetStructure = catalog.datasetsClient.getDataSetStructureLatest(id.toLong())
             val fields = datasetStructure.fieldList
             val fieldsById = fields.associateBy { it.id }
@@ -162,7 +167,7 @@ class OpenDataDiscoveryCatalog(configuration: CatalogConfiguration) : DataCatalo
                 },
             )
             with(policyBuilder.metadataBuilder) {
-                title = name
+                title = displayName
                 description = schema.database.displayName
             }
             return policyBuilder.build()

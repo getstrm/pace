@@ -1,19 +1,25 @@
 package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataResourceRef
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Lineage
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform.PlatformType.BIGQUERY
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.processing_platforms.v1alpha.GetLineageRequest
-import com.getstrm.pace.config.BigQueryConfig
+import com.getstrm.pace.config.BigQueryConfiguration
+import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.exceptions.PaceStatusException.Companion.BUG_REPORT
 import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
-import com.getstrm.pace.util.*
+import com.getstrm.pace.util.DEFAULT_PAGE_PARAMETERS
+import com.getstrm.pace.util.PagedCollection
+import com.getstrm.pace.util.applyPageParameters
+import com.getstrm.pace.util.normalizeType
+import com.getstrm.pace.util.toTimestamp
+import com.getstrm.pace.util.withPageInfo
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.bigquery.*
 import com.google.cloud.bigquery.Dataset as BQDataset
@@ -40,7 +46,7 @@ typealias SqlString = String
  * BigQuery: Project -> DataSet -> Table
  */
 class BigQueryClient(
-    override val config: BigQueryConfig,
+    override val config: BigQueryConfiguration,
 ) : ProcessingPlatformClient(config) {
 
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -53,6 +59,7 @@ class BigQueryClient(
             .setCredentials(credentials)
             .setProjectId(config.projectId)
             .build()
+            .apply { this.throwNotFound = true }
             .service
     private val lineageClient =
         LineageClient.create(
@@ -63,29 +70,39 @@ class BigQueryClient(
 
     private val bigQueryDatabase = BigQueryDatabase(this, config.projectId)
 
+    override suspend fun platformResourceName(index: Int): String {
+        return when (index) {
+            0 -> "project"
+            1 -> "dataset"
+            2 -> "table"
+            // TODO unpleasant client interaction
+            else -> "Level-$index"
+        }
+    }
+
     /**
      * for now we have interact with only one Gcloud project, and call this the PACE Database. But
      * the access credentials might allow interaction with multiple projects, in which case the
      * result from this call would become greater.
      */
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> =
+    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Resource> =
         listOf(bigQueryDatabase).withPageInfo()
 
-    private suspend fun getDatabase(databaseId: String): Database =
+    private suspend fun getDatabase(databaseId: String): Resource =
         listDatabases(DEFAULT_PAGE_PARAMETERS).find { it.id == databaseId }
             ?: throwNotFound(databaseId, "BigQuery Dataset")
 
     override suspend fun listSchemas(databaseId: String, pageParameters: PageParameters) =
-        getDatabase(databaseId).listSchemas(pageParameters)
+        getDatabase(databaseId).listChildren(pageParameters)
 
     override suspend fun listTables(
         databaseId: String,
         schemaId: String,
         pageParameters: PageParameters
-    ) = getDatabase(databaseId).getSchema(schemaId).listTables(pageParameters)
+    ) = getDatabase(databaseId).getChild(schemaId).listChildren(pageParameters)
 
     override suspend fun getTable(databaseId: String, schemaId: String, tableId: String) =
-        getDatabase(databaseId).getSchema(schemaId).getTable(tableId)
+        getDatabase(databaseId).getChild(schemaId).getChild(tableId)
 
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator =
@@ -112,7 +129,10 @@ class BigQueryClient(
             authorizeViews(dataPolicy)
         } catch (e: BigQueryException) {
             if (e.message == "Duplicate authorized views") {
-                log.warn("Target view(s) for data policy {} already authorized.", dataPolicy.id)
+                log.warn(
+                    "Target view(s) for data policy {} already authorized.",
+                    dataPolicy.source.ref.integrationFqn
+                )
             } else {
                 throw InternalException(
                     InternalException.Code.INTERNAL,
@@ -130,12 +150,13 @@ class BigQueryClient(
 
     // Fixme: better handle case where view was already authorized (currently caught above)
     private fun authorizeViews(dataPolicy: DataPolicy) {
-        val sourceDataSet = bigQueryClient.getDataset(dataPolicy.source.ref.toTableId().dataset)
+        val sourceDataSet =
+            bigQueryClient.getDataset(dataPolicy.source.ref.integrationFqn.toTableId().dataset)
         val sourceAcl = sourceDataSet.acl
         val viewsAcl =
             dataPolicy.ruleSetsList.flatMap { ruleSet ->
                 // Allow the target view to view the source table
-                val targetAcl = Acl.of(Acl.View(ruleSet.target.fullname.toTableId()))
+                val targetAcl = Acl.of(Acl.View(ruleSet.target.ref.integrationFqn.toTableId()))
                 // Allow the target view to view any applicable token source tables
                 val tokenSourceAcls =
                     ruleSet.fieldTransformsList.flatMap { fieldTransform ->
@@ -175,7 +196,7 @@ class BigQueryClient(
             .withPageInfo()
     }
 
-    override fun createBlueprint(fqn: String): DataPolicy =
+    override suspend fun createBlueprint(fqn: String): DataPolicy =
         doCreateBlueprint(
             bigQueryClient.getTable(fqn.stripBqPrefix().toTableId())
                 ?: throwNotFound(fqn, "BigQuery Table")
@@ -185,10 +206,10 @@ class BigQueryClient(
         val (upstream, downstream) = buildLineageList(request.fqn.addBqPrefix())
         return LineageSummary.newBuilder()
             .setResourceRef(
-                DataResourceRef.newBuilder()
-                    .setFqn(request.fqn)
-                    .setPlatform(apiProcessingPlatform)
-                    .build()
+                resourceUrn {
+                    integrationFqn = request.fqn
+                    platform = apiProcessingPlatform
+                }
             )
             .addAllUpstream(upstream)
             .addAllDownstream(downstream)
@@ -283,10 +304,10 @@ class BigQueryClient(
         return Lineage.newBuilder()
             .setRelation(relation ?: "unknown")
             .setResourceRef(
-                DataResourceRef.newBuilder()
-                    .setFqn(fqn.stripBqPrefix())
-                    .setPlatform(apiProcessingPlatform)
-                    .build()
+                resourceUrn {
+                    integrationFqn = fqn.stripBqPrefix()
+                    platform = apiProcessingPlatform
+                }
             )
             .build()
     }
@@ -295,7 +316,9 @@ class BigQueryClient(
     inner class BigQueryDatabase(platformClient: ProcessingPlatformClient, projectId: String) :
         Database(platformClient, projectId, BIGQUERY) {
 
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
+        override suspend fun listChildren(
+            pageParameters: PageParameters
+        ): PagedCollection<Resource> {
             // FIXME pagedCalls function needs to understand page tokens
             // We'll pick that up after the merge of pace-84
             // for now just getting all of the datasets
@@ -305,20 +328,31 @@ class BigQueryClient(
                 val page = bigQueryClient.listDatasets()
                 datasets += page.iterateAll()
             } while (page.hasNextPage())
-            val info: PagedCollection<Schema> =
+            val info: PagedCollection<Resource> =
                 datasets.map { BigQuerySchema(this, it) }.withPageInfo()
             return info
         }
 
-        override suspend fun getSchema(schemaId: String): Schema =
-            BigQuerySchema(this, bigQueryClient.getDataset(schemaId))
+        override suspend fun getChild(childId: String): Schema {
+            return try {
+                BigQuerySchema(this, bigQueryClient.getDataset(childId))
+            } catch (e: BigQueryException) {
+                throwNotFound(childId, "BigQuery Dataset")
+            }
+        }
+
+        override fun fqn(): String {
+            return this.id
+        }
     }
 
     /** One BigQuerySchema corresponds with one BigQuery dataset */
     inner class BigQuerySchema(database: BigQueryDatabase, val dataset: BQDataset) :
         Schema(database, dataset.datasetId.dataset, dataset.datasetId.dataset) {
 
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> =
+        override suspend fun listChildren(
+            pageParameters: PageParameters
+        ): PagedCollection<Resource> =
             // FIXME pagedCalls function needs to understand page tokens
             bigQueryClient
                 .listTables(dataset.datasetId)
@@ -328,11 +362,19 @@ class BigQueryClient(
                 .map { BigQueryTable(this, it) }
                 .withPageInfo()
 
-        override suspend fun getTable(tableId: String) =
-            BigQueryTable(
-                this,
-                bigQueryClient.getTable(TableId.of(dataset.datasetId.dataset, tableId))
-            )
+        override suspend fun getChild(tableId: String): BigQueryTable =
+            try {
+                BigQueryTable(
+                    this,
+                    bigQueryClient.getTable(TableId.of(dataset.datasetId.dataset, tableId))
+                )
+            } catch (e: BigQueryException) {
+                throwNotFound(tableId, "BigQuery Table")
+            }
+
+        override fun fqn(): String {
+            return "${database.id}.$id"
+        }
     }
 
     /** One BigQueryTable corresponds with one PACE Table. */
@@ -343,6 +385,10 @@ class BigQueryClient(
         override suspend fun createBlueprint() = doCreateBlueprint(bqTable)
 
         override val fullName = bqTable.fullName()
+
+        override fun fqn(): String {
+            return "${schema.fqn()}.${id}"
+        }
     }
 
     private fun doCreateBlueprint(bqTable: com.google.cloud.bigquery.Table): DataPolicy {
@@ -368,10 +414,14 @@ class BigQueryClient(
                     .setCreateTime(table.creationTime.toTimestamp())
                     .setUpdateTime(table.lastModifiedTime.toTimestamp()),
             )
-            .setPlatform(apiProcessingPlatform)
             .setSource(
                 DataPolicy.Source.newBuilder()
-                    .setRef(table.fullName())
+                    .setRef(
+                        resourceUrn {
+                            integrationFqn = table.fullName()
+                            platform = apiProcessingPlatform
+                        }
+                    )
                     .addAllFields(
                         table.getDefinition<TableDefinition>().schema?.fields.orEmpty().map { field
                             ->
