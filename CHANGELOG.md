@@ -1,3 +1,10 @@
+# [1.0.0-alpha.55](https://github.com/getstrm/pace/compare/v1.0.0-alpha.54...v1.0.0-alpha.55) (2024-01-26)
+
+
+### Bug Fixes
+
+* **pace-124:** quote names for postgres, set expose-application-exceptions to t… ([#160](https://github.com/getstrm/pace/issues/160)) ([09b2233](https://github.com/getstrm/pace/commit/09b223339bb562762bf5a9c925803f4a052017bb))
+
 # [1.0.0-alpha.54](https://github.com/getstrm/pace/compare/v1.0.0-alpha.53...v1.0.0-alpha.54) (2024-01-26)
 
 
