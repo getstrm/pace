@@ -250,9 +250,6 @@ This returns the following data policy definition in YAML, without any field tra
 metadata:
   description: ""
   title: public.transactions
-platform:
-  id: detokenization-example-connection
-  platform_type: POSTGRES
 source:
   fields:
   - name_parts:
@@ -283,7 +280,11 @@ source:
     - date
     required: true
     type: varchar
-  ref: public.transactions
+  ref: 
+    integration_fqn: public.transactions
+    platform:
+      id: detokenization-example-connection
+      platform_type: POSTGRES
 ```
 
 This definition essentially contains the reference to and schema of the source table. If desired, we can change the title and provide a description, such as:
@@ -300,7 +301,8 @@ We can start filling in the policy by adding a `rule_sets` section:
 [...]
 rule_sets:
   - target:
-      fullname: public.transactions_view
+      ref:
+        integration_fqn: public.transactions_view
 ```
 
 Here we specify the full name of the view that will be created by the policy. By adding a filter, we can codify that only users from the `fraud_and_risk` and `fraud_investigation` groups can view European data:
@@ -309,7 +311,8 @@ Here we specify the full name of the view that will be created by the policy. By
 [...]
 rule_sets:
   - target:
-      fullname: public.transactions_view
+      ref:
+        integration_fqn: public.transactions_view
     filters:
       - conditions:
         - principals:
@@ -327,7 +330,8 @@ The condition is defined in (standard) SQL, compatible with the target platform 
 [...]
 rule_sets:
   - target:
-      fullname: public.transactions_view
+      ref:
+        integration_fqn: public.transactions_view
     filters:
       - conditions:
         - principals:

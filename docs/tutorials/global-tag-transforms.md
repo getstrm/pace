@@ -182,9 +182,6 @@ Which returns the following data policy.
 metadata:
   description: ""
   title: public.demo
-platform:
-  id: global_transforms-sample-connection
-  platform_type: POSTGRES
 source:
   fields:
   - name_parts:
@@ -225,7 +222,11 @@ source:
     - transactionamount
     required: true
     type: integer
-  ref: public.demo
+  ref: 
+    integration_fqn: public.demo
+    platform:
+      id: global_transforms-sample-connection
+      platform_type: POSTGRES
 ```
 
 In this data policy, no `rule_sets` section is present, which is correct, since there are no global transforms yet.
@@ -286,9 +287,6 @@ Which returns the following data policy.
 metadata:
   description: ""
   title: public.demo
-platform:
-  id: global_transforms-sample-connection
-  platform_type: POSTGRES
 rule_sets:
 - field_transforms:
   - field:
@@ -309,7 +307,8 @@ rule_sets:
         replacement: '****$1'
     - nullify: {}
   target:
-    fullname: public.demo_pace_view
+    ref: 
+      integration_fqn: public.demo_pace_view
 source:
   fields:
   - name_parts:
@@ -350,7 +349,11 @@ source:
     - transactionamount
     required: true
     type: integer
-  ref: public.demo
+  ref: 
+    integration_fqn: public.demo
+    platform:
+      id: global_transforms-sample-connection
+      platform_type: POSTGRES
 ```
 
 In this data policy, a `rule_sets` section is present, and it has been populated with the global transforms, since the `email` field has a tag `pii-email` and the global transform should be added for fields that have that specific tag.

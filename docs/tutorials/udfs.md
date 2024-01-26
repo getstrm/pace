@@ -44,9 +44,6 @@ We have then edited the policy file, and included the following field transforma
 metadata:
   ...
   version: 1
-platform:
-  id: dbr-pace
-  platform_type: DATABRICKS
 rule_sets:
 - field_transforms:
   - field:
@@ -56,10 +53,15 @@ rule_sets:
           statement: pace.alpha_test.squarewithpython(age)
         principals: []
   target:
-    fullname: pace.alpha_test.demo_pace_view
+    ref: 
+      integration_fqn: pace.alpha_test.demo_pace_view
 source:
   ...
-  ref: pace.alpha_test.demo
+  ref: 
+    integration_fqn: pace.alpha_test.demo
+    platform:
+      id: dbr-pace
+      platform_type: DATABRICKS
 ```
 
 So this field transformation defines that any user (`principals: []`) receives the squared value of the `age` column.

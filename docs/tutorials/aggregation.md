@@ -228,9 +228,6 @@ This returns the following data policy definition in YAML, without any field tra
 metadata:
   description: ""
   title: public.salary
-platform:
-  id: aggregation-transforms-sample-connection
-  platform_type: POSTGRES
 source:
   fields:
   - name_parts:
@@ -249,7 +246,11 @@ source:
     - salary
     required: true
     type: integer
-  ref: public.salary
+  ref: 
+    integration_fqn: public.salary
+    platform:
+      id: aggregation-transforms-sample-connection
+      platform_type: POSTGRES
 ```
 
 This definition essentially contains the reference to and schema of the source table. If desired, we can change the title and provide a description, such as:
@@ -266,7 +267,8 @@ We can start filling in the policy by adding a `rule_sets` section:
 [...]
 rule_sets:
   - target:
-      fullname: public.salary_view
+      ref: 
+        integration_fqn: public.salary_view
 ```
 
 Here we specify the full name of the view that will be created by the policy. Let's start with a filter, that makes sure that the `uk_manager` role can only see uk data:
@@ -275,7 +277,8 @@ Here we specify the full name of the view that will be created by the policy. Le
 [...]
 rule_sets:
   - target:
-      fullname: public.salary_view
+      ref: 
+        integration_fqn: public.salary_view
     filters:
       - generic_filter:
           conditions:
@@ -291,7 +294,8 @@ The condition is defined in (standard) SQL, compatible with the target platform 
 [...]
 rule_sets:
   - target:
-      fullname: public.salary_view
+      ref: 
+        integration_fqn: public.salary_view
     filters:
       - generic_filter:
           conditions:
@@ -331,7 +335,17 @@ Let's break it down.
 * `analytics`: can see any salary, but the salaries are rounded to the nearest 10k
 * `other`: can see all rows, but the salaries are all nullified.
 
+The `data-policy.yaml` file in the `aggregation-transforms` directory contains the same policy. To apply it and create the `salary_view`, we can use the PACE CLI again:
+
+```bash
+pace upsert data-policy data-policy.yaml --apply
+```
+
+The `pace list data-policies` command will now return it.
+
 ## Querying the view
+
+Now that the `public.salary_view` has been created, we can compare the query results the various users get (see also the psql example queries further below). First a few of the original values again:
 
 {% tabs %}
 {% tab title="public.salary" %}
@@ -346,6 +360,8 @@ Let's break it down.
 ```
 {% endtab %}
 {% endtabs %}
+
+Compared to the different users:
 
 {% tabs %}
 {% tab title="administrator" %}
@@ -413,7 +429,7 @@ Let's break it down.
 
 <summary>psql examples</summary>
 
-You could use the following `psql` commands to show the complete result sets.
+You could use the following `psql` commands to query the view.
 
 {% code title="finance" %}
 ```bash
@@ -440,3 +456,13 @@ psql postgresql://other:other@localhost:5431/aggregation -c "select * from publi
 {% endcode %}
 
 </details>
+
+## Cleanup
+
+That wraps up this aggregation transforms tutorial. To clean up all resources, run the following command after stopping the currently running process with `ctrl+C`.
+
+```bash
+docker compose down
+```
+
+Any questions or comments? Please ask them on [Slack](https://join.slack.com/t/pace-getstrm/shared\_invite/zt-27egzg7ye-iGANVdQZO6ov6ZMVzmsA4Q).
