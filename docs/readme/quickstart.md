@@ -110,11 +110,11 @@ The idea here is that `standalone` is the super user that should be able to see 
 
 We'll look at the Data Policy contents at a later stage in this quickstart. Feel free to already take a peek, the policy contains:
 
-1. _Platform_\
-   The reference to the Processing Platform (both the type and id). **Note**: the _id_ is a self assigned identifier, that can be found in `config/application.yaml`. For this quickstart, the id is `standalone-sample-connection`.
-2. _Data Schema_\
+1. _Source ref_\
+   The reference to the Processing Platform (both the type and id). **Note**: the _id_ is a self assigned identifier, that can be found in `config/application.yaml`. For this quickstart, the id is `standalone-sample-connection`. The ref also specifies the fully qualified name (`integration_fqn`) of the source table to which this policy applies.
+2. _Data schema_\
    Shape of the data, all fields and their data type.
-3. _Ruleset_\
+3. _Rule set_\
    Rules defining what the view that will be created by PACE will look like, which data will be included and how the data will be presented to different users.
 
 </details>
@@ -288,9 +288,6 @@ This results in the following YAML.
 metadata:
   description: ""
   title: public.demo
-platform:
-  id: standalone-sample-connection
-  platform_type: POSTGRES
 source:
   fields:
   - name_parts:
@@ -317,7 +314,11 @@ source:
     - transactionamount
     required: true
     type: integer
-  ref: public.demo
+  ref:
+    integration_fqn: public.demo
+    platform:
+      id: standalone-sample-connection
+      platform_type: POSTGRES
 ```
 
 The only thing missing here, is a `rule_sets` section, that defines how the PostgreSQL view should behave that PACE will create.

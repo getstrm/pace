@@ -62,10 +62,12 @@ data_policy:
         type: numeric
         required: true
     tags: []
-    ref: SCHEMA.TABLE
-  platform:
-    platform_type: SNOWFLAKE
-    id: snowflake-demo-connection
+    ref: 
+      integration_fqn: SCHEMA.TABLE
+      platform:
+        platform_type: SNOWFLAKE
+        id: snowflake-demo-connection
+    
 ```
 {% endcode %}
 {% endtab %}
@@ -136,11 +138,13 @@ data_policy:
                 }
             ],
             "tags": [],
-            "ref": "SCHEMA.TABLE"
-        },
-        "platform": {
-            "platform_type": "SNOWFLAKE",
-            "id": "snowflake-demo-connection"
+            "ref": {
+                "integration_fqn": "SCHEMA.TABLE",
+                "platform": {
+                    "platform_type": "SNOWFLAKE",
+                    "id": "snowflake-demo-connection"
+                }
+            }
         }
     }
 }
@@ -151,8 +155,8 @@ data_policy:
 
 ## Data Platform
 
-If your `Data Platform` (or [`Processing Platform`](../reference/integrations/processing-platform-integrations/)) has knowledge of the source's data structure, we provide both a \[REST API]\(../reference/api-reference. md#processing-platforms-platformid-tables-table\_id-blueprint-policy) and a CLI to receive a _blueprint policy_. Find out what the minimum required permissions are per `Processing Platform` in our [processing platform integration pages](../reference/integrations/processing-platform-integrations/).
+If your `Data Platform` (or [`Processing Platform`](../reference/integrations/processing-platform-integrations/)) has knowledge of the source's data structure, we provide both a REST API and a CLI to receive a _blueprint policy_. Find out what the minimum required permissions are per `Processing Platform` in our [processing platform integration pages](../reference/integrations/processing-platform-integrations/).
 
 ## Data Catalog
 
-The source's data structure can also be retrieved from a [`Data Catalog`](../reference/integrations/data-catalog-integrations/). Here too we provide both a \[REST API]\(../reference/api-reference. md#catalogs-catalogid-databases-databaseid-schemas-schemaid-tables-tableid-blueprint-policy) and a CLI to receive the _blueprint policy_. Find out what the minimum required permissions are per `Data Catalog` in our [data catalog integration pages](../reference/integrations/data-catalog-integrations/).
+The source's data structure can also be retrieved from a [`Data Catalog`](../reference/integrations/data-catalog-integrations/). Here too we provide both a REST API and a CLI to receive the _blueprint policy_. Find out what the minimum required permissions are per `Data Catalog` in our [data catalog integration pages](../reference/integrations/data-catalog-integrations/).

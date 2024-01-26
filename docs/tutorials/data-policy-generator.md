@@ -17,14 +17,15 @@ plugins:
   id: openai
   implementation: com.getstrm.pace.plugins.builtin.openai.OpenAIPlugin
 ```
-This plugin has two actions, we'll explore the GENERATE_DATA_POLICY action in this tutorial
+
+This plugin has two actions, we'll explore the GENERATE\_DATA\_POLICY action in this tutorial
 
 The [OpenAI Data Policy Generator](../plugins/built-in/openai.md) uses the OpenAI Chat API to generate a Rule Set for a given blueprint Data Policy, based on a textual description of filters and field transforms.
 
 {% hint style="warning" %}
-An OpenAI API key is required for this tutorial. You can generate one in the OpenAI platform at [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys). We recommend creating a new API key for this PACE plugin.&#x20;
+An OpenAI API key is required for this tutorial. You can generate one in the OpenAI platform at [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys). We recommend creating a new API key for this PACE plugin.
 
-If you are not using an enterprise API key of OpenAI (i.e. a paid subscription), be very aware of any (sensitive) data you share with OpenAI as you are not opted out of using that data for training.&#x20;
+If you are not using an enterprise API key of OpenAI (i.e. a paid subscription), be very aware of any (sensitive) data you share with OpenAI as you are not opted out of using that data for training.
 {% endhint %}
 
 ## File and directory setup
@@ -146,9 +147,6 @@ metadata:
   description: Users of the data policy generator example
   title: generator.users
   version: 3
-platform:
-  id: data-policy-generator-sample-connection
-  platform_type: POSTGRES
 rule_sets:
   - field_transforms:
       - field:
@@ -183,7 +181,8 @@ rule_sets:
                 - group: analytics
             - condition: email LIKE '%@google.com'
     target:
-      fullname: filtered_view
+      ref: 
+        integration_fqn: filtered_view
       type: SQL_VIEW
 source:
   fields:
@@ -207,7 +206,11 @@ source:
         - date
       required: true
       type: timestamp
-  ref: generator.users
+  ref: 
+    integration_fqn: generator.users
+    platform:
+      id: data-policy-generator-sample-connection
+      platform_type: POSTGRES
 ```
 
 This is all still quite experimental, so not all instructions may work as well. Let us know if you encounter any issues, and we will further explore this thing called GenAI!

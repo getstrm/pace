@@ -78,21 +78,22 @@ source:
     - pii-email
     type: varchar
 rule_sets:
-  target:
-    fullname: my_table_pace_view
-- field_transforms:
-  - field:
-      name_parts:
-      - email
-      required: true
-      tags:
-      - pii-email
-      type: varchar
-    transforms:
-    - identity: {}
-      principals:
-      - group: administrator
-    - nullify: {}
+    -   target:
+            ref:
+                integration_fqn: my_table_pace_view
+        field_transforms:
+            -   field:
+                    name_parts:
+                        - email
+                    required: true
+                    tags:
+                        - pii-email
+                    type: varchar
+                transforms:
+                    -   identity: { }
+                        principals:
+                            -   group: administrator
+                    -   nullify: { }
 ```
 {% endcode %}
 

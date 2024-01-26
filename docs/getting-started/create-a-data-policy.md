@@ -18,12 +18,12 @@ For this example we will use a very small sample data set:
 
 ## Get blueprint policy
 
-Let the id of your connected `Processing Platform` be `pace-pp` and the source reference be `pace-db.pace-schema. pace-table`. Getting a blueprint policy yields a nearly empty `Data Policy` with populated source fields, thus defining the structure of your source data. In this example we will use both the [`pace cli`](https://github.com/getstrm/cli) and call the \[REST API]\(../reference/api-reference. md#processing-platforms-platformid-tables-table\_id-blueprint-policy) using `curl`. The request has two variables, `platform-id` and `table-id`. The CLI makes use of gRPC. We assume here that the instance is running on localhost, the gRPC port is 50051 and the envoy proxy is listening on port 9090 as per the defaults. For the CLI holds, that if you specify the processing platform and the reference to the table, the corresponding blueprint policy is returned. Requesting a blueprint policy then yields:
+Let the id of your connected `Processing Platform` be `pace-platform` and the source reference be `pace-db.pace-schema. pace-table`. Getting a blueprint policy yields a nearly empty `Data Policy` with populated source fields, thus defining the structure of your source data. In this example we will use both the [`pace cli`](https://github.com/getstrm/cli) and call the REST API using `curl`. The request has two variables, `platform-id` and `table-id`. The CLI makes use of gRPC. We assume here that the instance is running on localhost, the gRPC port is 50051 and the envoy proxy is listening on port 9090 as per the defaults. For the CLI holds, that if you specify the processing platform and the reference to the table, the corresponding blueprint policy is returned. Requesting a blueprint policy then yields:
 
 {% tabs %}
 {% tab title="CLI" %}
 ```bash
-pace get data-policy --blueprint -p pace-pp \
+pace get data-policy --blueprint -p pace-platform \
     --database pace-db --schema pace-schema pace-table
 ```
 {% endtab %}
@@ -52,7 +52,11 @@ data_policy:
     update_time: 2023-11-03T12:00:00.000Z
     tags: []
   source:
-    ref: pace-db.pace-schema.pace-table
+    ref: 
+      integration_fqn: pace-db.pace-schema.pace-table
+      platform:
+        platform_type: <PLATFORM_TYPE>
+        id: pace-platform
     fields:
       - name_parts:
           - email
@@ -65,9 +69,6 @@ data_policy:
         required: false
         tags: []
     tags: []
-  platform:
-    platform_type: <PLATFORM_TYPE>
-    id: pace-pp
   rule_sets: []
 ```
 {% endcode %}
@@ -88,7 +89,13 @@ data_policy:
       "tags": []
     },
     "source": {
-      "ref": "pace-db.pace-schema.pace-table",
+      "ref": {
+        "integration_fqn": "pace-db.pace-schema.pace-table",
+        "platform": {
+          "platform_type": "<PLATFORM_TYPE>",
+          "id": "pace-pp"
+        },
+      },
       "fields": [
         {
           "name_parts": [
@@ -108,10 +115,6 @@ data_policy:
         }
       ],
       "tags": []
-    },
-    "platform": {
-      "platform_type": "<PLATFORM_TYPE>",
-      "id": "pace-pp"
     },
     "rule_sets": []
   }
@@ -139,7 +142,8 @@ Let's start by defining the reference to the target table. We have chosen the ta
 ```yaml
 rule_sets:
   - target:
-      fullname: "pace-db.pace-schema.pace-view"
+      ref:
+        integration_fqn: "pace-db.pace-schema.pace-view"
 ```
 {% endcode %}
 {% endtab %}
@@ -151,7 +155,9 @@ rule_sets:
   "rule_sets": [
     {
       "target": {
-        "fullname": "pace-db.pace-schema.pace-view"
+        "ref": {
+          "integration_fqn": "pace-db.pace-schema.pace-view"
+        }
       }
     }
   ]
@@ -293,7 +299,8 @@ Putting it all together in one `Rule Set`:
 ```yaml
 rule_sets:
   - target:
-      fullname: "pace-db.pace-schema.pace-view"
+      ref:
+        integration_fqn: "pace-db.pace-schema.pace-view"
     field_transforms:
       - field:
           name_parts: 
@@ -332,7 +339,9 @@ rule_sets:
   "rule_sets": [
     {
       "target": {
-        "fullname": "pace-db.pace-schema.pace-view"
+        "ref": {
+          "integration_fqn": "pace-db.pace-schema.pace-view"
+        }
       },
       "field_transforms": [
         {
@@ -411,9 +420,6 @@ metadata:
   description: ""
   version: 1
   title: public.demo
-platform:
-  id: standalone-sample-connection
-  platform_type: POSTGRES
 source:
   fields:
     - name_parts:
@@ -440,10 +446,15 @@ source:
         - transactionamount
       required: true
       type: integer
-  ref: public.demo
+  ref:
+    integration_fqn: public.demo
+    platform:
+      id: standalone-sample-connection
+      platform_type: POSTGRES
 rule_sets:
   - target:
-      fullname: "pace-db.pace-schema.pace-view"
+      ref:
+        integration_fqn: "pace-db.pace-schema.pace-view"
     field_transforms:
       - field:
           name_parts: 
@@ -493,7 +504,13 @@ rule_sets:
       }
     },
     "source": {
-      "ref": "pace-db.pace-schema.pace-table",
+      "ref": {
+        "integration_fqn": "pace-db.pace-schema.pace-table",
+        "platform": {
+          "platform_type": "&#x3C;PLATFORM_TYPE>",
+          "id": "pace-pp"
+        },
+      }
       "fields": [
         {
           "name_parts": [
@@ -514,14 +531,12 @@ rule_sets:
       ],
       "tags": []
     },
-    "platform": {
-      "platform_type": "&#x3C;PROCESSING-PLATFORM-TYPE>",
-      "id": "pace-pp"
-    },
     "rule_sets": [
       {
         "target": {
-          "fullname": "pace-db.pace-schema.pace-view"
+          "ref": {
+            "integration_fqn": "pace-db.pace-schema.pace-view"
+          }
         },
         "field_transforms": [
           {

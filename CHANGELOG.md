@@ -1,3 +1,10 @@
+# [1.0.0-alpha.54](https://github.com/getstrm/pace/compare/v1.0.0-alpha.53...v1.0.0-alpha.54) (2024-01-26)
+
+
+### Features
+
+* **pace-140:** removing database, schema and table ([#170](https://github.com/getstrm/pace/issues/170)) ([a36d3be](https://github.com/getstrm/pace/commit/a36d3becbd969fc93377fe8d1e854407b62d58ae))
+
 # [1.0.0-alpha.53](https://github.com/getstrm/pace/compare/v1.0.0-alpha.52...v1.0.0-alpha.53) (2024-01-26)
 
 
