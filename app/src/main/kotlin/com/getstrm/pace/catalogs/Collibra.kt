@@ -41,16 +41,11 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         listOf("database", "schema", "table").getOrElse(index) { super.platformResourceName(index) }
 
     override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Resource> =
-        listDatabases(pageParameters)
-
-    override suspend fun getChild(childId: String): Resource = getDatabase(childId)
-
-    suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Resource> =
         pagedCalls(pageParameters) { skip: Int, pageSize: Int ->
                 client
                     .query(
                         ListPhysicalDataAssetsQuery(
-                            assetType = AssetTypes.DATABASE.assetName,
+                            assetType = "Database",
                             skip = skip,
                             pageSize = pageSize
                         )
@@ -62,10 +57,10 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             .withUnknownTotals()
             .map { Database(it.id.toString(), it.displayName.orEmpty()) }
 
-    private suspend fun getDatabase(databaseId: String): Resource {
+    override suspend fun getChild(childId: String): Resource {
         // FIXME Catch Not Found error and translate
         val database =
-            client.query(GetDataBaseQuery(databaseId)).executeOrThrowError().assets.firstNonNull()
+            client.query(GetDataBaseQuery(childId)).executeOrThrowError().assets.firstNonNull()
         return Database(database.id.toString(), database.displayName.orEmpty())
     }
 
@@ -117,21 +112,19 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
         override suspend fun listChildren(
             pageParameters: PageParameters
-        ): PagedCollection<Resource> {
-            val tables =
-                pagedCalls(pageParameters) { skip, pageSize ->
-                        // first() refers to the single schema
-                        client
-                            .query(ListTablesInSchemaQuery(id, skip, pageSize))
-                            .executeOrThrowError()
-                            .assets
-                            .onlyNonNulls()
-                            .first()
-                            .tables
-                    }
-                    .map { Table(this, it.target.id.toString(), it.target.fullName) }
-            return tables.withUnknownTotals()
-        }
+        ): PagedCollection<Resource> =
+            pagedCalls(pageParameters) { skip, pageSize ->
+                    // first() refers to the single schema
+                    client
+                        .query(ListTablesInSchemaQuery(id, skip, pageSize))
+                        .executeOrThrowError()
+                        .assets
+                        .onlyNonNulls()
+                        .first()
+                        .tables
+                }
+                .map { Table(this, it.target.id.toString(), it.target.fullName) }
+                .withUnknownTotals()
 
         override suspend fun getChild(childId: String): Resource {
             val table =
@@ -216,9 +209,4 @@ private suspend fun <D : Operation.Data> ApolloCall<D>.executeOrThrowError(): D 
         )
     }
     return apolloResponse.dataAssertNoErrors
-}
-
-enum class AssetTypes(val assetName: String) {
-    DATABASE("Database"),
-    TABLE("Table"),
 }
