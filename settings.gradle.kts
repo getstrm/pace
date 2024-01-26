@@ -3,6 +3,7 @@ include(":app")
 
 pluginManagement {
     val kotlinVersion: String by settings
+    val flywayVersion: String by settings
 
     plugins {
         id("org.springframework.boot") version "3.2.2"
@@ -11,10 +12,10 @@ pluginManagement {
         id("org.jetbrains.kotlin.plugin.spring") version kotlinVersion
 
         id("com.google.cloud.artifactregistry.gradle-plugin") version "2.2.1"
-        id("nu.studer.jooq") version "8.2.3"
+        id("nu.studer.jooq") version "9.0"
         id("org.openapi.generator") version "7.2.0"
         id("com.bmuschko.docker-remote-api") version "9.4.0"
-        id("org.flywaydb.flyway") version "9.22.3"
+        id("org.flywaydb.flyway") version flywayVersion
     }
 }
 plugins {
