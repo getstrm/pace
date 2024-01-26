@@ -15,7 +15,6 @@ import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
 import com.getstrm.pace.util.PagedCollection
-import com.getstrm.pace.util.applyPageParameters
 import com.getstrm.pace.util.normalizeType
 import com.getstrm.pace.util.toTimestamp
 import com.getstrm.pace.util.withPageInfo
@@ -338,15 +337,19 @@ class BigQueryClient(
 
         override suspend fun listChildren(
             pageParameters: PageParameters
-        ): PagedCollection<Resource> =
+        ): PagedCollection<Resource> {
             // FIXME pagedCalls function needs to understand page tokens
-            bigQueryClient
-                .listTables(dataset.datasetId)
-                .iterateAll()
+            val tables =
+                bigQueryClient.listTables(
+                    dataset.datasetId,
+                    BigQuery.TableListOption.pageSize(pageParameters.pageSize.toLong()),
+                    BigQuery.TableListOption.pageToken(pageParameters.pageToken)
+                )
+            return tables.values
                 .toList()
-                .applyPageParameters(pageParameters)
                 .map { BigQueryTable(this, it) }
-                .withPageInfo()
+                .withPageInfo(tables.nextPageToken)
+        }
 
         override suspend fun getChild(childId: String): BigQueryTable =
             try {
