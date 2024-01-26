@@ -139,7 +139,8 @@ pace:
 
 app.jar:
 	@ echo building $@ and copying it here.
-	@ (cd .. ; ./gradlew build -x test) && rm -f app.jar && cp ../app/build/libs/app.jar $@
+	@ export gradle_options=$([[ $CI == 'true' ]] && echo '-x test' || echo '')
+	@ (cd .. ; ./gradlew build $$(echo $$gradle_options)) && rm -f app.jar && cp ../app/build/libs/app.jar $@
 
 launch-pace: app.jar
 	@ echo checking postgres ports 5431 and 5433
