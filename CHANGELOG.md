@@ -1,3 +1,10 @@
+# [1.0.0-alpha.57](https://github.com/getstrm/pace/compare/v1.0.0-alpha.56...v1.0.0-alpha.57) (2024-01-26)
+
+
+### Features
+
+* **pace-138:** restore global-transforms application and integration test ([#168](https://github.com/getstrm/pace/issues/168)) ([e0f8132](https://github.com/getstrm/pace/commit/e0f813249115254bccff70cde973a0005bb450eb))
+
 # [1.0.0-alpha.56](https://github.com/getstrm/pace/compare/v1.0.0-alpha.55...v1.0.0-alpha.56) (2024-01-26)
 
 
