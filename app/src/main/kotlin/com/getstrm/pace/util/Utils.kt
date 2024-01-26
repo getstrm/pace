@@ -91,6 +91,11 @@ fun <T> Collection<T>.withPageInfo(
         PageInfo.newBuilder().setTotal(size).build()
 ) = PagedCollection(this, pageInfo)
 
+fun <T> Collection<T>.withPageInfo(nextPageToken: String?) =
+    withPageInfo(
+        PageInfo.newBuilder().setTotal(-1).setNextPageToken(nextPageToken.orEmpty()).build()
+    )
+
 fun <T> Collection<T>.withTotal(total: Int) =
     PagedCollection(this, PageInfo.newBuilder().setTotal(total).build())
 
