@@ -1,9 +1,12 @@
 package com.getstrm.pace.processing_platforms.synapse
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
-import com.getstrm.pace.config.SynapseConfig
+import com.getstrm.pace.config.SynapseConfiguration
+import com.getstrm.pace.domain.LeafResource
+import com.getstrm.pace.domain.Resource
+import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
@@ -20,7 +23,7 @@ import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 
 class SynapseClient(
-    config: SynapseConfig,
+    config: SynapseConfiguration,
     private val jooq: DSLContext,
 ) : ProcessingPlatformClient(config) {
     // To match the behavior of the other ProcessingPlatform implementations, we connect to a
@@ -28,7 +31,7 @@ class SynapseClient(
     // databases, more info can be found here:
     // https://www.codejava.net/java-se/jdbc/how-to-list-names-of-all-databases-in-java
     constructor(
-        config: SynapseConfig
+        config: SynapseConfiguration
     ) : this(
         config,
         DSL.using(
@@ -43,6 +46,23 @@ class SynapseClient(
         ),
     )
 
+    override suspend fun platformResourceName(index: Int): String {
+        // TODO this should be updated, as the implementation is missing for Synapse to list the
+        // various levels in the hierarchy
+        return listOf("database", "schema", "table").getOrElse(index) {
+            super.platformResourceName(index)
+        }
+    }
+
+    override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Resource> {
+        return listDatabases()
+    }
+
+    override suspend fun getChild(childId: String): Resource {
+        return listDatabases().find { it.id == childId }
+            ?: throwNotFound(childId, "Synapse database")
+    }
+
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = SynapseViewGenerator(dataPolicy)
         // Explicitly dropping the views if they exist first and granting the 'select' to roles is
@@ -56,27 +76,8 @@ class SynapseClient(
         }
     }
 
-    override suspend fun listDatabases(pageParameters: PageParameters): PagedCollection<Database> {
+    fun listDatabases(): PagedCollection<Resource> {
         throwUnimplemented("listDatabases on Synapse")
-    }
-
-    override suspend fun listSchemas(
-        databaseId: String,
-        pageParameters: PageParameters
-    ): PagedCollection<Schema> {
-        throwUnimplemented("listSchemas on Synapse")
-    }
-
-    override suspend fun listTables(
-        databaseId: String,
-        schemaId: String,
-        pageParameters: PageParameters
-    ): PagedCollection<Table> {
-        throwUnimplemented("listTables on Synapse")
-    }
-
-    override suspend fun getTable(databaseId: String, schemaId: String, tableId: String): Table {
-        throwUnimplemented("getTable on Synapse")
     }
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
@@ -103,41 +104,58 @@ class SynapseClient(
         private val schemasToIgnore = listOf("sys", "INFORMATION_SCHEMA")
     }
 
-    inner class SynapseDatabase(pp: ProcessingPlatformClient, id: String) :
-        ProcessingPlatformClient.Database(pp, id, ProcessingPlatform.PlatformType.SYNAPSE) {
-        override suspend fun listSchemas(pageParameters: PageParameters): PagedCollection<Schema> {
+    inner class SynapseDatabase(override val id: String, override val displayName: String = id) :
+        Resource {
+        override suspend fun listChildren(
+            pageParameters: PageParameters
+        ): PagedCollection<Resource> {
             throwUnimplemented("listSchemas on Synapse")
         }
 
-        override suspend fun getSchema(schemaId: String): Schema {
+        override suspend fun getChild(childId: String): SynapseSchema {
             throwUnimplemented("getSchema on Synapse")
+        }
+
+        override fun fqn(): String {
+            return id
         }
     }
 
-    inner class SynapseSchema(database: Database, id: String, name: String) :
-        ProcessingPlatformClient.Schema(database, id, name) {
-        override suspend fun listTables(pageParameters: PageParameters): PagedCollection<Table> {
+    inner class SynapseSchema(
+        val database: SynapseDatabase,
+        override val id: String,
+        override val displayName: String
+    ) : Resource {
+        override suspend fun listChildren(
+            pageParameters: PageParameters
+        ): PagedCollection<Resource> {
             return jooq
                 .meta()
                 .filterSchemas { !schemasToIgnore.contains(it.name) }
                 .tables
                 .applyPageParameters(pageParameters)
-                .map { it -> SynapseTable(it, this, name, it.name) }
+                .map { SynapseTable(it, this, displayName, it.name) }
                 .withPageInfo()
         }
 
-        override suspend fun getTable(tableId: String): Table {
+        override suspend fun getChild(childId: String): SynapseTable {
             throwUnimplemented("getTable on Synapse")
+        }
+
+        override fun fqn(): String {
+            return "${database.id}.$id"
         }
     }
 
     inner class SynapseTable(
         val table: org.jooq.Table<*>,
-        schema: Schema,
-        id: String,
-        name: String
-    ) : Table(schema, id, name) {
-        override val fullName: String = "${table.schema?.name}.${table.name}"
+        val schema: SynapseSchema,
+        override val id: String,
+        override val displayName: String
+    ) : LeafResource() {
+        val fullName: String = "${table.schema?.name}.${table.name}"
+
+        override fun fqn(): String = "${schema.fqn()}.${id}"
 
         override suspend fun createBlueprint(): DataPolicy {
             return DataPolicy.newBuilder()
@@ -146,10 +164,14 @@ class SynapseClient(
                         .setTitle(fullName)
                         .setDescription(table.comment)
                 )
-                .setPlatform(apiPlatform)
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef(fullName)
+                        .setRef(
+                            resourceUrn {
+                                integrationFqn = fullName
+                                platform = apiProcessingPlatform
+                            }
+                        )
                         .addAllFields(
                             table.fields().map { field ->
                                 DataPolicy.Field.newBuilder()

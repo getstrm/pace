@@ -1,0 +1,17 @@
+digraph D {
+    A[ label="cdc_diabetes ✓"]
+    B[ label="diabetes_demo ✓"]
+    test1[ label="test1 ✗"]
+    test2[ label="test2 ✗"]
+    test3[ label="test3 ✗"]
+    test4[ label="test4 ✗"]
+    test5[ label="test5 ✗"]
+
+    A -> B
+    B -> test1
+    B -> test2
+    A -> test3
+    A -> test4
+    A -> test5
+
+}

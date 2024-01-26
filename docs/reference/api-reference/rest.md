@@ -99,3 +99,7 @@
 {% swagger src="../../.gitbook/assets/openapi.yaml" path="/v1alpha/processing-platforms/{platformId}/tables/{table_id}/blueprint-policy" method="get" expanded="true" %}
 [openapi.yaml](../../.gitbook/assets/openapi.yaml)
 {% endswagger %}
+
+{% swagger src="../../.gitbook/assets/openapi.yaml" path="/v1alpha/resources" method="get" expanded="true" %}
+[openapi.yaml](../../.gitbook/assets/openapi.yaml)
+{% endswagger %}

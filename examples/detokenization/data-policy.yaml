@@ -1,9 +1,6 @@
 metadata:
   description: ""
   title: public.transactions
-platform:
-  id: detokenization-example-connection
-  platform_type: POSTGRES
 source:
   fields:
     - name_parts:
@@ -34,10 +31,12 @@ source:
       - date
       required: true
       type: varchar
-  ref: public.transactions
+  ref:
+    integration_fqn: public.transactions
 rule_sets:
   - target:
-      fullname: public.transactions_view
+      ref: 
+        integration_fqn: public.transactions_view
     filters:
       - generic_filter:
           conditions:

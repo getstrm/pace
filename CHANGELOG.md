@@ -1,3 +1,10 @@
+# [1.0.0-alpha.53](https://github.com/getstrm/pace/compare/v1.0.0-alpha.52...v1.0.0-alpha.53) (2024-01-26)
+
+
+### Features
+
+* **pace-100:** handles generic hierarchy ([#158](https://github.com/getstrm/pace/issues/158)) ([bfac512](https://github.com/getstrm/pace/commit/bfac5123662977561eec076c6bc552acf43d997a))
+
 # [1.0.0-alpha.52](https://github.com/getstrm/pace/compare/v1.0.0-alpha.51...v1.0.0-alpha.52) (2024-01-24)
 
 

@@ -4,11 +4,14 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import com.apollographql.apollo3.ApolloClient
 import com.getstrm.pace.config.CatalogConfiguration
+import com.getstrm.pace.domain.LeafResource
+import com.getstrm.pace.domain.Resource
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.*
 import com.google.rpc.ResourceInfo
 import io.datahubproject.generated.GetDatasetDetailsQuery
 import io.datahubproject.generated.ListDatasetsQuery
+import org.slf4j.LoggerFactory
 
 /**
  * interaction with Datahub.
@@ -17,71 +20,91 @@ import io.datahubproject.generated.ListDatasetsQuery
  * one schema, and a large set of tables.
  */
 class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
+    private val log by lazy { LoggerFactory.getLogger(javaClass) }
     val client = apolloClient()
-    val database = Database(this)
-    val schema = Schema(database)
+    private val database = Database()
+    private val schema = Schema()
+
+    override suspend fun platformResourceName(index: Int): String {
+        return listOf("datahub", "platform", "dataset").getOrElse(index) {
+            super.platformResourceName(index)
+        }
+    }
 
     override fun close() {
         client.close()
     }
 
-    override suspend fun listDatabases(
-        pageParameters: PageParameters
-    ): PagedCollection<DataCatalog.Database> {
-        return listOf(database).withPageInfo()
-    }
+    override suspend fun listChildren(pageParameters: PageParameters): PagedCollection<Resource> =
+        listOf(database).withPageInfo()
 
-    override suspend fun getDatabase(databaseId: String): DataCatalog.Database {
-        return database
-    }
+    override suspend fun getChild(childId: String): Resource = database
 
-    inner class Database(override val catalog: DatahubCatalog) :
-        DataCatalog.Database(catalog, catalog.id, "datahub", catalog.id) {
-        override suspend fun listSchemas(
+    private inner class Database : Resource {
+        override val id: String = "datahub"
+        override val displayName = id
+
+        override fun fqn(): String = id
+
+        override suspend fun listChildren(
             pageParameters: PageParameters
-        ): PagedCollection<DataCatalog.Schema> = listOf(schema).withPageInfo()
+        ): PagedCollection<Resource> = listOf(schema).withPageInfo()
 
-        override suspend fun getSchema(schemaId: String) = schema
+        override suspend fun getChild(childId: String): Resource = schema
     }
 
-    inner class Schema(database: Database) :
-        DataCatalog.Schema(database, database.id, database.id) {
-        override suspend fun listTables(
+    private inner class Schema : Resource {
+        override val id = "schema"
+        override val displayName = id
+
+        override fun fqn(): String = id
+
+        override suspend fun listChildren(
             pageParameters: PageParameters
-        ): PagedCollection<DataCatalog.Table> {
+        ): PagedCollection<Resource> {
             val response =
-                client
-                    .query(ListDatasetsQuery(pageParameters.skip, pageParameters.pageSize))
-                    .execute()
+                try {
+                    client
+                        .query(ListDatasetsQuery(pageParameters.skip, pageParameters.pageSize))
+                        .execute()
+                } catch (e: Exception) {
+                    log.warn("error", e)
+                    throw RuntimeException("Error fetching databases: ${e.message}")
+                }
             if (response.hasErrors())
                 throw RuntimeException("Error fetching databases: ${response.errors}")
             val tables =
-                response.data?.search?.searchResults?.map { Table(this, it.entity.urn) }.orEmpty()
+                response.data?.search?.searchResults?.map { Table(it.entity.urn) }.orEmpty()
             return tables.withTotal(response.data?.search?.total ?: -1)
         }
 
-        override suspend fun getTable(tableId: String): DataCatalog.Table {
-            val response = client.query(GetDatasetDetailsQuery(tableId)).execute()
+        override suspend fun getChild(childId: String): Resource {
+            val response = client.query(GetDatasetDetailsQuery(childId)).execute()
             val dataset =
                 response.data!!.dataset
                     ?: throw ResourceException(
                         ResourceException.Code.NOT_FOUND,
                         ResourceInfo.newBuilder()
                             .setResourceType("Table")
-                            .setResourceName(tableId)
-                            .setDescription("Table $tableId not found in schema $id")
+                            .setResourceName(childId)
+                            .setDescription("Table $childId not found in schema $id")
                             .setOwner("Schema: $id")
                             .build()
                     )
-            return Table(this, dataset.urn)
+            return Table(dataset.urn)
         }
     }
 
-    inner class Table(schema: Schema, urn: String) : DataCatalog.Table(schema, urn, urn) {
+    private inner class Table(urn: String) : LeafResource() {
         // this property is lazily filled in when calling getDataPolicy
         lateinit var dataset: GetDatasetDetailsQuery.Dataset
+        override val id = urn
+        override val displayName: String
+            get() = urnPattern.matchEntire(id)?.groupValues?.last() ?: id
 
-        override suspend fun createBlueprint(): DataPolicy? {
+        override fun fqn(): String = id
+
+        override suspend fun createBlueprint(): DataPolicy {
             val response = client.query(GetDatasetDetailsQuery(id)).execute()
             dataset = response.data!!.dataset!!
             if (response.hasErrors())
@@ -90,13 +113,10 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
 
             // tags don't exist in schemaMetadata but only in editableSchemaMetadata!
             val addtributeTags =
-                dataset.editableSchemaMetadata
-                    ?.editableSchemaFieldInfo
-                    ?.map {
-                        it.fieldPath to
-                            it.tags?.tags?.map { it.tag.properties?.name.orEmpty() }.orEmpty()
-                    }
-                    ?.toMap() ?: emptyMap()
+                dataset.editableSchemaMetadata?.editableSchemaFieldInfo?.associate { fieldInfo ->
+                    fieldInfo.fieldPath to
+                        fieldInfo.tags?.tags?.map { it.tag.properties?.name.orEmpty() }.orEmpty()
+                } ?: emptyMap()
 
             policyBuilder.sourceBuilder.addAllFields(
                 dataset.schemaMetadata?.fields?.map {
@@ -135,6 +155,7 @@ class DatahubCatalog(config: CatalogConfiguration) : DataCatalog(config) {
             .build()
 
     companion object {
+        // TODO re-implement pleasant displayName. Requires working datahub setup
         val urnPattern = """^urn:li:dataset:\(urn:li:dataPlatform:([^,]*),(.*)\)$""".toRegex()
         private val stripKafkaPrefix = """^(\[[^]]+\]\.)+""".toRegex()
     }

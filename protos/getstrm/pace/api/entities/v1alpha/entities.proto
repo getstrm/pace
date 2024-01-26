@@ -9,21 +9,33 @@ option go_package = "github.com/getstrm/pace/protos/api/entities;entities";
 option java_multiple_files = true;
 option java_package = "com.getstrm.pace.api.entities.v1alpha";
 
-message DataResourceRef {
-  // defines the processing platform of the data resource.
-  // a data resource is something that holds data of a defined structure.
-  // SQL Tables and Views are good examples, but this is in essence open-ended,
-  // like for instance a Kafka topic with an Avro Schema.
-  entities.v1alpha.ProcessingPlatform platform = 1;
-  // the Fully Qualified Name of the data resource on the platform.
-  string fqn = 2;
+message ResourceUrn {
+  oneof integration {
+    ProcessingPlatform platform = 1;
+    DataCatalog catalog = 2;
+  }
+  repeated ResourceNode resource_path = 3;
+  // the Fully Qualified Name of the data resource on the processing platform / data catalog.
+  optional string integration_fqn = 4;
+}
+
+message ResourceNode {
+  // the bits between the slashes.
+  // the technical path to the data.
+  // can be uuid (Collibra for instance)
+  string name = 1;
+  //  dataset, schema, table, whatever... For display purposes only.
+  // FIXME platform type
+  string platform_name = 2;
+  // data resource
+  bool is_leaf = 3;
+  // human readable string. If absent use name.
+  string display_name = 4;
 }
 
 message DataPolicy {
-  string id = 1;
+  Source source = 1;
   Metadata metadata = 2;
-  Source source = 3;
-  ProcessingPlatform platform = 4;
   repeated RuleSet rule_sets = 5;
 
   message Metadata {
@@ -193,11 +205,7 @@ message DataPolicy {
   message Target {
     TargetType type = 1;
     // The full and unique name to be used in the target platform. E.g. the view name.
-    string fullname = 2 [(buf.validate.field) = {
-      required: true,
-      ignore_empty: false,
-      string: {min_len: 1}
-    }];
+    ResourceUrn ref = 2;
     enum TargetType {
       TARGET_TYPE_UNSPECIFIED = 0;
       // A SQL view that can return different results for different querying users.
@@ -208,10 +216,10 @@ message DataPolicy {
   message Source {
     // The ref is an identifier for the source, unique at the source platform level.
     // TODO I think this should be renamed to fqn
-    string ref = 1 [(buf.validate.field).string.min_len = 3];
+    ResourceUrn ref = 1;
     // A representation of the source data schema. Nested fields are supported.
-    repeated Field fields = 4;
-    repeated string tags = 5;
+    repeated Field fields = 2;
+    repeated string tags = 3;
   }
 
   message Field {
@@ -329,7 +337,7 @@ message Table {
   repeated string tags = 4;
 }
 message ProcessingPlatform {
-  PlatformType platform_type = 1;
+  PlatformType platform_type = 1 [(buf.validate.field).required = true ];
   // An arbitrary but unique identifier for the platform. This matches the id from the PACE app configuration.
   string id = 2 [(buf.validate.field).string.min_len = 1];
   enum PlatformType {
@@ -343,7 +351,7 @@ message ProcessingPlatform {
 }
 
 message Lineage {
-  DataResourceRef resource_ref = 1;
+  ResourceUrn resource_ref = 1;
   string relation = 3;
   repeated Field field_relations = 4;
   bool managed_by_pace = 6;
@@ -356,7 +364,7 @@ message Lineage {
 
 message LineageSummary {
   // describes the data resource (table, view, ...)
-  DataResourceRef resource_ref = 1;
+  ResourceUrn resource_ref = 1;
   // upstream is a source or parent resource
   repeated Lineage upstream = 2;
   // downstream is a target or child resource

@@ -2,7 +2,8 @@ package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
-import com.getstrm.pace.config.SnowflakeConfig
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
+import com.getstrm.pace.config.SnowflakeConfiguration
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -17,7 +18,7 @@ import org.springframework.http.ResponseEntity
 class SnowflakeClientTest {
 
     private val config =
-        SnowflakeConfig(
+        SnowflakeConfiguration(
             id = "",
             serverUrl = "",
             database = "PACE",
@@ -75,10 +76,9 @@ class SnowflakeClientTest {
         policy shouldBe
             DataPolicy.newBuilder()
                 .setMetadata(DataPolicy.Metadata.newBuilder().setTitle("test_schema.test_table"))
-                .setPlatform(platform)
                 .setSource(
                     DataPolicy.Source.newBuilder()
-                        .setRef("test_schema.test_table")
+                        .setRef(resourceUrn { integrationFqn = "test_schema.test_table" })
                         .addAllFields(
                             listOf(
                                 DataPolicy.Field.newBuilder()

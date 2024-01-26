@@ -17,6 +17,7 @@ sealed class PaceStatusException(val status: Status) : Exception(status.cause) {
             "This is a bug, please report it to https://github.com/getstrm/pace/issues/new"
         const val UNIMPLEMENTED =
             "This is an unimplemented feature, please check whether a feature request is present or create a feature request: https://github.com/getstrm/pace/issues"
+        const val ILLEGAL_ARGUMENT = "This is an illegal argument."
     }
 
     /**
@@ -168,10 +169,20 @@ class InternalException(val code: Code, val debugInfo: DebugInfo, cause: Throwab
     }
 }
 
-fun throwNotFound(id: String, type: String): Nothing {
+fun throwNotFound(
+    id: String,
+    type: String,
+    description: String = "",
+    owner: String? = null
+): Nothing {
     throw ResourceException(
         ResourceException.Code.NOT_FOUND,
-        ResourceInfo.newBuilder().setResourceName(id).setResourceType(type).build()
+        ResourceInfo.newBuilder()
+            .setResourceName(id)
+            .setResourceType(type)
+            .setDescription(description)
+            .apply { if (owner != null) setOwner(owner) }
+            .build()
     )
 }
 
@@ -187,12 +198,14 @@ fun throwUnimplemented(what: String): Nothing {
 }
 
 fun internalExceptionOneOfNotProvided(): InternalException {
+    return internalException(
+        "oneof field not provided, this should not happen as protovalidate catches this."
+    )
+}
+
+fun internalException(exception: String): InternalException {
     return InternalException(
         InternalException.Code.INTERNAL,
-        DebugInfo.newBuilder()
-            .setDetail(
-                "oneof field not provided, this should not happen as protovalidate catches this."
-            )
-            .build()
+        DebugInfo.newBuilder().setDetail(exception).build()
     )
 }

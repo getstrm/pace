@@ -10,13 +10,14 @@ out/
 /app/build/
 output/
 
-app/src/main/resources/application-local.yaml
+app/src/main/resources/application-local*.yaml
 
 *.binpb
 protos/openapi.yaml
 integration-test/pace.log
 integration-test/awk
 integration-test/cut
+integration-test/policy.yaml*
 app/src/test/resources/openai.properties
 
 grpc-proxy/envoy-local.yaml

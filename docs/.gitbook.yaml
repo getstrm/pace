@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.52
+    version: 1.0.0-alpha.53
 paths:
     /data-policies:
         get:
@@ -987,6 +987,54 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /v1alpha/resources:
+        get:
+            tags:
+                - ResourcesService
+            operationId: ResourcesService_ListResources
+            parameters:
+                - name: integrationId
+                  in: query
+                  description: A processing platform or data catalog id as configured in your PACE server
+                  schema:
+                    type: string
+                - name: resourcePath
+                  in: query
+                  description: A resource path to list resources under. If empty, the root path is used.
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: pageParameters.skip
+                  in: query
+                  description: |-
+                    The provided skip value of the request.
+                     skip represents records to skip before returning results.
+                     If empty, skip is 0.
+                  schema:
+                    type: integer
+                    format: uint32
+                - name: pageParameters.pageSize
+                  in: query
+                  description: |-
+                    The provided page_size value of the request.
+                     If empty, page_size is 10.
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListResourcesResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
 components:
     schemas:
         Action:
@@ -1100,14 +1148,10 @@ components:
         DataPolicy:
             type: object
             properties:
-                id:
-                    type: string
-                metadata:
-                    $ref: '#/components/schemas/DataPolicy_Metadata'
                 source:
                     $ref: '#/components/schemas/DataPolicy_Source'
-                platform:
-                    $ref: '#/components/schemas/ProcessingPlatform'
+                metadata:
+                    $ref: '#/components/schemas/DataPolicy_Metadata'
                 ruleSets:
                     type: array
                     items:
@@ -1199,7 +1243,8 @@ components:
             type: object
             properties:
                 ref:
-                    type: string
+                    allOf:
+                        - $ref: '#/components/schemas/ResourceUrn'
                     description: |-
                         The ref is an identifier for the source, unique at the source platform level.
                          TODO I think this should be renamed to fqn
@@ -1221,23 +1266,10 @@ components:
                         - SQL_VIEW
                     type: string
                     format: enum
-                fullname:
-                    type: string
-                    description: The full and unique name to be used in the target platform. E.g. the view name.
-        DataResourceRef:
-            type: object
-            properties:
-                platform:
+                ref:
                     allOf:
-                        - $ref: '#/components/schemas/ProcessingPlatform'
-                    description: |-
-                        defines the processing platform of the data resource.
-                         a data resource is something that holds data of a defined structure.
-                         SQL Tables and Views are good examples, but this is in essence open-ended,
-                         like for instance a Kafka topic with an Avro Schema.
-                fqn:
-                    type: string
-                    description: the Fully Qualified Name of the data resource on the platform.
+                        - $ref: '#/components/schemas/ResourceUrn'
+                    description: The full and unique name to be used in the target platform. E.g. the view name.
         Database:
             type: object
             properties:
@@ -1485,7 +1517,7 @@ components:
             type: object
             properties:
                 resourceRef:
-                    $ref: '#/components/schemas/DataResourceRef'
+                    $ref: '#/components/schemas/ResourceUrn'
                 relation:
                     type: string
                 fieldRelations:
@@ -1499,7 +1531,7 @@ components:
             properties:
                 resourceRef:
                     allOf:
-                        - $ref: '#/components/schemas/DataResourceRef'
+                        - $ref: '#/components/schemas/ResourceUrn'
                     description: describes the data resource (table, view, ...)
                 upstream:
                     type: array
@@ -1575,6 +1607,15 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/ProcessingPlatform'
+        ListResourcesResponse:
+            type: object
+            properties:
+                resources:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ResourceUrn'
+                pageInfo:
+                    $ref: '#/components/schemas/PageInfo'
         ListSchemasResponse:
             type: object
             properties:
@@ -1658,6 +1699,40 @@ components:
                 id:
                     type: string
                     description: An arbitrary but unique identifier for the platform. This matches the id from the PACE app configuration.
+        ResourceNode:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: |-
+                        the bits between the slashes.
+                         the technical path to the data.
+                         can be uuid (Collibra for instance)
+                platformName:
+                    type: string
+                    description: |-
+                        dataset, schema, table, whatever... For display purposes only.
+                         FIXME platform type
+                isLeaf:
+                    type: boolean
+                    description: data resource
+                displayName:
+                    type: string
+                    description: human readable string. If absent use name.
+        ResourceUrn:
+            type: object
+            properties:
+                platform:
+                    $ref: '#/components/schemas/ProcessingPlatform'
+                catalog:
+                    $ref: '#/components/schemas/DataCatalog'
+                resourcePath:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ResourceNode'
+                integrationFqn:
+                    type: string
+                    description: the Fully Qualified Name of the data resource on the processing platform / data catalog.
         RetentionFilter_Condition:
             type: object
             properties:
@@ -1893,3 +1968,4 @@ tags:
          TODO add validations
     - name: PluginsService
     - name: ProcessingPlatformsService
+    - name: ResourcesService
