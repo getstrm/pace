@@ -177,7 +177,7 @@ class DatabricksClient(
 
         override suspend fun getChild(childId: String): Resource {
             try {
-                return workspaceClient.schemas().get(childId).let {
+                return workspaceClient.schemas().get("${fqn()}.$childId").let {
                     DatabricksSchema(this, it.name)
                 }
             } catch (t: Throwable) {
@@ -200,8 +200,8 @@ class DatabricksClient(
             pageParameters: PageParameters
         ): PagedCollection<Resource> = listTables(database.id, displayName, pageParameters)
 
-        override suspend fun getChild(tableId: String): Table {
-            getTable(database.id, displayName, tableId).let {
+        override suspend fun getChild(childId: String): Table {
+            getTable(database.id, displayName, childId).let {
                 return it
             }
         }

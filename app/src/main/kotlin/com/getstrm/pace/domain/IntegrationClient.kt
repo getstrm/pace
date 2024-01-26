@@ -4,7 +4,6 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.copy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceNode
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
 import build.buf.gen.getstrm.pace.api.resources.v1alpha.ListResourcesRequest
 import com.getstrm.pace.catalogs.DataCatalog

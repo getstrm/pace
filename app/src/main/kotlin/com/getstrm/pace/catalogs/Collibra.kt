@@ -72,6 +72,8 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         displayName: String
     ) : DataCatalog.Database(catalog, id, dbType, displayName) {
 
+        override fun fqn(): String = id
+
         override suspend fun listChildren(
             pageParameters: PageParameters
         ): PagedCollection<Resource> {
@@ -117,6 +119,8 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         id: String,
         name: String
     ) : DataCatalog.Schema(database, id, name) {
+
+        override fun fqn(): String = id
 
         override suspend fun listChildren(
             pageParameters: PageParameters
@@ -164,6 +168,8 @@ class CollibraCatalog(config: CatalogConfiguration) : DataCatalog(config) {
         id: String,
         name: String
     ) : DataCatalog.Table(schema, id, name) {
+
+        override fun fqn(): String = id
 
         override suspend fun createBlueprint(): DataPolicy {
             val columns: List<ColumnTypesAndTagsQuery.Column> =
