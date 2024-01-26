@@ -49,7 +49,7 @@ class BigQueryTransformerTest {
 
         // Then
         result.toSql() shouldBe
-            "avg(cast(transactionamount as decimal)) over(partition by brand, age)"
+            "avg(cast(`transactionamount` as decimal)) over(partition by `brand`, `age`)"
     }
 
     @Test
@@ -86,6 +86,6 @@ class BigQueryTransformerTest {
 
         // Then
         result.toSql() shouldBe
-            "coalesce(`my-project.my_token_dataset.my_tokens`.value_field, `my-project.my_dataset.my_table`.tokenized_field)"
+            "coalesce(`my-project.my_token_dataset.my_tokens`.`value_field`, `my-project.my_dataset.my_table`.`tokenized_field`)"
     }
 }

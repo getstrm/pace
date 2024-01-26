@@ -7,6 +7,7 @@ spring:
       schema: public
 
 app:
+  expose-application-exceptions: true
   processing-platforms:
     postgres:
       - id: "standalone-sample-connection"

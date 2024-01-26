@@ -29,6 +29,7 @@ class H2ViewGenerator(
                     .build()
             )
             .build(),
+        transformer = H2Transformer(),
         customJooqSettings = customJooqSettings
     ) {
     override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {

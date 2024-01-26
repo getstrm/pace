@@ -251,7 +251,7 @@ select
   transactionId,
   case
     when (IS_ROLE_IN_SESSION('FRAUD_AND_RISK')) then userId
-    else hash(1234, userId)
+    else hash(1234, 'userId')
   end userId,
   case
     when (

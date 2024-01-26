@@ -34,7 +34,7 @@ class DefaultProcessingPlatformTransformerTest {
         val result = DefaultProcessingPlatformTransformer.regexpReplace(field, regexp)
 
         // Then
-        result.toSql() shouldBe "regexp_extract(my_field, 'foo(bar)')"
+        result.toSql() shouldBe "regexp_extract('my_field', 'foo(bar)')"
     }
 
     @Test
@@ -51,7 +51,7 @@ class DefaultProcessingPlatformTransformerTest {
         val result = DefaultProcessingPlatformTransformer.regexpReplace(field, regexp)
 
         // Then
-        result.toSql() shouldBe "regexp_replace(my_field, 'foo(\\w+)', 'baz$1')"
+        result.toSql() shouldBe "regexp_replace('my_field', 'foo(\\w+)', 'baz\$1')"
     }
 
     @Test
@@ -135,7 +135,7 @@ class DefaultProcessingPlatformTransformerTest {
         val result = DefaultProcessingPlatformTransformer.hash(field, hash)
 
         // Then
-        result.toSql() shouldBe "hash(1234, my_field)"
+        result.toSql() shouldBe "hash(1234, 'my_field')"
     }
 
     @Test
@@ -148,7 +148,7 @@ class DefaultProcessingPlatformTransformerTest {
         val result = DefaultProcessingPlatformTransformer.hash(field, hash)
 
         // Then
-        result.toSql() shouldBe "hash(my_field)"
+        result.toSql() shouldBe "hash('my_field')"
     }
 
     @Test

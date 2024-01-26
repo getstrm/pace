@@ -278,12 +278,12 @@ as
 select
   transactionId,
   case
-    when false then userId
-    else hash(1234, userId)
+    when false then "userId"
+    else hash(1234, '"userId"')
   end userId,
   case
-    when true then regexp_replace(email, '^.*(@.*)${'$'}', '****${'$'}1')
-    when false then email
+    when true then regexp_replace("email", '^.*(@.*)${'$'}', '****${'$'}1')
+    when false then "email"
     else '****'
   end email,
   age,
