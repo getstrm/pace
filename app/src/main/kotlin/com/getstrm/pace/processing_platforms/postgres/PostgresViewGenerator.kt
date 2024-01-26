@@ -99,8 +99,8 @@ class PostgresViewGenerator(
                                     DSL.function(
                                         "pg_has_role",
                                         Boolean::class.java,
-                                        DSL.field(DSL.quotedName("session_user")),
-                                        DSL.field(DSL.quotedName("oid")),
+                                        DSL.field(DSL.unquotedName("session_user")),
+                                        DSL.field(DSL.unquotedName("oid")),
                                         DSL.inline("member")
                                     )
                                 )

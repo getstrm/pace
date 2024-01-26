@@ -198,7 +198,7 @@ with
     from "pg_roles"
     where (
       "rolcanlogin" = false
-      and pg_has_role("session_user", "oid", 'member')
+      and pg_has_role(session_user, oid, 'member')
     )
   )
 select
@@ -240,7 +240,7 @@ with
     from "pg_roles"
     where (
       "rolcanlogin" = false
-      and pg_has_role("session_user", "oid", 'member')
+      and pg_has_role(session_user, oid, 'member')
     )
   )
 select
@@ -277,7 +277,7 @@ with
     from "pg_roles"
     where (
       "rolcanlogin" = false
-      and pg_has_role("session_user", "oid", 'member')
+      and pg_has_role(session_user, oid, 'member')
     )
   )
 select
@@ -311,7 +311,7 @@ with
     from "pg_roles"
     where (
       "rolcanlogin" = false
-      and pg_has_role("session_user", "oid", 'member')
+      and pg_has_role(session_user, oid, 'member')
     )
   )
 select
@@ -352,7 +352,7 @@ with
     from "pg_roles"
     where (
       "rolcanlogin" = false
-      and pg_has_role("session_user", "oid", 'member')
+      and pg_has_role(session_user, oid, 'member')
     )
   )
 select
