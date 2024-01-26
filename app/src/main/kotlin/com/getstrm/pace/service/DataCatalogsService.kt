@@ -10,7 +10,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class DataCatalogsService(catalogsConfig: AppConfiguration) {
+class DataCatalogsService(
+    catalogsConfig: AppConfiguration,
+) {
     private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
     val catalogs: Map<String, DataCatalog> =

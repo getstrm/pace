@@ -1,4 +1,4 @@
-.PHONY: all check-mark check-far check-other done
+.PHONY: all check-mark check-far check-other global-transform-check done
 
 SHELL = /bin/bash
 # github actions downloads a `pace` cli, and puts it in this directory.
@@ -24,7 +24,7 @@ CHECKS           = $(addprefix check-, ${USERS})
 
 # default target sets up everything, reads the views from
 # the standalone database table and executes the checks.
-all: tables.yaml ${CHECKS} kill-pace done
+all: tables.yaml ${CHECKS} global-transform-check done
 
 tables.yaml: applied
 	@ echo "checking 'pace list tables'"
@@ -34,6 +34,23 @@ tables.yaml: applied
 	@ echo "list tables ok"
 
 
+global-transform-check: blueprint_with_global_rules.yaml
+	@ diff -q $< blueprint_with_global_rules-expected.yaml || (echo "blueprint with global ruleset unexpected output"; \
+		cat $<; exit 1)
+	@ echo "blueprint with global transforms ok"
+
+
+blueprint_with_global_rules.yaml: upserted-global-tag-transform.yaml
+	@ echo getting blueprint global_test, expecting a rulesets section
+	@ pace get data-policy --blueprint --processing-platform ${PP} \
+		--database standalone --schema ${SCHEMA} \
+		global_test > $@ && \
+		echo "retrieved $@"
+
+
+upserted-global-tag-transform.yaml: launch-pace
+	@ echo upserting global-tag-transform.yaml
+	@ pace upsert global-transform global-tag-transform.yaml > $@
 
 check-mark: mark.csv demo.csv awk cut
 	@ echo ----- checking marketing with user mark -----
@@ -98,7 +115,7 @@ upserted.yaml: policy.yaml
 
 applied: upserted.yaml
 	@ ${PACE_CLI} apply data-policy --processing-platform ${PP} ${REF} > $@
-	@ echo applied $< at $$(cat $@)
+	@ echo applied $<
 
 load-db-data:
 	@ echo Loading demo data into postgres
@@ -122,7 +139,8 @@ pace:
 
 app.jar:
 	@ echo building $@ and copying it here.
-	@ (cd .. ; ./gradlew build ) && rm -f app.jar && cp ../app/build/libs/app.jar $@
+	@ export gradle_options=$([[ $CI == 'true' ]] && echo '-x test' || echo '')
+	@ (cd .. ; ./gradlew build $$(echo $$gradle_options)) && rm -f app.jar && cp ../app/build/libs/app.jar $@
 
 launch-pace: app.jar
 	@ echo checking postgres ports 5431 and 5433
@@ -136,10 +154,13 @@ launch-pace: app.jar
 	@ echo port 50051 is open
 	@ chmod 0600 pgpass
 
-clean:
-	@ echo Cleaning all generated resources, pace policies and the ${REF} table.
-	@ rm -f blueprint.yaml policy.yaml upserted.yaml applied
+clean_files:
+	@ rm -f blueprint.yaml policy.yaml upserted.yaml applied upserted-global-tag-transform.yaml
+	@ rm -f blueprint_with_global_rules.yaml
 	@ rm -f *.csv
+
+clean: clean_files
+	@ echo Cleaning all generated resources, pace policies and the ${REF} table.
 	@ rm -f load-db-data pace
 	@ rm -f awk cut
 	@ rm -f app.jar

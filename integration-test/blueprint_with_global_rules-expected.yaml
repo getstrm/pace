@@ -1,0 +1,71 @@
+metadata:
+  description: ""
+  title: public.global_test
+rule_sets:
+- field_transforms:
+  - field:
+      name_parts:
+      - email
+      required: true
+      tags:
+      - pii-email
+      type: varchar
+    transforms:
+    - identity: {}
+      principals:
+      - group: administrator
+    - principals:
+      - group: fraud_and_risk
+      regexp:
+        regexp: ^.*(@.*)$
+        replacement: '****$1'
+    - nullify: {}
+  target:
+    ref:
+      integration_fqn: public.global_test_pace_view
+source:
+  fields:
+  - name_parts:
+    - transactionid
+    required: true
+    type: integer
+  - name_parts:
+    - userid
+    required: true
+    type: integer
+  - name_parts:
+    - name
+    required: true
+    type: varchar
+  - name_parts:
+    - email
+    required: true
+    tags:
+    - pii-email
+    type: varchar
+  - name_parts:
+    - age
+    required: true
+    type: integer
+  - name_parts:
+    - salary
+    required: true
+    type: integer
+  - name_parts:
+    - postalcode
+    required: true
+    type: varchar
+  - name_parts:
+    - brand
+    required: true
+    type: varchar
+  - name_parts:
+    - transactionamount
+    required: true
+    type: integer
+  ref:
+    integration_fqn: public.global_test
+    platform:
+      id: standalone-sample-connection
+      platform_type: POSTGRES
+

@@ -1,5 +1,5 @@
 page_info:
-  total: 2
+  total: 3
 tables:
 - id: demo
   name: demo
@@ -9,6 +9,12 @@ tables:
     id: public
 - id: demo_view
   name: demo_view
+  schema:
+    database:
+      id: standalone
+    id: public
+- id: global_test
+  name: global_test
   schema:
     database:
       id: standalone

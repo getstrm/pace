@@ -68,7 +68,7 @@ jobs:
         working-directory: integration-test/
         run: |
           chmod go-rw pgpass
-          make pace all
+          make pace all kill-pace
       - name: print PACE logs
         if: always() && steps.integration-test.outcome == 'failure'
         working-directory: integration-test/
