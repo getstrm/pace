@@ -9,9 +9,10 @@ return 0 or more entities of a certain type
 ### Options
 
 ```
-  -h, --help               help for list
-  -P, --page-size uint32   the maximum number of records per page (default 10)
-  -S, --skip uint32        the number of records that need to be skipped
+  -h, --help                help for list
+  -P, --page-size uint32    the maximum number of records per page (default 10)
+  -T, --page-token string   next page token. Used by BigQuery
+  -S, --skip uint32         the number of records that need to be skipped
 ```
 
 ### Options inherited from parent commands
