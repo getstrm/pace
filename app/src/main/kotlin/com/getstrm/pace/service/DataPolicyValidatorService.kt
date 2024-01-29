@@ -168,6 +168,46 @@ class DataPolicyValidatorService(paceConfiguration: PaceConfiguration) {
                     }
                 }
 
+            ruleSet.filtersList.forEach {
+                when {
+                    it.hasRetentionFilter() ->
+                        if (it.retentionFilter.conditionsList.last().principalsCount > 0) {
+                            throw invalidArgumentException(
+                                listOf(
+                                    FieldViolation.newBuilder()
+                                        .setField("ruleSet.retentionFilter")
+                                        .setDescription(
+                                            "RuleSet.RetentionFilter has non-empty last principals list"
+                                        )
+                                        .build()
+                                )
+                            )
+                        }
+                    it.hasGenericFilter() ->
+                        if (it.genericFilter.conditionsList.last().principalsCount > 0) {
+                            throw invalidArgumentException(
+                                listOf(
+                                    FieldViolation.newBuilder()
+                                        .setField("ruleSet.genericFilter")
+                                        .setDescription(
+                                            "RuleSet.GenericFilter has non-empty last principals list"
+                                        )
+                                        .build()
+                                )
+                            )
+                        }
+                    else ->
+                        throw invalidArgumentException(
+                            listOf(
+                                FieldViolation.newBuilder()
+                                    .setField("ruleSet.filters")
+                                    .setDescription("Unknown filter type ${it.filterCase.name}")
+                                    .build()
+                            )
+                        )
+                }
+            }
+
             // check non-overlapping fields in the retention filters within one ruleset
             ruleSet.filtersList
                 .filter { it.hasRetentionFilter() }

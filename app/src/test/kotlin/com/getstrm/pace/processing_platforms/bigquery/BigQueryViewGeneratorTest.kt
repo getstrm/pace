@@ -319,17 +319,17 @@ as
 select
   `transactionId`,
   case
-    when ("True" in (select principal_check_routines.check_principal_access("FRAUD_DETECTION"))) then CAST(userId AS string)
+    when ("True" in (select principal_check_routines.check_principal_access("group:FRAUD_DETECTION"))) then CAST(userId AS string)
     else TO_HEX(SHA256(CAST(userId AS string)))
   end userId,
   case
     when (
-      ("True" in (select principal_check_routines.check_principal_access("ANALYTICS")))
-      or ("True" in (select principal_check_routines.check_principal_access("MARKETING")))
+      ("True" in (select principal_check_routines.check_principal_access("group:ANALYTICS")))
+      or ("True" in (select principal_check_routines.check_principal_access("group:MARKETING")))
     ) then regexp_replace(email, '^.*(@.*)${'$'}', '****\\1')
     when (
-      ("True" in (select principal_check_routines.check_principal_access("FRAUD_DETECTION")))
-      or ("True" in (select principal_check_routines.check_principal_access("ADMIN")))
+      ("True" in (select principal_check_routines.check_principal_access("group:FRAUD_DETECTION")))
+      or ("True" in (select principal_check_routines.check_principal_access("group:ADMIN")))
     ) then `email`
     else '****'
   end email,
@@ -344,11 +344,64 @@ select
 from `my_project.my_dataset.my_table`
 where (
   case
-    when ("True" in (select principal_check_routines.check_principal_access("FRAUD_DETECTION"))) then true
+    when ("True" in (select principal_check_routines.check_principal_access("group:FRAUD_DETECTION"))) then true
     else age > 18
   end
   and case
-    when ("True" in (select principal_check_routines.check_principal_access("MARKETING"))) then userId in ('1', '2', '3', '4')
+    when ("True" in (select principal_check_routines.check_principal_access("group:MARKETING"))) then userId in ('1', '2', '3', '4')
+    else true
+  end
+  and transactionAmount < 10
+);"""
+            )
+    }
+
+    @Test
+    fun `roles, permissions and groups bigquery test`() {
+        // Given
+        underTest =
+            BigQueryViewGenerator(dataPolicyBigQueryIAM, defaultUserGroupsTable, true) {
+                withRenderFormatted(true)
+            }
+        underTest
+            .toDynamicViewSQL()
+            .sql
+            .shouldBe(
+                """create or replace view `my_target_project.my_target_dataset.my_target_view`
+as
+select
+  `transactionId`,
+  case
+    when ("True" in (select principal_check_routines.check_principal_access("group:fraud_detection"))) then CAST(userId AS string)
+    else TO_HEX(SHA256(CAST(userId AS string)))
+  end userId,
+  case
+    when (
+      ("True" in (select principal_check_routines.check_principal_access("group:analytics")))
+      or ("True" in (select principal_check_routines.check_principal_access("permission:bigquery.tables.getData")))
+    ) then regexp_replace(email, '^.*(@.*)${'$'}', '****\\1')
+    when (
+      ("True" in (select principal_check_routines.check_principal_access("group:fraud_detection")))
+      or ("True" in (select principal_check_routines.check_principal_access("role:bigquery.admin")))
+    ) then `email`
+    else '****'
+  end email,
+  `age`,
+  `size`,
+  case when brand = 'MacBook' then 'Apple' else 'Other' end brand,
+  `transactionAmount`,
+  null items,
+  `itemCount`,
+  `date`,
+  `purpose`
+from `my_project.my_dataset.my_table`
+where (
+  case
+    when ("True" in (select principal_check_routines.check_principal_access("group:fraud_detection"))) then true
+    else age > 18
+  end
+  and case
+    when ("True" in (select principal_check_routines.check_principal_access("permission:bigquery.tables.getData"))) then userId in ('1', '2', '3', '4')
     else true
   end
   and transactionAmount < 10
@@ -449,6 +502,114 @@ rule_sets:
           conditions:
             - principals:
                 - group: MARKETING
+              condition: "userId in ('1', '2', '3', '4')"
+            - principals: []
+              condition: "true"
+      - generic_filter:
+          conditions:
+            - principals: []
+              condition: "transactionAmount < 10"
+metadata: 
+  title: "Data Policy for Pace BigQuery Demo Dataset"
+  description: "Pace Demo Dataset"
+  version: 10
+  create_time: "2023-09-26T16:33:51.150Z"
+  update_time: "2023-09-26T16:33:51.150Z"
+
+              """
+                .toProto<DataPolicy>()
+        @Language("yaml")
+        val dataPolicyBigQueryIAM =
+            """
+source:
+  ref:
+    integration_fqn: "my_project.my_dataset.my_table"
+    platform: 
+      id: bigquery
+      platform_type: BIGQUERY
+  fields:
+    - name_parts: [transactionId]
+      type: bigint
+    - name_parts: [userId]
+      type: string
+    - name_parts: [email]
+      type: string
+    - name_parts: [age]
+      type: NUMBER(38,0)
+    - name_parts: [size]
+      type: string
+    - name_parts: [brand]
+      type: string
+    - name_parts: [transactionAmount]
+      type: bigint
+    - name_parts: [items]
+      type: string
+    - name_parts: [itemCount]
+      type: bigint
+    - name_parts: [date]
+      type: timestamp
+    - name_parts: [purpose]
+      type: bigint
+rule_sets:
+  - target:
+      ref: 
+        integration_fqn: my_target_project.my_target_dataset.my_target_view
+      type: SQL_VIEW
+    field_transforms:
+      - field:
+          name_parts:
+            - email
+          type: "string"
+        transforms:
+          - principals:
+              - group: analytics
+              - permission: bigquery.tables.getData
+            regexp:
+              regexp: '^.*(@.*)${'$'}'
+              replacement: '****$1'
+          - principals:
+              - group: fraud_detection
+              - role: bigquery.admin
+            identity: {}
+          - principals: []
+            fixed:
+              value: "****"
+      - field:
+          name_parts:
+            - userId
+        transforms:
+          - principals:
+              - group: fraud_detection
+            sql_statement:
+              statement: "CAST(userId AS string)"
+          - principals: []
+            sql_statement:
+              statement: "TO_HEX(SHA256(CAST(userId AS string)))"
+      - field:
+          name_parts:
+            - items
+        transforms:
+          - principals: []
+            nullify: {}
+      - field:
+          name_parts:
+            - brand
+        transforms:
+          - principals: []
+            sql_statement:
+              statement: "case when brand = 'MacBook' then 'Apple' else 'Other' end"
+    filters:
+      - generic_filter:
+          conditions:
+            - principals:
+                - group: fraud_detection
+              condition: "true"
+            - principals: []
+              condition: "age > 18"
+      - generic_filter:
+          conditions:
+            - principals:
+                - permission: bigquery.tables.getData
               condition: "userId in ('1', '2', '3', '4')"
             - principals: []
               condition: "true"

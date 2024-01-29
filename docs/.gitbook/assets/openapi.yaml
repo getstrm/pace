@@ -171,6 +171,15 @@ components:
     DataPolicy_Principal:
       properties:
         group:
+          description: a group of users, different for each platform
+          type: string
+        permission:
+          description: a permission, currently only supported for Google IAM permissions
+            in BigQuery IAM Check Extension
+          type: string
+        role:
+          description: a user role, currently only supported for Google IAM roles
+            with BigQuery IAM Check Extension
           type: string
       type: object
     DataPolicy_RuleSet:
@@ -954,7 +963,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.57
+  version: 1.0.0-alpha.58
 openapi: 3.0.3
 paths:
   /data-policies:

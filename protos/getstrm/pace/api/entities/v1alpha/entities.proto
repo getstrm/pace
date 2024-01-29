@@ -238,7 +238,12 @@ message DataPolicy {
 
   message Principal {
     oneof principal {
+      // a group of users, different for each platform
       string group = 1 [(buf.validate.field).string.min_len = 1];
+      // a user role, currently only supported for Google IAM roles with BigQuery IAM Check Extension
+      string role = 2 [(buf.validate.field).string.min_len = 1];
+      // a permission, currently only supported for Google IAM permissions in BigQuery IAM Check Extension
+      string permission = 3 [(buf.validate.field).string.min_len = 1];
     }
   }
 }

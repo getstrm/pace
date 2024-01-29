@@ -173,6 +173,10 @@ class BigQueryClient(
     }
 
     override suspend fun listGroups(pageParameters: PageParameters): PagedCollection<Group> {
+        if (config.useIamCheckExtension) {
+            log.info("useIamCheckExtension is true, skipping listGroups")
+            return emptyList<Group>().withPageInfo()
+        }
         val query =
             """
             SELECT

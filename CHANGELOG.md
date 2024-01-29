@@ -1,3 +1,10 @@
+# [1.0.0-alpha.58](https://github.com/getstrm/pace/compare/v1.0.0-alpha.57...v1.0.0-alpha.58) (2024-01-29)
+
+
+### Features
+
+* add permission and role as principal type; last filter condition with empty principal ([#179](https://github.com/getstrm/pace/issues/179)) ([a234736](https://github.com/getstrm/pace/commit/a23473699d224f8177e85f7d32811cfebfa37780))
+
 # [1.0.0-alpha.57](https://github.com/getstrm/pace/compare/v1.0.0-alpha.56...v1.0.0-alpha.57) (2024-01-26)
 
 

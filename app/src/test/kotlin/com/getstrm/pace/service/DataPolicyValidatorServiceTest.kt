@@ -618,6 +618,51 @@ rule_sets:
                     .build()
         }
     }
+
+    @Test
+    fun `filters last principal list is not empty`() {
+        @Language("yaml")
+        val dataPolicy =
+            """
+$policyBase
+rule_sets: 
+- target:
+    ref:
+      integration_fqn: my_catalog.my_schema.gddemo_public
+  filters:
+    - generic_filter:
+        conditions:
+          - principals:
+              - group: fraud-and-risk
+            condition: "true"
+          - principals: []
+            condition: "age > 18"
+    - generic_filter:
+        conditions:
+          - principals:
+              - group: marketing
+            condition: "userId in ('1', '2', '3', '4')"
+          - principals:
+              - group: fraud-and-risk
+            condition: "true"
+          """
+                .toProto<DataPolicy>()
+
+        val exception =
+            shouldThrow<BadRequestException> {
+                underTest.validate(
+                    dataPolicy,
+                    setOf("analytics", "marketing", "fraud-and-risk", "admin")
+                )
+            }
+        exception.code.status shouldBe Status.INVALID_ARGUMENT
+        exception.badRequest.fieldViolationsCount shouldBe 1
+        exception.badRequest.fieldViolationsList.first() shouldBe
+            BadRequest.FieldViolation.newBuilder()
+                .setField("ruleSet.genericFilter")
+                .setDescription("RuleSet.GenericFilter has non-empty last principals list")
+                .build()
+    }
 }
 
 /*
