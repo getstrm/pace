@@ -1,3 +1,10 @@
+# [1.0.0-alpha.59](https://github.com/getstrm/pace/compare/v1.0.0-alpha.58...v1.0.0-alpha.59) (2024-01-29)
+
+
+### Features
+
+* **pace-154:** add transpile data policy api ([#183](https://github.com/getstrm/pace/issues/183)) ([4f962ae](https://github.com/getstrm/pace/commit/4f962ae95029787b208358b9e4a50ef9cf15050d))
+
 # [1.0.0-alpha.58](https://github.com/getstrm/pace/compare/v1.0.0-alpha.57...v1.0.0-alpha.58) (2024-01-29)
 
 
