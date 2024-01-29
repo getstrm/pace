@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.58
+    version: 1.0.0-alpha.59
 paths:
     /data-policies:
         get:
@@ -347,6 +347,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ScanLineageResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1alpha/data-policies/transpile:
+        post:
+            tags:
+                - DataPoliciesService
+            operationId: DataPoliciesService_TranspileDataPolicy
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TranspileDataPolicyRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TranspileDataPolicyResponse'
                 default:
                     description: Default error response
                     content:
@@ -1999,6 +2023,19 @@ components:
             properties:
                 statement:
                     type: string
+        TranspileDataPolicyRequest:
+            type: object
+            properties:
+                inlineDataPolicy:
+                    $ref: '#/components/schemas/DataPolicy'
+                dataPolicyRef:
+                    $ref: '#/components/schemas/DataPolicyRef'
+        TranspileDataPolicyResponse:
+            type: object
+            properties:
+                sql:
+                    type: string
+                    description: The SQL DDL of all rule sets in the transpiled data policy
         UpsertDataPolicyRequest:
             type: object
             properties:

@@ -937,6 +937,19 @@ components:
         statement:
           type: string
       type: object
+    TranspileDataPolicyRequest:
+      properties:
+        dataPolicyRef:
+          $ref: '#/components/schemas/DataPolicyRef'
+        inlineDataPolicy:
+          $ref: '#/components/schemas/DataPolicy'
+      type: object
+    TranspileDataPolicyResponse:
+      properties:
+        sql:
+          description: The SQL DDL of all rule sets in the transpiled data policy
+          type: string
+      type: object
     UpsertDataPolicyRequest:
       properties:
         apply:
@@ -963,7 +976,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.58
+  version: 1.0.0-alpha.59
 openapi: 3.0.3
 paths:
   /data-policies:
@@ -1302,6 +1315,31 @@ paths:
                 $ref: '#/components/schemas/Status'
           description: Default error response
       summary: ScanLineage
+      tags:
+      - DataPoliciesService
+  /v1alpha/data-policies/transpile:
+    post:
+      operationId: DataPoliciesService_TranspileDataPolicy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranspileDataPolicyRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranspileDataPolicyResponse'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: Default error response
+      summary: TranspileDataPolicy
       tags:
       - DataPoliciesService
   /v1alpha/data-policies/{dataPolicyId}/{platformId}:
