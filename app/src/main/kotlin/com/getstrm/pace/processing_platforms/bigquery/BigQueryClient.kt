@@ -91,10 +91,22 @@ class BigQueryClient(
     override suspend fun platformResourceName(index: Int): String =
         listOf("project", "dataset", "table").getOrElse(index) { super.platformResourceName(index) }
 
+    override suspend fun transpilePolicy(dataPolicy: DataPolicy, renderFormatted: Boolean): String {
+        return BigQueryViewGenerator(
+                dataPolicy,
+                config.userGroupsTable,
+                config.useIamCheckExtension
+            ) {
+                if (renderFormatted) {
+                    withRenderFormatted(true)
+                }
+            }
+            .toDynamicViewSQL()
+            .sql
+    }
+
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
-        val viewGenerator =
-            BigQueryViewGenerator(dataPolicy, config.userGroupsTable, config.useIamCheckExtension)
-        val query = viewGenerator.toDynamicViewSQL().sql
+        val query = transpilePolicy(dataPolicy)
         val queryConfig = QueryJobConfiguration.newBuilder(query).setUseLegacySql(false).build()
         try {
             bigQueryClient.query(queryConfig)

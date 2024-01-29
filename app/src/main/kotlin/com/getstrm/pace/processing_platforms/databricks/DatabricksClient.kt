@@ -91,8 +91,17 @@ class DatabricksClient(
             )
     }
 
+    override suspend fun transpilePolicy(dataPolicy: DataPolicy, renderFormatted: Boolean): String =
+        DatabricksViewGenerator(dataPolicy) {
+                if (renderFormatted) {
+                    withRenderFormatted(true)
+                }
+            }
+            .toDynamicViewSQL()
+            .sql
+
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
-        val statement = DatabricksViewGenerator(dataPolicy).toDynamicViewSQL().sql
+        val statement = transpilePolicy(dataPolicy)
         val response = executeStatement(statement)
         when (response.status.state) {
             StatementState.SUCCEEDED -> return

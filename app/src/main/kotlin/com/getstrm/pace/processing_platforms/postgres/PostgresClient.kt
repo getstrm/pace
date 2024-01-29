@@ -47,9 +47,17 @@ class PostgresClient(override val config: PostgresConfiguration) :
     override suspend fun platformResourceName(index: Int) =
         listOf("database", "schema", "table").getOrElse(index) { super.platformResourceName(index) }
 
+    override suspend fun transpilePolicy(dataPolicy: DataPolicy, renderFormatted: Boolean): String =
+        PostgresViewGenerator(dataPolicy) {
+                if (renderFormatted) {
+                    withRenderFormatted(true)
+                }
+            }
+            .toDynamicViewSQL()
+            .sql
+
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
-        val viewGenerator = PostgresViewGenerator(dataPolicy)
-        val query = viewGenerator.toDynamicViewSQL().sql
+        val query = transpilePolicy(dataPolicy)
         withContext(Dispatchers.IO) { jooq.query(query).execute() }
     }
 

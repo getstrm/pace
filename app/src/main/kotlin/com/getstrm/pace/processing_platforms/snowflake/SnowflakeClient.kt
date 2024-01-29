@@ -80,13 +80,19 @@ class SnowflakeClient(override val config: SnowflakeConfiguration) :
         }
     }
 
+    override suspend fun transpilePolicy(dataPolicy: DataPolicy, renderFormatted: Boolean): String =
+        SnowflakeViewGenerator(dataPolicy) {
+                if (renderFormatted) {
+                    withRenderFormatted(true)
+                }
+            }
+            .toDynamicViewSQL()
+            .sql
+            .replace("\\n".toRegex(), "\\\\n")
+            .replace("""(\\\d)""".toRegex(), """\\\\""" + "\$1")
+
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
-        val statement =
-            SnowflakeViewGenerator(dataPolicy)
-                .toDynamicViewSQL()
-                .sql
-                .replace("\\n".toRegex(), "\\\\n")
-                .replace("""(\\\d)""".toRegex(), """\\\\""" + "\$1")
+        val statement = transpilePolicy(dataPolicy)
         val statementCount =
             statement.mapNotNull { element -> element.takeIf { it == ';' } }.size.toString()
         val request =

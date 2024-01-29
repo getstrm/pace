@@ -1,11 +1,13 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.ListDataPoliciesRequest
+import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.TranspileDataPolicyRequest
 import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.UpsertDataPolicyRequest
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
 import com.getstrm.pace.dao.DataPolicyDao
+import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.ResourceException
 import com.getstrm.pace.util.MILLION_RECORDS
 import com.getstrm.pace.util.PagedCollection
@@ -13,6 +15,7 @@ import com.getstrm.pace.util.orDefault
 import com.getstrm.pace.util.sourceDataResourceRef
 import com.getstrm.pace.util.targetDataResourceRefs
 import com.getstrm.pace.util.toApiDataPolicy
+import com.google.rpc.BadRequest
 import com.google.rpc.ResourceInfo
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -48,6 +51,38 @@ class DataPolicyService(
         val latestPolicy = dataPolicy.toApiDataPolicy()
         processingPlatforms.getProcessingPlatform(latestPolicy).applyPolicy(latestPolicy)
         return dataPolicyDao.applyDataPolicy(dataPolicy).toApiDataPolicy()
+    }
+
+    suspend fun transpileDataPolicy(request: TranspileDataPolicyRequest): String {
+        val dataPolicy =
+            when (request.dataPolicyCase) {
+                TranspileDataPolicyRequest.DataPolicyCase.INLINE_DATA_POLICY ->
+                    request.inlineDataPolicy
+                TranspileDataPolicyRequest.DataPolicyCase.DATA_POLICY_REF ->
+                    getLatestDataPolicy(
+                        request.dataPolicyRef.dataPolicyId,
+                        request.dataPolicyRef.platformId
+                    )
+                TranspileDataPolicyRequest.DataPolicyCase.DATAPOLICY_NOT_SET,
+                null ->
+                    throw BadRequestException(
+                        BadRequestException.Code.INVALID_ARGUMENT,
+                        BadRequest.newBuilder()
+                            .addAllFieldViolations(
+                                listOf(
+                                    BadRequest.FieldViolation.newBuilder()
+                                        .setField("data_policy")
+                                        .setDescription("data_policy must be set")
+                                        .build()
+                                )
+                            )
+                            .build()
+                    )
+            }
+
+        return processingPlatforms
+            .getProcessingPlatform(dataPolicy)
+            .transpilePolicy(dataPolicy, true)
     }
 
     fun getLatestDataPolicy(id: String, platformId: String): DataPolicy =

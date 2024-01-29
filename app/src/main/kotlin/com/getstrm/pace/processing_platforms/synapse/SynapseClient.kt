@@ -19,6 +19,7 @@ import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jooq.DSLContext
+import org.jooq.Queries
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 
@@ -63,6 +64,9 @@ class SynapseClient(
             ?: throwNotFound(childId, "Synapse database")
     }
 
+    override suspend fun transpilePolicy(dataPolicy: DataPolicy, renderFormatted: Boolean): String =
+        queries(dataPolicy).sql
+
     override suspend fun applyPolicy(dataPolicy: DataPolicy) {
         val viewGenerator = SynapseViewGenerator(dataPolicy)
         // Explicitly dropping the views if they exist first and granting the 'select' to roles is
@@ -74,6 +78,17 @@ class SynapseClient(
         withContext(Dispatchers.IO) {
             jooq.queries(*dropQuery, *query, *grantSelectQuery).executeBatch()
         }
+    }
+
+    private fun queries(dataPolicy: DataPolicy): Queries {
+        val viewGenerator = SynapseViewGenerator(dataPolicy)
+        // Explicitly dropping the views if they exist first and granting the 'select' to roles is
+        // required by Synapse.
+        val dropQuery = viewGenerator.dropViewsSQL().queries()
+        val query = viewGenerator.toDynamicViewSQL().queries()
+        val grantSelectQuery = viewGenerator.grantSelectPrivileges().queries()
+
+        return jooq.queries(*dropQuery, *query, *grantSelectQuery)
     }
 
     fun listDatabases(): PagedCollection<Resource> {
