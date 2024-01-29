@@ -39,7 +39,16 @@ service DataPoliciesService {
   rpc GetDataPolicy(GetDataPolicyRequest) returns (GetDataPolicyResponse) {
     option (google.api.http) = {get: "/v1alpha/data-policies/{data_policy_id}/{platform_id}"};
   }
-  
+
+  rpc TranspileDataPolicy(TranspileDataPolicyRequest) returns (TranspileDataPolicyResponse) {
+    option (google.api.http) = {
+      // Data Policy ID is optional and therefore a query parameter, as we must also be able to
+      // provide a Data Policy inline.
+      post: "/v1alpha/data-policies/transpile"
+      body: "*"
+    };
+  }
+
   rpc ScanLineage(ScanLineageRequest) returns (ScanLineageResponse) {
     option (google.api.http) = {get: "/v1alpha/data-policies/lineage"};
   }
@@ -82,7 +91,6 @@ message ListDataPoliciesResponse {
   repeated entities.v1alpha.DataPolicy data_policies = 1;
   api.paging.v1alpha.PageInfo page_info = 2;
 }
-
 
 message ScanLineageRequest {
   api.paging.v1alpha.PageParameters page_parameters = 2;
@@ -143,5 +151,20 @@ message EvaluateDataPolicyResponse {
         string csv = 1;
       }
     }
+  }
+}
+
+message TranspileDataPolicyRequest {
+  oneof data_policy {
+    option (buf.validate.oneof).required = true;
+    pace.api.entities.v1alpha.DataPolicy inline_data_policy = 1;
+    entities.v1alpha.DataPolicyRef data_policy_ref = 2;
+  }
+}
+
+message TranspileDataPolicyResponse {
+  oneof transpiled {
+    // The SQL DDL of all rule sets in the transpiled data policy
+    string sql = 2;
   }
 }

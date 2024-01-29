@@ -21,6 +21,11 @@ abstract class ProcessingPlatformClient(open val config: ProcessingPlatformConfi
     val apiProcessingPlatform: ProcessingPlatform
         get() = ProcessingPlatform.newBuilder().setId(id).setPlatformType(config.type).build()
 
+    abstract suspend fun transpilePolicy(
+        dataPolicy: DataPolicy,
+        renderFormatted: Boolean = false
+    ): String
+
     abstract suspend fun applyPolicy(dataPolicy: DataPolicy)
 
     /** return the up- and downstream tables of a table identified by its fully qualified name. */

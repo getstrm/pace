@@ -73,6 +73,8 @@ abstract class ProcessingPlatformViewGenerator(
     open fun createOrReplaceView(name: String) = jooq.createOrReplaceView(name)
 
     open fun toDynamicViewSQL(): Queries {
+        jooq.settings()
+
         val queries =
             dataPolicy.ruleSetsList.map { ruleSet ->
                 val targetView = ruleSet.target.ref.integrationFqn
