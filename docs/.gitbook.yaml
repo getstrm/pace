@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.57
+    version: 1.0.0-alpha.58
 paths:
     /data-policies:
         get:
@@ -1277,6 +1277,13 @@ components:
             properties:
                 group:
                     type: string
+                    description: a group of users, different for each platform
+                role:
+                    type: string
+                    description: a user role, currently only supported for Google IAM roles with BigQuery IAM Check Extension
+                permission:
+                    type: string
+                    description: a permission, currently only supported for Google IAM permissions in BigQuery IAM Check Extension
         DataPolicy_RuleSet:
             type: object
             properties:
