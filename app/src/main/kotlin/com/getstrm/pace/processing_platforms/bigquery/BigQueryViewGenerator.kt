@@ -54,29 +54,44 @@ class BigQueryViewGenerator(
         } else {
             DSL.or(
                 principals.map { principal ->
-                    when {
-                        principal.hasGroup() ->
-                            if (useIamCheckExtension)
-                                DSL.condition(
-                                    "\"True\" in (select principal_check_routines.check_principal_access({0}))",
-                                    DSL.quotedName(principal.group)
-                                )
-                            else
-                                DSL.condition(
-                                    "{0} IN ( SELECT {1} FROM {2} )",
-                                    principal.group,
-                                    DSL.field(renderName("userGroup")),
-                                    DSL.field(renderName("user_groups"))
-                                )
-                        else ->
+                    if (useIamCheckExtension) {
+                        val principalName =
+                            when {
+                                principal.hasGroup() -> DSL.quotedName("group:${principal.group}")
+                                principal.hasRole() -> DSL.quotedName("role:${principal.role}")
+                                principal.hasPermission() ->
+                                    DSL.quotedName("permission:${principal.permission}")
+                                else ->
+                                    throw InternalException(
+                                        InternalException.Code.INTERNAL,
+                                        DebugInfo.newBuilder()
+                                            .setDetail(
+                                                "Principal of type ${principal.principalCase.name} is not supported for platform BigQuery. ${PaceStatusException.UNIMPLEMENTED}"
+                                            )
+                                            .build()
+                                    )
+                            }
+                        DSL.condition(
+                            "\"True\" in (select principal_check_routines.check_principal_access({0}))",
+                            principalName
+                        )
+                    } else {
+                        if (!principal.hasGroup()) {
                             throw InternalException(
                                 InternalException.Code.INTERNAL,
                                 DebugInfo.newBuilder()
                                     .setDetail(
-                                        "Principal of type ${principal.principalCase} is not supported for platform BigQuery. ${PaceStatusException.UNIMPLEMENTED}"
+                                        "Principal of type ${principal.principalCase.name} is not supported without the BigQuery IAM Check extension. ${PaceStatusException.UNIMPLEMENTED}"
                                     )
                                     .build()
                             )
+                        }
+                        DSL.condition(
+                            "{0} IN ( SELECT {1} FROM {2} )",
+                            principal.group,
+                            DSL.field(renderName("userGroup")),
+                            DSL.field(renderName("user_groups"))
+                        )
                     }
                 }
             )
