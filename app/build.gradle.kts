@@ -91,7 +91,7 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.77")
 
-    implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.30.0"))
+    implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.31.0"))
     implementation("com.google.cloud:google-cloud-bigquery")
     implementation("com.google.cloud:google-cloud-datacatalog")
     implementation("com.google.cloud:google-cloud-datalineage")
