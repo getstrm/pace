@@ -75,13 +75,24 @@ class BigQueryViewGenerator(
                             "\"True\" in (select principal_check_routines.check_principal_access({0}))",
                             principalName
                         )
-                    } else
+                    } else {
+                        if (!principal.hasGroup()) {
+                            throw InternalException(
+                                InternalException.Code.INTERNAL,
+                                DebugInfo.newBuilder()
+                                    .setDetail(
+                                        "Principal of type ${principal.principalCase.name} is not supported without the BigQuery IAM Check extension. ${PaceStatusException.UNIMPLEMENTED}"
+                                    )
+                                    .build()
+                            )
+                        }
                         DSL.condition(
                             "{0} IN ( SELECT {1} FROM {2} )",
                             principal.group,
                             DSL.field(renderName("userGroup")),
                             DSL.field(renderName("user_groups"))
                         )
+                    }
                 }
             )
         }
