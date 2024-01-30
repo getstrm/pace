@@ -83,6 +83,8 @@
       * [resources](cli-docs/pace\_list\_resources.md)
       * [schemas](cli-docs/pace\_list\_schemas.md)
       * [tables](cli-docs/pace\_list\_tables.md)
+    * [transpile](cli-docs/pace\_transpile.md)
+      * [data-policy](cli-docs/pace\_transpile\_data-policy.md)
     * [upsert](cli-docs/pace\_upsert.md)
       * [data-policy](cli-docs/pace\_upsert\_data-policy.md)
       * [global-transform](cli-docs/pace\_upsert\_global-transform.md)

@@ -21,6 +21,7 @@ PACE CLI dev
 * [pace get](pace_get.md)	 - Get a single entity
 * [pace invoke](pace_invoke.md)	 - Invoke a functionality
 * [pace list](pace_list.md)	 - List entities
+* [pace transpile](pace_transpile.md)	 - Transpile a specification
 * [pace upsert](pace_upsert.md)	 - Upsert entities
 * [pace version](pace_version.md)	 - Get the cli version
 

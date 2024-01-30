@@ -55,8 +55,8 @@ All other principals
 ### Options
 
 ```
-      --data-policy-file string      path to a data policy file to evaluate on sample data, must be a yaml or json representation of a data policy
-      --data-policy-id string        an id of an existing data policy to evaluate on sample data
+      --data-policy-file string      path to a data policy file, must be a yaml or json representation of a data policy
+      --data-policy-id string        an id of an existing data policy (does not have to be applied)
   -h, --help                         help for data-policy
   -o, --output string                output formats [table, yaml, json, json-raw] (default "table")
       --principals other             comma separated list of principals to evaluate the data policy for, if unspecified, all principals will be evaluated. For example, --principals user1,user2. If you want to evaluate the other / `fallback` principal, use value `null` / `other` or `fallback`, for example --principals null
