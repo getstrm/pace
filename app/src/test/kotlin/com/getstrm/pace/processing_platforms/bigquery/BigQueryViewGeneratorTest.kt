@@ -4,6 +4,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Principal
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.RetentionFilter
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceNode
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import com.getstrm.pace.namedField
 import com.getstrm.pace.toPrincipals
@@ -362,7 +363,7 @@ where (
     fun `roles, permissions and groups bigquery test`() {
         // Given
         underTest =
-            BigQueryViewGenerator(dataPolicyBigQueryIAM, defaultUserGroupsTable, true) {
+            BigQueryViewGenerator(dataPolicyBigQueryIAM, null, useIamCheckExtension = true) {
                 withRenderFormatted(true)
             }
         underTest
@@ -408,6 +409,37 @@ where (
   end
   and transactionAmount < 10
 );"""
+            )
+    }
+
+    @Test
+    fun `BQ resource name extraction - no integration fqn`() {
+        // Given
+        val principals = listOf("fraud_detection").toPrincipals()
+        val target =
+            DataPolicy.Target.newBuilder()
+                .setRef(
+                    resourceUrn {
+                        resourcePath.addAll(
+                            listOf(
+                                resourceNode { name = "my_target_project" },
+                                resourceNode { name = "my_target_dataset" },
+                                resourceNode { name = "my_target_view" },
+                            )
+                        )
+                    }
+                )
+                .build()
+        underTest =
+            BigQueryViewGenerator(DataPolicy.getDefaultInstance(), null, true) {
+                withRenderFormatted(true)
+            }
+        underTest
+            .toPrincipalCondition(principals, target)!!
+            .toSql()
+            .shouldBe(
+                """("True" in (select principal_check_routines.check_principal_access("group:fraud_detection", "my_target_dataset", "my_target_view")))"""
+                    .trimIndent()
             )
     }
 

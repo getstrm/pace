@@ -58,7 +58,7 @@ class BigQueryViewGenerator(
             DSL.or(
                 principals.map { principal ->
                     if (useIamCheckExtension) {
-                        val (_, dataset, view) = target!!.ref.integrationFqn.split(".", limit = 3)
+                        val (dataset, view) = target!!.getDatasetAndView()
                         val principalName =
                             when {
                                 principal.hasGroup() -> DSL.quotedName("group:${principal.group}")
@@ -138,4 +138,13 @@ class BigQueryViewGenerator(
         } else {
             DSL.field(trueCondition())
         }
+
+    private fun DataPolicy.Target.getDatasetAndView(): Pair<String, String> {
+        return if (ref.hasIntegrationFqn()) {
+            val (_, dataset, view) = this.ref.integrationFqn.split(".", limit = 3)
+            dataset to view
+        } else {
+            ref.resourcePathList.dropLast(1).last().name to ref.resourcePathList.last().name
+        }
+    }
 }
