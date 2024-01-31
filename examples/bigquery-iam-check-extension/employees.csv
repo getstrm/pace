@@ -1,0 +1,101 @@
+Employee_ID,Name,Base_City,Base_Country,Department,Job_Title,Years_of_Experience,Education_Level,Salary__USD_,Performance_Rating,Age,Social_Security_Number,IBAN,Disciplinary_Records
+E6974,Kristina Johnson,London,UK,HR,Senior Engineer,14,PhD,68651,Needs Improvement,36,110-98-4785,IN10WWDI6687203988,None
+E3283,Laurence Lecoq,London,UK,HR,Financial Analyst,2,PhD,72174,Exceeds,37,771-89-7982,FR71ALVU4112724497,None
+E1665,Jennifer Brooks,London,UK,Marketing,HR Manager,3,PhD,85358,Needs Improvement,28,116-57-6637,GB70CIZL1935002050,None
+E1335,Justin Forbes,London,UK,Finance,Logistics Coordinator,6,PhD,60861,Meets,26,537-50-5431,IN69ZXWR9447134304,Misconduct
+E3492,Patrick Rogers,London,UK,Marketing,Financial Analyst,15,PhD,83896,Meets,51,857-64-2157,NL81ZIYG7481552214,None
+E5309,इन्दु दूबे,London,UK,Operations,Logistics Coordinator,16,PhD,78374,Meets,49,632-59-8327,IN71IKYP8906075125,None
+E8838,Loretta Morales,London,UK,Logistics,Financial Analyst,4,PhD,65589,Needs Improvement,43,782-54-3243,GB28SLJD2216748093,None
+E1761,Anaïs Lejeune,London,UK,HR,Marketing Manager,16,PhD,69575,Needs Improvement,50,103-19-3956,GB55GSPC9710789526,None
+E5621,Angela Mueller,London,UK,Research & Development,Marketing Manager,9,PhD,81765,Exceeds,28,515-59-4613,NL63KUVV5283023358,None
+E7572,अनन्या श्रीविमल,Houston,USA,Operations,Logistics Coordinator,10,PhD,89295,Meets,37,742-90-7705,IN38YJBI0203324494,None
+E1883,"गायकवाड, किआन",Houston,USA,Research & Development,Marketing Manager,20,PhD,73370,Exceeds,38,416-13-7856,FR78TFKI8167705901,None
+E2117,Julie Guerrero,Houston,USA,Operations,Logistics Coordinator,10,PhD,73918,Needs Improvement,52,435-91-7838,FR76POVD9029563894,None
+E4136,Erin Dalton,Aberdeen,UK,HR,Logistics Coordinator,3,PhD,68388,Meets,46,998-65-7957,GB17JONP1201856174,None
+E7816,David Brown,Aberdeen,UK,Operations,Financial Analyst,6,PhD,75569,Meets,49,738-75-6713,DE34AHGG8980077949,None
+E3304,Julie Jackson,Aberdeen,UK,Operations,HR Manager,17,PhD,89286,Meets,49,498-19-4941,NL36ILLG6182728929,None
+E1794,Michelle Hall,Aberdeen,UK,Marketing,Senior Engineer,6,PhD,69496,Meets,50,328-42-8882,NL29SNBA3979048684,None
+E8012,John Robinson,Aberdeen,UK,Logistics,Marketing Manager,15,PhD,79713,Meets,42,567-70-8467,DE66DVMZ0639205791,None
+E6066,Hansjürgen Mies,Amsterdam,Netherlands,HR,Marketing Manager,2,PhD,89355,Exceeds,31,674-71-9001,FR94BHRI5583642387,None
+E7035,ज़ाकिर दीक्षित,Amsterdam,Netherlands,Marketing,Logistics Coordinator,8,PhD,65589,Meets,41,228-87-3319,IN37VGNJ5998316931,None
+E6354,季帆,Rotterdam,Netherlands,HR,HR Manager,6,PhD,81389,Needs Improvement,44,853-60-5035,IN10TTCS9088526655,None
+E2905,Christiane Gauthier,Rotterdam,Netherlands,Marketing,Senior Engineer,2,PhD,86767,Needs Improvement,46,467-84-2284,DE65SGFV1113980351,None
+E9767,William Phillips,Rotterdam,Netherlands,Operations,Marketing Manager,13,PhD,63702,Needs Improvement,41,664-45-5494,GB34HWXW5066665190,None
+E3589,Adrian Shaw,Rotterdam,Netherlands,Finance,Operations Lead,13,PhD,61560,Exceeds,53,853-90-2960,IN30IHBT9590721876,None
+E2367,David Lambert,Rotterdam,Netherlands,Marketing,Operations Lead,15,PhD,74908,Meets,42,628-70-6811,GB23RCFI7472881925,None
+E7955,Третьякова Екатерина Вячеславовна,Rotterdam,Netherlands,Operations,HR Manager,4,PhD,88284,Needs Improvement,54,244-60-1502,FR99WYNN4522803764,None
+E7239,Laura Duran,Rotterdam,Netherlands,Finance,Financial Analyst,20,PhD,72093,Meets,33,672-28-6266,GB92ZLHZ5878665978,None
+E2881,Herr Mohamed Blümel B.Sc.,Rotterdam,Netherlands,Logistics,HR Manager,8,PhD,86490,Meets,52,197-65-2408,NL39PEEY6979716577,None
+E8702,Isabell Heinrich-Langern,Singapore,Singapore,Logistics,Logistics Coordinator,17,PhD,84525,Meets,35,953-21-1792,FR92QVNW3300737628,None
+E7383,Scott Smith,Singapore,Singapore,Logistics,Logistics Coordinator,2,PhD,86708,Meets,42,116-16-4931,NL32ZDDD0674794389,None
+E1109,Elizabeth Santiago,Singapore,Singapore,HR,HR Manager,19,PhD,89036,Meets,42,129-41-6866,IN55SFAG6135789633,None
+E5094,Édith Guérin,Singapore,Singapore,HR,Financial Analyst,16,PhD,81201,Meets,29,184-84-9416,DE11ETWQ5901583634,None
+E7079,अखिल रामलला,Singapore,Singapore,Finance,Financial Analyst,1,PhD,71941,Meets,35,906-71-9788,FR98PAAF1059423808,None
+E3690,Vincent Regnier,London,UK,Operations,Financial Analyst,15,Master's,81356,Meets,54,978-49-6787,IN79UGAK1793355434,None
+E3183,निखिल कुमार,London,UK,HR,HR Manager,16,Master's,67081,Meets,27,576-50-3849,GB15WHYP4845241511,None
+E1605,苏丽,London,UK,HR,Logistics Coordinator,20,Master's,79668,Exceeds,27,938-78-9323,IN82BQQK5940726608,None
+E3404,Крюков Кузьма Валерьянович,London,UK,Marketing,Operations Lead,9,Master's,89722,Exceeds,32,398-53-9791,DE17WHXZ0904888727,None
+E4599,Виноградов Мефодий Изотович,London,UK,Marketing,Senior Engineer,10,Master's,61660,Exceeds,47,238-11-3510,GB56TQFO3519776811,None
+E7034,Jacqueline Fisher,London,UK,Operations,Financial Analyst,12,Master's,74340,Meets,32,417-62-8152,IN54YIAK9890266190,None
+E2236,Charles Renault,London,UK,HR,Operations Lead,16,Master's,60393,Exceeds,44,245-54-4379,FR36HBYT8219115487,None
+E8347,Michael Lee,London,UK,Operations,Senior Engineer,15,Master's,66613,Meets,44,626-10-4318,FR76ZHYY9761626591,None
+E2044,Ing. Sieghard Dietz B.Eng.,London,UK,Logistics,HR Manager,2,Master's,85650,Meets,40,570-73-4251,NL84EKKN3435468976,None
+E4251,Денисова Вероника Афанасьевна,Houston,USA,Logistics,Senior Engineer,4,Master's,88706,Exceeds,42,572-40-9432,DE89CJKN0712762633,None
+E2891,陈瑜,Houston,USA,Marketing,Financial Analyst,16,Master's,81694,Needs Improvement,55,892-17-4435,DE57PXVE0910971037,None
+E6151,Bertrand de Leduc,Houston,USA,Finance,HR Manager,18,Master's,71715,Exceeds,36,435-35-5729,NL71VANK0488822573,None
+E5848,Kristy Maldonado,Houston,USA,Research & Development,Logistics Coordinator,20,Master's,78675,Meets,52,741-12-2369,FR78GXMO9017431473,None
+E7371,अनुपम कुलकर्णी,Aberdeen,UK,Research & Development,Financial Analyst,1,Master's,63377,Exceeds,39,512-69-5163,DE49KKZZ6261039786,None
+E8278,曾玲,Aberdeen,UK,Logistics,Operations Lead,3,Master's,70351,Exceeds,43,212-51-1355,DE39EXUA7314286795,None
+E1227,Jamie Hodges,Aberdeen,UK,Logistics,Logistics Coordinator,19,Master's,60426,Exceeds,48,149-72-8136,IN59PRFC9669490582,None
+E5537,Benjamin Wilson,Aberdeen,UK,Logistics,Operations Lead,1,Master's,75709,Meets,35,617-36-7018,NL67ZVMN0566704388,None
+E3243,刘慧,Amsterdam,Netherlands,Research & Development,Financial Analyst,15,Master's,69653,Exceeds,43,414-83-6415,NL88AWIT8020573600,None
+E8349,James Anderson,Amsterdam,Netherlands,Finance,Financial Analyst,1,Master's,62809,Exceeds,46,389-51-6176,FR36YZUM8704079146,None
+E5405,陈霞,Amsterdam,Netherlands,Finance,Marketing Manager,19,Master's,80704,Needs Improvement,29,887-84-3411,GB17WUAW1660089611,None
+E3994,Синклитикия Афанасьевна Крылова,Amsterdam,Netherlands,Finance,Marketing Manager,15,Master's,83181,Needs Improvement,53,698-57-1932,NL72URVO2266885370,None
+E5307,James Harris,Rotterdam,Netherlands,Research & Development,Logistics Coordinator,9,Master's,63489,Meets,43,852-93-7657,FR64BJPT8189904139,None
+E1677,Wesley Monroe,Rotterdam,Netherlands,Operations,Marketing Manager,10,Master's,61221,Meets,33,655-87-5548,FR35POMV0305660191,None
+E4104,Татьяна Руслановна Стрелкова,Rotterdam,Netherlands,Research & Development,Financial Analyst,17,Master's,84655,Meets,38,590-97-7527,FR74HXOH3037310127,None
+E6262,Spencer Mcfarland,Rotterdam,Netherlands,Research & Development,Senior Engineer,6,Master's,86392,Meets,52,717-97-8594,FR68EUPU6372832974,None
+E8650,Margot Bourgeois,Singapore,Singapore,Research & Development,HR Manager,15,Master's,68915,Exceeds,46,573-52-3674,GB99VQAO9563170554,None
+E9975,Miguel Schleich B.Sc.,Singapore,Singapore,Finance,Senior Engineer,2,Master's,82083,Meets,26,104-69-2741,GB32TZJC0968238481,None
+E3435,Thibaut Pineau,Singapore,Singapore,Research & Development,Marketing Manager,20,Master's,64422,Needs Improvement,53,919-94-3403,NL35NTDZ4200259104,None
+E6274,Kiara Hogan,Singapore,Singapore,HR,Logistics Coordinator,12,Master's,80415,Needs Improvement,35,132-57-8616,GB26BWOC7860110090,None
+E8451,"गर्ग, श्री",Singapore,Singapore,Operations,Marketing Manager,12,Master's,70707,Meets,53,671-78-8030,GB98ANXM7554659139,None
+E9894,Courtney Andrews,Singapore,Singapore,HR,Senior Engineer,11,Master's,66555,Meets,25,259-87-3272,IN39YCLR0604443381,None
+E3455,李涛,London,UK,Finance,Logistics Coordinator,15,Bachelor's,66622,Meets,48,151-72-8905,DE20WFDA0589402148,None
+E6825,Rebecca Wright,London,UK,Research & Development,Logistics Coordinator,17,Bachelor's,66962,Exceeds,44,956-62-9805,FR49BQKU7910299049,None
+E2317,पार्थ गावित,London,UK,Operations,Senior Engineer,5,Bachelor's,83876,Exceeds,53,542-73-3044,GB42EEOF0406036238,None
+E4812,Christopher Hernandez,London,UK,Finance,Senior Engineer,11,Bachelor's,88903,Meets,50,611-30-4704,IN83SYFM9587617033,None
+E6581,Marcus Robinson,London,UK,HR,Financial Analyst,5,Bachelor's,78831,Exceeds,28,380-74-4093,GB51OYGV8143242814,None
+E1507,Michael Garcia,London,UK,Operations,Logistics Coordinator,9,Bachelor's,79023,Needs Improvement,41,448-82-7074,GB25ZPNV4859942021,None
+E2479,Hélène de la Barre,London,UK,HR,Marketing Manager,4,Bachelor's,82203,Meets,26,931-38-1533,DE77FDOF8171424246,None
+E8474,Mark Garcia,London,UK,Operations,Logistics Coordinator,14,Bachelor's,61254,Meets,48,215-66-3564,IN52NNFX1912030997,None
+E9223,Hans Georg Bachmann,Houston,USA,Operations,Senior Engineer,1,Bachelor's,81403,Meets,30,455-14-5308,GB49CDTD8591787066,None
+E1481,Charles Barrera,Houston,USA,Finance,Senior Engineer,16,Bachelor's,71468,Needs Improvement,46,133-26-9891,IN72VVYY5857043010,None
+E1322,Keith King,Houston,USA,Finance,Marketing Manager,4,Bachelor's,74996,Needs Improvement,27,296-28-6963,DE96HCDB4822669380,None
+E2457,Sheila Thornton,Houston,USA,HR,Senior Engineer,10,Bachelor's,77828,Needs Improvement,27,997-17-1791,IN88QRDZ8273259559,None
+E8637,Tanya Conway,Houston,USA,Logistics,Operations Lead,2,Bachelor's,70009,Exceeds,42,731-99-2193,DE69KMOO6189940912,None
+E7277,Jacqueline Wilson,Houston,USA,Marketing,HR Manager,18,Bachelor's,87651,Needs Improvement,25,532-52-6082,DE49LRYB4912286942,None
+E8369,Michèle Cohen,Houston,USA,Research & Development,Senior Engineer,3,Bachelor's,75997,Meets,26,816-60-6877,FR16GIEB3458206615,None
+E3268,Savannah Madden,Aberdeen,UK,Operations,Operations Lead,9,Bachelor's,71893,Exceeds,44,169-91-9157,IN28CHOW9358710812,None
+E3810,Hayley Graham DDS,Aberdeen,UK,HR,Marketing Manager,5,Bachelor's,79985,Needs Improvement,51,472-38-8156,NL65XGRY9265629240,None
+E2101,Christine King,Aberdeen,UK,Finance,Financial Analyst,1,Bachelor's,69814,Meets,55,373-29-8673,FR81CFJT2453143425,Unauthorized Absence
+E2008,Christina Copeland,Aberdeen,UK,Logistics,HR Manager,7,Bachelor's,87837,Meets,53,530-70-1386,DE35OQWK3766027197,None
+E3748,Светлана Альбертовна Колобова,Amsterdam,Netherlands,Logistics,Logistics Coordinator,7,Bachelor's,73656,Exceeds,37,108-88-9952,DE98TCXN3460249024,Misconduct
+E9988,शर्मिला कुमार,Amsterdam,Netherlands,Finance,Operations Lead,9,Bachelor's,87211,Needs Improvement,53,503-94-6695,NL20QGQU9053561773,None
+E9943,杨晨,Amsterdam,Netherlands,Operations,Operations Lead,4,Bachelor's,67351,Meets,33,862-95-9995,NL12MKLJ9944438157,None
+E5781,Chad Robinson,Amsterdam,Netherlands,HR,Logistics Coordinator,2,Bachelor's,77941,Needs Improvement,37,927-87-1864,GB58ZZRO9528828514,None
+E4063,Mark Adkins,Amsterdam,Netherlands,Operations,Marketing Manager,10,Bachelor's,85618,Meets,38,301-86-6354,DE93GMWK1649646682,None
+E5717,Caitlyn Harvey,Rotterdam,Netherlands,Marketing,Logistics Coordinator,20,Bachelor's,65289,Exceeds,34,172-78-9288,FR34UHUP5368884915,None
+E7695,Michael Gonzalez,Rotterdam,Netherlands,Finance,Marketing Manager,2,Bachelor's,69308,Meets,50,159-75-4312,DE10FBMV6941766684,None
+E1056,James Richards,Rotterdam,Netherlands,HR,Logistics Coordinator,18,Bachelor's,68754,Meets,35,359-10-5820,NL98VXTS9541531481,None
+E4442,Gabriel Brunet,Rotterdam,Netherlands,Finance,Senior Engineer,18,Bachelor's,82757,Needs Improvement,26,849-79-1329,DE31XDQP5724250278,None
+E3516,Ing. Bernward Ullmann,Rotterdam,Netherlands,Marketing,Marketing Manager,20,Bachelor's,79440,Needs Improvement,28,261-94-2408,IN24PSAG5134879072,None
+E8051,Justin Gardner,Rotterdam,Netherlands,Logistics,Marketing Manager,2,Bachelor's,84796,Meets,27,878-68-8659,GB47ZVKX9827878383,None
+E7527,Helen Clayton,Rotterdam,Netherlands,Logistics,Marketing Manager,3,Bachelor's,83095,Meets,30,925-93-9503,FR12BAKK1624045263,None
+E3831,Stephen Chavez,Rotterdam,Netherlands,Logistics,Marketing Manager,16,Bachelor's,60784,Meets,33,905-67-1570,DE37KOEH5132870345,Breach of Confidentiality
+E7663,Courtney Chen,Singapore,Singapore,Research & Development,Operations Lead,6,Bachelor's,72341,Meets,37,313-42-2737,DE79RUAD9045500606,None
+E1951,Timothy Sampson,Singapore,Singapore,Research & Development,Marketing Manager,11,Bachelor's,60218,Exceeds,42,855-78-2721,IN82LJXC0822050496,None
+E3439,Claude Delattre,Singapore,Singapore,HR,HR Manager,14,Bachelor's,63550,Exceeds,44,816-51-9611,GB32SLOC7248945919,None
+E9280,Bernhard Fechner,Singapore,Singapore,Research & Development,Operations Lead,6,Bachelor's,74503,Needs Improvement,31,404-56-7971,FR24EMBI3842629729,None
+E1859,Klaus-D. Hellwig,Singapore,Singapore,Finance,Financial Analyst,10,Bachelor's,62080,Exceeds,44,178-77-6623,IN38RVPA8721030374,None

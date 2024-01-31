@@ -69,7 +69,10 @@ class SynapseViewGenerator(dataPolicy: DataPolicy, customJooqSettings: Settings.
         }
     }
 
-    override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
+    override fun toPrincipalCondition(
+        principals: List<DataPolicy.Principal>,
+        target: DataPolicy.Target?
+    ): Condition? {
         return if (principals.isEmpty()) {
             null
         } else {
@@ -98,7 +101,7 @@ class SynapseViewGenerator(dataPolicy: DataPolicy, customJooqSettings: Settings.
      * to evaluate to either true or false, but cannot be the reserved keywords true or false.
      * Hence, the replacement with 1=1 and 1=0.
      */
-    override fun toCondition(filter: GenericFilter): Condition {
+    override fun toCondition(filter: GenericFilter, target: DataPolicy.Target): Condition {
         val builder = filter.toBuilder()
         builder.conditionsBuilderList.map {
             val synapseCondition =
@@ -123,12 +126,15 @@ class SynapseViewGenerator(dataPolicy: DataPolicy, customJooqSettings: Settings.
                     DSL.unquotedName(this.conditionsList.first().condition)
                 )
             } else {
-                return DSL.condition("1 = ({0})", super.toCondition(this))
+                return DSL.condition("1 = ({0})", super.toCondition(this, target))
             }
         }
     }
 
-    override fun toCondition(retention: DataPolicy.RuleSet.Filter.RetentionFilter): Condition {
+    override fun toCondition(
+        retention: DataPolicy.RuleSet.Filter.RetentionFilter,
+        target: DataPolicy.Target
+    ): Condition {
         val retentionCondition =
             if (retention.conditionsList.size == 1) {
                 // If there is only one filter it should be the only option

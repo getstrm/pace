@@ -41,7 +41,10 @@ abstract class ProcessingPlatformViewGenerator(
     private val transformer: ProcessingPlatformTransformer = DefaultProcessingPlatformTransformer,
     customJooqSettings: Settings.() -> Unit = {},
 ) : ProcessingPlatformRenderer {
-    abstract fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition?
+    abstract fun toPrincipalCondition(
+        principals: List<DataPolicy.Principal>,
+        target: DataPolicy.Target? = null
+    ): Condition?
 
     protected open fun selectWithAdditionalHeaderStatements(
         fields: List<JooqField<*>>
@@ -92,6 +95,7 @@ abstract class ProcessingPlatformViewGenerator(
                         ruleSet.fieldTransformsList.firstOrNull {
                             it.field.fullName() == field.fullName()
                         },
+                        ruleSet.target
                     )
                 },
             )
@@ -102,8 +106,8 @@ abstract class ProcessingPlatformViewGenerator(
     private fun createWhereStatement(ruleSet: DataPolicy.RuleSet) =
         ruleSet.filtersList.map { filter ->
             when (filter.filterCase) {
-                RETENTION_FILTER -> toCondition(filter.retentionFilter)
-                GENERIC_FILTER -> toCondition(filter.genericFilter)
+                RETENTION_FILTER -> toCondition(filter.retentionFilter, ruleSet.target)
+                GENERIC_FILTER -> toCondition(filter.genericFilter, ruleSet.target)
                 else ->
                     throw IllegalArgumentException("Unsupported filter: ${filter.filterCase.name}")
             }
@@ -137,7 +141,10 @@ abstract class ProcessingPlatformViewGenerator(
         return result
     }
 
-    open fun toCondition(filter: DataPolicy.RuleSet.Filter.GenericFilter): Condition {
+    open fun toCondition(
+        filter: DataPolicy.RuleSet.Filter.GenericFilter,
+        target: DataPolicy.Target
+    ): Condition {
         if (filter.conditionsList.size == 1) {
             // If there is only one filter it should be the only option
             return getParser().parseCondition(filter.conditionsList.first().condition)
@@ -148,14 +155,14 @@ abstract class ProcessingPlatformViewGenerator(
                 headOperation = { condition ->
                     getParser().parseCondition(condition.condition)
                     DSL.`when`(
-                        toPrincipalCondition(condition.principalsList),
+                        toPrincipalCondition(condition.principalsList, target),
                         field(condition.condition, Boolean::class.java),
                     )
                 },
                 bodyOperation = { conditionStep, condition ->
                     getParser().parseCondition(condition.condition)
                     conditionStep.`when`(
-                        toPrincipalCondition(condition.principalsList),
+                        toPrincipalCondition(condition.principalsList, target),
                         field(condition.condition, Boolean::class.java),
                     )
                 },
@@ -167,7 +174,10 @@ abstract class ProcessingPlatformViewGenerator(
         return DSL.condition(whereCondition)
     }
 
-    open fun toCondition(retention: DataPolicy.RuleSet.Filter.RetentionFilter): Condition {
+    open fun toCondition(
+        retention: DataPolicy.RuleSet.Filter.RetentionFilter,
+        target: DataPolicy.Target
+    ): Condition {
         if (retention.conditionsList.size == 1) {
             // If there is only one filter it should be the only option
             // create retention sql
@@ -178,13 +188,13 @@ abstract class ProcessingPlatformViewGenerator(
             retention.conditionsList.headTailFold(
                 headOperation = { condition ->
                     DSL.`when`(
-                        toPrincipalCondition(condition.principalsList),
+                        toPrincipalCondition(condition.principalsList, target),
                         condition.toRetentionCondition(retention.field),
                     )
                 },
                 bodyOperation = { conditionStep, condition ->
                     conditionStep.`when`(
-                        toPrincipalCondition(condition.principalsList),
+                        toPrincipalCondition(condition.principalsList, target),
                         condition.toRetentionCondition(retention.field),
                     )
                 },
@@ -198,6 +208,7 @@ abstract class ProcessingPlatformViewGenerator(
     fun toJooqField(
         field: DataPolicy.Field,
         fieldTransform: DataPolicy.RuleSet.FieldTransform?,
+        target: DataPolicy.Target
     ): JooqField<*> {
         if (fieldTransform == null) {
             // If there is no transform, we return just the field path (joined by a dot for now)
@@ -205,22 +216,22 @@ abstract class ProcessingPlatformViewGenerator(
         }
         if (fieldTransform.transformsList.size == 1) {
             // If there is only one transform it should be the only option
-            val (_, queryPart) = toCase(fieldTransform.transformsList.last(), field)
+            val (_, queryPart) = toCase(fieldTransform.transformsList.last(), field, target)
             return queryPart.`as`(field.fullName())
         }
 
         val caseWhenStatement =
             fieldTransform.transformsList.headTailFold(
                 headOperation = { transform ->
-                    val (c, q) = toCase(transform, field)
+                    val (c, q) = toCase(transform, field, target)
                     DSL.`when`(c, q)
                 },
                 bodyOperation = { conditionStep, transform ->
-                    val (c, q) = toCase(transform, field)
+                    val (c, q) = toCase(transform, field, target)
                     conditionStep.`when`(c, q)
                 },
                 tailOperation = { conditionStep, transform ->
-                    val (c, q) = toCase(transform, field)
+                    val (c, q) = toCase(transform, field, target)
                     conditionStep.otherwise(q).`as`(field.fullName())
                 },
             )
@@ -231,8 +242,9 @@ abstract class ProcessingPlatformViewGenerator(
     private fun toCase(
         transform: DataPolicy.RuleSet.FieldTransform.Transform?,
         field: DataPolicy.Field,
+        target: DataPolicy.Target
     ): Pair<Condition?, JooqField<Any>> {
-        val memberCheck = toPrincipalCondition(transform?.principalsList.orEmpty())
+        val memberCheck = toPrincipalCondition(transform?.principalsList.orEmpty(), target)
 
         val statement =
             when (transform?.transformCase) {

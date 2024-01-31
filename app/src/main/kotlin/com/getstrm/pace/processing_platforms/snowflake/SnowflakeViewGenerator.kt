@@ -20,7 +20,10 @@ class SnowflakeViewGenerator(
         transformer = SnowflakeTransformer(),
         customJooqSettings = customJooqSettings
     ) {
-    override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
+    override fun toPrincipalCondition(
+        principals: List<DataPolicy.Principal>,
+        target: DataPolicy.Target?
+    ): Condition? {
         return if (principals.isEmpty()) {
             null
         } else {

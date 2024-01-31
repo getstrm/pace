@@ -1,0 +1,129 @@
+rule_sets:
+  - target:
+      type: SQL_VIEW
+      ref:
+        platform:
+          platform_type: BIGQUERY
+          id: bigquery-pp
+        integration_fqn: <--PROJECT-ID-->.<--DATABASE-->.<--VIEW-->
+    filters:
+      - generic_filter:
+          conditions:
+            - principals:
+                - group: testgroup1@your-domain.com
+              condition: "true"
+            - principals:
+                - group: testgroup2@your-domain.com
+              condition: Age > 40
+            - principals: []
+              condition: "false"
+    field_transforms:
+      - field:
+          name_parts:
+            - Name
+        transforms:
+          - principals:
+              - group: testgroup1@your-domain.com
+            identity: {}
+          - principals: []
+            fixed:
+              value: "**REDACTED**"
+      - field:
+          name_parts:
+            - Employee_ID
+        transforms:
+          - principals:
+              - group: testgroup1@your-domain.com
+              - group: testgroup2@your-domain.com
+            identity: {}
+          - principals: []
+            fixed:
+              value: "0000"
+      - field:
+          name_parts:
+            - IBAN
+        transforms:
+          - principals:
+              - group: testgroup1@your-domain.com
+            identity: {}
+          - principals:
+              - group: testgroup2@your-domain.com
+            regexp:
+              regexp: ^([a-zA-Z0-9]{8}).*$
+              replacement: \\1**REDACTED**
+          - principals: []
+            fixed:
+              value: "****"
+      - field:
+          name_parts:
+            - Salary__USD_
+        transforms:
+          - principals:
+              - group: testgroup1@your-domain.com
+            identity: {}
+          - principals:
+              - group: testgroup2@your-domain.com
+            aggregation:
+              partition_by:
+                - name_parts: [ Base_Country ]
+              avg:
+                precision: 0
+          - principals: []
+            nullify: {}
+metadata:
+  tags: []
+  title: bigquery-iam-check-extension-data-policy"
+  description: ""
+  version: 1
+source:
+  fields:
+    - name_parts:
+        - Employee_ID
+      tags: []
+      type: varchar
+      required: false
+    - name_parts:
+        - Name
+      tags: []
+      type: varchar
+      required: false
+    - name_parts:
+        - Base_City
+      tags: []
+      type: varchar
+      required: false
+    - name_parts:
+        - Base_Country
+      tags: []
+      type: varchar
+      required: false
+    - name_parts:
+        - Department
+      tags: []
+      type: varchar
+      required: false
+    - name_parts:
+        - Years_of_Experience
+      tags: []
+      type: integer
+      required: false
+    - name_parts:
+        - Salary__USD_
+      tags: []
+      type: integer
+      required: false
+    - name_parts:
+        - Age
+      tags: []
+      type: integer
+      required: false
+    - name_parts:
+        - IBAN
+      type: varchar
+      required: false
+  tags: []
+  ref:
+    integration_fqn: <--PROJECT-->.<--DATABASE-->.<--TABLE-->
+    platform:
+      platform_type: BIGQUERY
+      id: bigquery-pp

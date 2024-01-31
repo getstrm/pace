@@ -190,7 +190,7 @@ message DataPolicy {
 
           message Sum {}
           message Avg {
-            // The precision to use for rounding. When empty, the value is not rounded
+          // The precision to use for rounding. When empty, the value is not rounded
             optional int32 precision = 1;
             // Type to cast the original field to before applying the aggregation. By default any field will be cast to decimal.
             string cast_to = 2;
