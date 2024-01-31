@@ -8,13 +8,13 @@ Every processing platform has its own conventions and naming regarding groups of
 
 In the table below, you will find the concept names per processing platform. For each processing platform you can click the name to go to the docs describing creation of the principals. For Postgres and Synapse, read below.
 
-| Processing Platform                                                                                                              | Principal for Platform       |
-| -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| [BigQuery](../reference/integrations/processing-platform-integrations/bigquery.md#service-account-creation-and-privileges)       | custom user-to-group mapping |
-| [Databricks](../reference/integrations/processing-platform-integrations/databricks.md#service-principal-creation-and-privileges) | group                        |
-| [Snowflake](../reference/integrations/processing-platform-integrations/snowflake.md#key-pair-creation-and-user-privileges)       | role                         |
-| Postgres                                                                                                                         | role                         |
-| Synapse                                                                                                                          | role                         |
+| Processing Platform                                                                                                              | Principal for Platform                                                         |
+| -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| [BigQuery](../reference/integrations/processing-platform-integrations/bigquery.md#service-account-creation-and-privileges)       | <ol><li>custom user-to-group mapping</li><li>group, role, permission</li></ol> |
+| [Databricks](../reference/integrations/processing-platform-integrations/databricks.md#service-principal-creation-and-privileges) | group                                                                          |
+| [Snowflake](../reference/integrations/processing-platform-integrations/snowflake.md#key-pair-creation-and-user-privileges)       | role                                                                           |
+| Postgres                                                                                                                         | role                                                                           |
+| Synapse                                                                                                                          | role                                                                           |
 
 ## Postgres
 

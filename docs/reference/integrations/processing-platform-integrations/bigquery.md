@@ -137,14 +137,14 @@ app:
 
 ### Data policy
 
-In order to leverage the three different IAM types, you need to prefix the principals.
+In order to leverage the three different IAM types, you need to indicate the type of principal.
 
-<table><thead><tr><th width="151">Principal</th><th width="129">Prefix</th><th>Example (in YAML)</th></tr></thead><tbody><tr><td>Groups</td><td>group:</td><td><pre><code>- principals:
-    - group: group:tg1@strmprivacy.io
-</code></pre></td></tr><tr><td>Roles</td><td>role:</td><td><pre><code>- principals:
-    - group: role:roles/apigee.analyticsAgent
-</code></pre></td></tr><tr><td>Permissions</td><td>permission:</td><td><pre><code>- principals:
-    - group: permission:bigquery.datasets.get
+<table><thead><tr><th width="151">Principal</th><th>Example (in YAML)</th></tr></thead><tbody><tr><td>Groups</td><td><pre><code>- principals:
+    - group: tg1@strmprivacy.io
+</code></pre></td></tr><tr><td>Roles</td><td><pre><code>- principals:
+    - role: roles/apigee.analyticsAgent
+</code></pre></td></tr><tr><td>Permissions</td><td><pre><code>- principals:
+    - permission: bigquery.datasets.get
 </code></pre></td></tr></tbody></table>
 
 ### Request Access
