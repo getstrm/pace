@@ -61,16 +61,23 @@ class DataCatalogsApi(
         request: GetBlueprintPolicyRequest
     ): GetBlueprintPolicyResponse {
         val resourceUrn =
-            ResourceUrn.newBuilder()
-                .setCatalog(ApiDataCatalog.newBuilder().setId(request.catalogId).build())
-                .addAllResourcePath(
-                    listOf(
-                        ResourceNode.newBuilder().setName(request.databaseId).build(),
-                        ResourceNode.newBuilder().setName(request.schemaId).build(),
-                        ResourceNode.newBuilder().setName(request.tableId).build()
+            if (request.fqn.isNotEmpty()) {
+                ResourceUrn.newBuilder()
+                    .setCatalog(ApiDataCatalog.newBuilder().setId(request.catalogId).build())
+                    .setIntegrationFqn(request.fqn)
+                    .build()
+            } else {
+                ResourceUrn.newBuilder()
+                    .setCatalog(ApiDataCatalog.newBuilder().setId(request.catalogId).build())
+                    .addAllResourcePath(
+                        listOf(
+                            ResourceNode.newBuilder().setName(request.databaseId).build(),
+                            ResourceNode.newBuilder().setName(request.schemaId).build(),
+                            ResourceNode.newBuilder().setName(request.tableId).build()
+                        )
                     )
-                )
-                .build()
+                    .build()
+            }
 
         return GetBlueprintPolicyResponse.newBuilder()
             .setDataPolicy(resourcesService.getBlueprintDataPolicy(resourceUrn))

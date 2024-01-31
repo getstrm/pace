@@ -51,7 +51,7 @@ message GetBlueprintPolicyRequest {
   string catalog_id = 1 [(buf.validate.field).string = {min_len: 1}];
   optional string database_id = 2;
   optional string schema_id = 3;
-  string table_id = 4 [(buf.validate.field).string = {min_len: 1}];
+  string table_id = 4;
   string fqn = 5;
 }
 
