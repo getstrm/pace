@@ -103,7 +103,8 @@ class BigQueryViewGeneratorTest {
                 .build()
 
         // When
-        val jooqField = underTest.toJooqField(field, fieldTransform)
+        val jooqField =
+            underTest.toJooqField(field, fieldTransform, DataPolicy.Target.getDefaultInstance())
 
         // Then
         jooqField.toSql() shouldBe
@@ -136,7 +137,8 @@ class BigQueryViewGeneratorTest {
                 .build()
 
         // When
-        val condition = underTest.toCondition(filter.genericFilter)
+        val condition =
+            underTest.toCondition(filter.genericFilter, DataPolicy.Target.getDefaultInstance())
 
         // Then
         condition.toSql() shouldBe
@@ -167,7 +169,7 @@ class BigQueryViewGeneratorTest {
                 .build()
 
         // When
-        val condition = underTest.toCondition(retention)
+        val condition = underTest.toCondition(retention, DataPolicy.Target.getDefaultInstance())
 
         // Then
         condition.toSql() shouldBe
@@ -319,17 +321,17 @@ as
 select
   `transactionId`,
   case
-    when ("True" in (select principal_check_routines.check_principal_access("group:FRAUD_DETECTION"))) then CAST(userId AS string)
+    when ("True" in (select principal_check_routines.check_principal_access("group:FRAUD_DETECTION", "my_target_dataset", "my_target_view"))) then CAST(userId AS string)
     else TO_HEX(SHA256(CAST(userId AS string)))
   end userId,
   case
     when (
-      ("True" in (select principal_check_routines.check_principal_access("group:ANALYTICS")))
-      or ("True" in (select principal_check_routines.check_principal_access("group:MARKETING")))
-    ) then regexp_replace(email, '^.*(@.*)${'$'}', '****\\1')
+      ("True" in (select principal_check_routines.check_principal_access("group:ANALYTICS", "my_target_dataset", "my_target_view")))
+      or ("True" in (select principal_check_routines.check_principal_access("group:MARKETING", "my_target_dataset", "my_target_view")))
+    ) then regexp_replace(email, '^.*(@.*)$', '****\\1')
     when (
-      ("True" in (select principal_check_routines.check_principal_access("group:FRAUD_DETECTION")))
-      or ("True" in (select principal_check_routines.check_principal_access("group:ADMIN")))
+      ("True" in (select principal_check_routines.check_principal_access("group:FRAUD_DETECTION", "my_target_dataset", "my_target_view")))
+      or ("True" in (select principal_check_routines.check_principal_access("group:ADMIN", "my_target_dataset", "my_target_view")))
     ) then `email`
     else '****'
   end email,
@@ -344,11 +346,11 @@ select
 from `my_project.my_dataset.my_table`
 where (
   case
-    when ("True" in (select principal_check_routines.check_principal_access("group:FRAUD_DETECTION"))) then true
+    when ("True" in (select principal_check_routines.check_principal_access("group:FRAUD_DETECTION", "my_target_dataset", "my_target_view"))) then true
     else age > 18
   end
   and case
-    when ("True" in (select principal_check_routines.check_principal_access("group:MARKETING"))) then userId in ('1', '2', '3', '4')
+    when ("True" in (select principal_check_routines.check_principal_access("group:MARKETING", "my_target_dataset", "my_target_view"))) then userId in ('1', '2', '3', '4')
     else true
   end
   and transactionAmount < 10
@@ -372,17 +374,17 @@ as
 select
   `transactionId`,
   case
-    when ("True" in (select principal_check_routines.check_principal_access("group:fraud_detection"))) then CAST(userId AS string)
+    when ("True" in (select principal_check_routines.check_principal_access("group:fraud_detection", "my_target_dataset", "my_target_view"))) then CAST(userId AS string)
     else TO_HEX(SHA256(CAST(userId AS string)))
   end userId,
   case
     when (
-      ("True" in (select principal_check_routines.check_principal_access("group:analytics")))
-      or ("True" in (select principal_check_routines.check_principal_access("permission:bigquery.tables.getData")))
-    ) then regexp_replace(email, '^.*(@.*)${'$'}', '****\\1')
+      ("True" in (select principal_check_routines.check_principal_access("group:analytics", "my_target_dataset", "my_target_view")))
+      or ("True" in (select principal_check_routines.check_principal_access("permission:bigquery.tables.getData", "my_target_dataset", "my_target_view")))
+    ) then regexp_replace(email, '^.*(@.*)$', '****\\1')
     when (
-      ("True" in (select principal_check_routines.check_principal_access("group:fraud_detection")))
-      or ("True" in (select principal_check_routines.check_principal_access("role:bigquery.admin")))
+      ("True" in (select principal_check_routines.check_principal_access("group:fraud_detection", "my_target_dataset", "my_target_view")))
+      or ("True" in (select principal_check_routines.check_principal_access("role:bigquery.admin", "my_target_dataset", "my_target_view")))
     ) then `email`
     else '****'
   end email,
@@ -397,11 +399,11 @@ select
 from `my_project.my_dataset.my_table`
 where (
   case
-    when ("True" in (select principal_check_routines.check_principal_access("group:fraud_detection"))) then true
+    when ("True" in (select principal_check_routines.check_principal_access("group:fraud_detection", "my_target_dataset", "my_target_view"))) then true
     else age > 18
   end
   and case
-    when ("True" in (select principal_check_routines.check_principal_access("permission:bigquery.tables.getData"))) then userId in ('1', '2', '3', '4')
+    when ("True" in (select principal_check_routines.check_principal_access("permission:bigquery.tables.getData", "my_target_dataset", "my_target_view"))) then userId in ('1', '2', '3', '4')
     else true
   end
   and transactionAmount < 10

@@ -48,7 +48,10 @@ class PostgresViewGenerator(
         return jooq.queries(grants)
     }
 
-    override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
+    override fun toPrincipalCondition(
+        principals: List<DataPolicy.Principal>,
+        target: DataPolicy.Target?
+    ): Condition? {
         return if (principals.isEmpty()) {
             null
         } else {

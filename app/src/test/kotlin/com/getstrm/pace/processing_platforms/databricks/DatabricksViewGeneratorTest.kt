@@ -93,7 +93,8 @@ class DatabricksViewGeneratorTest {
                 .build()
 
         // When
-        val field = underTest.toJooqField(attribute, fieldTransform)
+        val field =
+            underTest.toJooqField(attribute, fieldTransform, DataPolicy.Target.getDefaultInstance())
 
         // Then
         field.toSql() shouldBe
@@ -126,7 +127,8 @@ class DatabricksViewGeneratorTest {
                 .build()
 
         // When
-        val field = underTest.toJooqField(attribute, fieldTransform)
+        val field =
+            underTest.toJooqField(attribute, fieldTransform, DataPolicy.Target.getDefaultInstance())
 
         // Then
         field.toSql() shouldBe
@@ -152,7 +154,8 @@ class DatabricksViewGeneratorTest {
                 .build()
 
         // When
-        val field = underTest.toJooqField(attribute, fieldTransform)
+        val field =
+            underTest.toJooqField(attribute, fieldTransform, DataPolicy.Target.getDefaultInstance())
 
         // Then
         field.toSql() shouldBe "regexp_replace('email', '^.*(@.*)\$', '****\$1') \"email\""
@@ -164,7 +167,7 @@ class DatabricksViewGeneratorTest {
         val attribute = namedField("email")
 
         // When
-        val field = underTest.toJooqField(attribute, null)
+        val field = underTest.toJooqField(attribute, null, DataPolicy.Target.getDefaultInstance())
 
         // Then
         field shouldBe DSL.field("email")
@@ -196,7 +199,8 @@ class DatabricksViewGeneratorTest {
                 .build()
 
         // When
-        val condition = underTest.toCondition(filter.genericFilter)
+        val condition =
+            underTest.toCondition(filter.genericFilter, DataPolicy.Target.getDefaultInstance())
 
         // Then
         condition.toSql() shouldBe
@@ -236,7 +240,7 @@ class DatabricksViewGeneratorTest {
                 .build()
 
         // When
-        val condition = underTest.toCondition(retention)
+        val condition = underTest.toCondition(retention, DataPolicy.Target.getDefaultInstance())
 
         // Then
         condition.toSql() shouldBe

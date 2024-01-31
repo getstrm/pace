@@ -92,7 +92,8 @@ class SnowflakeViewGeneratorTest {
                 .build()
 
         // When
-        val jooqField = underTest.toJooqField(field, fieldTransform)
+        val jooqField =
+            underTest.toJooqField(field, fieldTransform, DataPolicy.Target.getDefaultInstance())
 
         // Then
         jooqField.toSql() shouldBe
@@ -126,7 +127,8 @@ class SnowflakeViewGeneratorTest {
                 .build()
 
         // When
-        val condition = underTest.toCondition(filter.genericFilter)
+        val condition =
+            underTest.toCondition(filter.genericFilter, DataPolicy.Target.getDefaultInstance())
 
         // Then
         condition.toSql() shouldBe
@@ -160,7 +162,7 @@ class SnowflakeViewGeneratorTest {
                 .build()
 
         // When
-        val condition = underTest.toCondition(retention)
+        val condition = underTest.toCondition(retention, DataPolicy.Target.getDefaultInstance())
 
         // Then
         condition.toSql() shouldBe

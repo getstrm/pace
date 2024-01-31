@@ -31,7 +31,10 @@ class TestDynamicViewGenerator(dataPolicy: DataPolicy) :
     ProcessingPlatformViewGenerator(dataPolicy) {
     override val jooq: DSLContext = DSL.using(SQLDialect.DEFAULT)
 
-    override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
+    override fun toPrincipalCondition(
+        principals: List<DataPolicy.Principal>,
+        target: DataPolicy.Target?
+    ): Condition? {
         return null
     }
 

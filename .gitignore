@@ -11,6 +11,7 @@ out/
 output/
 
 app/src/main/resources/application-local*.yaml
+*key.json
 
 *.binpb
 protos/openapi.yaml

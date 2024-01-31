@@ -90,7 +90,8 @@ class SynapseViewGeneratorTest {
                 .build()
 
         // When
-        val field = underTest.toJooqField(attribute, fieldTransform)
+        val field =
+            underTest.toJooqField(attribute, fieldTransform, DataPolicy.Target.getDefaultInstance())
 
         // Then
         field.toSql() shouldBe
@@ -118,7 +119,8 @@ class SynapseViewGeneratorTest {
                 .build()
 
         // When
-        val field = underTest.toJooqField(attribute, fieldTransform)
+        val field =
+            underTest.toJooqField(attribute, fieldTransform, DataPolicy.Target.getDefaultInstance())
 
         // Then
         field.toSql() shouldBe
@@ -137,7 +139,8 @@ class SynapseViewGeneratorTest {
             FieldTransform.newBuilder().setField(attribute).addTransforms(fallbackTransform).build()
 
         // When
-        val field = underTest.toJooqField(attribute, fieldTransform)
+        val field =
+            underTest.toJooqField(attribute, fieldTransform, DataPolicy.Target.getDefaultInstance())
 
         // Then
         field.toSql() shouldBe "'former regexp' \"email\""
@@ -149,7 +152,7 @@ class SynapseViewGeneratorTest {
         val attribute = namedField("email")
 
         // When
-        val field = underTest.toJooqField(attribute, null)
+        val field = underTest.toJooqField(attribute, null, DataPolicy.Target.getDefaultInstance())
 
         // Then
         field shouldBe DSL.field("email")
@@ -181,7 +184,8 @@ class SynapseViewGeneratorTest {
                 .build()
 
         // When
-        val condition = underTest.toCondition(filter.genericFilter)
+        val condition =
+            underTest.toCondition(filter.genericFilter, DataPolicy.Target.getDefaultInstance())
 
         // Then
         condition.toSql() shouldBe
@@ -222,7 +226,7 @@ end) end))"""
                 .build()
 
         // When
-        val condition = underTest.toCondition(retention)
+        val condition = underTest.toCondition(retention, DataPolicy.Target.getDefaultInstance())
 
         // Then
         condition.toSql() shouldBe
@@ -250,7 +254,7 @@ end) end))"""
                 .build()
 
         // When
-        val condition = underTest.toCondition(retention)
+        val condition = underTest.toCondition(retention, DataPolicy.Target.getDefaultInstance())
 
         // Then
         condition.toSql() shouldBe
@@ -479,7 +483,7 @@ from my_schema.gddemo;"""
                     )
                 )
                 .build()
-        val sql = underTest.toCondition(f)
+        val sql = underTest.toCondition(f, DataPolicy.Target.getDefaultInstance())
         sql.toSql() shouldBe
             """(1 = (case when (IS_ROLEMEMBER('fraud_and_risk')=1) then (case
   when (1=1) then 1
@@ -513,7 +517,7 @@ end) end))"""
                     )
                 )
                 .build()
-        val sql = underTest.toCondition(f)
+        val sql = underTest.toCondition(f, DataPolicy.Target.getDefaultInstance())
         sql.toSql() shouldBe
             """dateadd(day, (case
   when (IS_ROLEMEMBER('fraud_and_risk')=1) then 100000

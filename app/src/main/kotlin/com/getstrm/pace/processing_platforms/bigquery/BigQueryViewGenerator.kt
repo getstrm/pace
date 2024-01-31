@@ -48,13 +48,17 @@ class BigQueryViewGenerator(
             )
     }
 
-    override fun toPrincipalCondition(principals: List<DataPolicy.Principal>): Condition? {
+    override fun toPrincipalCondition(
+        principals: List<DataPolicy.Principal>,
+        target: DataPolicy.Target?
+    ): Condition? {
         return if (principals.isEmpty()) {
             null
         } else {
             DSL.or(
                 principals.map { principal ->
                     if (useIamCheckExtension) {
+                        val (_, dataset, view) = target!!.ref.integrationFqn.split(".", limit = 3)
                         val principalName =
                             when {
                                 principal.hasGroup() -> DSL.quotedName("group:${principal.group}")
@@ -72,8 +76,10 @@ class BigQueryViewGenerator(
                                     )
                             }
                         DSL.condition(
-                            "\"True\" in (select principal_check_routines.check_principal_access({0}))",
-                            principalName
+                            "\"True\" in (select principal_check_routines.check_principal_access({0}, {1}, {2}))",
+                            principalName,
+                            DSL.quotedName(dataset),
+                            DSL.quotedName(view)
                         )
                     } else {
                         if (!principal.hasGroup()) {
