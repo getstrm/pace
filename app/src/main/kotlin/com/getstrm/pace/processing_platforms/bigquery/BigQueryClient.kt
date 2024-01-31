@@ -37,6 +37,8 @@ import com.google.cloud.datacatalog.lineage.v1.LineageSettings
 import com.google.cloud.datacatalog.lineage.v1.ProcessLinks
 import com.google.cloud.datacatalog.lineage.v1.SearchLinksRequest
 import com.google.cloud.datacatalog.v1.PolicyTagManagerClient
+import com.google.cloud.datacatalog.v1.PolicyTagManagerSettings
+import com.google.cloud.datacatalog.v1.stub.PolicyTagManagerStubSettings
 import com.google.rpc.DebugInfo
 import org.slf4j.LoggerFactory
 
@@ -72,7 +74,13 @@ class BigQueryClient(
             LineageSettings.newBuilder().setCredentialsProvider { credentials }.build()
         )
 
-    private val polClient: PolicyTagManagerClient = PolicyTagManagerClient.create()
+    private val policyTagManagerSettings: PolicyTagManagerSettings =
+        PolicyTagManagerSettings.create(
+            PolicyTagManagerStubSettings.newBuilder().setCredentialsProvider { credentials }.build()
+        )
+
+    private val polClient: PolicyTagManagerClient =
+        PolicyTagManagerClient.create(policyTagManagerSettings)
 
     private val bigQueryDatabase = BigQueryDatabase()
 
