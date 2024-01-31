@@ -1,3 +1,10 @@
+# [1.0.0-alpha.60](https://github.com/getstrm/pace/compare/v1.0.0-alpha.59...v1.0.0-alpha.60) (2024-01-31)
+
+
+### Bug Fixes
+
+* **pace-160:** ensure policy tag manager client does not need adc ([#186](https://github.com/getstrm/pace/issues/186)) ([6bee3b2](https://github.com/getstrm/pace/commit/6bee3b2fc45a2039e454fbe7c0e63c9ffb5d2da3))
+
 # [1.0.0-alpha.59](https://github.com/getstrm/pace/compare/v1.0.0-alpha.58...v1.0.0-alpha.59) (2024-01-29)
 
 
