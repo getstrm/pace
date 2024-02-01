@@ -27,7 +27,6 @@ plugins {
     id("io.spring.dependency-management")
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.kotlin.plugin.spring")
-    id("com.bmuschko.docker-remote-api")
     id("com.apollographql.apollo3") version "3.8.2"
     id("org.flywaydb.flyway")
     id("org.openapi.generator")

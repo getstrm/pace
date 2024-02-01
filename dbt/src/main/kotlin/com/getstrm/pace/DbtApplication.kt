@@ -1,11 +1,8 @@
 package com.getstrm.pace
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import com.getstrm.pace.config.PostgresConfiguration
-import com.getstrm.pace.processing_platforms.postgres.PostgresClient
 import com.getstrm.pace.processing_platforms.postgres.PostgresViewGenerator
 import com.getstrm.pace.util.toProto
-import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
 import org.intellij.lang.annotations.Language
 
 class DbtApplication {
