@@ -14,9 +14,7 @@ plugins {
 }
 
 dependencies {
-    // Dependencies managed by Spring
-    // TODO remove once we upgrade Spring: override SnakeYAML dependency, as the one managed by
-    // Spring is too old and is vulnerable
+    implementation("org.postgresql:postgresql:42.7.1")
     implementation(project(":domain"))
     implementation("org.jooq:jooq:3.19.3")
     implementation("org.yaml:snakeyaml:2.2")
