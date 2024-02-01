@@ -20,24 +20,14 @@ project.version =
         "${project.version}"
     }
 
-val flywayVersion = rootProject.extra["flywayVersion"]  as String
-
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.kotlin.plugin.spring")
     id("com.apollographql.apollo3") version "3.8.2"
-    id("org.flywaydb.flyway")
     id("org.openapi.generator")
     id("com.diffplug.spotless") version "6.25.0"
-}
-
-buildscript {
-    val flywayVersion = rootProject.extra["flywayVersion"]  as String
-    dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:$flywayVersion")
-    }
 }
 
 dependencies {
@@ -48,8 +38,6 @@ dependencies {
     // TODO remove once we upgrade Spring: override SnakeYAML dependency, as the one managed by
     // Spring is too old and is vulnerable
     implementation("org.yaml:snakeyaml:2.2")
-    implementation("org.flywaydb:flyway-core:$flywayVersion")
-    implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.postgresql:postgresql")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
