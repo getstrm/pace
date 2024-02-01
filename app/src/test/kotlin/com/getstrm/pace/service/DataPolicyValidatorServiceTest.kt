@@ -7,11 +7,16 @@ import com.getstrm.pace.config.ProcessingPlatformsConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.util.toProto
 import com.google.rpc.BadRequest
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import io.grpc.Status
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
+import org.jooq.DSLContext
+import org.jooq.SQLDialect
+import org.jooq.impl.DSL
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 
@@ -21,7 +26,22 @@ class DataPolicyValidatorServiceTest {
             appConfiguration =
                 AppConfiguration(processingPlatforms = ProcessingPlatformsConfiguration())
         )
-    private val underTest: DataPolicyValidatorService = DataPolicyValidatorService(appConfig)
+
+    val testJooq: DSLContext =
+        DSL.using(
+            HikariDataSource(
+                    HikariConfig().apply {
+                        jdbcUrl = "jdbc:h2:mem:;DATABASE_TO_UPPER=false"
+                        username = "sa"
+                        password = ""
+                        maximumPoolSize = 1
+                    }
+                )
+                .connection,
+            SQLDialect.H2
+        )
+    private val underTest: DataPolicyValidatorService =
+        DataPolicyValidatorService(appConfig, testJooq)
 
     @Test
     fun `validate complex happy flow`() {
@@ -29,7 +49,7 @@ class DataPolicyValidatorServiceTest {
         val dataPolicy =
             """
 $policyBase
-rule_sets: 
+rule_sets:
 - target:
     ref:
       integration_fqn: my_catalog.my_schema.gddemo_public
@@ -107,7 +127,7 @@ rule_sets:
         val dataPolicy =
             """
 $policyBase
-rule_sets: 
+rule_sets:
 - target:
     ref:
       integration_fqn: 'my_catalog.my_schema.gddemo_public'
@@ -185,7 +205,7 @@ rule_sets:
         val dataPolicy =
             """
 $policyBase
-rule_sets: 
+rule_sets:
 - target:
     ref:
       integration_fqn: my_catalog.my_schema.gddemo_public
@@ -275,7 +295,7 @@ rule_sets:
         val dataPolicy =
             """
 $policyBase
-rule_sets: 
+rule_sets:
 - target:
     ref:
       integration_fqn: my_catalog.my_schema.gddemo_public
@@ -362,7 +382,7 @@ rule_sets:
         val dataPolicy =
             """
 $policyBase
-rule_sets: 
+rule_sets:
 - target:
     ref:
       integration_fqn: my_catalog.my_schema.gddemo_public
@@ -451,7 +471,7 @@ rule_sets:
         val dataPolicy =
             """
 $policyBase
-rule_sets: 
+rule_sets:
 - target:
     ref:
       integration_fqn: my_catalog.my_schema.gddemo_public
@@ -561,10 +581,10 @@ source:
       platform_type: POSTGRES
 rule_sets:
   - target:
-      ref: 
+      ref:
         integration_fqn: public.demo_view
     filters:
-      - generic_filter: 
+      - generic_filter:
           conditions:
             - principals: [ {group: fraud_and_risk} ]
               condition: "true"
@@ -595,7 +615,7 @@ rule_sets:
                 name_parts: [ value ]
           - principals: []
             identity: {}
-    
+
             """
                 .trimIndent()
                 .toProto<DataPolicy>(false)
@@ -625,7 +645,7 @@ rule_sets:
         val dataPolicy =
             """
 $policyBase
-rule_sets: 
+rule_sets:
 - target:
     ref:
       integration_fqn: my_catalog.my_schema.gddemo_public
@@ -663,8 +683,128 @@ rule_sets:
                 .setDescription("RuleSet.GenericFilter has non-empty last principals list")
                 .build()
     }
-}
 
+    @Test
+    fun `check fixed value type good`() {
+        @Language("yaml")
+        val dataPolicy =
+            """
+$policyBase
+rule_sets:
+- target:
+    ref:
+      integration_fqn: my_catalog.my_schema.gddemo_public
+  field_transforms:
+    - field:
+        name_parts: [ age ]
+      transforms:
+        - fixed:
+            value: 123
+          """
+                .toProto<DataPolicy>()
+
+        underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
+    }
+
+    @Test
+    fun `check fixed value type bad`() {
+        @Language("yaml")
+        val dataPolicy =
+            """
+$policyBase
+rule_sets:
+- target:
+    ref:
+      integration_fqn: my_catalog.my_schema.gddemo_public
+  field_transforms:
+    - field:
+        name_parts: [ age ]
+      transforms:
+        - fixed:
+            value: hallo
+          """
+                .toProto<DataPolicy>()
+
+        val exception =
+            shouldThrow<BadRequestException> {
+                underTest.validate(
+                    dataPolicy,
+                    setOf("analytics", "marketing", "fraud-and-risk", "admin")
+                )
+            }
+        exception.code.status shouldBe Status.INVALID_ARGUMENT
+        exception.badRequest.fieldViolationsCount shouldBe 1
+        exception.badRequest.fieldViolationsList.first() shouldBe
+            BadRequest.FieldViolation.newBuilder()
+                .setField("ruleSet.fieldTransform")
+                .setDescription(
+                    "Fixed transform for field age of type bigint has incompatible value hallo"
+                )
+                .build()
+    }
+
+    @Test
+    fun `check fixed value type bad boolean`() {
+        @Language("yaml")
+        val dataPolicy =
+            """
+$policyBase
+rule_sets:
+- target:
+    ref:
+      integration_fqn: my_catalog.my_schema.gddemo_public
+  field_transforms:
+    - field:
+        name_parts: [ boolean ]
+      transforms:
+        - fixed:
+            value: hallo
+          """
+                .toProto<DataPolicy>()
+
+        val exception =
+            shouldThrow<BadRequestException> {
+                underTest.validate(
+                    dataPolicy,
+                    setOf("analytics", "marketing", "fraud-and-risk", "admin")
+                )
+            }
+        exception.code.status shouldBe Status.INVALID_ARGUMENT
+        exception.badRequest.fieldViolationsCount shouldBe 1
+        exception.badRequest.fieldViolationsList.first() shouldBe
+            BadRequest.FieldViolation.newBuilder()
+                .setField("ruleSet.fieldTransform")
+                .setDescription(
+                    "Fixed transform for field boolean of type bool has incompatible value hallo"
+                )
+                .build()
+    }
+
+    @Test
+    fun `check fixed value type boolean`() {
+        @Language("yaml")
+        val dataPolicy =
+            """
+$policyBase
+rule_sets:
+- target:
+    ref:
+      integration_fqn: my_catalog.my_schema.gddemo_public
+  field_transforms:
+    - field:
+        name_parts: [ boolean ]
+      transforms:
+        - fixed:
+            value: true
+          """
+                .toProto<DataPolicy>()
+
+        underTest.validate(
+            dataPolicy,
+            setOf("analytics", "marketing", "fraud-and-risk", "admin")
+        )
+    }
+}
 /*
  * base yaml of policy with happy flow attributes
  */
@@ -684,7 +824,7 @@ source:
     - name_parts: [email]
       type: string
     - name_parts: [age]
-      type: bigint h
+      type: bigint
     - name_parts: [size]
       type: string
     - name_parts: [brand]
@@ -699,4 +839,6 @@ source:
       type: timestamp
     - name_parts: [purpose]
       type: bigint
+    - name_parts: [boolean]
+      type: bool
 """

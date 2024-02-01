@@ -5,14 +5,22 @@ import com.getstrm.pace.config.PaceConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.util.pathString
 import com.getstrm.pace.util.pathStringUpper
+import com.getstrm.pace.util.sqlDataType
 import com.google.rpc.BadRequest
 import com.google.rpc.BadRequest.FieldViolation
+import org.jooq.DSLContext
+import org.jooq.exception.DataException
+import org.jooq.impl.DSL
 import org.springframework.stereotype.Component
 
 // TODO improve readability
 //      the exceptions and nested functions make it hard to follow
 @Component
-class DataPolicyValidatorService(paceConfiguration: PaceConfiguration) {
+class DataPolicyValidatorService(
+    paceConfiguration: PaceConfiguration,
+    // only used for validation of sql type casts
+    private val jooq: DSLContext,
+) {
     private val configuration = paceConfiguration.processingPlatformsConfiguration()
 
     /**
@@ -76,6 +84,7 @@ class DataPolicyValidatorService(paceConfiguration: PaceConfiguration) {
 
         dataPolicy.ruleSetsList.forEach { ruleSet ->
             checkUniqueTokenSources(ruleSet)
+            checkValidFixedValues(dataPolicy.source, ruleSet)
             ruleSet.fieldTransformsList.forEach { fieldTransform ->
                 checkField(fieldTransform.field)
                 if (fieldTransform.transformsList.isEmpty()) {
@@ -232,6 +241,32 @@ class DataPolicyValidatorService(paceConfiguration: PaceConfiguration) {
                         alreadySeen + it
                     }
                 }
+        }
+    }
+
+    private fun checkValidFixedValues(source: DataPolicy.Source, ruleSet: DataPolicy.RuleSet) {
+        val fieldTypesMap = source.fieldsList.associateBy { it.pathStringUpper() }
+        val fixedTransformValuesMap =
+            ruleSet.fieldTransformsList
+                .map { fieldTransform ->
+                    fieldTypesMap[fieldTransform.field.pathStringUpper()]!! to
+                        fieldTransform.transformsList
+                            .filter { it.hasFixed() }
+                            .map { it.fixed.value }
+                }
+                .toMap()
+
+        fixedTransformValuesMap.forEach { (field, fixedValues) ->
+            fixedValues.forEach { fixedValue ->
+                try {
+                    jooq.select(DSL.cast(fixedValue, field.sqlDataType())).fetch()
+                } catch (e: DataException) {
+                    throw invalidArgumentException(
+                        "ruleSet.fieldTransform",
+                        "Fixed transform for field ${field.pathString()} of type ${field.type} has incompatible value $fixedValue"
+                    )
+                }
+            }
         }
     }
 
