@@ -976,7 +976,7 @@ components:
       type: object
 info:
   title: PACE API
-  version: 1.0.0-alpha.60
+  version: 1.0.0-alpha.61
 openapi: 3.0.3
 paths:
   /data-policies:
