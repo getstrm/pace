@@ -1,3 +1,11 @@
+# [1.0.0-alpha.61](https://github.com/getstrm/pace/compare/v1.0.0-alpha.60...v1.0.0-alpha.61) (2024-02-01)
+
+
+### Bug Fixes
+
+* **pace-161:** add bigquery iam extension example ([#187](https://github.com/getstrm/pace/issues/187)) ([8225358](https://github.com/getstrm/pace/commit/8225358b49958638344a5365d8fd93079bfc05b4))
+* **pace-162:** validation checks fixed transform for type compatibility ([#189](https://github.com/getstrm/pace/issues/189)) ([5c83864](https://github.com/getstrm/pace/commit/5c838648ac9f2d0752172a7bf3353c005f7d9a2f))
+
 # [1.0.0-alpha.60](https://github.com/getstrm/pace/compare/v1.0.0-alpha.59...v1.0.0-alpha.60) (2024-01-31)
 
 
