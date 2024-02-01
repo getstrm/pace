@@ -62,14 +62,13 @@ dependencies {
 
     // TODO remove once we upgrade Spring: override SnakeYAML dependency, as the one managed by
     // Spring is too old and is vulnerable
-    implementation("com.h2database:h2:2.2.224")
-    implementation("org.postgresql:postgresql:42.7.1")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.12.2")
     implementation("org.yaml:snakeyaml:2.2")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    jooqGenerator("org.postgresql:postgresql:42.7.1")
+    implementation("org.postgresql:postgresql")
+    implementation("io.micrometer:micrometer-registry-prometheus")
+    jooqGenerator("org.postgresql:postgresql")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
