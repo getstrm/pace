@@ -5,7 +5,6 @@ import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
 import nu.studer.gradle.jooq.JooqGenerate
 import org.flywaydb.gradle.task.FlywayMigrateTask
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.springframework.boot.gradle.tasks.bundling.BootJar
 import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 import java.net.Socket
@@ -24,7 +23,6 @@ val jooqMigrationDir = "$projectDir/src/main/resources/db/migration/postgresql"
 val jooqVersion = rootProject.ext["jooqVersion"] as String
 val kotestVersion = rootProject.ext["kotestVersion"] as String
 val openDataDiscoveryOpenApiDir = layout.buildDirectory.dir("generated/source/odd").get()
-val springCloudKubernetesVersion = rootProject.ext["springCloudKubernetesVersion"] as String
 
 project.version =
     if (gradle.startParameter.taskNames.any { it.lowercase() == "builddocker" }) {
@@ -36,10 +34,7 @@ project.version =
 val flywayVersion = rootProject.extra["flywayVersion"]  as String
 
 plugins {
-    id("org.springframework.boot")
-    id("io.spring.dependency-management")
     id("org.jetbrains.kotlin.jvm")
-    id("org.jetbrains.kotlin.plugin.spring")
     id("com.bmuschko.docker-remote-api")
     id("com.apollographql.apollo3") version "3.8.2"
     id("nu.studer.jooq")
@@ -56,9 +51,6 @@ buildscript {
 }
 
 dependencies {
-    // Dependencies managed by Spring
-    implementation("org.springframework.boot:spring-boot-starter-jooq")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
     // TODO remove once we upgrade Spring: override SnakeYAML dependency, as the one managed by
     // Spring is too old and is vulnerable
     implementation("org.yaml:snakeyaml:2.2")
@@ -66,27 +58,20 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.postgresql:postgresql")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("io.micrometer:micrometer-registry-prometheus")
     jooqGenerator("org.postgresql:postgresql")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.h2database:h2")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     // TODO Remove once this bug is fixed: https://github.com/Kotlin/kotlinx.coroutines/issues/3958
     runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
     // Self-managed dependencies
-    implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
     implementation("com.databricks:databricks-sdk-java:0.17.1")
     implementation("com.github.drapostolos:type-parser:0.8.1")
     implementation("com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre11")
 
-    implementation(
-        "org.springframework.cloud:spring-cloud-starter-kubernetes-fabric8-config:$springCloudKubernetesVersion"
-    )
 
     implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.77")
@@ -111,9 +96,6 @@ dependencies {
     implementation("io.ktor:ktor-client-logging")
 
     // Test dependencies
-    testImplementation("org.springframework.boot:spring-boot-starter-test") {
-        exclude(group = "com.vaadin.external.google", module = "android-json")
-    }
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.mockk:mockk:1.13.9")
@@ -181,21 +163,6 @@ tasks.test {
     testLogging {
         // Ensures full kotest diffs are printed
         exceptionFormat = TestExceptionFormat.FULL
-    }
-}
-
-tasks.named<BootJar>("bootJar") {
-    mainClass = "com.getstrm.pace.PaceApplicationKt"
-    archiveFileName = "app.jar"
-    manifest {
-        attributes["Implementation-Title"] = "Policy As Code Engine"
-
-        attributes["Implementation-Version"] =
-            if (project.version.toString().endsWith("-SNAPSHOT")) {
-                "${project.version} (built at $buildTimestamp)"
-            } else {
-                project.version
-            }
     }
 }
 
