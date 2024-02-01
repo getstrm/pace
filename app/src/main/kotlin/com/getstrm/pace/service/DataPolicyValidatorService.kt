@@ -246,17 +246,13 @@ class DataPolicyValidatorService(
 
     private fun checkValidFixedValues(source: DataPolicy.Source, ruleSet: DataPolicy.RuleSet) {
         val fieldTypesMap = source.fieldsList.associateBy { it.pathStringUpper() }
-        val fixedTransformValuesMap =
-            ruleSet.fieldTransformsList
-                .map { fieldTransform ->
-                    fieldTypesMap[fieldTransform.field.pathStringUpper()]!! to
-                        fieldTransform.transformsList
-                            .filter { it.hasFixed() }
-                            .map { it.fixed.value }
-                }
-                .toMap()
+        val fixedTransformValues =
+            ruleSet.fieldTransformsList.map { fieldTransform ->
+                fieldTypesMap[fieldTransform.field.pathStringUpper()]!! to
+                    fieldTransform.transformsList.filter { it.hasFixed() }.map { it.fixed.value }
+            }
 
-        fixedTransformValuesMap.forEach { (field, fixedValues) ->
+        fixedTransformValues.forEach { (field, fixedValues) ->
             fixedValues.forEach { fixedValue ->
                 try {
                     jooq.select(DSL.cast(fixedValue, field.sqlDataType())).fetch()

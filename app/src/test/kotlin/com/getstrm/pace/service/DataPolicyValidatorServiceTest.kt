@@ -799,10 +799,7 @@ rule_sets:
           """
                 .toProto<DataPolicy>()
 
-        underTest.validate(
-            dataPolicy,
-            setOf("analytics", "marketing", "fraud-and-risk", "admin")
-        )
+        underTest.validate(dataPolicy, setOf("analytics", "marketing", "fraud-and-risk", "admin"))
     }
 }
 /*
