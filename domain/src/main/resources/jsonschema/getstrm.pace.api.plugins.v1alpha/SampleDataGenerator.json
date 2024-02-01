@@ -1,0 +1,1 @@
+{"$schema":"http://json-schema.org/draft-04/schema#","$ref":"#/definitions/SampleDataGenerator","definitions":{"SampleDataGenerator":{"additionalProperties":false,"type":"object","title":"Sample Data Generator"}}}

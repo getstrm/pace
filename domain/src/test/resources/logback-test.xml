@@ -1,0 +1,18 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg %X{strm-host}%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+    <logger name="org.jooq.tools" level="INFO"/>
+    <!-- Turn off the 'Thank you for using Jooq message' -->
+    <logger name="org.jooq.Constants" level="OFF"/>
+
+    <logger name="com.getstrm.pace" level="DEBUG"/>
+    <logger name="io.ktor.client.HttpClient" level="OFF"/>
+</configuration>

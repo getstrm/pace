@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: pace
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/pace
+
+grpc:
+  server:
+    port: 50051
+
+management:
+  endpoints:
+    web.exposure.include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+
+logging:
+  level:
+    org.jooq.Constants: off
+    io.ktor.client.HttpClient: off
+
+app:
+  default-view-suffix: "_pace_view"
+  expose-application-exceptions: false

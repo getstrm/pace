@@ -1,5 +1,5 @@
 rootProject.name = "pace"
-include(":app")
+include(":app", ":dbt", ":domain")
 
 pluginManagement {
     val kotlinVersion: String by settings

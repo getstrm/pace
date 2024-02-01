@@ -1,0 +1,1 @@
+{"$schema":"http://json-schema.org/draft-04/schema#","$ref":"#/definitions/ApplyDataPolicyRequest","definitions":{"ApplyDataPolicyRequest":{"properties":{"data_policy_id":{"type":"string"},"platform_id":{"type":"string"}},"additionalProperties":false,"type":"object","title":"Apply Data Policy Request"}}}

@@ -1,14 +1,27 @@
+import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerRemoveContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
+import nu.studer.gradle.jooq.JooqGenerate
+import org.flywaydb.gradle.task.FlywayMigrateTask
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 import java.io.ByteArrayOutputStream
+import java.net.InetAddress
+import java.net.Socket
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.*
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.springframework.boot.gradle.tasks.bundling.BootJar
+import kotlin.system.exitProcess
 
 val buildTimestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
 
 val generatedBufDependencyVersion: String by rootProject.extra
+val jooqGenerationPath = layout.buildDirectory.dir("generated/source/jooq/pace").get()
 val postgresPort: Int by rootProject.extra
+val jooqSchema = rootProject.extra["schema"] as String
+val jooqMigrationDir = "$projectDir/src/main/resources/db/migration/postgresql"
+val jooqVersion = rootProject.ext["jooqVersion"] as String
 val kotestVersion = rootProject.ext["kotestVersion"] as String
 val openDataDiscoveryOpenApiDir = layout.buildDirectory.dir("generated/source/odd").get()
 val springCloudKubernetesVersion = rootProject.ext["springCloudKubernetesVersion"] as String
@@ -29,6 +42,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.spring")
     id("com.bmuschko.docker-remote-api")
     id("com.apollographql.apollo3") version "3.8.2"
+    id("nu.studer.jooq")
     id("org.flywaydb.flyway")
     id("org.openapi.generator")
     id("com.diffplug.spotless") version "6.25.0"
@@ -42,7 +56,6 @@ buildscript {
 }
 
 dependencies {
-    implementation(project(":domain"))
     // Dependencies managed by Spring
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -56,6 +69,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("io.micrometer:micrometer-registry-prometheus")
+    jooqGenerator("org.postgresql:postgresql")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
@@ -188,6 +202,141 @@ tasks.named<BootJar>("bootJar") {
 tasks.jar {
     // Disables the "-plain.jar" (builds only the bootJar)
     enabled = false
+}
+
+val removePostgresContainer =
+    tasks.register("jooqPostgresRemove", DockerRemoveContainer::class) {
+        group = "postgres"
+        targetContainerId("jooq-postgres")
+        force.set(true)
+        onError {
+            // noop
+        }
+    }
+
+val createPostgresContainer =
+    tasks.register("jooqPostgresCreate", DockerCreateContainer::class) {
+        dependsOn(removePostgresContainer)
+        group = "postgres"
+        targetImageId("postgres:15")
+        containerName.set("jooq-postgres")
+        hostConfig.portBindings.set(listOf("$postgresPort:5432"))
+        hostConfig.autoRemove.set(true)
+        envVars.set(
+            mapOf(
+                "POSTGRES_USER" to "postgres",
+                "POSTGRES_PASSWORD" to "postgres",
+                "POSTGRES_DB" to "postgres"
+            )
+        )
+        attachStderr.set(true)
+        attachStdout.set(true)
+        tty.set(true)
+    }
+
+val startPostgresContainer =
+    tasks.register("jooqPostgresStart", DockerStartContainer::class) {
+        group = "postgres"
+        dependsOn(createPostgresContainer)
+        targetContainerId("jooq-postgres")
+        doLast {
+            val tries = 100
+            for (i in 1..tries) {
+                try {
+                    Socket(InetAddress.getLocalHost().hostName, postgresPort)
+                    // It might take postgres a while to be ready for connections
+                    project.logger.lifecycle(
+                        "Connection to port $postgresPort succeeded, waiting 2 seconds for Postgres to finish initialization"
+                    )
+                    Thread.sleep(2000)
+                    break
+                } catch (e: Exception) {
+                    Thread.sleep(100)
+                }
+                if (i == tries) {
+                    project.logger.lifecycle("No connection to port $postgresPort was established")
+                    exitProcess(1)
+                }
+            }
+        }
+    }
+
+val stopPostgresContainer =
+    tasks.register("jooqPostgresStop", DockerStopContainer::class) {
+        group = "postgres"
+        targetContainerId("jooq-postgres")
+    }
+
+val migrateTask =
+    tasks.register("jooqMigrate", FlywayMigrateTask::class) {
+        dependsOn(startPostgresContainer)
+        setGroup("flyway")
+
+        driver = "org.postgresql.Driver"
+        url = "jdbc:postgresql://localhost:$postgresPort/postgres"
+        user = "postgres"
+        password = "postgres"
+        locations = arrayOf("filesystem:$jooqMigrationDir")
+    }
+
+jooq {
+    group = "jooq"
+    version.set(jooqVersion)
+
+    configurations {
+        create("main") {
+            jooqConfiguration.apply {
+                logging = org.jooq.meta.jaxb.Logging.WARN
+                jdbc.apply {
+                    driver = "org.postgresql.Driver"
+                    url = "jdbc:postgresql://localhost:$postgresPort/postgres"
+                    user = "postgres"
+                    password = "postgres"
+                }
+                generator.apply {
+                    name = "org.jooq.codegen.KotlinGenerator"
+                    database.apply {
+                        name = "org.jooq.meta.postgres.PostgresDatabase"
+                        inputSchema = rootProject.extra["schema"] as String
+                        includes = ".*"
+                    }
+                    target.apply {
+                        packageName = "com.getstrm.jooq.generated"
+                        directory = jooqGenerationPath.asFile.absolutePath
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.named<JooqGenerate>("generateJooq") {
+    dependsOn(migrateTask)
+    allInputsDeclared.set(true)
+    setFakeOutputFileIn(jooqGenerationPath)
+    inputs.dir(jooqMigrationDir)
+}
+
+gradle.taskGraph.whenReady {
+    // Disable starting postgres in docker in CI
+    allTasks
+        .filter { it.group == "postgres" }
+        .forEach { it.onlyIf { !(rootProject.ext.has("ciBuild")) } }
+
+    // Set inputs and outputs for all tasks for Jooq generation
+    allTasks
+        .filter { it.group in listOf("postgres", "flyway", "jooq") }
+        .forEach {
+            it.inputs.dir(jooqMigrationDir)
+            it.setFakeOutputFileIn(jooqGenerationPath)
+        }
+}
+
+fun Task.setFakeOutputFileIn(path: Directory) {
+    val taskOutput = path.dir("..")
+
+    doLast { taskOutput.file(".gradle-task-$name").asFile.createNewFile() }
+    outputs.file(taskOutput.file(".gradle-task-$name"))
 }
 
 val createProtoDescriptor =

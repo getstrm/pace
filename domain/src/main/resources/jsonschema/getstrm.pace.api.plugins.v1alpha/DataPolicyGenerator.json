@@ -1,0 +1,1 @@
+{"$schema":"http://json-schema.org/draft-04/schema#","$ref":"#/definitions/DataPolicyGenerator","definitions":{"DataPolicyGenerator":{"additionalProperties":false,"type":"object","title":"Data Policy Generator"}}}
