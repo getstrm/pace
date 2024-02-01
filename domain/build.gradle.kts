@@ -2,9 +2,6 @@ import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerRemoveContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
-import nu.studer.gradle.jooq.JooqGenerate
-import org.flywaydb.gradle.task.FlywayMigrateTask
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 import java.net.Socket
@@ -12,6 +9,9 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.system.exitProcess
+import nu.studer.gradle.jooq.JooqGenerate
+import org.flywaydb.gradle.task.FlywayMigrateTask
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val buildTimestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
 
@@ -32,10 +32,13 @@ project.version =
     }
 
 val flywayVersion = rootProject.extra["flywayVersion"]  as String
+val springBootVersion = rootProject.extra["springBootVersion"] as String
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("com.bmuschko.docker-remote-api")
+    id("org.springframework.boot")
+    id("io.spring.dependency-management")
     id("com.apollographql.apollo3") version "3.8.2"
     id("nu.studer.jooq")
     id("org.flywaydb.flyway")
@@ -51,6 +54,12 @@ buildscript {
 }
 
 dependencies {
+    // A few Spring-related dependencies, even though we don't start a Spring application in this module.
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    implementation("org.springframework.boot:spring-boot-starter-jooq")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
+
     // TODO remove once we upgrade Spring: override SnakeYAML dependency, as the one managed by
     // Spring is too old and is vulnerable
     implementation("com.h2database:h2:2.2.224")
@@ -72,7 +81,6 @@ dependencies {
     implementation("com.databricks:databricks-sdk-java:0.17.1")
     implementation("com.github.drapostolos:type-parser:0.8.1")
     implementation("com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre11")
-
 
     implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.77")
