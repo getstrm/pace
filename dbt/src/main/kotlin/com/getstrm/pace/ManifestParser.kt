@@ -15,15 +15,16 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 object ManifestParser {
 
     private val objectMapper = jacksonObjectMapper()
-    private val dummyPlatform = processingPlatform { }
+    private val dummyPlatform = processingPlatform {}
 
     fun createBluePrints(manifestJson: JsonNode): List<DataPolicy> {
-        val modelNodes = ((manifestJson as ObjectNode)["nodes"] as ObjectNode).fields().asSequence()
-            .filter { (key, node) ->
-                (node as ObjectNode)["resource_type"].asText() == "model"
-            }.map { (key, node) ->
-                objectMapper.convertValue<DbtModel>(node)
-            }.toList()
+        val modelNodes =
+            ((manifestJson as ObjectNode)["nodes"] as ObjectNode)
+                .fields()
+                .asSequence()
+                .filter { (key, node) -> (node as ObjectNode)["resource_type"].asText() == "model" }
+                .map { (key, node) -> objectMapper.convertValue<DbtModel>(node) }
+                .toList()
         return modelNodes.map { createDataPolicy(it) }
     }
 

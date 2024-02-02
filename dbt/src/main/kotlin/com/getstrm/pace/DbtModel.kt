@@ -20,7 +20,6 @@ data class Column(
     val name: String,
     val description: String?,
     val tags: List<String>,
-    @JsonProperty("data_type")
-    val dataType: String?,
+    @JsonProperty("data_type") val dataType: String?,
     val meta: ObjectNode,
 )

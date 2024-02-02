@@ -7,9 +7,10 @@ import org.junit.jupiter.api.Test
 
 class ManifestParserTest {
 
-    private val manifestJson = this::class.java.getResource("/manifest.json").readText().let {
-        ObjectMapper().readTree(it)
-    }
+    private val manifestJson =
+        this::class.java.getResource("/manifest.json").readText().let {
+            ObjectMapper().readTree(it)
+        }
 
     @Test
     fun foo() {
