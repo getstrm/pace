@@ -1,6 +1,7 @@
 package com.getstrm.pace
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.processing_platforms.postgres.PostgresTransformer
 import com.getstrm.pace.processing_platforms.postgres.PostgresViewGenerator
 import com.getstrm.pace.util.toProto
 import org.intellij.lang.annotations.Language
@@ -9,7 +10,7 @@ class DbtApplication {
 }
 fun main(args: Array<String>) {
     val viewGenerator = PostgresViewGenerator(
-        multiDetokenizePolicy
+        multiDetokenizePolicy,
     )
     val queries = viewGenerator.toDynamicViewSQL()
 
