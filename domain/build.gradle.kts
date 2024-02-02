@@ -175,8 +175,7 @@ tasks.test {
 }
 
 tasks.jar {
-    // Disables the "-plain.jar" (builds only the bootJar)
-    enabled = false
+    enabled = true
 }
 
 val removePostgresContainer =

@@ -1,5 +1,6 @@
 val generatedBufDependencyVersion: String by rootProject.extra
 val kotestVersion = rootProject.ext["kotestVersion"] as String
+val springBootVersion = rootProject.extra["springBootVersion"] as String
 
 project.version =
     if (gradle.startParameter.taskNames.any { it.lowercase() == "builddocker" }) {
@@ -11,14 +12,19 @@ project.version =
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("com.diffplug.spotless") version "6.25.0"
+    id("org.springframework.boot")
+    id("io.spring.dependency-management")
 }
 
 dependencies {
+    // A few Spring-related dependencies, even though we don't start a Spring application in this module.
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    implementation("org.springframework.boot:spring-boot-starter-jooq")
+
     // Dependencies managed by Spring
     // TODO remove once we upgrade Spring: override SnakeYAML dependency, as the one managed by
     // Spring is too old and is vulnerable
     implementation(project(":domain"))
-    implementation("org.jooq:jooq:3.19.3")
     implementation("org.yaml:snakeyaml:2.2")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -60,6 +66,5 @@ configure<com.diffplug.gradle.spotless.SpotlessExtension> {
 
 
 tasks.jar {
-    // Disables the "-plain.jar" (builds only the bootJar)
-    enabled = false
+    enabled = true
 }

@@ -26,8 +26,7 @@ import org.jooq.JSONB
 val THOUSAND_RECORDS = PageParameters.newBuilder().setPageSize(1000).build()
 val MILLION_RECORDS = PageParameters.newBuilder().setPageSize(1000000).build()
 
-val DEFAULT_PAGE_PARAMETERS =
-    PageParameters.newBuilder().setPageSize(10).setSkip(0).build()
+val DEFAULT_PAGE_PARAMETERS = PageParameters.newBuilder().setPageSize(10).setSkip(0).build()
 
 fun PageParameters.orDefault(): PageParameters =
     if (this == PageParameters.getDefaultInstance()) DEFAULT_PAGE_PARAMETERS else this
