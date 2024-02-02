@@ -1,1 +1,0 @@
-{"$schema":"http://json-schema.org/draft-04/schema#","$ref":"#/definitions/DeleteGlobalTransformRequest","definitions":{"DeleteGlobalTransformRequest":{"properties":{"ref":{"type":"string"},"type":{"type":"string"}},"additionalProperties":false,"type":"object","title":"Delete Global Transform Request"}}}

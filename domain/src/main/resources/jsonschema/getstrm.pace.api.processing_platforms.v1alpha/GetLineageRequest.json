@@ -1,1 +1,0 @@
-{"$schema":"http://json-schema.org/draft-04/schema#","$ref":"#/definitions/GetLineageRequest","definitions":{"GetLineageRequest":{"properties":{"platform_id":{"type":"string"},"fqn":{"type":"string"}},"additionalProperties":false,"type":"object","title":"Get Lineage Request"}}}

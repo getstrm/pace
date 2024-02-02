@@ -38,12 +38,12 @@ json-schema:
 	@ (cd protos; buf generate)
 
 copy-json-schema-to-resources: json-schema
-	@ find app/src/main/resources/jsonschema -maxdepth 1 -mindepth 1 -type d | xargs -I{} rm -rf {}
-	@ mkdir -p app/src/main/resources/jsonschema
+	@ find server/src/main/resources/jsonschema -maxdepth 1 -mindepth 1 -type d | xargs -I{} rm -rf {}
+	@ mkdir -p server/src/main/resources/jsonschema
 	@ rm -rf protos/temp
 	@ cp -r protos/json-schema protos/temp
 	@ cd protos/json-schema && find . -type f -name "*.json" -exec sh -c "cat {} | jq -r tostring > ../temp/{}" \;
-	@ cp -r protos/temp/* app/src/main/resources/jsonschema
+	@ cp -r protos/temp/* server/src/main/resources/jsonschema
 	@ rm -rf protos/temp protos/json-schema
 
 integration-test:
@@ -51,7 +51,7 @@ integration-test:
 	@ make -C integration-test clean pace all
 
 download-odd-oas:
-	${MAKE} -C app/src/main/resources/data-catalogs/open-data-discovery/
+	${MAKE} -C server/src/main/resources/data-catalogs/open-data-discovery/
 
 start-pace-prerequisites: stop-pace-prerequisites
 	@ docker rm -f postgres_pace
