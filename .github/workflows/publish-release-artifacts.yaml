@@ -63,8 +63,8 @@ jobs:
         # Normally generated in the Gradle prepareForDocker step, but the ciBuild flag disables that
         run: |
           cd protos
-          mkdir -p ../app/build/docker
-          buf build -o ../app/build/docker/descriptor.binpb
+          mkdir -p ../server/build/docker
+          buf build -o ../server/build/docker/descriptor.binpb
 
       # Container artifact
       - name: Set up QEMU
@@ -95,7 +95,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: app/build/docker
+          context: server/build/docker
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

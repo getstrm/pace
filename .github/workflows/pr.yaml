@@ -62,7 +62,7 @@ jobs:
       - name: Execute Gradle build
         run: ./gradlew build -PciBuild
       - name: copy app.jar to integration-test directory
-        run: cp app/build/libs/app.jar integration-test/
+        run: cp server/build/libs/app.jar integration-test/
       - name: executing integration test
         id: integration-test
         working-directory: integration-test/
