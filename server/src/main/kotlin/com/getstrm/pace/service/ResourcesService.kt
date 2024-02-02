@@ -1,6 +1,7 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceNode
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import build.buf.gen.getstrm.pace.api.paging.v1alpha.PageParameters
@@ -13,6 +14,7 @@ import com.getstrm.pace.exceptions.internalException
 import com.getstrm.pace.exceptions.throwNotFound
 import com.getstrm.pace.processing_platforms.Group
 import com.getstrm.pace.processing_platforms.ProcessingPlatformClient
+import com.getstrm.pace.processing_platforms.addRuleSet
 import com.getstrm.pace.util.PagedCollection
 import com.getstrm.pace.util.withPageInfo
 import com.google.rpc.BadRequest
@@ -61,7 +63,9 @@ class ResourcesService(
             }
         val bluePrintWithRulesets =
             try {
-                globalTransformsService.addRuleSet(blueprint)
+                addRuleSet(blueprint) { tag: String ->
+                    globalTransformsService.getTransformOrNull(tag, GlobalTransform.TransformCase.TAG_TRANSFORM)
+                }
             } catch (e: Exception) {
                 log.warn("could not apply global-transforms to this blueprint", e)
                 throw InternalException(

@@ -49,6 +49,15 @@ object ManifestParser {
                         ),
                     )
                 }
+                fields.addAll( model.columns.values.map{ column ->
+                    DataPolicy.Field.newBuilder()
+                        // TODO doesn't handle nested?
+                        .addNameParts(column.name)
+                        .addAllTags(column.tags)
+                        // TODO reuse sqlDataType
+                        .apply { column.dataType?.let{ this.setType(it)} }
+                        .build()
+                })
             }
         }
     }

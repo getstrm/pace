@@ -21,6 +21,8 @@ import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.DatePart
 import org.jooq.Field as JooqField
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import org.jooq.Queries
 import org.jooq.Record
 import org.jooq.SQLDialect
@@ -269,4 +271,107 @@ abstract class ProcessingPlatformViewGenerator(
     }
 
     private fun getParser() = jooq.parser()
+}
+
+// TODO move to its own package. GlobalTransforms 
+/**
+ * enforce non-overlapping principals on the ApiTransforms in one FieldTransform. First one wins.
+ *
+ * Since each tag can have a list of associated ApiTransforms, this makes the ORDER of tags
+ * important. Let's hope the catalogs present the tags in a deterministic order!
+ *
+ * a certain fields the tags define non-overlapping rules? The [DataPolicyValidatorService.validate]
+ * method already executes this check.
+ *
+ * The strategy here is an ongoing discussion: https://github.com/getstrm/pace/issues/33
+ */
+fun List<DataPolicy.RuleSet.FieldTransform.Transform>.combineTransforms(): List<DataPolicy.RuleSet.FieldTransform.Transform> {
+    val filtered: List<DataPolicy.RuleSet.FieldTransform.Transform> =
+        this.fold(
+            emptySet<String>() to listOf<DataPolicy.RuleSet.FieldTransform.Transform>(),
+        ) {
+            (
+                /* the principals that we've already encountered while going through the list */
+                alreadySeenPrincipals: Set<String>,
+                /* the cleaned-up list of ApiTransforms */
+                acc: List<DataPolicy.RuleSet.FieldTransform.Transform>,
+            ),
+            /* the original ApiTransform */
+            transform: DataPolicy.RuleSet.FieldTransform.Transform,
+            ->
+            // TODO principals should also support other types than just groups
+            val principals =
+                transform.principalsList.map { it.group }.toSet() - alreadySeenPrincipals
+            val dataPolicyWithoutOverlappingPrincipals =
+                transform
+                    .toBuilder()
+                    .clearPrincipals()
+                    .addAllPrincipals(
+                        principals.map {
+                            DataPolicy.Principal.newBuilder().setGroup(it).build()
+                        }
+                    )
+                    .build()
+            alreadySeenPrincipals + principals to acc + dataPolicyWithoutOverlappingPrincipals
+        }
+            .second
+    // now remove duplicate defaults (without principals
+    val (defaults, withPrincipals) = filtered.partition { it.principalsCount == 0 }
+    return (withPrincipals + defaults.firstOrNull()).filterNotNull()
+}
+
+/**
+ * add a rule set to a data policy based on tags.
+ *
+ * @param dataPolicy blueprint DataPolicy
+ * @return policy with embedded ruleset.
+ */
+fun addRuleSet(dataPolicy: DataPolicy, getter: (tag:String) -> GlobalTransform? ): DataPolicy {
+    val fieldTransforms =
+        dataPolicy.source.fieldsList
+            .filter { it.tagsList.isNotEmpty() }
+            .mapNotNull { field ->
+                val transforms =
+                    field.tagsList
+                        .flatMap { tag ->
+                            // TODO this should be a batch call for multiple refAndTypes
+                            getter(tag)
+                                ?.tagTransform
+                                ?.transformsList ?: emptyList()
+                        }
+                        .combineTransforms()
+
+                return@mapNotNull if (transforms.isNotEmpty()) {
+                    DataPolicy.RuleSet.FieldTransform.newBuilder()
+                        .setField(field)
+                        .addAllTransforms(transforms)
+                        .build()
+                } else {
+                    // Ensure no field transforms are added to the ruleset that don't have any
+                    // transforms
+                    null
+                }
+            }
+
+    return if (fieldTransforms.isNotEmpty()) {
+        dataPolicy
+            .toBuilder()
+            .addRuleSets(
+                DataPolicy.RuleSet.newBuilder()
+                    .setTarget(
+                        DataPolicy.Target.newBuilder()
+                            .setRef(
+                                resourceUrn {
+                                    integrationFqn =
+                                        "${dataPolicy.source.ref.integrationFqn}_view"
+                                }
+                            )
+                            .build()
+                    )
+                    .addAllFieldTransforms(fieldTransforms)
+            )
+            .build()
+    } else {
+        dataPolicy
+    }
 }

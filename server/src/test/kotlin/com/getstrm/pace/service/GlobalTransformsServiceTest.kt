@@ -7,6 +7,7 @@ import build.buf.gen.getstrm.pace.api.global_transforms.v1alpha.ListGlobalTransf
 import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.dao.GlobalTransformsDao
+import com.getstrm.pace.processing_platforms.addRuleSet
 import com.getstrm.pace.util.*
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -57,7 +58,9 @@ source:
                 .toProto<DataPolicy>()
 
         runBlocking {
-            val policyWithRulesets = underTest.addRuleSet(dataPolicy)
+            val policyWithRulesets = addRuleSet(dataPolicy){ tag: String ->
+                underTest.getTransformOrNull(tag, GlobalTransform.TransformCase.TAG_TRANSFORM)
+            }
 
             @Language("yaml")
             val result =
@@ -132,7 +135,9 @@ source:
                 .toProto<DataPolicy>()
 
         runBlocking {
-            val policyWithRulesets = underTest.addRuleSet(dataPolicy)
+            val policyWithRulesets = addRuleSet(dataPolicy){ tag: String ->
+                underTest.getTransformOrNull(tag, GlobalTransform.TransformCase.TAG_TRANSFORM)
+            }
 
             @Language("yaml")
             val expected =
@@ -215,7 +220,9 @@ source:
                 .toProto<DataPolicy>()
 
         runBlocking {
-            val policyWithRulesets = underTest.addRuleSet(dataPolicy)
+            val policyWithRulesets = addRuleSet(dataPolicy){ tag: String ->
+                underTest.getTransformOrNull(tag, GlobalTransform.TransformCase.TAG_TRANSFORM)
+            }
 
             @Language("yaml")
             val expected =
