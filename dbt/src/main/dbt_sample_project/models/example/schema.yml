@@ -1,8 +1,35 @@
 
 version: 2
 
-seeds:
-  - name: demo
+models:
+  - name: my_first_dbt_model
+    description: "A starter dbt model"
+    columns:
+      - name: id
+        description: "The primary key for this table"
+        tests:
+          - unique
+          - not_null
+        tags:
+          - banaan
+
+  - name: my_second_dbt_model
+    description: "A starter dbt model"
+    columns:
+      - name: id
+        description: "The primary key for this table"
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_demo
+    columns:
+      - name: transactionid
+      - name: userid
+      - name: email
+      - name: age
+      - name: transactionamount
+      - name: brand
     meta:
       pace:
         rule_sets:
@@ -30,24 +57,3 @@ seeds:
                     transforms:
                       - principals: [ { group: administrator } ]
                         identity: { }
-
-models:
-  - name: my_first_dbt_model
-    description: "A starter dbt model"
-    columns:
-      - name: id
-        description: "The primary key for this table"
-        tests:
-          - unique
-          - not_null
-        tags:
-          - banaan
-
-  - name: my_second_dbt_model
-    description: "A starter dbt model"
-    columns:
-      - name: id
-        description: "The primary key for this table"
-        tests:
-          - unique
-          - not_null
