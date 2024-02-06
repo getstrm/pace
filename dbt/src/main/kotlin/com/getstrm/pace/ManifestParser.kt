@@ -27,7 +27,10 @@ object ManifestParser {
             (manifestObjectNode["nodes"] as ObjectNode)
                 .fields()
                 .asSequence()
-                .filter { (key, node) -> (node as ObjectNode)["resource_type"].asText() == "model" }
+                .filter { (key, node) -> val resourceType = (node as ObjectNode)["resource_type"].asText()
+
+                    // FIXME For the demo.csv, which is a seed based "model", we include it here as well, but the JSON schemas are different, so this could lead to errors. We should probably add the demo as an explicit model
+                    resourceType == "model" || resourceType == "seed" }
                 .map { (key, node) -> objectMapper.convertValue<DbtModel>(node) }
                 .toList()
         val platformType = manifestObjectNode["metadata"]["adapter_type"].asText().toPlatformType()
