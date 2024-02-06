@@ -97,7 +97,7 @@ class PostgresViewGenerator(
                         .from(DSL.table(DSL.quotedName("pg_roles")))
                         .where(
                             DSL.field(DSL.quotedName("rolcanlogin"))
-                                .eq(false)
+                                .eq(DSL.inline(false))
                                 .and(
                                     DSL.function(
                                         "pg_has_role",

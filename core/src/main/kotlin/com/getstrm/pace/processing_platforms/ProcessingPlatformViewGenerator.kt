@@ -1,6 +1,5 @@
 package com.getstrm.pace.processing_platforms
 
-import org.jooq.Field as JooqField
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.AGGREGATION
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.DETOKENIZE
@@ -14,6 +13,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldT
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.TRANSFORM_NOT_SET
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Target.TargetType
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import com.getstrm.pace.util.defaultJooqSettings
@@ -23,9 +23,13 @@ import java.sql.Timestamp
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.DatePart
+import org.jooq.Field as JooqField
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceNode
 import org.jooq.Queries
+import org.jooq.Query
 import org.jooq.Record
 import org.jooq.SQLDialect
+import org.jooq.SelectConditionStep
 import org.jooq.SelectJoinStep
 import org.jooq.SelectSelectStep
 import org.jooq.conf.Settings
@@ -89,11 +93,24 @@ abstract class ProcessingPlatformViewGenerator(
         return jooq.queries(allQueries)
     }
 
-    fun toSelectStatement(): Queries =
-        jooq.queries(dataPolicy.ruleSetsList.map { toSelectStatement(it) })
+    fun toSelectStatement(): Map<DataPolicy.Target, String> {
+        return dataPolicy.ruleSetsList.associate { ruleSet ->
+            ruleSet.target to toSelectStatement(ruleSet).sql
+        }
+    }
 
-    fun toSelectStatement(ruleSet: DataPolicy.RuleSet) =
-        selectWithAdditionalHeaderStatements(
+    fun toSelectStatement(ruleSet: DataPolicy.RuleSet): SelectConditionStep<Record> {
+        val fromTable =
+            when (ruleSet.target.type) {
+                TargetType.DBT_SQL ->
+                    jooq.renderNamedParams(
+                        unquotedName(
+                            "{{{ ref('${dataPolicy.source.ref.resourcePathList.last().name}') }}}"
+                        )
+                    )
+                else -> renderName(dataPolicy.source.ref.integrationFqn) // SQL_VIEW is the default
+            }
+        return selectWithAdditionalHeaderStatements(
                 dataPolicy.source.fieldsList.map { field ->
                     toJooqField(
                         field,
@@ -104,9 +121,10 @@ abstract class ProcessingPlatformViewGenerator(
                     )
                 },
             )
-            .from(renderName(dataPolicy.source.ref.integrationFqn))
+            .from(fromTable)
             .let { addDetokenizeJoins(it, ruleSet) }
             .where(createWhereStatement(ruleSet))
+    }
 
     private fun createWhereStatement(ruleSet: DataPolicy.RuleSet) =
         ruleSet.filtersList.map { filter ->
@@ -332,6 +350,7 @@ fun List<DataPolicy.RuleSet.FieldTransform.Transform>.combineTransforms():
  */
 fun addRuleSet(
     dataPolicy: DataPolicy,
+    targetType: TargetType = TargetType.SQL_VIEW,
     globalTransformProvider: (tag: String) -> GlobalTransform?
 ): DataPolicy {
     val fieldTransforms =
@@ -366,9 +385,19 @@ fun addRuleSet(
                 DataPolicy.RuleSet.newBuilder()
                     .setTarget(
                         DataPolicy.Target.newBuilder()
+                            .setType(targetType)
                             .setRef(
                                 resourceUrn {
                                     integrationFqn = "${dataPolicy.source.ref.integrationFqn}_view"
+                                    resourcePath += dataPolicy.source.ref.resourcePathList.mapIndexed { index, resourceNode ->
+                                        resourceNode {
+                                            name = if (index == dataPolicy.source.ref.resourcePathCount - 1) {
+                                                "${resourceNode.name}_view"
+                                            } else {
+                                                resourceNode.name
+                                            }
+                                        }
+                                    }
                                 }
                             )
                             .build()

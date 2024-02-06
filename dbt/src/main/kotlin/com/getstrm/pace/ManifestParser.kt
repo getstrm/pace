@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.getstrm.pace.processing_platforms.postgres.PostgresViewGenerator
+import org.jooq.Query
 
 object ManifestParser {
 
@@ -33,9 +34,9 @@ object ManifestParser {
         return modelNodes.map { createDataPolicy(platformType, it) }
     }
 
-    fun DataPolicy.toSql(): String {
+    fun DataPolicy.toQueries(): Map<DataPolicy.Target, String> {
         val generator = when(this.source.ref.platform.platformType) {
-            ProcessingPlatform.PlatformType.POSTGRES -> PostgresViewGenerator(this)
+            ProcessingPlatform.PlatformType.POSTGRES -> PostgresViewGenerator(this) { withRenderFormatted(true) }
             ProcessingPlatform.PlatformType.DATABRICKS -> TODO()
             ProcessingPlatform.PlatformType.SNOWFLAKE -> TODO()
             ProcessingPlatform.PlatformType.BIGQUERY -> TODO()
@@ -44,7 +45,7 @@ object ManifestParser {
             else -> throw IllegalArgumentException("Unsupported platform type ${this.source.ref.platform.platformType}")
         }
 
-        return generator.toSelectStatement().sql
+        return generator.toSelectStatement()
     }
 
     private fun createDataPolicy(platformType: ProcessingPlatform.PlatformType, model: DbtModel): DataPolicy {
@@ -60,16 +61,7 @@ object ManifestParser {
                     platform = processingPlatform {
                         this.platformType = platformType
                     }
-                    resourcePath.addAll(
-                        listOf(
-                            resourceNode { name = model.database },
-                            resourceNode { name = model.schema },
-                            resourceNode {
-                                name = model.name
-                                isLeaf = true
-                            },
-                        ),
-                    )
+                    resourcePath.addAll(model.fqn.map { resourceNode { name = it } })
                 }
                 fields.addAll(
                     model.columns.values.map { column ->

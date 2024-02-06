@@ -1,11 +1,11 @@
 package com.getstrm.pace
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Target.TargetType.DBT_SQL
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.getstrm.pace.ManifestParser.toSql
+import com.getstrm.pace.ManifestParser.toQueries
 import com.getstrm.pace.processing_platforms.addRuleSet
-import com.getstrm.pace.util.toYaml
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import java.io.File
 import org.junit.jupiter.api.Test
@@ -23,9 +23,12 @@ class ManifestParserTest {
         policies.shouldNotBeEmpty()
 
         policies.forEach { policy ->
-            val dataPolicyWithGlobals = addRuleSet(policy) { globalTransform }
+            val dataPolicyWithGlobals = addRuleSet(policy, DBT_SQL) { globalTransform }
+            val queries = dataPolicyWithGlobals.toQueries()
 
-            File("$dbtSampleProjectDirectory/models/example/${policy.metadata.title}_view.sql").writeText(dataPolicyWithGlobals.toSql())
+            queries.forEach { (target, query) ->
+                File("$dbtSampleProjectDirectory/models/example/${target.ref.resourcePathList.last().name}.sql").writeText(query)
+            }
         }
     }
 
