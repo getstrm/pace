@@ -1,0 +1,1 @@
+with "user_groups" as (select "rolname" from "pg_roles" where ("rolcanlogin" = ? and pg_has_role(session_user, oid, 'member'))) select 'banaan' as id from "dbt_sample_project"."example"."my_first_dbt_model";

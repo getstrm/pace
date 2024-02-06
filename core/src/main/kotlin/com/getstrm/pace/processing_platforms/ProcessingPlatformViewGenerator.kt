@@ -1,5 +1,6 @@
 package com.getstrm.pace.processing_platforms
 
+import org.jooq.Field as JooqField
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.AGGREGATION
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.DETOKENIZE
@@ -13,6 +14,8 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldT
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.TRANSFORM_NOT_SET
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.GENERIC_FILTER
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
 import com.getstrm.pace.util.headTailFold
@@ -20,9 +23,6 @@ import java.sql.Timestamp
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.DatePart
-import org.jooq.Field as JooqField
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import org.jooq.Queries
 import org.jooq.Record
 import org.jooq.SQLDialect
@@ -88,6 +88,9 @@ abstract class ProcessingPlatformViewGenerator(
 
         return jooq.queries(allQueries)
     }
+
+    fun toSelectStatement(): Queries =
+        jooq.queries(dataPolicy.ruleSetsList.map { toSelectStatement(it) })
 
     fun toSelectStatement(ruleSet: DataPolicy.RuleSet) =
         selectWithAdditionalHeaderStatements(
@@ -273,7 +276,7 @@ abstract class ProcessingPlatformViewGenerator(
     private fun getParser() = jooq.parser()
 }
 
-// TODO move to its own package. GlobalTransforms 
+// TODO move to its own package. GlobalTransforms
 /**
  * enforce non-overlapping principals on the ApiTransforms in one FieldTransform. First one wins.
  *
@@ -285,35 +288,36 @@ abstract class ProcessingPlatformViewGenerator(
  *
  * The strategy here is an ongoing discussion: https://github.com/getstrm/pace/issues/33
  */
-fun List<DataPolicy.RuleSet.FieldTransform.Transform>.combineTransforms(): List<DataPolicy.RuleSet.FieldTransform.Transform> {
+fun List<DataPolicy.RuleSet.FieldTransform.Transform>.combineTransforms():
+    List<DataPolicy.RuleSet.FieldTransform.Transform> {
     val filtered: List<DataPolicy.RuleSet.FieldTransform.Transform> =
         this.fold(
-            emptySet<String>() to listOf<DataPolicy.RuleSet.FieldTransform.Transform>(),
-        ) {
-            (
-                /* the principals that we've already encountered while going through the list */
-                alreadySeenPrincipals: Set<String>,
-                /* the cleaned-up list of ApiTransforms */
-                acc: List<DataPolicy.RuleSet.FieldTransform.Transform>,
-            ),
-            /* the original ApiTransform */
-            transform: DataPolicy.RuleSet.FieldTransform.Transform,
-            ->
-            // TODO principals should also support other types than just groups
-            val principals =
-                transform.principalsList.map { it.group }.toSet() - alreadySeenPrincipals
-            val dataPolicyWithoutOverlappingPrincipals =
-                transform
-                    .toBuilder()
-                    .clearPrincipals()
-                    .addAllPrincipals(
-                        principals.map {
-                            DataPolicy.Principal.newBuilder().setGroup(it).build()
-                        }
-                    )
-                    .build()
-            alreadySeenPrincipals + principals to acc + dataPolicyWithoutOverlappingPrincipals
-        }
+                emptySet<String>() to listOf<DataPolicy.RuleSet.FieldTransform.Transform>(),
+            ) {
+                (
+                    /* the principals that we've already encountered while going through the list */
+                    alreadySeenPrincipals: Set<String>,
+                    /* the cleaned-up list of ApiTransforms */
+                    acc: List<DataPolicy.RuleSet.FieldTransform.Transform>,
+                ),
+                /* the original ApiTransform */
+                transform: DataPolicy.RuleSet.FieldTransform.Transform,
+                ->
+                // TODO principals should also support other types than just groups
+                val principals =
+                    transform.principalsList.map { it.group }.toSet() - alreadySeenPrincipals
+                val dataPolicyWithoutOverlappingPrincipals =
+                    transform
+                        .toBuilder()
+                        .clearPrincipals()
+                        .addAllPrincipals(
+                            principals.map {
+                                DataPolicy.Principal.newBuilder().setGroup(it).build()
+                            }
+                        )
+                        .build()
+                alreadySeenPrincipals + principals to acc + dataPolicyWithoutOverlappingPrincipals
+            }
             .second
     // now remove duplicate defaults (without principals
     val (defaults, withPrincipals) = filtered.partition { it.principalsCount == 0 }
@@ -326,7 +330,10 @@ fun List<DataPolicy.RuleSet.FieldTransform.Transform>.combineTransforms(): List<
  * @param dataPolicy blueprint DataPolicy
  * @return policy with embedded ruleset.
  */
-fun addRuleSet(dataPolicy: DataPolicy, getter: (tag:String) -> GlobalTransform? ): DataPolicy {
+fun addRuleSet(
+    dataPolicy: DataPolicy,
+    globalTransformProvider: (tag: String) -> GlobalTransform?
+): DataPolicy {
     val fieldTransforms =
         dataPolicy.source.fieldsList
             .filter { it.tagsList.isNotEmpty() }
@@ -335,9 +342,8 @@ fun addRuleSet(dataPolicy: DataPolicy, getter: (tag:String) -> GlobalTransform? 
                     field.tagsList
                         .flatMap { tag ->
                             // TODO this should be a batch call for multiple refAndTypes
-                            getter(tag)
-                                ?.tagTransform
-                                ?.transformsList ?: emptyList()
+                            globalTransformProvider(tag)?.tagTransform?.transformsList
+                                ?: emptyList()
                         }
                         .combineTransforms()
 
@@ -362,8 +368,7 @@ fun addRuleSet(dataPolicy: DataPolicy, getter: (tag:String) -> GlobalTransform? 
                         DataPolicy.Target.newBuilder()
                             .setRef(
                                 resourceUrn {
-                                    integrationFqn =
-                                        "${dataPolicy.source.ref.integrationFqn}_view"
+                                    integrationFqn = "${dataPolicy.source.ref.integrationFqn}_view"
                                 }
                             )
                             .build()

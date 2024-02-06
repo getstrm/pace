@@ -13,6 +13,7 @@ data class DbtModel(
     val columns: Map<String, Column>,
     val tags: List<String>,
     val meta: ObjectNode,
+    val fqn: List<String>
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -20,6 +21,6 @@ data class Column(
     val name: String,
     val description: String?,
     val tags: List<String>,
-    @JsonProperty("data_type") val dataType: String?,
+    val dataType: String?,
     val meta: ObjectNode,
 )
