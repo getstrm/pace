@@ -1,6 +1,7 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet
 import com.getstrm.pace.config.DataPolicyValidatorConfigDsl
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.util.pathString
@@ -28,19 +29,17 @@ class DataPolicyValidator {
      *
      * group and path checks are case insensitive because in essence SQL is case insensitive.
      */
-    fun validate(dataPolicy: DataPolicy, platformGroups: Set<String>, config: DataPolicyValidatorConfigDsl.() -> Unit = {}) {
+    fun validate(
+        dataPolicy: DataPolicy,
+        platformGroups: Set<String> = emptySet(),
+        config: DataPolicyValidatorConfigDsl.() -> Unit = {}
+    ) {
         val dataPolicyValidatorConfig = DataPolicyValidatorConfigDsl().apply(config).build()
 
         if (dataPolicy.source.ref.integrationFqn.isNullOrEmpty()) {
             throw invalidArgumentException(
                 "dataPolicy.source.ref",
                 "DataPolicy source ref is empty"
-            )
-        }
-        if (dataPolicy.source.ref.platform.id.isNullOrEmpty()) {
-            throw invalidArgumentException(
-                "dataPolicy.platform.id",
-                "DataPolicy platform id is empty"
             )
         }
         val validGroups = platformGroups.map { it.uppercase() }.toSet()
@@ -76,6 +75,7 @@ class DataPolicyValidator {
         }
 
         dataPolicy.ruleSetsList.forEach { ruleSet ->
+            checkPlatformId(dataPolicy, ruleSet)
             checkUniqueTokenSources(ruleSet)
             checkValidFixedValues(dataPolicy.source, ruleSet)
             ruleSet.fieldTransformsList.forEach { fieldTransform ->
@@ -234,6 +234,16 @@ class DataPolicyValidator {
                         alreadySeen + it
                     }
                 }
+        }
+    }
+
+    private fun checkPlatformId(dataPolicy: DataPolicy, ruleSet: RuleSet) {
+        if (ruleSet.target.type != DataPolicy.Target.TargetType.DBT_SQL &&
+            dataPolicy.source.ref.platform.id.isNullOrEmpty()) {
+            throw invalidArgumentException(
+                "dataPolicy.platform.id",
+                "DataPolicy platform id is empty",
+            )
         }
     }
 

@@ -14,15 +14,20 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.processing_platforms.postgres.PostgresViewGenerator
+import com.getstrm.pace.service.DataPolicyValidator
 import com.google.protobuf.util.JsonFormat
+import com.google.rpc.BadRequest.FieldViolation
 
 object ManifestParser {
 
     private val objectMapper = jacksonObjectMapper().apply { setPropertyNamingStrategy(SNAKE_CASE) }
     private val protoJsonParser = JsonFormat.parser()
+    private val validator = DataPolicyValidator()
 
-    fun createBluePrints(manifestJson: JsonNode): List<DataPolicy> {
+    // Todo: error handling / print violations with their models
+    fun createDataPolicies(manifestJson: JsonNode): List<Pair<DataPolicy, List<FieldViolation>>> {
         val manifestObjectNode = manifestJson as ObjectNode
         val modelNodes =
             (manifestObjectNode["nodes"] as ObjectNode)
@@ -32,7 +37,17 @@ object ManifestParser {
                 .map { (_, node) -> objectMapper.convertValue<DbtModel>(node) }
                 .toList()
         val platformType = manifestObjectNode["metadata"]["adapter_type"].asText().toPlatformType()
-        return modelNodes.map { createDataPolicy(platformType, it) }
+        return modelNodes.map {
+            val policy = createDataPolicy(platformType, it)
+            try {
+                validator.validate(policy) {
+                    skipCheckPrincipals = true
+                }
+                policy to emptyList()
+            } catch (e: BadRequestException) {
+                policy to e.badRequest.fieldViolationsList
+            }
+        }
     }
 
     fun DataPolicy.toQueries(): Map<DataPolicy.Target, String> {
