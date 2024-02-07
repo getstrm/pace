@@ -1,5 +1,6 @@
 package com.getstrm.pace.processing_platforms
 
+import org.jooq.Field as JooqField
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Aggregation
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Detokenize
@@ -18,7 +19,6 @@ import com.github.drapostolos.typeparser.TypeParser
 import com.github.drapostolos.typeparser.TypeParserException
 import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
-import org.jooq.Field as JooqField
 import org.jooq.Parser
 import org.jooq.impl.DSL
 import org.jooq.impl.ParserException
@@ -51,10 +51,19 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
             )
         }
 
-    fun fixed(field: DataPolicy.Field, fixed: Fixed): JooqField<*> =
-        DSL.inline(fixed.value, field.sqlDataType()).also {
-            fixedDataTypeMatchesFieldType(fixed.value, field)
+    /**
+     * Create a jOOQ field from a fixed value. If [implicitType] is true, the fixed value will be
+     * used as is, without casting to the field's data type.
+     */
+    fun fixed(field: DataPolicy.Field, fixed: Fixed, implicitType: Boolean = false): JooqField<*> {
+        return if (implicitType) {
+            DSL.inlined(DSL.field(fixed.value))
+        } else {
+            DSL.inline(fixed.value, field.sqlDataType()).also {
+                fixedDataTypeMatchesFieldType(fixed.value, field)
+            }
         }
+    }
 
     // Fixme: hash implementations differ significantly between platforms and are often limited to a
     // single (output) type. We may need casting etc.

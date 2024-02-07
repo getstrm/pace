@@ -6,6 +6,7 @@ import build.buf.gen.getstrm.pace.api.data_policies.v1alpha.UpsertDataPolicyRequ
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn
 import com.getstrm.jooq.generated.tables.records.DataPoliciesRecord
+import com.getstrm.pace.config.ProcessingPlatformsConfiguration
 import com.getstrm.pace.dao.DataPolicyDao
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.ResourceException
@@ -24,7 +25,8 @@ import org.springframework.transaction.annotation.Transactional
 class DataPolicyService(
     private val dataPolicyDao: DataPolicyDao,
     private val processingPlatforms: ProcessingPlatformsService,
-    private val dataPolicyValidatorService: DataPolicyValidatorService
+    private val config: ProcessingPlatformsConfiguration,
+    private val dataPolicyValidator: DataPolicyValidator,
 ) {
     suspend fun listDataPolicies(request: ListDataPoliciesRequest): PagedCollection<DataPolicy> =
         dataPolicyDao.listDataPolicies(request.pageParameters.orDefault()).map {
@@ -33,10 +35,15 @@ class DataPolicyService(
 
     @Transactional
     suspend fun upsertDataPolicy(request: UpsertDataPolicyRequest): DataPolicy {
-        dataPolicyValidatorService.validate(
+        dataPolicyValidator.validate(
             request.dataPolicy,
             processingPlatforms.listGroupNames(request.dataPolicy.source.ref.platform.id)
-        )
+        ) {
+            skipCheckPrincipals =
+                config.bigquery
+                    .firstOrNull { it.id == request.dataPolicy.source.ref.platform?.id }
+                    ?.useIamCheckExtension ?: false
+        }
 
         return dataPolicyDao
             .upsertDataPolicy(request.dataPolicy)

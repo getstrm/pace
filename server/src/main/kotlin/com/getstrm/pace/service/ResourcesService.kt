@@ -64,7 +64,10 @@ class ResourcesService(
         val bluePrintWithRulesets =
             try {
                 addRuleSet(blueprint) { tag: String ->
-                    globalTransformsService.getTransformOrNull(tag, GlobalTransform.TransformCase.TAG_TRANSFORM)
+                    globalTransformsService.getTransformOrNull(
+                        tag,
+                        GlobalTransform.TransformCase.TAG_TRANSFORM
+                    )
                 }
             } catch (e: Exception) {
                 log.warn("could not apply global-transforms to this blueprint", e)

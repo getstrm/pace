@@ -58,9 +58,10 @@ source:
                 .toProto<DataPolicy>()
 
         runBlocking {
-            val policyWithRulesets = addRuleSet(dataPolicy){ tag: String ->
-                underTest.getTransformOrNull(tag, GlobalTransform.TransformCase.TAG_TRANSFORM)
-            }
+            val policyWithRulesets =
+                addRuleSet(dataPolicy) { tag: String ->
+                    underTest.getTransformOrNull(tag, GlobalTransform.TransformCase.TAG_TRANSFORM)
+                }
 
             @Language("yaml")
             val result =
@@ -135,9 +136,10 @@ source:
                 .toProto<DataPolicy>()
 
         runBlocking {
-            val policyWithRulesets = addRuleSet(dataPolicy){ tag: String ->
-                underTest.getTransformOrNull(tag, GlobalTransform.TransformCase.TAG_TRANSFORM)
-            }
+            val policyWithRulesets =
+                addRuleSet(dataPolicy) { tag: String ->
+                    underTest.getTransformOrNull(tag, GlobalTransform.TransformCase.TAG_TRANSFORM)
+                }
 
             @Language("yaml")
             val expected =
@@ -220,9 +222,10 @@ source:
                 .toProto<DataPolicy>()
 
         runBlocking {
-            val policyWithRulesets = addRuleSet(dataPolicy){ tag: String ->
-                underTest.getTransformOrNull(tag, GlobalTransform.TransformCase.TAG_TRANSFORM)
-            }
+            val policyWithRulesets =
+                addRuleSet(dataPolicy) { tag: String ->
+                    underTest.getTransformOrNull(tag, GlobalTransform.TransformCase.TAG_TRANSFORM)
+                }
 
             @Language("yaml")
             val expected =

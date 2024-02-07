@@ -10,6 +10,7 @@ data class AppConfiguration(
     val catalogs: List<CatalogConfiguration> = emptyList(),
     val dataPolicies: DataPoliciesConfiguration = DataPoliciesConfiguration(),
     val processingPlatforms: ProcessingPlatformsConfiguration = ProcessingPlatformsConfiguration(),
+    val dataPolicyValidator: DataPolicyValidatorConfig = DataPolicyValidatorConfig(),
 )
 
 data class CatalogConfiguration(

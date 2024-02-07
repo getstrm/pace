@@ -1,27 +1,21 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import com.getstrm.pace.config.PaceConfiguration
+import com.getstrm.pace.config.DataPolicyValidatorConfigDsl
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.util.pathString
 import com.getstrm.pace.util.pathStringUpper
 import com.getstrm.pace.util.sqlDataType
 import com.google.rpc.BadRequest
 import com.google.rpc.BadRequest.FieldViolation
-import org.jooq.DSLContext
+import org.jooq.SQLDialect
 import org.jooq.exception.DataException
 import org.jooq.impl.DSL
-import org.springframework.stereotype.Component
 
 // TODO improve readability
 //      the exceptions and nested functions make it hard to follow
-@Component
-class DataPolicyValidatorService(
-    paceConfiguration: PaceConfiguration,
-    // only used for validation of sql type casts
-    private val jooq: DSLContext,
-) {
-    private val configuration = paceConfiguration.processingPlatformsConfiguration()
+class DataPolicyValidator {
+    private val jooq = DSL.using(SQLDialect.DEFAULT)
 
     /**
      * validate a data policy.
@@ -32,7 +26,9 @@ class DataPolicyValidatorService(
      *
      * group and path checks are case insensitive because in essence SQL is case insensitive.
      */
-    fun validate(dataPolicy: DataPolicy, platformGroups: Set<String>) {
+    fun validate(dataPolicy: DataPolicy, platformGroups: Set<String>, config: DataPolicyValidatorConfigDsl.() -> Unit = {}) {
+        val dataPolicyValidatorConfig = DataPolicyValidatorConfigDsl().apply(config).build()
+
         if (dataPolicy.source.ref.integrationFqn.isNullOrEmpty()) {
             throw invalidArgumentException(
                 "dataPolicy.source.ref",
@@ -49,14 +45,9 @@ class DataPolicyValidatorService(
         val validFields =
             dataPolicy.source.fieldsList.map(DataPolicy.Field::pathStringUpper).toSet()
 
-        val useIamExtension =
-            configuration.bigquery
-                .firstOrNull { it.id == dataPolicy.source.ref.platform?.id }
-                ?.useIamCheckExtension ?: false
-
         // check that every principal exists in validGroups
         fun checkPrincipals(principals: List<DataPolicy.Principal>) {
-            if (useIamExtension) return
+            if (dataPolicyValidatorConfig.skipCheckPrincipals) return
             val missingPrincipals = principals.filter { p -> p.group.uppercase() !in validGroups }
             if (missingPrincipals.isNotEmpty()) {
                 throw invalidArgumentException(

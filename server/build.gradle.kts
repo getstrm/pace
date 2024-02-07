@@ -39,7 +39,6 @@ project.version =
 plugins {
     id("com.bmuschko.docker-remote-api")
     id("com.apollographql.apollo3") version "3.8.2"
-    id("com.diffplug.spotless") version "6.25.0"
     id("nu.studer.jooq")
     id("org.flywaydb.flyway")
     id("org.openapi.generator")
@@ -117,13 +116,6 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.mockk:mockk:1.13.9")
     testImplementation("io.zonky.test:embedded-postgres:2.0.6")
-}
-
-configure<com.diffplug.gradle.spotless.SpotlessExtension> {
-    kotlin {
-        ktfmt().kotlinlangStyle() // kotlinlangStyle guarantees following the kotlin style guide
-        targetExclude("build/generated/**/*")
-    }
 }
 
 openApiGenerate {

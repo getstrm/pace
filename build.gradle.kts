@@ -6,10 +6,10 @@ plugins {
     id("org.jetbrains.kotlin.plugin.spring")
     id("org.springframework.boot") apply false
     id("io.spring.dependency-management") apply false
+    id("com.diffplug.spotless")
 }
 
 allprojects {
-
     group = "com.getstrm"
     version = rootProject.version
 
@@ -18,6 +18,7 @@ allprojects {
         plugin("org.jetbrains.kotlin.plugin.spring")
         plugin("org.springframework.boot")
         plugin("io.spring.dependency-management")
+        plugin("com.diffplug.spotless")
     }
 
     buildscript {
@@ -50,6 +51,15 @@ allprojects {
 
     tasks.withType<BootJar> {
         enabled = false
+    }
+
+    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        // FIXME enable again!
+        isEnforceCheck = false
+        kotlin {
+            ktfmt().kotlinlangStyle() // kotlinlangStyle guarantees following the kotlin style guide
+            targetExclude("build/generated/**/*")
+        }
     }
 }
 

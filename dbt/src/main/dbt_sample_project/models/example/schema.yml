@@ -36,24 +36,29 @@ models:
           - target:
               ref:
                 integration_fqn: public.demo_view
-              filters:
-                - generic_filter:
-                    conditions:
-                      - principals: [ { group: administrator }, { group: fraud_and_risk } ]
-                        condition: "true"
-                      - principals: [ ]
-                        condition: "age > 8"
-              field_transforms:
-                - field:
-                    name_parts: [ userid ]
-                    transforms:
-                      - principals: [ { group: fraud_and_risk }, { group: administrator } ]
-                        identity: { }
-                      - principals: [ ]
-                        fixed:
-                          value: "0000"
-                - field:
-                    name_parts: [ email ]
-                    transforms:
-                      - principals: [ { group: administrator } ]
-                        identity: { }
+            filters:
+              - generic_filter:
+                  conditions:
+                    - principals: [ { group: administrator }, { group: fraud_and_risk } ]
+                      condition: "true"
+                    - principals: [ ]
+                      condition: "age > 8"
+            field_transforms:
+              - field:
+                  name_parts: [ userid ]
+                transforms:
+                  - principals: [ { group: fraud_and_risk }, { group: administrator } ]
+                    identity: { }
+                  - principals: [ ]
+                    fixed:
+                      value: "42"
+              - field:
+                  name_parts: [ email ]
+                transforms:
+                  - principals: [ { group: administrator } ]
+                    identity: { }
+                  - principals: [ ]
+                    fixed:
+                      # this must be quoted if the data types of the model are absent
+                      # because we fall back to implicit types in that case
+                      value: "'banaan@banaan.com'"

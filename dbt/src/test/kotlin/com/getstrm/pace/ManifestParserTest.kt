@@ -1,5 +1,6 @@
 package com.getstrm.pace
 
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Target.TargetType.DBT_SQL
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
@@ -18,16 +19,31 @@ class ManifestParserTest {
         }
 
     @Test
-    fun foo() {
-        val policies = ManifestParser.createBluePrints(manifestJson)
-        policies.shouldNotBeEmpty()
+    fun `print models`() {
+        policyAction { source, target, query ->
+            println("---------------------------")
+            println("Model: ${source.ref.resourcePathList.last().name} - Target: ${target.ref.resourcePathList.last().name}")
+            println("---------------------------")
+            println("Query: $query")
+        }
+    }
 
-        policies.forEach { policy ->
-            val dataPolicyWithGlobals = addRuleSet(policy, DBT_SQL) { globalTransform }
+
+    @Test
+    fun `write models`() {
+        policyAction { source, target, query ->
+            File("$dbtSampleProjectDirectory/models/example/${target.ref.resourcePathList.last().name}.sql").writeText(query)
+        }
+    }
+
+    private fun policyAction(block: (DataPolicy.Source, DataPolicy.Target, String) -> Unit) {
+        val blueprints = ManifestParser.createBluePrints(manifestJson).also { it.shouldNotBeEmpty() }
+
+        blueprints.forEach {
+            val dataPolicyWithGlobals = addRuleSet(it, DBT_SQL) { globalTransform }
             val queries = dataPolicyWithGlobals.toQueries()
-
             queries.forEach { (target, query) ->
-                File("$dbtSampleProjectDirectory/models/example/${target.ref.resourcePathList.last().name}.sql").writeText(query)
+                block(dataPolicyWithGlobals.source, target, query)
             }
         }
     }
@@ -43,7 +59,7 @@ class ManifestParserTest {
                         .addTransforms(
                             FieldTransform.Transform.newBuilder()
                                 .setFixed(
-                                    FieldTransform.Transform.Fixed.newBuilder().setValue("banaan").build()
+                                    FieldTransform.Transform.Fixed.newBuilder().setValue("'banaan'").build()
                                 )
                                 .build()
                         )

@@ -17,6 +17,7 @@ pluginManagement {
         id("org.openapi.generator") version "7.2.0"
         id("com.bmuschko.docker-remote-api") version "9.4.0"
         id("org.flywaydb.flyway") version flywayVersion
+        id("com.diffplug.spotless") version "6.25.0"
     }
 }
 plugins {

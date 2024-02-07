@@ -2,6 +2,7 @@ package com.getstrm.pace.config
 
 import com.getstrm.pace.grpc.ExceptionHandlerInterceptor
 import com.getstrm.pace.grpc.ValidationInterceptor
+import com.getstrm.pace.service.DataPolicyValidator
 import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.context.annotation.Bean
@@ -21,5 +22,10 @@ class PaceConfiguration(
     @Bean
     fun processingPlatformsConfiguration(): ProcessingPlatformsConfiguration {
         return appConfiguration.processingPlatforms
+    }
+
+    @Bean
+    fun dataPolicyValidator(): DataPolicyValidator {
+        return DataPolicyValidator()
     }
 }

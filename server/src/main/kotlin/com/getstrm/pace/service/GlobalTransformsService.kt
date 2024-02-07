@@ -1,12 +1,7 @@
 package com.getstrm.pace.service
 
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform as ApiFieldTransform
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform as ApiTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform.TransformCase
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.dao.GlobalTransformsDao
 import com.getstrm.pace.exceptions.ResourceException

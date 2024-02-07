@@ -16,8 +16,6 @@ project.version =
 
 val springBootVersion = rootProject.extra["springBootVersion"] as String
 
-plugins { id("com.diffplug.spotless") version "6.25.0" }
-
 dependencies {
     // A few Spring-related dependencies, even though we don't start a Spring application in this
     // module.
@@ -71,14 +69,6 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.mockk:mockk:1.13.9")
     testImplementation("io.zonky.test:embedded-postgres:2.0.6")
-}
-
-configure<com.diffplug.gradle.spotless.SpotlessExtension> {
-    kotlin {
-        // FIXME enable again!
-        isEnforceCheck = false
-        ktfmt().kotlinlangStyle() // kotlinlangStyle guarantees following the kotlin style guide
-    }
 }
 
 tasks.findByName("spotlessApply")?.dependsOn("spotlessKotlin")

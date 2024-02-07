@@ -20,7 +20,7 @@ import org.jooq.impl.DSL
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 
-class DataPolicyValidatorServiceTest {
+class DataPolicyValidatorTest {
     private val appConfig =
         PaceConfiguration(
             appConfiguration =
@@ -40,8 +40,7 @@ class DataPolicyValidatorServiceTest {
                 .connection,
             SQLDialect.H2
         )
-    private val underTest: DataPolicyValidatorService =
-        DataPolicyValidatorService(appConfig, testJooq)
+    private val underTest: DataPolicyValidator = DataPolicyValidator(appConfig, testJooq)
 
     @Test
     fun `validate complex happy flow`() {

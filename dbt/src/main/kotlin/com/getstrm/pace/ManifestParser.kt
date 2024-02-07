@@ -15,11 +15,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.getstrm.pace.processing_platforms.postgres.PostgresViewGenerator
-import org.jooq.Query
+import com.google.protobuf.util.JsonFormat
 
 object ManifestParser {
 
     private val objectMapper = jacksonObjectMapper().apply { setPropertyNamingStrategy(SNAKE_CASE) }
+    private val protoJsonParser = JsonFormat.parser()
 
     fun createBluePrints(manifestJson: JsonNode): List<DataPolicy> {
         val manifestObjectNode = manifestJson as ObjectNode
@@ -27,32 +28,37 @@ object ManifestParser {
             (manifestObjectNode["nodes"] as ObjectNode)
                 .fields()
                 .asSequence()
-                .filter { (key, node) -> val resourceType = (node as ObjectNode)["resource_type"].asText()
-
-                    // FIXME For the demo.csv, which is a seed based "model", we include it here as well, but the JSON schemas are different, so this could lead to errors. We should probably add the demo as an explicit model
-                    resourceType == "model" || resourceType == "seed" }
-                .map { (key, node) -> objectMapper.convertValue<DbtModel>(node) }
+                .filter { (_, node) -> (node as ObjectNode)["resource_type"].asText() == "model" }
+                .map { (_, node) -> objectMapper.convertValue<DbtModel>(node) }
                 .toList()
         val platformType = manifestObjectNode["metadata"]["adapter_type"].asText().toPlatformType()
         return modelNodes.map { createDataPolicy(platformType, it) }
     }
 
     fun DataPolicy.toQueries(): Map<DataPolicy.Target, String> {
-        val generator = when(this.source.ref.platform.platformType) {
-            ProcessingPlatform.PlatformType.POSTGRES -> PostgresViewGenerator(this) { withRenderFormatted(true) }
-            ProcessingPlatform.PlatformType.DATABRICKS -> TODO()
-            ProcessingPlatform.PlatformType.SNOWFLAKE -> TODO()
-            ProcessingPlatform.PlatformType.BIGQUERY -> TODO()
-            ProcessingPlatform.PlatformType.SYNAPSE -> TODO()
-            ProcessingPlatform.PlatformType.UNRECOGNIZED -> TODO()
-            else -> throw IllegalArgumentException("Unsupported platform type ${this.source.ref.platform.platformType}")
-        }
+        val generator =
+            when (this.source.ref.platform.platformType) {
+                ProcessingPlatform.PlatformType.POSTGRES ->
+                    PostgresViewGenerator(this) { withRenderFormatted(true) }
+                ProcessingPlatform.PlatformType.DATABRICKS -> TODO()
+                ProcessingPlatform.PlatformType.SNOWFLAKE -> TODO()
+                ProcessingPlatform.PlatformType.BIGQUERY -> TODO()
+                ProcessingPlatform.PlatformType.SYNAPSE -> TODO()
+                ProcessingPlatform.PlatformType.UNRECOGNIZED -> TODO()
+                else ->
+                    throw IllegalArgumentException(
+                        "Unsupported platform type ${this.source.ref.platform.platformType}"
+                    )
+            }
 
         return generator.toSelectStatement()
     }
 
-    private fun createDataPolicy(platformType: ProcessingPlatform.PlatformType, model: DbtModel): DataPolicy {
-        return dataPolicy {
+    private fun createDataPolicy(
+        platformType: ProcessingPlatform.PlatformType,
+        model: DbtModel
+    ): DataPolicy {
+        val dataPolicyBuilder = dataPolicy {
             metadata = metadata {
                 title = model.name
                 description = model.description
@@ -61,9 +67,7 @@ object ManifestParser {
             source = source {
                 ref = resourceUrn {
                     integrationFqn = model.fqn.joinToString(".")
-                    platform = processingPlatform {
-                        this.platformType = platformType
-                    }
+                    platform = processingPlatform { this.platformType = platformType }
                     resourcePath.addAll(model.fqn.map { resourceNode { name = it } })
                 }
                 fields.addAll(
@@ -78,9 +82,47 @@ object ManifestParser {
                     }
                 )
             }
+        }.toBuilder()
+
+        // FIXME this is happy flow only!
+        model.meta["pace"]?.let {
+            protoJsonParser.merge(it.toString().reader(), dataPolicyBuilder)
+
+            dataPolicyBuilder.ruleSetsBuilderList.forEach { ruleSet ->
+                val targetBuilder = ruleSet.targetBuilder
+
+                targetBuilder.type = DataPolicy.Target.TargetType.DBT_SQL
+
+                val refBuilder = targetBuilder.refBuilder
+
+                when {
+                    refBuilder.integrationFqn.isEmpty() && refBuilder.resourcePathList.isEmpty() -> {
+                        refBuilder.resourcePathList += dataPolicyBuilder.source.ref.resourcePathList.mapIndexed { index, resourceNode ->
+                            resourceNode {
+                                name = if (index == dataPolicyBuilder.source.ref.resourcePathCount - 1) {
+                                    "${resourceNode.name}_view"
+                                } else {
+                                    resourceNode.name
+                                }
+                            }
+                        }
+
+                        refBuilder.integrationFqn = "${dataPolicyBuilder.source.ref.integrationFqn}_view"
+                    }
+                    refBuilder.integrationFqn.isEmpty() && refBuilder.resourcePathList.isNotEmpty() -> {
+                        refBuilder.integrationFqn = refBuilder.resourcePathList.joinToString(".")
+                    }
+                    refBuilder.integrationFqn.isNotEmpty() && refBuilder.resourcePathList.isEmpty() -> {
+                        refBuilder.addAllResourcePath(refBuilder.integrationFqn.split(".").map { resourceNode { name = it } })
+                    }
+                }
+            }
         }
+
+        return dataPolicyBuilder.build()
     }
 }
+
 
 private fun String?.toPlatformType(): ProcessingPlatform.PlatformType {
     when (this) {

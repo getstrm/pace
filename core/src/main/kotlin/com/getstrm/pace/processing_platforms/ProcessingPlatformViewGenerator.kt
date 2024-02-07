@@ -26,7 +26,6 @@ import org.jooq.DatePart
 import org.jooq.Field as JooqField
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceNode
 import org.jooq.Queries
-import org.jooq.Query
 import org.jooq.Record
 import org.jooq.SQLDialect
 import org.jooq.SelectConditionStep
@@ -268,11 +267,12 @@ abstract class ProcessingPlatformViewGenerator(
         target: DataPolicy.Target
     ): Pair<Condition?, JooqField<Any>> {
         val memberCheck = toPrincipalCondition(transform?.principalsList.orEmpty(), target)
+        val implicitType = target.type == TargetType.DBT_SQL
 
         val statement =
             when (transform?.transformCase) {
                 REGEXP -> transformer.regexpReplace(field, transform.regexp)
-                FIXED -> transformer.fixed(field, transform.fixed)
+                FIXED -> transformer.fixed(field, transform.fixed, implicitType)
                 HASH -> transformer.hash(field, transform.hash)
                 SQL_STATEMENT -> transformer.sqlStatement(getParser(), transform.sqlStatement)
                 NULLIFY -> transformer.nullify()
