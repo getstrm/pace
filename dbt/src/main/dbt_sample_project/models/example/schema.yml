@@ -53,7 +53,7 @@ models:
         rule_sets:
           - target:
               ref:
-                integration_fqn: public.demo_view
+                integration_fqn: public.banaan
             filters:
               - generic_filter:
                   conditions:

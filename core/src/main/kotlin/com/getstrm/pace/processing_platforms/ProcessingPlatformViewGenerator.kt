@@ -1,5 +1,6 @@
 package com.getstrm.pace.processing_platforms
 
+import org.jooq.Field as JooqField
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.AGGREGATION
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.DETOKENIZE
@@ -15,6 +16,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.FilterCase.RETENTION_FILTER
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Target.TargetType
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceNode
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
@@ -23,14 +25,13 @@ import java.sql.Timestamp
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.DatePart
-import org.jooq.Field as JooqField
-import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceNode
 import org.jooq.Queries
 import org.jooq.Record
 import org.jooq.SQLDialect
 import org.jooq.SelectConditionStep
 import org.jooq.SelectJoinStep
 import org.jooq.SelectSelectStep
+import org.jooq.conf.ParamType
 import org.jooq.conf.Settings
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.condition
@@ -92,9 +93,10 @@ abstract class ProcessingPlatformViewGenerator(
         return jooq.queries(allQueries)
     }
 
-    fun toSelectStatement(): Map<DataPolicy.Target, String> {
+    fun toSelectStatement(inlineParameters: Boolean = false): Map<DataPolicy.Target, String> {
         return dataPolicy.ruleSetsList.associate { ruleSet ->
-            ruleSet.target to toSelectStatement(ruleSet).sql
+            val selectStatement = toSelectStatement(ruleSet)
+            ruleSet.target to if (inlineParameters) selectStatement.getSQL(ParamType.INLINED) else selectStatement.sql
         }
     }
 

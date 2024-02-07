@@ -66,7 +66,7 @@ object ManifestParser {
                     )
             }
 
-        return generator.toSelectStatement()
+        return generator.toSelectStatement(inlineParameters = true)
     }
 
     private fun createDataPolicy(
@@ -99,49 +99,113 @@ object ManifestParser {
             }
         }.toBuilder()
 
-        // FIXME this is happy flow only!
+        mergePolicyFromModelMeta(model, dataPolicyBuilder)
+        mergeFieldTransformsFromColumnMeta(model, dataPolicyBuilder)
+
+        return dataPolicyBuilder.build()
+    }
+
+    private fun mergeFieldTransformsFromColumnMeta(
+        model: DbtModel,
+        dataPolicyBuilder: DataPolicy.Builder
+    ) {
+        val hasColumnTransforms = model.columns.any { (_, column) ->
+            val transforms = column.meta["pace"]?.get("transforms")
+            transforms != null && transforms.isArray && transforms.toList().isNotEmpty()
+        }
+
+        if (hasColumnTransforms) {
+            // Field transforms on columns have precedence over transforms in the model meta,
+            // so we clear them here, and also keep only the first rule set.
+            val ruleSet =
+                dataPolicyBuilder.ruleSetsBuilderList.firstOrNull()?.clearFieldTransforms()
+                    ?: DataPolicy.RuleSet.newBuilder()
+            ruleSet.setRuleSetTarget(dataPolicyBuilder)
+
+            // Todo: maybe add a basic validation in case of multiple rule sets?
+            dataPolicyBuilder.clearRuleSets()
+
+            dataPolicyBuilder.addRuleSets(ruleSet)
+
+            model.columns.forEach { (_, column) ->
+                val transforms = column.meta["pace"]?.get("transforms")
+                if (transforms != null && transforms.isArray && transforms.toList().isNotEmpty()) {
+                    val transformsNode = objectMapper.createObjectNode()
+                    transformsNode.set<ObjectNode>("transforms", transforms)
+
+                    val fieldTransforms =
+                        DataPolicy.RuleSet.FieldTransform.newBuilder().apply {
+                            protoJsonParser.merge(transformsNode.toString().reader(), this)
+                        }
+                    fieldTransforms.field = field {
+                        // We only need to specify the name here, the full details are under the source fields
+                        nameParts += column.name
+                    }
+
+                    dataPolicyBuilder.ruleSetsBuilderList.first()
+                        .addFieldTransforms(fieldTransforms)
+                }
+            }
+        }
+    }
+
+    private fun mergePolicyFromModelMeta(
+        model: DbtModel,
+        dataPolicyBuilder: DataPolicy.Builder
+    ) {
         model.meta["pace"]?.let {
             protoJsonParser.merge(it.toString().reader(), dataPolicyBuilder)
 
             dataPolicyBuilder.ruleSetsBuilderList.forEach { ruleSet ->
-                val targetBuilder = ruleSet.targetBuilder
+                ruleSet.setRuleSetTarget(dataPolicyBuilder)
+            }
+        }
+    }
 
-                targetBuilder.type = DataPolicy.Target.TargetType.DBT_SQL
+    private fun DataPolicy.RuleSet.Builder.setRuleSetTarget(
+        dataPolicyBuilder: DataPolicy.Builder
+    ) {
+        val targetBuilder = targetBuilder
 
-                val refBuilder = targetBuilder.refBuilder
+        targetBuilder.type = DataPolicy.Target.TargetType.DBT_SQL
 
-                when {
-                    refBuilder.integrationFqn.isEmpty() && refBuilder.resourcePathList.isEmpty() -> {
-                        refBuilder.resourcePathList += dataPolicyBuilder.source.ref.resourcePathList.mapIndexed { index, resourceNode ->
-                            resourceNode {
-                                name = if (index == dataPolicyBuilder.source.ref.resourcePathCount - 1) {
+        val refBuilder = targetBuilder.refBuilder
+
+        when {
+            refBuilder.integrationFqn.isEmpty() && refBuilder.resourcePathList.isEmpty() -> {
+                refBuilder.addAllResourcePath(
+                    dataPolicyBuilder.source.ref.resourcePathList.mapIndexed { index, resourceNode ->
+                        resourceNode {
+                            name =
+                                if (index == dataPolicyBuilder.source.ref.resourcePathCount - 1) {
                                     "${resourceNode.name}_view"
                                 } else {
                                     resourceNode.name
                                 }
-                            }
                         }
+                    },
+                )
 
-                        refBuilder.integrationFqn = "${dataPolicyBuilder.source.ref.integrationFqn}_view"
-                    }
-                    refBuilder.integrationFqn.isEmpty() && refBuilder.resourcePathList.isNotEmpty() -> {
-                        refBuilder.integrationFqn = refBuilder.resourcePathList.joinToString(".")
-                    }
-                    refBuilder.integrationFqn.isNotEmpty() && refBuilder.resourcePathList.isEmpty() -> {
-                        refBuilder.addAllResourcePath(refBuilder.integrationFqn.split(".").map { resourceNode { name = it } })
-                    }
-                }
+                refBuilder.integrationFqn =
+                    "${dataPolicyBuilder.source.ref.integrationFqn}_view"
+            }
+
+            refBuilder.integrationFqn.isEmpty() && refBuilder.resourcePathList.isNotEmpty() -> {
+                refBuilder.integrationFqn = refBuilder.resourcePathList.joinToString(".")
+            }
+
+            refBuilder.integrationFqn.isNotEmpty() && refBuilder.resourcePathList.isEmpty() -> {
+                refBuilder.addAllResourcePath(
+                    refBuilder.integrationFqn.split(".").map { resourceNode { name = it } },
+                )
             }
         }
-
-        return dataPolicyBuilder.build()
     }
-}
 
-
-private fun String?.toPlatformType(): ProcessingPlatform.PlatformType {
-    when (this) {
-        "postgres" -> return ProcessingPlatform.PlatformType.POSTGRES
-        else -> throw IllegalArgumentException("Unsupported dbt adapter_type $this")
+    private fun String?.toPlatformType(): ProcessingPlatform.PlatformType {
+        when (this) {
+            "postgres" -> return ProcessingPlatform.PlatformType.POSTGRES
+            else -> throw IllegalArgumentException("Unsupported dbt adapter_type $this")
+        }
     }
 }
