@@ -8,6 +8,9 @@ import com.getstrm.pace.util.pathStringUpper
 import com.getstrm.pace.util.sqlDataType
 import com.google.rpc.BadRequest
 import com.google.rpc.BadRequest.FieldViolation
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
+import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.exception.DataException
 import org.jooq.impl.DSL
@@ -15,7 +18,6 @@ import org.jooq.impl.DSL
 // TODO improve readability
 //      the exceptions and nested functions make it hard to follow
 class DataPolicyValidator {
-    private val jooq = DSL.using(SQLDialect.DEFAULT)
 
     /**
      * validate a data policy.
@@ -286,6 +288,23 @@ class DataPolicyValidator {
     private fun invalidArgumentException(fieldViolations: List<FieldViolation>) =
         BadRequestException(
             BadRequestException.Code.INVALID_ARGUMENT,
-            BadRequest.newBuilder().addAllFieldViolations(fieldViolations).build()
+            BadRequest.newBuilder().addAllFieldViolations(fieldViolations).build(),
         )
+
+    companion object {
+        // We need an actual datasource to validate fixed values against their field's data type
+        private val jooq: DSLContext =
+            DSL.using(
+                HikariDataSource(
+                    HikariConfig().apply {
+                        jdbcUrl = "jdbc:h2:mem:;DATABASE_TO_UPPER=false"
+                        username = "sa"
+                        password = ""
+                        maximumPoolSize = 1
+                    },
+                )
+                    .connection,
+                SQLDialect.H2,
+            )
+    }
 }

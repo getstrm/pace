@@ -1,46 +1,20 @@
 package com.getstrm.pace.service
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
-import com.getstrm.pace.config.AppConfiguration
-import com.getstrm.pace.config.PaceConfiguration
-import com.getstrm.pace.config.ProcessingPlatformsConfiguration
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.util.toProto
 import com.google.rpc.BadRequest
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
 import io.grpc.Status
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
-import org.jooq.DSLContext
-import org.jooq.SQLDialect
-import org.jooq.impl.DSL
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 
 class DataPolicyValidatorTest {
-    private val appConfig =
-        PaceConfiguration(
-            appConfiguration =
-                AppConfiguration(processingPlatforms = ProcessingPlatformsConfiguration())
-        )
 
-    val testJooq: DSLContext =
-        DSL.using(
-            HikariDataSource(
-                    HikariConfig().apply {
-                        jdbcUrl = "jdbc:h2:mem:;DATABASE_TO_UPPER=false"
-                        username = "sa"
-                        password = ""
-                        maximumPoolSize = 1
-                    }
-                )
-                .connection,
-            SQLDialect.H2
-        )
-    private val underTest: DataPolicyValidator = DataPolicyValidator(appConfig, testJooq)
+    private val underTest: DataPolicyValidator = DataPolicyValidator()
 
     @Test
     fun `validate complex happy flow`() {

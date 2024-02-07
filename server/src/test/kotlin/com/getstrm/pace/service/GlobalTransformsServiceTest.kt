@@ -8,7 +8,9 @@ import com.getstrm.jooq.generated.tables.records.GlobalTransformsRecord
 import com.getstrm.pace.config.AppConfiguration
 import com.getstrm.pace.dao.GlobalTransformsDao
 import com.getstrm.pace.processing_platforms.addRuleSet
-import com.getstrm.pace.util.*
+import com.getstrm.pace.util.refAndType
+import com.getstrm.pace.util.toJsonbWithDefaults
+import com.getstrm.pace.util.toProto
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -83,6 +85,7 @@ source:
       type: varchar
 rule_sets:
   - target:
+      type: SQL_VIEW
       ref: 
         integration_fqn: "public.test1_view"
     field_transforms:  
@@ -161,6 +164,7 @@ source:
       type: varchar
 rule_sets:
   - target:
+      type: SQL_VIEW 
       ref: 
         integration_fqn: "test1_view"
     field_transforms:  
@@ -247,6 +251,7 @@ source:
       type: varchar
 rule_sets:
   - target:
+      type: SQL_VIEW
       ref: 
         integration_fqn: "test1_view"
     field_transforms:  
