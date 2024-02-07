@@ -26,7 +26,25 @@ models:
     columns:
       - name: transactionid
       - name: userid
+        meta:
+          pace:
+            transforms:
+              - principals: [ { group: fraud_and_risk }, { group: administrator } ]
+                identity: { }
+              - principals: [ ]
+                fixed:
+                  value: "42"
       - name: email
+        meta:
+          pace:
+            transforms:
+              - principals: [ { group: administrator } ]
+                identity: { }
+              - principals: [ ]
+                fixed:
+                  # this must be quoted if the data types of the model are absent
+                  # because we fall back to implicit types in that case
+                  value: "'banaan@banaan.com'"
       - name: age
       - name: transactionamount
       - name: brand
@@ -43,22 +61,3 @@ models:
                       condition: "true"
                     - principals: [ ]
                       condition: "age > 8"
-            field_transforms:
-              - field:
-                  name_parts: [ userid ]
-                transforms:
-                  - principals: [ { group: fraud_and_risk }, { group: administrator } ]
-                    identity: { }
-                  - principals: [ ]
-                    fixed:
-                      value: "42"
-              - field:
-                  name_parts: [ email ]
-                transforms:
-                  - principals: [ { group: administrator } ]
-                    identity: { }
-                  - principals: [ ]
-                    fixed:
-                      # this must be quoted if the data types of the model are absent
-                      # because we fall back to implicit types in that case
-                      value: "'banaan@banaan.com'"

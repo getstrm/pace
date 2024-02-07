@@ -21,6 +21,11 @@ dbt seed
 ## To do
 
 - Add support for specifying field transforms in column meta.
+    - When field transforms are specified on column level, any transforms under model meta are
+      ignored.
+    - Target ref and row filters remain under model meta.
+    - For docs: target ref fqn doesn't necessarily need to be specified, there is a default suffix
+      of '_view'.
 - Return detailed validation feedback to the user.
 - Write PACE view SQL to models dir, taking target ref into account.
 - Write PACE view schema yamls to models dir.
