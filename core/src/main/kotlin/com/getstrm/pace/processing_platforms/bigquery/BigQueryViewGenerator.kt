@@ -121,7 +121,7 @@ class BigQueryViewGenerator(
                                 .eq(DSL.function("SESSION_USER", Boolean::class.java))
                         )
                 )
-        return DSL.with(userGroupSelect).select(fields)
+        return jooq.with(userGroupSelect).select(fields)
     }
 
     override fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(

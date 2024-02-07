@@ -110,6 +110,6 @@ class PostgresViewGenerator(
                         ),
                 )
 
-        return DSL.with(userGroupSelect).select(fields)
+        return jooq.with(userGroupSelect).select(fields)
     }
 }

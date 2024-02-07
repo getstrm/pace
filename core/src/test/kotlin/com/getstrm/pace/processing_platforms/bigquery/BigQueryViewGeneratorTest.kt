@@ -197,18 +197,18 @@ with
     where userEmail = SESSION_USER()
   )
 select
-  `transactionid`,
+  `transactionId`,
   case
-    when ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` )) then coalesce(`my-project.tokens.userid_tokens`.`userid`, `my-project.my_dataset.my_source_table`.`userid`)
-    else `userid`
-  end userid,
-  `transactionamount`
+    when ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` )) then coalesce(`my-project.tokens.userid_tokens`.`userId`, `my-project.my_dataset.my_source_table`.`userId`)
+    else `userId`
+  end `userId`,
+  `transactionAgmount`
 from `my-project.my_dataset.my_source_table`
   left outer join `my-project.tokens.userid_tokens`
-    on (`my-project.my_dataset.my_source_table`.userid = `my-project.tokens.userid_tokens`.token)
+    on (`my-project.my_dataset.my_source_table`.userId = `my-project.tokens.userid_tokens`.token)
 where case
   when ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` )) then true
-  else transactionamount < 10
+  else transactionAmount < 10
 end;"""
     }
 
@@ -230,22 +230,22 @@ with
   )
 select
   case
-    when ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` )) then coalesce(`my-project.tokens.transactionid_tokens`.`transactionid`, `my-project.my_dataset.my_source_table`.`transactionid`)
-    else `transactionid`
-  end transactionid,
+    when ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` )) then coalesce(`my-project.tokens.transactionid_tokens`.`transactionId`, `my-project.my_dataset.my_source_table`.`transactionId`)
+    else `transactionId`
+  end `transactionId`,
   case
-    when ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` )) then coalesce(`my-project.tokens.userid_tokens`.`userid`, `my-project.my_dataset.my_source_table`.`userid`)
-    else `userid`
-  end userid,
-  `transactionamount`
+    when ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` )) then coalesce(`my-project.tokens.userid_tokens`.`userId`, `my-project.my_dataset.my_source_table`.`userId`)
+    else `userId`
+  end `userId`,
+  `transactionAmount`
 from `my-project.my_dataset.my_source_table`
   left outer join `my-project.tokens.userid_tokens`
-    on (`my-project.my_dataset.my_source_table`.userid = `my-project.tokens.userid_tokens`.token)
+    on (`my-project.my_dataset.my_source_table`.userId = `my-project.tokens.userid_tokens`.token)
   left outer join `my-project.tokens.transactionid_tokens`
-    on (`my-project.my_dataset.my_source_table`.transactionid = `my-project.tokens.transactionid_tokens`.token)
+    on (`my-project.my_dataset.my_source_table`.transactionId = `my-project.tokens.transactionid_tokens`.token)
 where case
   when ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` )) then true
-  else transactionamount < 10
+  else transactionAmount < 10
 end;"""
     }
 
@@ -271,7 +271,7 @@ select
   case
     when ('FRAUD_DETECTION' IN ( SELECT `userGroup` FROM `user_groups` )) then CAST(userId AS string)
     else TO_HEX(SHA256(CAST(userId AS string)))
-  end userId,
+  end `userId`,
   case
     when (
       ('ANALYTICS' IN ( SELECT `userGroup` FROM `user_groups` ))
@@ -282,12 +282,12 @@ select
       or ('ADMIN' IN ( SELECT `userGroup` FROM `user_groups` ))
     ) then `email`
     else '****'
-  end email,
+  end `email`,
   `age`,
   `size`,
-  case when brand = 'MacBook' then 'Apple' else 'Other' end brand,
+  case when brand = 'MacBook' then 'Apple' else 'Other' end `brand`,
   `transactionAmount`,
-  null items,
+  null `items`,
   `itemCount`,
   `date`,
   `purpose`
@@ -324,7 +324,7 @@ select
   case
     when ("True" in (select principal_check_routines.check_principal_access("group:FRAUD_DETECTION", "my_target_dataset", "my_target_view"))) then CAST(userId AS string)
     else TO_HEX(SHA256(CAST(userId AS string)))
-  end userId,
+  end `userId`,
   case
     when (
       ("True" in (select principal_check_routines.check_principal_access("group:ANALYTICS", "my_target_dataset", "my_target_view")))
@@ -335,12 +335,12 @@ select
       or ("True" in (select principal_check_routines.check_principal_access("group:ADMIN", "my_target_dataset", "my_target_view")))
     ) then `email`
     else '****'
-  end email,
+  end `email`,
   `age`,
   `size`,
-  case when brand = 'MacBook' then 'Apple' else 'Other' end brand,
+  case when brand = 'MacBook' then 'Apple' else 'Other' end `brand`,
   `transactionAmount`,
-  null items,
+  null `items`,
   `itemCount`,
   `date`,
   `purpose`
@@ -377,7 +377,7 @@ select
   case
     when ("True" in (select principal_check_routines.check_principal_access("group:fraud_detection", "my_target_dataset", "my_target_view"))) then CAST(userId AS string)
     else TO_HEX(SHA256(CAST(userId AS string)))
-  end userId,
+  end `userId`,
   case
     when (
       ("True" in (select principal_check_routines.check_principal_access("group:analytics", "my_target_dataset", "my_target_view")))
@@ -388,12 +388,12 @@ select
       or ("True" in (select principal_check_routines.check_principal_access("role:bigquery.admin", "my_target_dataset", "my_target_view")))
     ) then `email`
     else '****'
-  end email,
+  end `email`,
   `age`,
   `size`,
-  case when brand = 'MacBook' then 'Apple' else 'Other' end brand,
+  case when brand = 'MacBook' then 'Apple' else 'Other' end `brand`,
   `transactionAmount`,
-  null items,
+  null `items`,
   `itemCount`,
   `date`,
   `purpose`
@@ -671,15 +671,15 @@ metadata:
 source:
   fields:
     - name_parts:
-        - transactionid
+        - transactionId
       required: true
       type: integer
     - name_parts:
-        - userid
+        - userId
       required: true
       type: integer
     - name_parts:
-        - transactionamount
+        - transactionAmount
       required: true
       type: integer
   ref: 
@@ -697,10 +697,10 @@ rule_sets:
             - principals: [ {group: fraud_and_risk} ]
               condition: "true"
             - principals : []
-              condition: "transactionamount < 10"
+              condition: "transactionAmount < 10"
     field_transforms:
       - field:
-          name_parts: [ userid ]
+          name_parts: [ userId ]
         transforms:
           - principals: [ {group: fraud_and_risk} ]
             detokenize:
@@ -708,7 +708,7 @@ rule_sets:
               token_field:
                 name_parts: [ token ]
               value_field:
-                name_parts: [ userid ]
+                name_parts: [ userId ]
           - principals: []
             identity: {}
 
@@ -726,15 +726,15 @@ metadata:
 source:
   fields:
     - name_parts:
-        - transactionid
+        - transactionId
       required: true
       type: integer
     - name_parts:
-        - userid
+        - userId
       required: true
       type: integer
     - name_parts:
-        - transactionamount
+        - transactionAmount
       required: true
       type: integer
   ref:
@@ -752,10 +752,10 @@ rule_sets:
             - principals: [ {group: fraud_and_risk} ]
               condition: "true"
             - principals : []
-              condition: "transactionamount < 10"
+              condition: "transactionAmount < 10"
     field_transforms:
       - field:
-          name_parts: [ userid ]
+          name_parts: [ userId ]
         transforms:
           - principals: [ {group: fraud_and_risk} ]
             detokenize:
@@ -763,11 +763,11 @@ rule_sets:
               token_field:
                 name_parts: [ token ]
               value_field:
-                name_parts: [ userid ]
+                name_parts: [ userId ]
           - principals: []
             identity: {}
       - field:
-          name_parts: [ transactionid ]
+          name_parts: [ transactionId ]
         transforms:
           - principals: [ {group: fraud_and_risk} ]
             detokenize:
@@ -775,7 +775,7 @@ rule_sets:
               token_field:
                 name_parts: [ token ]
               value_field:
-                name_parts: [ transactionid ]
+                name_parts: [ transactionId ]
           - principals: []
             identity: {}
     
