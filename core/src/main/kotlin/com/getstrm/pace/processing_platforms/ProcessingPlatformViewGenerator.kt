@@ -241,7 +241,7 @@ abstract class ProcessingPlatformViewGenerator(
         if (fieldTransform.transformsList.size == 1) {
             // If there is only one transform it should be the only option
             val (_, queryPart) = toCase(fieldTransform.transformsList.last(), field, target)
-            return queryPart.`as`(field.fullName())
+            return queryPart.`as`(renderName(field.fullName()))
         }
 
         val caseWhenStatement =
@@ -256,7 +256,7 @@ abstract class ProcessingPlatformViewGenerator(
                 },
                 tailOperation = { conditionStep, transform ->
                     val (c, q) = toCase(transform, field, target)
-                    conditionStep.otherwise(q).`as`(field.fullName())
+                    conditionStep.otherwise(q).`as`(renderName(field.fullName()))
                 },
             )
 

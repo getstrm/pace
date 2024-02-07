@@ -1,0 +1,37 @@
+name: 'dbt_bigquery_project'
+version: '1.0.0'
+config-version: 2
+
+profile: 'dbt_bigquery_project'
+
+model-paths: [ "models" ]
+analysis-paths: [ "analyses" ]
+test-paths: [ "tests" ]
+seed-paths: [ "seeds" ]
+macro-paths: [ "macros" ]
+snapshot-paths: [ "snapshots" ]
+
+clean-targets: # directories to be removed by `dbt clean`
+  - "target"
+  - "dbt_packages"
+
+seeds:
+  dbt_bigquery_project:
+    demo:
+      +enabled: true
+      +quote_columns: false
+      +column_types:
+        column_name: datatype
+      +delimiter: ","
+
+models:
+  +meta:
+    pace:
+      bigquery:
+        user_groups_table: stream-machine-development.user_groups.user_groups
+  dbt_bigquery_project:
+    # Config indicated by + and applies to all files under models/example/
+    example:
+      +materialized: view
+    staging:
+      +materialized: view

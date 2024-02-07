@@ -1,8 +1,8 @@
-name: 'dbt_sample_project'
+name: 'dbt_postgres_project'
 version: '1.0.0'
 config-version: 2
 
-profile: 'dbt_sample_project'
+profile: 'dbt_postgres_project'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -16,7 +16,7 @@ clean-targets:         # directories to be removed by `dbt clean`
   - "dbt_packages"
 
 seeds:
-  dbt_sample_project:
+  dbt_postgres_project:
     demo:
       +enabled: true
       +quote_columns: false
@@ -25,7 +25,7 @@ seeds:
       +delimiter: ","
 
 models:
-  dbt_sample_project:
+  dbt_postgres_project:
     # Config indicated by + and applies to all files under models/example/
     example:
       +materialized: view

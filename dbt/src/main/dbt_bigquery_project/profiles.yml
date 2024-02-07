@@ -1,0 +1,9 @@
+dbt_bigquery_project:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: stream-machine-development
+      dataset: dbt_pace
+      threads: 4 # Must be a value of 1 or greater

@@ -9,6 +9,7 @@ can install the required packages with the following command:
 
 ```shell
 pip install dbt-postgres
+pip install dbt-bigquery
 ```
 
 The directory `dbt_sample_project` has been created with the following command:

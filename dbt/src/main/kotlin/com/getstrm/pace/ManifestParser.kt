@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.getstrm.pace.exceptions.BadRequestException
+import com.getstrm.pace.processing_platforms.bigquery.BigQueryViewGenerator
 import com.getstrm.pace.processing_platforms.postgres.PostgresViewGenerator
 import com.getstrm.pace.service.DataPolicyValidator
 import com.google.protobuf.util.JsonFormat
@@ -23,7 +24,7 @@ import com.google.rpc.BadRequest.FieldViolation
 object ManifestParser {
 
     private val objectMapper = jacksonObjectMapper().apply { setPropertyNamingStrategy(SNAKE_CASE) }
-    private val protoJsonParser = JsonFormat.parser()
+    private val protoJsonParser = JsonFormat.parser().ignoringUnknownFields()
     private val validator = DataPolicyValidator()
 
     // Todo: error handling / print violations with their models
@@ -57,7 +58,11 @@ object ManifestParser {
                     PostgresViewGenerator(this) { withRenderFormatted(true) }
                 ProcessingPlatform.PlatformType.DATABRICKS -> TODO()
                 ProcessingPlatform.PlatformType.SNOWFLAKE -> TODO()
-                ProcessingPlatform.PlatformType.BIGQUERY -> TODO()
+                ProcessingPlatform.PlatformType.BIGQUERY -> {
+                    // Todo: should be based on a property from the profile or similar
+                    val userGroupsTable = "stream-machine-development.user_groups.user_groups"
+                    BigQueryViewGenerator(this, userGroupsTable) { withRenderFormatted(true) }
+                }
                 ProcessingPlatform.PlatformType.SYNAPSE -> TODO()
                 ProcessingPlatform.PlatformType.UNRECOGNIZED -> TODO()
                 else ->
@@ -202,10 +207,9 @@ object ManifestParser {
         }
     }
 
-    private fun String?.toPlatformType(): ProcessingPlatform.PlatformType {
-        when (this) {
-            "postgres" -> return ProcessingPlatform.PlatformType.POSTGRES
-            else -> throw IllegalArgumentException("Unsupported dbt adapter_type $this")
-        }
+    private fun String?.toPlatformType(): ProcessingPlatform.PlatformType = when (this) {
+        "postgres" -> ProcessingPlatform.PlatformType.POSTGRES
+        "bigquery" -> ProcessingPlatform.PlatformType.BIGQUERY
+        else -> throw IllegalArgumentException("Unsupported dbt adapter_type $this")
     }
 }

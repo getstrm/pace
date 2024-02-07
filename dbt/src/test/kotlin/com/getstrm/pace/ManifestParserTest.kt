@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 class ManifestParserTest {
 
     private val manifestJson =
-        File("$dbtSampleProjectDirectory/target/manifest.json").readText().let {
+        File("$DBT_BIGQUERY_PROJECT_DIRECTORY/target/manifest.json").readText().let {
             ObjectMapper().readTree(it)
         }
 
@@ -40,7 +40,8 @@ class ManifestParserTest {
             if (violations.isNotEmpty()) {
                 println("Skipping ${source.ref.resourcePathList.last().name} due to violations: $violations")
             } else {
-                File("$dbtSampleProjectDirectory/models/example/${target.ref.resourcePathList.last().name}.sql").writeText(
+                // Todo: write to correct directory
+                File("$DBT_BIGQUERY_PROJECT_DIRECTORY/models/example/${target.ref.resourcePathList.last().name}.sql").writeText(
                     query,
                 )
             }
@@ -61,7 +62,8 @@ class ManifestParserTest {
     }
 
     companion object {
-        private const val dbtSampleProjectDirectory = "src/main/dbt_sample_project"
+        private const val DBT_POSTGRES_PROJECT_DIRECTORY = "src/main/dbt_postgres_project"
+        private const val DBT_BIGQUERY_PROJECT_DIRECTORY = "src/main/dbt_bigquery_project"
 
         private val globalTransform =
             GlobalTransform.newBuilder()

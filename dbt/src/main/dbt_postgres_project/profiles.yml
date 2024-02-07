@@ -1,4 +1,4 @@
-dbt_sample_project:
+dbt_postgres_project:
   outputs:
     dev:
       dbname: postgres
