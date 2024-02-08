@@ -32,7 +32,7 @@ class ModelHeaderRendererTest {
         }
 
         // When
-        val header = ModelHeaderRenderer(minimalDbtModel).render(target)
+        val header = ModelHeaderRenderer(minimalDbtModel, target).render()
 
         // Then
         header shouldBe """
@@ -64,7 +64,7 @@ class ModelHeaderRendererTest {
         }
 
         // When
-        val header = ModelHeaderRenderer(minimalDbtModel).render(target)
+        val header = ModelHeaderRenderer(minimalDbtModel, target).render()
 
         // Then
         header shouldBe """
@@ -101,7 +101,7 @@ class ModelHeaderRendererTest {
         }
 
         // When
-        val header = ModelHeaderRenderer(minimalDbtModel).render(target)
+        val header = ModelHeaderRenderer(minimalDbtModel, target).render()
 
         // Then
         header shouldBe """
@@ -140,7 +140,7 @@ class ModelHeaderRendererTest {
         }
 
         // When
-        val header = ModelHeaderRenderer(minimalDbtModel).render(target)
+        val header = ModelHeaderRenderer(minimalDbtModel, target).render()
 
         // Then
         header shouldBe """

@@ -6,7 +6,10 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform
 /**
  * Renders Jinja "headers" for a PACE DBT models, based on specific targets.
  */
-class ModelHeaderRenderer(private val sourceModel: DbtModel) {
+class ModelHeaderRenderer(
+    private val sourceModel: DbtModel,
+    private val target: DataPolicy.Target
+) {
     private val config = Config()
     private val header = StringBuilder()
 
@@ -17,11 +20,11 @@ class ModelHeaderRenderer(private val sourceModel: DbtModel) {
 """
     }
 
-    fun render(target: DataPolicy.Target): String {
+    fun render(): String {
         header.append(AUTO_GENERATED_WARNING)
         config.add("materialized='view'")
-        configureDatabaseAndSchema(target)
-        authorizeBigQueryView(target)
+        configureDatabaseAndSchema()
+        authorizeBigQueryView()
 
         // Finalize
         header.append(config.render())
@@ -29,7 +32,7 @@ class ModelHeaderRenderer(private val sourceModel: DbtModel) {
         return header.toString()
     }
 
-    private fun configureDatabaseAndSchema(target: DataPolicy.Target) {
+    private fun configureDatabaseAndSchema() {
         val sourceResourcePathList =
             listOf(sourceModel.database, sourceModel.schema, sourceModel.name)
         val targetResourcePathList = target.ref.resourcePathList
@@ -45,7 +48,7 @@ class ModelHeaderRenderer(private val sourceModel: DbtModel) {
         }
     }
 
-    private fun authorizeBigQueryView(target: DataPolicy.Target) {
+    private fun authorizeBigQueryView() {
         // We only need to authorize the view if its dataset is not the same as the source's.
         if (target.ref.platform.platformType == ProcessingPlatform.PlatformType.BIGQUERY &&
             (target.ref.resourcePathList[0].name != sourceModel.database ||

@@ -8,12 +8,11 @@ class ModelWriter(private val policy: DataPolicy, private val sourceModel: DbtMo
 
     fun write() {
         // Todo: take global transforms into account
-        val headerRenderer = ModelHeaderRenderer(sourceModel)
         val viewGenerator = ViewGeneratorFactory.create(policy)
         viewGenerator.toSelectStatement(inlineParameters = true).forEach { (target, query) ->
             val targetFilePath = targetFilePath(target)
             val file = File(targetFilePath)
-            val header = headerRenderer.render(target)
+            val header = ModelHeaderRenderer(sourceModel, target).render()
             file.writeText("$header\n$query\n")
             println("Generated PACE model $targetFilePath")
         }
