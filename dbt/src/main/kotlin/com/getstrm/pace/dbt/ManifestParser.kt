@@ -1,4 +1,4 @@
-package com.getstrm.pace
+package com.getstrm.pace.dbt
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicyKt.field
@@ -80,15 +80,20 @@ object ManifestParser {
     ): DataPolicy {
         val dataPolicyBuilder = dataPolicy {
             metadata = metadata {
-                title = model.name
+                // Since the model FQN differs from the db/schema/table path on the underlying platform,
+                // and purely depends on DBT project id, and the directory structure used,
+                // we "store" the fqn in the title for now. I.e. the title represents the source
+                // model's fqn, and the source resource path represents the actual path on the platform.
+                title = model.fqn.joinToString(".")
                 description = model.description
                 tags.addAll(model.tags)
             }
             source = source {
                 ref = resourceUrn {
-                    integrationFqn = model.fqn.joinToString(".")
                     platform = processingPlatform { this.platformType = platformType }
-                    resourcePath.addAll(model.fqn.map { resourceNode { name = it } })
+                    val resourcePathComponents = listOf(model.database, model.schema, model.name)
+                    integrationFqn = resourcePathComponents.joinToString(".")
+                    resourcePath.addAll(resourcePathComponents.map { resourceNode { name = it } })
                 }
                 fields.addAll(
                     model.columns.values.map { column ->

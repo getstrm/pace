@@ -1,4 +1,4 @@
-package com.getstrm.pace
+package com.getstrm.pace.dbt
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.node.ObjectNode

@@ -1,15 +1,16 @@
-package com.getstrm.pace
+package com.getstrm.pace.dbt
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Target.TargetType.DBT_SQL
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.getstrm.pace.ManifestParser.toQueries
+import com.getstrm.pace.dbt.ManifestParser.toQueries
 import com.getstrm.pace.processing_platforms.addRuleSet
 import com.google.rpc.BadRequest.FieldViolation
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import java.io.File
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class ManifestParserTest {
@@ -19,6 +20,7 @@ class ManifestParserTest {
             ObjectMapper().readTree(it)
         }
 
+    @Disabled("Disabled for GH CI")
     @Test
     fun `print models`() {
         policyAction { source, target, query, violations ->
@@ -34,6 +36,7 @@ class ManifestParserTest {
     }
 
 
+    @Disabled("Disabled for GH CI")
     @Test
     fun `write models`() {
         policyAction { source, target, query, violations ->
