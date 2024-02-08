@@ -5,7 +5,6 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldT
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.Target.TargetType.DBT_SQL
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.GlobalTransform
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.getstrm.pace.dbt.ManifestParser.toQueries
 import com.getstrm.pace.processing_platforms.addRuleSet
 import com.google.rpc.BadRequest.FieldViolation
 import io.kotest.matchers.collections.shouldNotBeEmpty
@@ -13,6 +12,7 @@ import java.io.File
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
+@Disabled("Disabled for GH CI")
 class ManifestParserTest {
 
     private val manifestJson =
@@ -20,7 +20,6 @@ class ManifestParserTest {
             ObjectMapper().readTree(it)
         }
 
-    @Disabled("Disabled for GH CI")
     @Test
     fun `print models`() {
         policyAction { source, target, query, violations ->
@@ -35,29 +34,14 @@ class ManifestParserTest {
         }
     }
 
-
-    @Disabled("Disabled for GH CI")
-    @Test
-    fun `write models`() {
-        policyAction { source, target, query, violations ->
-            if (violations.isNotEmpty()) {
-                println("Skipping ${source.ref.resourcePathList.last().name} due to violations: $violations")
-            } else {
-                // Todo: write to correct directory
-                File("$DBT_BIGQUERY_PROJECT_DIRECTORY/models/staging/${target.ref.resourcePathList.last().name}.sql").writeText(
-                    query,
-                )
-            }
-        }
-    }
-
     private fun policyAction(block: (DataPolicy.Source, DataPolicy.Target, String, List<FieldViolation>) -> Unit) {
         val blueprints =
             ManifestParser.createDataPolicies(manifestJson).also { it.shouldNotBeEmpty() }
 
-        blueprints.forEach { (policy, violations) ->
+        blueprints.forEach { (policy, sourceModel, violations) ->
             val dataPolicyWithGlobals = addRuleSet(policy, DBT_SQL) { globalTransform }
-            val queries = dataPolicyWithGlobals.toQueries()
+            val queries = ViewGeneratorFactory.create(dataPolicyWithGlobals)
+                .toSelectStatement(inlineParameters = true)
             queries.forEach { (target, query) ->
                 block(dataPolicyWithGlobals.source, target, query, violations)
             }

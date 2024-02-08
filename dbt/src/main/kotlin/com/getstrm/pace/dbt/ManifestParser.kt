@@ -15,8 +15,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.getstrm.pace.exceptions.BadRequestException
-import com.getstrm.pace.processing_platforms.bigquery.BigQueryViewGenerator
-import com.getstrm.pace.processing_platforms.postgres.PostgresViewGenerator
 import com.getstrm.pace.service.DataPolicyValidator
 import com.google.protobuf.util.JsonFormat
 import com.google.rpc.BadRequest.FieldViolation
@@ -28,7 +26,7 @@ object ManifestParser {
     private val validator = DataPolicyValidator()
 
     // Todo: error handling / print violations with their models
-    fun createDataPolicies(manifestJson: JsonNode): List<Pair<DataPolicy, List<FieldViolation>>> {
+    fun createDataPolicies(manifestJson: JsonNode): List<DbtPolicy> {
         val manifestObjectNode = manifestJson as ObjectNode
         val modelNodes =
             (manifestObjectNode["nodes"] as ObjectNode)
@@ -44,34 +42,11 @@ object ManifestParser {
                 validator.validate(policy) {
                     skipCheckPrincipals = true
                 }
-                policy to emptyList()
+                DbtPolicy(policy, it, emptyList())
             } catch (e: BadRequestException) {
-                policy to e.badRequest.fieldViolationsList
+                DbtPolicy(policy, it, e.badRequest.fieldViolationsList)
             }
         }
-    }
-
-    fun DataPolicy.toQueries(): Map<DataPolicy.Target, String> {
-        val generator =
-            when (this.source.ref.platform.platformType) {
-                ProcessingPlatform.PlatformType.POSTGRES ->
-                    PostgresViewGenerator(this) { withRenderFormatted(true) }
-                ProcessingPlatform.PlatformType.DATABRICKS -> TODO()
-                ProcessingPlatform.PlatformType.SNOWFLAKE -> TODO()
-                ProcessingPlatform.PlatformType.BIGQUERY -> {
-                    // Todo: should be based on a property from the profile or similar
-                    val userGroupsTable = "stream-machine-development.user_groups.user_groups"
-                    BigQueryViewGenerator(this, userGroupsTable) { withRenderFormatted(true) }
-                }
-                ProcessingPlatform.PlatformType.SYNAPSE -> TODO()
-                ProcessingPlatform.PlatformType.UNRECOGNIZED -> TODO()
-                else ->
-                    throw IllegalArgumentException(
-                        "Unsupported platform type ${this.source.ref.platform.platformType}"
-                    )
-            }
-
-        return generator.toSelectStatement(inlineParameters = true)
     }
 
     private fun createDataPolicy(
@@ -85,7 +60,7 @@ object ManifestParser {
                 // we "store" the fqn in the title for now. I.e. the title represents the source
                 // model's fqn, and the source resource path represents the actual path on the platform.
                 title = model.fqn.joinToString(".")
-                description = model.description
+                description = model.description.orEmpty()
                 tags.addAll(model.tags)
             }
             source = source {
@@ -175,11 +150,10 @@ object ManifestParser {
     private fun DataPolicy.RuleSet.Builder.setRuleSetTarget(
         dataPolicyBuilder: DataPolicy.Builder
     ) {
-        val targetBuilder = targetBuilder
-
         targetBuilder.type = DataPolicy.Target.TargetType.DBT_SQL
 
         val refBuilder = targetBuilder.refBuilder
+        refBuilder.platform = dataPolicyBuilder.source.ref.platform
 
         when {
             refBuilder.integrationFqn.isEmpty() && refBuilder.resourcePathList.isEmpty() -> {
@@ -218,3 +192,9 @@ object ManifestParser {
         else -> throw IllegalArgumentException("Unsupported dbt adapter_type $this")
     }
 }
+
+data class DbtPolicy(
+    val policy: DataPolicy,
+    val sourceModel: DbtModel,
+    val violations: List<FieldViolation>,
+)

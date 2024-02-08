@@ -30,10 +30,10 @@ models:
     meta:
       pace:
         rule_sets:
-          #          - target:
-          #              ref:
-          #                integration_fqn: 'stream-machine-development.pace.stg_demo_view'
-          - filters:
+          - target:
+              ref:
+                integration_fqn: 'stream-machine-development.pace.stg_demo_view'
+            filters:
               - generic_filter:
                   conditions:
                     - principals: [ { group: administrator }, { group: fraud_and_risk } ]

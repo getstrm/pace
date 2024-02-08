@@ -1,3 +1,8 @@
+{{
+  config(
+    materialized='table'
+  )
+}}
 
 select
     transactionid,

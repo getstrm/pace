@@ -296,7 +296,7 @@ abstract class ProcessingPlatformViewGenerator(
     private fun getParser() = jooq.parser()
 }
 
-// TODO move to its own package. GlobalTransforms
+// Fixme move to its own package. GlobalTransforms
 /**
  * enforce non-overlapping principals on the ApiTransforms in one FieldTransform. First one wins.
  *
