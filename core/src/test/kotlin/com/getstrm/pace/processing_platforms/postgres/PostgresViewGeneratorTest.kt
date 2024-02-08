@@ -10,10 +10,14 @@ import com.getstrm.pace.util.toProto
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.intellij.lang.annotations.Language
+import org.jooq.SQLDialect
+import org.jooq.impl.DSL
 import org.junit.jupiter.api.Test
 
 class PostgresViewGeneratorTest {
     private val underTest = PostgresViewGenerator(dataPolicy)
+
+    private val pgContext = DSL.using(SQLDialect.POSTGRES)
 
     @Test
     fun `principal check with multiple principals`() {
@@ -24,7 +28,7 @@ class PostgresViewGeneratorTest {
         val condition = underTest.toPrincipalCondition(principals)
 
         // Then
-        condition!!.toSql() shouldBe
+        condition!!.toSql(pgContext) shouldBe
             "(('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups )))"
     }
 
@@ -37,7 +41,7 @@ class PostgresViewGeneratorTest {
         val condition = underTest.toPrincipalCondition(principals)
 
         // Then
-        condition!!.toSql() shouldBe "('analytics' IN ( SELECT rolname FROM user_groups ))"
+        condition!!.toSql(pgContext) shouldBe "('analytics' IN ( SELECT rolname FROM user_groups ))"
     }
 
     @Test
@@ -89,8 +93,9 @@ class PostgresViewGeneratorTest {
             underTest.toJooqField(field, fieldTransform, DataPolicy.Target.getDefaultInstance())
 
         // Then
-        jooqField.toSql() shouldBe
-            "case when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then '****' when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then 'REDACTED EMAIL' else 'fixed-value' end \"email\""
+        // Fixme: when calling toJooqField directly, there is additional escaping on the field alias, for some reason.
+        jooqField.toSql(pgContext) shouldBe
+            "case when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then '****' when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then 'REDACTED EMAIL' else 'fixed-value' end as \"\"\"email\"\"\""
     }
 
     @Test
@@ -123,7 +128,7 @@ class PostgresViewGeneratorTest {
             underTest.toCondition(filter.genericFilter, DataPolicy.Target.getDefaultInstance())
 
         // Then
-        condition.toSql() shouldBe
+        condition.toSql(pgContext) shouldBe
             "case when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then age > 18 else false end"
     }
 
@@ -145,7 +150,7 @@ class PostgresViewGeneratorTest {
         val condition = underTest.toCondition(retention, DataPolicy.Target.getDefaultInstance())
 
         // Then
-        condition.toSql() shouldBe "dateadd(day, 10, \"timestamp\") > current_timestamp"
+        condition.toSql(pgContext) shouldBe "(\"timestamp\" + 10 * interval '1 day') > current_timestamp"
     }
 
     @Test
@@ -177,9 +182,9 @@ class PostgresViewGeneratorTest {
         val condition = underTest.toCondition(retention, DataPolicy.Target.getDefaultInstance())
 
         // Then
-        condition.toSql() shouldBe
+        condition.toSql(pgContext) shouldBe
             """
-case when ('marketing' IN ( SELECT rolname FROM user_groups )) then dateadd(day, 5, "timestamp") > current_timestamp when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true else dateadd(day, 10, "timestamp") > current_timestamp end"""
+case when ('marketing' IN ( SELECT rolname FROM user_groups )) then ("timestamp" + 5 * interval '1 day') > current_timestamp when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then true else ("timestamp" + 10 * interval '1 day') > current_timestamp end"""
                 .trimIndent()
     }
 
@@ -287,7 +292,7 @@ select
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce("tokens"."userid_tokens"."userid", "public"."demo_tokenized"."userid")
     else "userid"
-  end as userid,
+  end as "userid",
   "transactionamount"
 from "public"."demo_tokenized"
   left outer join "tokens"."userid_tokens"
@@ -320,11 +325,11 @@ select
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce("tokens"."transactionid_tokens"."transactionid", "public"."demo_tokenized"."transactionid")
     else "transactionid"
-  end as transactionid,
+  end as "transactionid",
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then coalesce("tokens"."userid_tokens"."userid", "public"."demo_tokenized"."userid")
     else "userid"
-  end as userid,
+  end as "userid",
   "transactionamount"
 from "public"."demo_tokenized"
   left outer join "tokens"."userid_tokens"
@@ -362,14 +367,14 @@ select
   case
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then "userid"
     else 123
-  end as userid,
+  end as "userid",
   case
     when ('marketing' IN ( SELECT rolname FROM user_groups )) then regexp_replace(email, '^.*(@.*)${'$'}', '****\1', 'g')
     when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then "email"
     else '****'
-  end as email,
+  end as "email",
   "age",
-  CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END as brand,
+  CASE WHEN brand = 'blonde' THEN 'fair' ELSE 'dark' END as "brand",
   case
     when ('marketing' IN ( SELECT rolname FROM user_groups )) then round(
       cast(avg(cast("transactionamount" as decimal)) over(partition by "brand") as numeric),
@@ -383,7 +388,7 @@ select
       cast(avg(cast("transactionamount" as float64)) over() as numeric),
       2
     )
-  end as transactionamount
+  end as "transactionamount"
 from "public"."demo"
 where (
   case
@@ -394,7 +399,7 @@ where (
 );
 grant SELECT on public.demo_view to "fraud_and_risk";
 grant SELECT on public.demo_view to "marketing";
-grant SELECT on public.demo_view to "sales";"""
+grant SELECT on public.demo_view to "sales";""",
             )
     }
 

@@ -41,7 +41,7 @@ class ManifestParserTest {
                 println("Skipping ${source.ref.resourcePathList.last().name} due to violations: $violations")
             } else {
                 // Todo: write to correct directory
-                File("$DBT_BIGQUERY_PROJECT_DIRECTORY/models/example/${target.ref.resourcePathList.last().name}.sql").writeText(
+                File("$DBT_BIGQUERY_PROJECT_DIRECTORY/models/staging/${target.ref.resourcePathList.last().name}.sql").writeText(
                     query,
                 )
             }

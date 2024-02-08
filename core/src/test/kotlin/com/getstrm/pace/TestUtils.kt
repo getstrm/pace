@@ -11,8 +11,9 @@ import org.jooq.impl.DSL
 import org.jooq.impl.DSL.trueCondition
 
 // We wrap the field in a select to get a sql with bound values
-// Note: this is uses default settings (e.g. dialect).
-fun Field<*>.toSql(): String = DSL.select(this).getSQL(ParamType.INLINED).removePrefix("select ")
+// Note: this is uses default settings (e.g. dialect), unless passed
+fun Field<*>.toSql(context: DSLContext = DSL.using(SQLDialect.DEFAULT)): String =
+    context.select(this).getSQL(ParamType.INLINED).removePrefix("select ")
 
 fun namedField(name: String, type: String? = null): DataPolicy.Field =
     DataPolicy.Field.newBuilder()

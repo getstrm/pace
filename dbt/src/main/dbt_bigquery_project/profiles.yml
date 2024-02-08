@@ -6,4 +6,4 @@ dbt_bigquery_project:
       method: oauth
       project: stream-machine-development
       dataset: dbt_pace
-      threads: 4 # Must be a value of 1 or greater
+      threads: 1 # Must be a value of 1 or greater

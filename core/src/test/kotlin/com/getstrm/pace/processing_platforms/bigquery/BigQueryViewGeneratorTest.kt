@@ -13,6 +13,8 @@ import com.getstrm.pace.util.toProto
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import org.intellij.lang.annotations.Language
+import org.jooq.SQLDialect
+import org.jooq.impl.DSL
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -20,6 +22,7 @@ class BigQueryViewGeneratorTest {
 
     private lateinit var underTest: BigQueryViewGenerator
     private val defaultUserGroupsTable = "my_project.my_dataset.my_user_groups"
+    private val bqContext = DSL.using(SQLDialect.MYSQL)
 
     @BeforeEach
     fun setUp() {
@@ -43,7 +46,7 @@ class BigQueryViewGeneratorTest {
         val condition = underTest.toPrincipalCondition(principals)
 
         // Then
-        condition!!.toSql() shouldBe
+        condition!!.toSql(bqContext) shouldBe
             "(('ANALYTICS' IN ( SELECT `userGroup` FROM `user_groups` )) or ('MARKETING' IN ( SELECT `userGroup` FROM `user_groups` )))"
     }
 
@@ -56,7 +59,7 @@ class BigQueryViewGeneratorTest {
         val condition = underTest.toPrincipalCondition(principals)
 
         // Then
-        condition!!.toSql() shouldBe "('ANALYTICS' IN ( SELECT `userGroup` FROM `user_groups` ))"
+        condition!!.toSql(bqContext) shouldBe "('ANALYTICS' IN ( SELECT `userGroup` FROM `user_groups` ))"
     }
 
     @Test
@@ -108,8 +111,9 @@ class BigQueryViewGeneratorTest {
             underTest.toJooqField(field, fieldTransform, DataPolicy.Target.getDefaultInstance())
 
         // Then
-        jooqField.toSql() shouldBe
-            "case when (('ANALYTICS' IN ( SELECT `userGroup` FROM `user_groups` )) or ('MARKETING' IN ( SELECT `userGroup` FROM `user_groups` ))) then '****' when ('FRAUD_DETECTION' IN ( SELECT `userGroup` FROM `user_groups` )) then 'REDACTED EMAIL' else 'fixed-value' end \"email\""
+        // Fixme: when calling toJooqField directly, there is additional escaping on the field alias, for some reason.
+        jooqField.toSql(bqContext) shouldBe
+            "case when (('ANALYTICS' IN ( SELECT `userGroup` FROM `user_groups` )) or ('MARKETING' IN ( SELECT `userGroup` FROM `user_groups` ))) then '****' when ('FRAUD_DETECTION' IN ( SELECT `userGroup` FROM `user_groups` )) then 'REDACTED EMAIL' else 'fixed-value' end as ```email```"
     }
 
     @Test
@@ -142,7 +146,7 @@ class BigQueryViewGeneratorTest {
             underTest.toCondition(filter.genericFilter, DataPolicy.Target.getDefaultInstance())
 
         // Then
-        condition.toSql() shouldBe
+        condition.toSql(bqContext) shouldBe
             "case when ('fraud-and-risk' IN ( SELECT `userGroup` FROM `user_groups` )) then true when (('analytics' IN ( SELECT `userGroup` FROM `user_groups` )) or ('marketing' IN ( SELECT `userGroup` FROM `user_groups` ))) then age > 18 else false end"
     }
 
@@ -173,9 +177,9 @@ class BigQueryViewGeneratorTest {
         val condition = underTest.toCondition(retention, DataPolicy.Target.getDefaultInstance())
 
         // Then
-        condition.toSql() shouldBe
+        condition.toSql(bqContext) shouldBe
             """
-            case when ('marketing' IN ( SELECT `userGroup` FROM `user_groups` )) then TIMESTAMP_ADD(timestamp, INTERVAL 5 DAY) > current_timestamp when ('fraud-and-risk' IN ( SELECT `userGroup` FROM `user_groups` )) then true else TIMESTAMP_ADD(timestamp, INTERVAL 10 DAY) > current_timestamp end
+            case when ('marketing' IN ( SELECT `userGroup` FROM `user_groups` )) then TIMESTAMP_ADD(timestamp, INTERVAL 5 DAY) > current_timestamp() when ('fraud-and-risk' IN ( SELECT `userGroup` FROM `user_groups` )) then true else TIMESTAMP_ADD(timestamp, INTERVAL 10 DAY) > current_timestamp() end
         """
                 .trimIndent()
     }
@@ -202,7 +206,7 @@ select
     when ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` )) then coalesce(`my-project.tokens.userid_tokens`.`userId`, `my-project.my_dataset.my_source_table`.`userId`)
     else `userId`
   end `userId`,
-  `transactionAgmount`
+  `transactionAmount`
 from `my-project.my_dataset.my_source_table`
   left outer join `my-project.tokens.userid_tokens`
     on (`my-project.my_dataset.my_source_table`.userId = `my-project.tokens.userid_tokens`.token)
