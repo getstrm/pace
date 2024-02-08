@@ -21,16 +21,17 @@ dbt seed
 
 ## To do
 
-- BigQuery: retrieve user groups table from a DBT configuration or runtime param/environment var.
 - Make pace-dbt executable as a jar.
-  - ✅ Write PACE view SQL to corresponding models dir, taking target ref into account.
+    - ✅ Write PACE view SQL to corresponding models dir, taking target ref into account.
 - Find out a way to integrate PACE into the dbt workflow without making it a manual step.
 - Return detailed validation feedback to the user.
+- ✅ BigQuery: retrieve user groups table from a DBT configuration or runtime param/environment var.
+    - Can be configured through the `dbt_project.yml` file by setting `pace_user_groups_table` to
+      the desired table id, under the model metadata.
 - ✅ Add support for specifying field transforms in column meta.
     - For docs: target ref fqn doesn't necessarily need to be specified, there is a default suffix
       of '_view'. However, the target dataset is then the same, which may not be desired from an
-      access
-      perspective. See caveats.
+      access perspective. See caveats.
 - ✅ IntegrationFqn and resource path are not equal to fqn (esp. schema) on the underlying platform.
 - ✅ BigQuery PACE views should be authorized views. Jinja config,
   see https://docs.getdbt.com/reference/resource-configs/bigquery-configs#authorized-views.

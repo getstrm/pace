@@ -26,9 +26,7 @@ seeds:
 
 models:
   +meta:
-    pace:
-      bigquery:
-        user_groups_table: stream-machine-development.user_groups.user_groups
+    pace_user_groups_table: stream-machine-development.user_groups.user_groups
   dbt_bigquery_project:
     # Config indicated by + and applies to all files under models/example/
     example:

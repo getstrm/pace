@@ -8,7 +8,7 @@ import com.getstrm.pace.processing_platforms.postgres.PostgresViewGenerator
 
 object ViewGeneratorFactory {
 
-    fun create(dataPolicy: DataPolicy): ProcessingPlatformViewGenerator {
+    fun create(dataPolicy: DataPolicy, sourceModel: DbtModel): ProcessingPlatformViewGenerator {
         return when (dataPolicy.source.ref.platform.platformType) {
             ProcessingPlatform.PlatformType.POSTGRES ->
                 PostgresViewGenerator(dataPolicy) { withRenderFormatted(true) }
@@ -16,8 +16,11 @@ object ViewGeneratorFactory {
             ProcessingPlatform.PlatformType.DATABRICKS -> TODO()
             ProcessingPlatform.PlatformType.SNOWFLAKE -> TODO()
             ProcessingPlatform.PlatformType.BIGQUERY -> {
-                // Todo: should be based on a property from the profile or similar
-                val userGroupsTable = "stream-machine-development.user_groups.user_groups"
+                val userGroupsTable = sourceModel.meta["pace_user_groups_table"]?.asText()
+                require(userGroupsTable != null) {
+                    "Missing required metadata 'pace_user_groups_table'. " +
+                        "Please add it to your DBT project model metadata"
+                }
                 BigQueryViewGenerator(dataPolicy, userGroupsTable) { withRenderFormatted(true) }
             }
 

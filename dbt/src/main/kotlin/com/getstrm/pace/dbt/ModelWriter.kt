@@ -8,7 +8,7 @@ class ModelWriter(private val policy: DataPolicy, private val sourceModel: DbtMo
 
     fun write() {
         // Todo: take global transforms into account
-        val viewGenerator = ViewGeneratorFactory.create(policy)
+        val viewGenerator = ViewGeneratorFactory.create(policy, sourceModel)
         viewGenerator.toSelectStatement(inlineParameters = true).forEach { (target, query) ->
             val targetFilePath = targetFilePath(target)
             val file = File(targetFilePath)

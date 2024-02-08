@@ -40,7 +40,7 @@ class ManifestParserTest {
 
         blueprints.forEach { (policy, sourceModel, violations) ->
             val dataPolicyWithGlobals = addRuleSet(policy, DBT_SQL) { globalTransform }
-            val queries = ViewGeneratorFactory.create(dataPolicyWithGlobals)
+            val queries = ViewGeneratorFactory.create(dataPolicyWithGlobals, sourceModel)
                 .toSelectStatement(inlineParameters = true)
             queries.forEach { (target, query) ->
                 block(dataPolicyWithGlobals.source, target, query, violations)
