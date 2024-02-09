@@ -257,7 +257,7 @@ rule_sets:
             BadRequest.FieldViolation.newBuilder()
                 .setField("fieldTransform")
                 .setDescription(
-                    "FieldTransform email does not have an empty principals list as last field"
+                    "FieldTransform for 'email' does not have an empty principals list as last field",
                 )
                 .build()
     }
@@ -434,7 +434,7 @@ rule_sets:
         exception.badRequest.fieldViolationsList.first() shouldBe
             BadRequest.FieldViolation.newBuilder()
                 .setField("fieldTransform")
-                .setDescription("FieldTransform email has overlapping principals")
+                .setDescription("FieldTransform for 'email' has overlapping principals")
                 .build()
     }
 

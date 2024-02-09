@@ -77,13 +77,12 @@ class DataPolicyValidator {
         dataPolicy.ruleSetsList.forEach { ruleSet ->
             checkPlatformId(dataPolicy, ruleSet)
             checkUniqueTokenSources(ruleSet)
-            checkValidFixedValues(dataPolicy.source, ruleSet)
             ruleSet.fieldTransformsList.forEach { fieldTransform ->
                 checkField(fieldTransform.field)
                 if (fieldTransform.transformsList.isEmpty()) {
                     throw invalidArgumentException(
                         "fieldTransform",
-                        "FieldTransform ${fieldTransform.field.pathString()} has no transforms"
+                        "FieldTransform for '${fieldTransform.field.pathString()}' has no transforms",
                     )
                 }
 
@@ -95,7 +94,7 @@ class DataPolicyValidator {
                     if (transform.principalsList.isNotEmpty()) {
                         throw invalidArgumentException(
                             "fieldTransform",
-                            "FieldTransform ${fieldTransform.field.pathString()} does not have an empty principals list as last field"
+                            "FieldTransform for '${fieldTransform.field.pathString()}' does not have an empty principals list as last field",
                         )
                     }
                 }
@@ -106,7 +105,7 @@ class DataPolicyValidator {
                         if (it.size > 1) {
                             throw invalidArgumentException(
                                 "fieldTransform",
-                                "FieldTransform ${fieldTransform.field.pathString()} has more than one empty principals list"
+                                "FieldTransform for '${fieldTransform.field.pathString()}' has more than one empty principals list",
                             )
                         }
                     }
@@ -122,7 +121,7 @@ class DataPolicyValidator {
                             if (alreadySeen.intersect(it).isNotEmpty()) {
                                 throw invalidArgumentException(
                                     "fieldTransform",
-                                    "FieldTransform ${fieldTransform.field.pathString()} has overlapping principals"
+                                    "FieldTransform for '${fieldTransform.field.pathString()}' has overlapping principals",
                                 )
                             }
 
@@ -130,6 +129,8 @@ class DataPolicyValidator {
                         }
                 }
             }
+
+            checkValidFixedValues(dataPolicy.source, ruleSet)
 
             // check for every row filter that the principals overlap with groups in the processing
             // platform

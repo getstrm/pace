@@ -21,8 +21,8 @@ dbt seed
 
 ## To do
 
-- Return detailed validation feedback to the user.
 - Find out a way to integrate PACE into the dbt workflow without making it a manual step.
+- ✅ Return detailed validation feedback to the user.
 - ✅ Add support for adapters we already support.
 - ✅ Make pace-dbt executable as a jar.
     - ✅ Write PACE view SQL to corresponding models dir, taking target ref into account.
