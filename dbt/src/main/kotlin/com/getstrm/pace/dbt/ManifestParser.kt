@@ -189,6 +189,9 @@ object ManifestParser {
     private fun String?.toPlatformType(): ProcessingPlatform.PlatformType = when (this) {
         "postgres" -> ProcessingPlatform.PlatformType.POSTGRES
         "bigquery" -> ProcessingPlatform.PlatformType.BIGQUERY
+        "databricks" -> ProcessingPlatform.PlatformType.DATABRICKS
+        "snowflake" -> ProcessingPlatform.PlatformType.SNOWFLAKE
+        "synapse" -> ProcessingPlatform.PlatformType.SYNAPSE
         else -> throw IllegalArgumentException("Unsupported dbt adapter_type $this")
     }
 }
