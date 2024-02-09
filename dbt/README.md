@@ -21,10 +21,10 @@ dbt seed
 
 ## To do
 
-- Make pace-dbt executable as a jar.
-    - ✅ Write PACE view SQL to corresponding models dir, taking target ref into account.
-- Find out a way to integrate PACE into the dbt workflow without making it a manual step.
 - Return detailed validation feedback to the user.
+- Find out a way to integrate PACE into the dbt workflow without making it a manual step.
+- ✅ Make pace-dbt executable as a jar.
+    - ✅ Write PACE view SQL to corresponding models dir, taking target ref into account.
 - ✅ BigQuery: retrieve user groups table from a DBT configuration or runtime param/environment var.
     - Can be configured through the `dbt_project.yml` file by setting `pace_user_groups_table` to
       the desired table id, under the model metadata.

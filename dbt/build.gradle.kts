@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 val generatedBufDependencyVersion: String by rootProject.extra
 val kotestVersion = rootProject.ext["kotestVersion"] as String
 val springBootVersion = rootProject.extra["springBootVersion"] as String
@@ -8,6 +10,10 @@ project.version =
     } else {
         "${project.version}"
     }
+
+plugins {
+    id("com.github.johnrengelman.shadow")
+}
 
 dependencies {
     // A few Spring-related dependencies, even though we don't start a Spring application in this module.
@@ -52,5 +58,20 @@ dependencies {
 }
 
 tasks.jar {
-    enabled = true
+    enabled = false
+}
+
+val shadowJar = tasks.withType<ShadowJar> {
+    isZip64 = true
+    mergeServiceFiles()
+
+    manifest {
+        attributes["Main-Class"] = "com.getstrm.pace.dbt.MainKt"
+    }
+}
+
+tasks {
+    build {
+        dependsOn(shadowJar)
+    }
 }
