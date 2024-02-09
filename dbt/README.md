@@ -21,6 +21,7 @@ dbt seed
 
 ## To do
 
+- Add support for adapters we already support.
 - Return detailed validation feedback to the user.
 - Find out a way to integrate PACE into the dbt workflow without making it a manual step.
 - ✅ Make pace-dbt executable as a jar.
@@ -42,7 +43,7 @@ dbt seed
 PACE Core:
 - Ensure it's possible to extend an existing ruleset with a global transform
 - Global rule sets may result in duplicate target refs
-- Fix integration test
+- ✅ Fix integration test
 - ✅ If a data type is absent in a source schema, fall back to implicit types, that require explicit
   quotes in the rule set YAML in the schema.yml model. -> we require literals for dbt models, as
   data types are often absent.

@@ -22,7 +22,8 @@ rule_sets:
     - nullify: {}
   target:
     ref:
-      integration_fqn: public.global_test_pace_view
+      integration_fqn: public.global_test_view
+    type: SQL_VIEW
 source:
   fields:
   - name_parts:
