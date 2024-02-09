@@ -80,7 +80,7 @@ dependencies {
 
     // Self-managed dependencies
     implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
-    implementation("com.databricks:databricks-sdk-java:0.17.1")
+    implementation("com.databricks:databricks-sdk-java:0.18.0")
     implementation("com.github.drapostolos:type-parser:0.8.1")
     implementation("com.microsoft.sqlserver:mssql-jdbc:12.6.0.jre11")
 
