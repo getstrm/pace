@@ -2,7 +2,7 @@
 
 PACE is a [Spring Boot Application](https://docs.spring.io/spring-boot/docs/2.1.13.RELEASE/reference/html/boot-features-external-config.html#boot-features-external-config-application-property-files) configured via its standard mechanism. We typically use an `application.yaml` in a `/config` subdirectory of the working directory the PACE server was started.
 
-The schema of the configuration file is defined by the [Kotlin source code](https://github.com/getstrm/pace/tree/alpha/app/src/main/kotlin/com/getstrm/pace/config).
+The schema of the configuration file is defined by the [Kotlin source code](https://github.com/getstrm/pace/tree/alpha/server/src/main/kotlin/com/getstrm/pace/config).
 
 ## Structure
 

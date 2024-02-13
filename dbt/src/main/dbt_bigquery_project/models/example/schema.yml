@@ -1,0 +1,35 @@
+
+version: 2
+
+models:
+  - name: my_first_dbt_model
+    description: "A starter dbt model"
+    columns:
+      - name: id
+        description: "The primary key for this table"
+        tests:
+          - unique
+          - not_null
+        tags:
+          - banaan
+
+  - name: my_second_dbt_model
+    description: "A starter dbt model"
+    columns:
+      - name: id
+        description: "The primary key for this table"
+        tests:
+          - unique
+          - not_null
+    meta:
+      pace:
+        rule_sets:
+          - field_transforms:
+              - field:
+                  name_parts: [ id ]
+                transforms:
+                  - principals: [ { group: fraud_and_risk }, { group: administrator } ]
+                    identity: { }
+                  - principals: [ ]
+                    fixed:
+                      value: "42"

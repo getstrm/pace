@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: stg_demo
+    columns:
+      - name: transactionid
+      - name: userid
+        meta:
+          pace:
+            transforms:
+              - principals: [ { group: fraud_and_risk }, { group: administrator } ]
+                identity: { }
+              - principals: [ ]
+                fixed:
+                  value: "42"
+      - name: email
+        meta:
+          pace:
+            transforms:
+              - principals: [ { group: administrator } ]
+                identity: { }
+              - principals: [ ]
+                fixed:
+                  # this must be quoted if the data types of the model are absent
+                  # because we fall back to implicit types in that case
+                  value: "'banaan@banaan.com'"
+      - name: age
+      - name: transactionamount
+      - name: brand
+    meta:
+      pace:
+        rule_sets:
+          - target:
+              ref:
+                integration_fqn: 'stream-machine-development.pace.stg_demo_view'
+            filters:
+              - generic_filter:
+                  conditions:
+                    - principals: [ { group: administrator }, { group: fraud_and_risk } ]
+                      condition: "true"
+                    - principals: [ ]
+                      condition: "age > 8"

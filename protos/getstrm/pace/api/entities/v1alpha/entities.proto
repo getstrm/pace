@@ -210,6 +210,8 @@ message DataPolicy {
       TARGET_TYPE_UNSPECIFIED = 0;
       // A SQL view that can return different results for different querying users.
       SQL_VIEW = 1;
+      // A dbt SQL query
+      DBT_SQL = 2;
     }
   }
 

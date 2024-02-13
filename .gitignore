@@ -7,10 +7,10 @@ out/
 
 /.gradle/
 /build/
-/app/build/
+/server/build/
 output/
 
-app/src/main/resources/application-local*.yaml
+*/src/main/resources/application-local*.yaml
 *key.json
 
 *.binpb
@@ -19,7 +19,7 @@ integration-test/pace.log
 integration-test/awk
 integration-test/cut
 integration-test/policy.yaml*
-app/src/test/resources/openai.properties
+server/src/test/resources/openai.properties
 
 grpc-proxy/envoy-local.yaml
 protos/temp

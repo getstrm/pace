@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  dbt-postgres:
+    container_name: dbt_postgres
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      PGDATA: /data/postgres
+      PGUSER: postgres # Required for health check
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+    ports:
+      - "5440:5432"
+
