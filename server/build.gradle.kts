@@ -1,21 +1,21 @@
-import java.io.ByteArrayOutputStream
-import java.time.Instant
-import java.time.format.DateTimeFormatter
-import java.util.*
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.springframework.boot.gradle.tasks.bundling.BootJar
 import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerRemoveContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
+import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 import java.net.Socket
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.util.*
 import kotlin.system.exitProcess
 import nu.studer.gradle.jooq.JooqGenerate
 import org.flywaydb.gradle.task.FlywayMigrateTask
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 
-val buildTimestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+val buildTimestamp: String = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
 
 val generatedBufDependencyVersion: String by rootProject.extra
 val jooqGenerationPath = layout.buildDirectory.dir("generated/source/jooq/pace").get()
@@ -26,7 +26,6 @@ val jooqVersion = rootProject.ext["jooqVersion"] as String
 val kotestVersion = rootProject.ext["kotestVersion"] as String
 val springCloudKubernetesVersion = rootProject.ext["springCloudKubernetesVersion"] as String
 val flywayVersion = rootProject.extra["flywayVersion"]  as String
-val springBootVersion = rootProject.extra["springBootVersion"] as String
 val openDataDiscoveryOpenApiDir = layout.buildDirectory.dir("generated/source/odd").get()
 
 project.version =
@@ -54,6 +53,7 @@ buildscript {
 
 dependencies {
     implementation(project(":core"))
+
     // Dependencies managed by Spring
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -79,13 +79,10 @@ dependencies {
     // Self-managed dependencies
     implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
     implementation("com.databricks:databricks-sdk-java:0.17.1")
-    implementation("com.github.drapostolos:type-parser:0.8.1")
     implementation("com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre11")
-
     implementation(
         "org.springframework.cloud:spring-cloud-starter-kubernetes-fabric8-config:$springCloudKubernetesVersion"
     )
-
     implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.77")
 

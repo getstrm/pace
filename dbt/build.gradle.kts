@@ -3,6 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 val generatedBufDependencyVersion: String by rootProject.extra
 val kotestVersion = rootProject.ext["kotestVersion"] as String
 val springBootVersion = rootProject.extra["springBootVersion"] as String
+val protobufJavaUtilVersion = rootProject.extra["protobufJavaUtilVersion"] as String
 
 project.version =
     if (gradle.startParameter.taskNames.any { it.lowercase() == "builddocker" }) {
@@ -16,40 +17,20 @@ plugins {
 }
 
 dependencies {
-    // A few Spring-related dependencies, even though we don't start a Spring application in this module.
+    implementation(project(":core"))
+
+    // We let spring boot manage a few dependencies, even though we don't start a Spring application.
     implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
     implementation("org.springframework.boot:spring-boot-starter-jooq")
-
-    // Dependencies managed by Spring
-    // TODO remove once we upgrade Spring: override SnakeYAML dependency, as the one managed by
-    // Spring is too old and is vulnerable
-    implementation(project(":core"))
-    implementation("org.yaml:snakeyaml:2.2")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-    // TODO Remove once this bug is fixed: https://github.com/Kotlin/kotlinx.coroutines/issues/3958
-    runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
     // Self-managed dependencies
-    implementation("com.databricks:databricks-sdk-java:0.17.1")
-    implementation("com.github.drapostolos:type-parser:0.8.1")
-    implementation("com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre11")
-
-    implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.31.0"))
-    implementation("com.google.cloud:google-cloud-bigquery")
-    implementation("com.google.cloud:google-cloud-datacatalog")
-    implementation("com.google.cloud:google-cloud-datalineage")
-
+    implementation("com.google.protobuf:protobuf-java-util:$protobufJavaUtilVersion")
     implementation("build.buf.gen:getstrm_pace_grpc_java:1.61.0.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.4.1.1.$generatedBufDependencyVersion")
     implementation(
         "build.buf.gen:getstrm_pace_protocolbuffers_java:25.2.0.1.$generatedBufDependencyVersion"
     )
-    implementation("build.buf:protovalidate:0.1.9")
-
-    implementation(platform("io.ktor:ktor-bom:2.3.8"))
 
     // Test dependencies
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")

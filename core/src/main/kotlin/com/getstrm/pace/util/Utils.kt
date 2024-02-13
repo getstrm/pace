@@ -11,7 +11,6 @@ import kotlin.math.min
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import org.jooq.*
 
 internal val YAML_MAPPER = YAMLMapper()
 internal val YAML_MAPPER_NO_DOC_START_MARKER =
