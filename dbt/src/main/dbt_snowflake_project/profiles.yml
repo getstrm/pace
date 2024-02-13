@@ -1,0 +1,21 @@
+dbt_snowflake_project:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "SPMXIFV-MV79218"
+
+      # User/password auth
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+
+      role: ACCOUNTADMIN
+      database: PACE
+      warehouse: COMPUTE_WH
+      schema: ONLINE_RETAIL
+      threads: 1
+
+      connect_retries: 2
+      connect_timeout: 5 # default: 10
+      retry_on_database_errors: false
+      retry_all: true
