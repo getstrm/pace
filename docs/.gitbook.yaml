@@ -4,7 +4,7 @@
 openapi: 3.0.3
 info:
     title: PACE API
-    version: 1.0.0-alpha.61
+    version: 1.0.0-alpha.62
 paths:
     /data-policies:
         get:
@@ -1350,6 +1350,7 @@ components:
                     enum:
                         - TARGET_TYPE_UNSPECIFIED
                         - SQL_VIEW
+                        - DBT_SQL
                     type: string
                     format: enum
                 ref:
