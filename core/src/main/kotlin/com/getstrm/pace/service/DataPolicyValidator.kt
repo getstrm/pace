@@ -239,8 +239,10 @@ class DataPolicyValidator {
     }
 
     private fun checkPlatformId(dataPolicy: DataPolicy, ruleSet: RuleSet) {
-        if (ruleSet.target.type != DataPolicy.Target.TargetType.DBT_SQL &&
-            dataPolicy.source.ref.platform.id.isNullOrEmpty()) {
+        if (
+            ruleSet.target.type != DataPolicy.Target.TargetType.DBT_SQL &&
+                dataPolicy.source.ref.platform.id.isNullOrEmpty()
+        ) {
             throw invalidArgumentException(
                 "dataPolicy.platform.id",
                 "DataPolicy platform id is empty",
@@ -307,13 +309,13 @@ class DataPolicyValidator {
         private val jooq: DSLContext =
             DSL.using(
                 HikariDataSource(
-                    HikariConfig().apply {
-                        jdbcUrl = "jdbc:h2:mem:;DATABASE_TO_UPPER=false"
-                        username = "sa"
-                        password = ""
-                        maximumPoolSize = 1
-                    },
-                )
+                        HikariConfig().apply {
+                            jdbcUrl = "jdbc:h2:mem:;DATABASE_TO_UPPER=false"
+                            username = "sa"
+                            password = ""
+                            maximumPoolSize = 1
+                        },
+                    )
                     .connection,
                 SQLDialect.H2,
             )

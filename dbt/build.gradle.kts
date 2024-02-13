@@ -23,6 +23,7 @@ dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.h2database:h2")
 
     // Self-managed dependencies
     implementation("com.google.protobuf:protobuf-java-util:$protobufJavaUtilVersion")

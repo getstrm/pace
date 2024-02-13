@@ -59,7 +59,8 @@ class BigQueryViewGeneratorTest {
         val condition = underTest.toPrincipalCondition(principals)
 
         // Then
-        condition!!.toSql(bqContext) shouldBe "('ANALYTICS' IN ( SELECT `userGroup` FROM `user_groups` ))"
+        condition!!.toSql(bqContext) shouldBe
+            "('ANALYTICS' IN ( SELECT `userGroup` FROM `user_groups` ))"
     }
 
     @Test
@@ -111,7 +112,8 @@ class BigQueryViewGeneratorTest {
             underTest.toJooqField(field, fieldTransform, DataPolicy.Target.getDefaultInstance())
 
         // Then
-        // Fixme: when calling toJooqField directly, there is additional escaping on the field alias, for some reason.
+        // Fixme: when calling toJooqField directly, there is additional escaping on the field
+        // alias, for some reason.
         jooqField.toSql(bqContext) shouldBe
             "case when (('ANALYTICS' IN ( SELECT `userGroup` FROM `user_groups` )) or ('MARKETING' IN ( SELECT `userGroup` FROM `user_groups` ))) then '****' when ('FRAUD_DETECTION' IN ( SELECT `userGroup` FROM `user_groups` )) then 'REDACTED EMAIL' else 'fixed-value' end as ```email```"
     }

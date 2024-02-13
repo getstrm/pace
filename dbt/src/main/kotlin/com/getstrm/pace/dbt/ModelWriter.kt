@@ -24,7 +24,9 @@ class ModelWriter(private val policy: DataPolicy, private val sourceModel: DbtMo
      */
     @VisibleForTesting
     fun targetFilePath(target: DataPolicy.Target): String {
-        return sourceModel.originalFilePath.substringBeforeLast("/") + "/" +
-            target.ref.resourcePathList.last().name + ".sql"
+        return sourceModel.originalFilePath.substringBeforeLast("/") +
+            "/" +
+            target.ref.resourcePathList.last().name +
+            ".sql"
     }
 }

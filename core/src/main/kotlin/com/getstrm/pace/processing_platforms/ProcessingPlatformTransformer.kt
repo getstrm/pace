@@ -1,6 +1,5 @@
 package com.getstrm.pace.processing_platforms
 
-import org.jooq.Field as JooqField
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Aggregation
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Detokenize
@@ -19,6 +18,7 @@ import com.github.drapostolos.typeparser.TypeParser
 import com.github.drapostolos.typeparser.TypeParserException
 import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
+import org.jooq.Field as JooqField
 import org.jooq.Parser
 import org.jooq.impl.DSL
 import org.jooq.impl.ParserException

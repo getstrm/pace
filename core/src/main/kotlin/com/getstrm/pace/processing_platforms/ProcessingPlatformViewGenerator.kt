@@ -1,6 +1,5 @@
 package com.getstrm.pace.processing_platforms
 
-import org.jooq.Field as JooqField
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.AGGREGATION
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.DETOKENIZE
@@ -25,6 +24,7 @@ import java.sql.Timestamp
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.DatePart
+import org.jooq.Field as JooqField
 import org.jooq.Queries
 import org.jooq.Record
 import org.jooq.SQLDialect
@@ -96,7 +96,9 @@ abstract class ProcessingPlatformViewGenerator(
     fun toSelectStatement(inlineParameters: Boolean = false): Map<DataPolicy.Target, String> {
         return dataPolicy.ruleSetsList.associate { ruleSet ->
             val selectStatement = toSelectStatement(ruleSet)
-            ruleSet.target to if (inlineParameters) selectStatement.getSQL(ParamType.INLINED) else selectStatement.sql
+            ruleSet.target to
+                if (inlineParameters) selectStatement.getSQL(ParamType.INLINED)
+                else selectStatement.sql
         }
     }
 
@@ -391,15 +393,23 @@ fun addRuleSet(
                             .setRef(
                                 resourceUrn {
                                     integrationFqn = "${dataPolicy.source.ref.integrationFqn}_view"
-                                    resourcePath += dataPolicy.source.ref.resourcePathList.mapIndexed { index, resourceNode ->
-                                        resourceNode {
-                                            name = if (index == dataPolicy.source.ref.resourcePathCount - 1) {
-                                                "${resourceNode.name}_view"
-                                            } else {
-                                                resourceNode.name
+                                    resourcePath +=
+                                        dataPolicy.source.ref.resourcePathList.mapIndexed {
+                                            index,
+                                            resourceNode ->
+                                            resourceNode {
+                                                name =
+                                                    if (
+                                                        index ==
+                                                            dataPolicy.source.ref
+                                                                .resourcePathCount - 1
+                                                    ) {
+                                                        "${resourceNode.name}_view"
+                                                    } else {
+                                                        resourceNode.name
+                                                    }
                                             }
                                         }
-                                    }
                                 }
                             )
                             .build()

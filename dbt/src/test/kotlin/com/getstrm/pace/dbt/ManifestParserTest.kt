@@ -24,7 +24,9 @@ class ManifestParserTest {
     fun `print models`() {
         policyAction { source, target, query, violations ->
             println("---------------------------")
-            println("Model: ${source.ref.resourcePathList.last().name} - Target: ${target.ref.resourcePathList.last().name}")
+            println(
+                "Model: ${source.ref.resourcePathList.last().name} - Target: ${target.ref.resourcePathList.last().name}"
+            )
             println("---------------------------")
             if (violations.isNotEmpty()) {
                 println("Violations: $violations")
@@ -34,14 +36,17 @@ class ManifestParserTest {
         }
     }
 
-    private fun policyAction(block: (DataPolicy.Source, DataPolicy.Target, String, List<FieldViolation>) -> Unit) {
+    private fun policyAction(
+        block: (DataPolicy.Source, DataPolicy.Target, String, List<FieldViolation>) -> Unit
+    ) {
         val blueprints =
             ManifestParser.createDataPolicies(manifestJson).also { it.shouldNotBeEmpty() }
 
         blueprints.forEach { (policy, sourceModel, violations) ->
             val dataPolicyWithGlobals = addRuleSet(policy, DBT_SQL) { globalTransform }
-            val queries = ViewGeneratorFactory.create(dataPolicyWithGlobals, sourceModel)
-                .toSelectStatement(inlineParameters = true)
+            val queries =
+                ViewGeneratorFactory.create(dataPolicyWithGlobals, sourceModel)
+                    .toSelectStatement(inlineParameters = true)
             queries.forEach { (target, query) ->
                 block(dataPolicyWithGlobals.source, target, query, violations)
             }
@@ -60,7 +65,9 @@ class ManifestParserTest {
                         .addTransforms(
                             FieldTransform.Transform.newBuilder()
                                 .setFixed(
-                                    FieldTransform.Transform.Fixed.newBuilder().setValue("'banaan'").build()
+                                    FieldTransform.Transform.Fixed.newBuilder()
+                                        .setValue("'banaan'")
+                                        .build()
                                 )
                                 .build()
                         )
@@ -69,4 +76,3 @@ class ManifestParserTest {
                 .build()
     }
 }
-

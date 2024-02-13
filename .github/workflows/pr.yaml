@@ -58,7 +58,7 @@ jobs:
       - name: install postgresql-client
         run: sudo apt update -y && sudo apt install -y postgresql-client
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/actions/setup-gradle@v3
       - name: Execute Gradle build
         run: ./gradlew build -PciBuild
       - name: copy app.jar to integration-test directory

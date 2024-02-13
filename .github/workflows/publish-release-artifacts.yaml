@@ -57,7 +57,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/actions/setup-gradle@v3
       - run: ./gradlew prepareForDocker -PciBuild -PgeneratedBufDependencyVersion=${{ env.BUF_DEPENDENCY_VERSION }}
       - name: "Generate Proto Filedescriptor"
         # Normally generated in the Gradle prepareForDocker step, but the ciBuild flag disables that

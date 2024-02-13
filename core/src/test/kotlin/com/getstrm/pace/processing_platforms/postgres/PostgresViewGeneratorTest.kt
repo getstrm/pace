@@ -93,7 +93,8 @@ class PostgresViewGeneratorTest {
             underTest.toJooqField(field, fieldTransform, DataPolicy.Target.getDefaultInstance())
 
         // Then
-        // Fixme: when calling toJooqField directly, there is additional escaping on the field alias, for some reason.
+        // Fixme: when calling toJooqField directly, there is additional escaping on the field
+        // alias, for some reason.
         jooqField.toSql(pgContext) shouldBe
             "case when (('analytics' IN ( SELECT rolname FROM user_groups )) or ('marketing' IN ( SELECT rolname FROM user_groups ))) then '****' when ('fraud_and_risk' IN ( SELECT rolname FROM user_groups )) then 'REDACTED EMAIL' else 'fixed-value' end as \"\"\"email\"\"\""
     }
@@ -150,7 +151,8 @@ class PostgresViewGeneratorTest {
         val condition = underTest.toCondition(retention, DataPolicy.Target.getDefaultInstance())
 
         // Then
-        condition.toSql(pgContext) shouldBe "(\"timestamp\" + 10 * interval '1 day') > current_timestamp"
+        condition.toSql(pgContext) shouldBe
+            "(\"timestamp\" + 10 * interval '1 day') > current_timestamp"
     }
 
     @Test

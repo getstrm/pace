@@ -15,14 +15,10 @@ object ViewGeneratorFactory {
         return when (dataPolicy.source.ref.platform.platformType) {
             ProcessingPlatform.PlatformType.POSTGRES ->
                 PostgresViewGenerator(dataPolicy) { withRenderFormatted(true) }
-
-            ProcessingPlatform.PlatformType.DATABRICKS -> DatabricksViewGenerator(dataPolicy) {
-                withRenderFormatted(true)
-            }
-
-            ProcessingPlatform.PlatformType.SNOWFLAKE -> SnowflakeViewGenerator(dataPolicy) {
-                withRenderFormatted(true)
-            }
+            ProcessingPlatform.PlatformType.DATABRICKS ->
+                DatabricksViewGenerator(dataPolicy) { withRenderFormatted(true) }
+            ProcessingPlatform.PlatformType.SNOWFLAKE ->
+                SnowflakeViewGenerator(dataPolicy) { withRenderFormatted(true) }
             ProcessingPlatform.PlatformType.BIGQUERY -> {
                 val userGroupsTable = sourceModel.meta["pace_user_groups_table"]?.asText()
                 require(userGroupsTable != null) {
@@ -31,10 +27,8 @@ object ViewGeneratorFactory {
                 }
                 BigQueryViewGenerator(dataPolicy, userGroupsTable) { withRenderFormatted(true) }
             }
-
-            ProcessingPlatform.PlatformType.SYNAPSE -> SynapseViewGenerator(dataPolicy) {
-                withRenderFormatted(true)
-            }
+            ProcessingPlatform.PlatformType.SYNAPSE ->
+                SynapseViewGenerator(dataPolicy) { withRenderFormatted(true) }
             ProcessingPlatform.PlatformType.UNRECOGNIZED -> TODO()
             else ->
                 throw IllegalArgumentException(

@@ -39,9 +39,7 @@ object ManifestParser {
         return modelNodes.map {
             val policy = createDataPolicy(platformType, it)
             try {
-                validator.validate(policy) {
-                    skipCheckPrincipals = true
-                }
+                validator.validate(policy) { skipCheckPrincipals = true }
                 DbtPolicy(policy, it, emptyList())
             } catch (e: BadRequestException) {
                 DbtPolicy(policy, it, e.badRequest.fieldViolationsList)
@@ -53,36 +51,44 @@ object ManifestParser {
         platformType: ProcessingPlatform.PlatformType,
         model: DbtModel
     ): DataPolicy {
-        val dataPolicyBuilder = dataPolicy {
-            metadata = metadata {
-                // Since the model FQN differs from the db/schema/table path on the underlying platform,
-                // and purely depends on DBT project id, and the directory structure used,
-                // we "store" the fqn in the title for now. I.e. the title represents the source
-                // model's fqn, and the source resource path represents the actual path on the platform.
-                title = model.fqn.joinToString(".")
-                description = model.description.orEmpty()
-                tags.addAll(model.tags)
-            }
-            source = source {
-                ref = resourceUrn {
-                    platform = processingPlatform { this.platformType = platformType }
-                    val resourcePathComponents = listOf(model.database, model.schema, model.name)
-                    integrationFqn = resourcePathComponents.joinToString(".")
-                    resourcePath.addAll(resourcePathComponents.map { resourceNode { name = it } })
-                }
-                fields.addAll(
-                    model.columns.values.map { column ->
-                        field {
-                            // TODO doesn't handle nested?
-                            nameParts += column.name
-                            tags += column.tags
-                            // TODO reuse sqlDataType
-                            column.dataType?.let { type = it }
-                        }
+        val dataPolicyBuilder =
+            dataPolicy {
+                    metadata = metadata {
+                        // Since the model FQN differs from the db/schema/table path on the
+                        // underlying platform,
+                        // and purely depends on DBT project id, and the directory structure used,
+                        // we "store" the fqn in the title for now. I.e. the title represents the
+                        // source
+                        // model's fqn, and the source resource path represents the actual path on
+                        // the platform.
+                        title = model.fqn.joinToString(".")
+                        description = model.description.orEmpty()
+                        tags.addAll(model.tags)
                     }
-                )
-            }
-        }.toBuilder()
+                    source = source {
+                        ref = resourceUrn {
+                            platform = processingPlatform { this.platformType = platformType }
+                            val resourcePathComponents =
+                                listOf(model.database, model.schema, model.name)
+                            integrationFqn = resourcePathComponents.joinToString(".")
+                            resourcePath.addAll(
+                                resourcePathComponents.map { resourceNode { name = it } }
+                            )
+                        }
+                        fields.addAll(
+                            model.columns.values.map { column ->
+                                field {
+                                    // TODO doesn't handle nested?
+                                    nameParts += column.name
+                                    tags += column.tags
+                                    // TODO reuse sqlDataType
+                                    column.dataType?.let { type = it }
+                                }
+                            }
+                        )
+                    }
+                }
+                .toBuilder()
 
         mergePolicyFromModelMeta(model, dataPolicyBuilder)
         mergeFieldTransformsFromColumnMeta(model, dataPolicyBuilder)
@@ -94,10 +100,11 @@ object ManifestParser {
         model: DbtModel,
         dataPolicyBuilder: DataPolicy.Builder
     ) {
-        val hasColumnTransforms = model.columns.any { (_, column) ->
-            val transforms = column.meta["pace"]?.get("transforms")
-            transforms != null && transforms.isArray && transforms.toList().isNotEmpty()
-        }
+        val hasColumnTransforms =
+            model.columns.any { (_, column) ->
+                val transforms = column.meta["pace"]?.get("transforms")
+                transforms != null && transforms.isArray && transforms.toList().isNotEmpty()
+            }
 
         if (hasColumnTransforms) {
             // Field transforms on columns have precedence over transforms in the model meta,
@@ -123,21 +130,20 @@ object ManifestParser {
                             protoJsonParser.merge(transformsNode.toString().reader(), this)
                         }
                     fieldTransforms.field = field {
-                        // We only need to specify the name here, the full details are under the source fields
+                        // We only need to specify the name here, the full details are under the
+                        // source fields
                         nameParts += column.name
                     }
 
-                    dataPolicyBuilder.ruleSetsBuilderList.first()
+                    dataPolicyBuilder.ruleSetsBuilderList
+                        .first()
                         .addFieldTransforms(fieldTransforms)
                 }
             }
         }
     }
 
-    private fun mergePolicyFromModelMeta(
-        model: DbtModel,
-        dataPolicyBuilder: DataPolicy.Builder
-    ) {
+    private fun mergePolicyFromModelMeta(model: DbtModel, dataPolicyBuilder: DataPolicy.Builder) {
         model.meta["pace"]?.let {
             protoJsonParser.merge(it.toString().reader(), dataPolicyBuilder)
 
@@ -147,9 +153,7 @@ object ManifestParser {
         }
     }
 
-    private fun DataPolicy.RuleSet.Builder.setRuleSetTarget(
-        dataPolicyBuilder: DataPolicy.Builder
-    ) {
+    private fun DataPolicy.RuleSet.Builder.setRuleSetTarget(dataPolicyBuilder: DataPolicy.Builder) {
         targetBuilder.type = DataPolicy.Target.TargetType.DBT_SQL
 
         val refBuilder = targetBuilder.refBuilder
@@ -158,7 +162,8 @@ object ManifestParser {
         when {
             refBuilder.integrationFqn.isEmpty() && refBuilder.resourcePathList.isEmpty() -> {
                 refBuilder.addAllResourcePath(
-                    dataPolicyBuilder.source.ref.resourcePathList.mapIndexed { index, resourceNode ->
+                    dataPolicyBuilder.source.ref.resourcePathList.mapIndexed { index, resourceNode
+                        ->
                         resourceNode {
                             name =
                                 if (index == dataPolicyBuilder.source.ref.resourcePathCount - 1) {
@@ -170,14 +175,11 @@ object ManifestParser {
                     },
                 )
 
-                refBuilder.integrationFqn =
-                    "${dataPolicyBuilder.source.ref.integrationFqn}_view"
+                refBuilder.integrationFqn = "${dataPolicyBuilder.source.ref.integrationFqn}_view"
             }
-
             refBuilder.integrationFqn.isEmpty() && refBuilder.resourcePathList.isNotEmpty() -> {
                 refBuilder.integrationFqn = refBuilder.resourcePathList.joinToString(".")
             }
-
             refBuilder.integrationFqn.isNotEmpty() && refBuilder.resourcePathList.isEmpty() -> {
                 refBuilder.addAllResourcePath(
                     refBuilder.integrationFqn.split(".").map { resourceNode { name = it } },
@@ -186,14 +188,15 @@ object ManifestParser {
         }
     }
 
-    private fun String?.toPlatformType(): ProcessingPlatform.PlatformType = when (this) {
-        "postgres" -> ProcessingPlatform.PlatformType.POSTGRES
-        "bigquery" -> ProcessingPlatform.PlatformType.BIGQUERY
-        "databricks" -> ProcessingPlatform.PlatformType.DATABRICKS
-        "snowflake" -> ProcessingPlatform.PlatformType.SNOWFLAKE
-        "synapse" -> ProcessingPlatform.PlatformType.SYNAPSE
-        else -> throw IllegalArgumentException("Unsupported dbt adapter_type $this")
-    }
+    private fun String?.toPlatformType(): ProcessingPlatform.PlatformType =
+        when (this) {
+            "postgres" -> ProcessingPlatform.PlatformType.POSTGRES
+            "bigquery" -> ProcessingPlatform.PlatformType.BIGQUERY
+            "databricks" -> ProcessingPlatform.PlatformType.DATABRICKS
+            "snowflake" -> ProcessingPlatform.PlatformType.SNOWFLAKE
+            "synapse" -> ProcessingPlatform.PlatformType.SYNAPSE
+            else -> throw IllegalArgumentException("Unsupported dbt adapter_type $this")
+        }
 }
 
 data class DbtPolicy(
