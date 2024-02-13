@@ -1,3 +1,15 @@
+# [1.0.0-alpha.62](https://github.com/getstrm/pace/compare/v1.0.0-alpha.61...v1.0.0-alpha.62) (2024-02-13)
+
+
+### Bug Fixes
+
+* **release:** formatting and missing h2 dependency ([8bf8890](https://github.com/getstrm/pace/commit/8bf8890cac6f3ff43192b221eb80d44686d40ed5))
+
+
+### Features
+
+* **pace-155:** initial DBT support ([#203](https://github.com/getstrm/pace/issues/203)) ([eddb5a8](https://github.com/getstrm/pace/commit/eddb5a83216a1a59a8d11ec914435b8b78e8603b))
+
 # [1.0.0-alpha.61](https://github.com/getstrm/pace/compare/v1.0.0-alpha.60...v1.0.0-alpha.61) (2024-02-01)
 
 
