@@ -3,7 +3,10 @@ dbt_snowflake_project:
   outputs:
     dev:
       type: snowflake
-      account: "SPMXIFV-MV79218"
+      # Copy this with the `copy account identifier` button in the Snowflake web interface
+      # https://docs.snowflake.com/en/_images/ui-snowsight-account-identifier.png
+      # Replace the `.` with `-`, otherwise this won't work
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT_NAME') }}"
 
       # User/password auth
       user: "{{ env_var('SNOWFLAKE_USER') }}"
