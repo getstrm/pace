@@ -1,3 +1,11 @@
+# [1.0.0-alpha.63](https://github.com/getstrm/pace/compare/v1.0.0-alpha.62...v1.0.0-alpha.63) (2024-02-14)
+
+
+### Features
+
+* **pace-172:** update docs with runtimes and upload artifacts to releases ([#208](https://github.com/getstrm/pace/issues/208)) ([f65b02e](https://github.com/getstrm/pace/commit/f65b02e82719c27541a28cecdef6e21dfa96fc4a))
+* retrigger release ([dee74e5](https://github.com/getstrm/pace/commit/dee74e5cac089a5eb2b75a5f721ce4084eaac53c))
+
 # [1.0.0-alpha.62](https://github.com/getstrm/pace/compare/v1.0.0-alpha.61...v1.0.0-alpha.62) (2024-02-13)
 
 
