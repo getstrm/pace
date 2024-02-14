@@ -4,6 +4,7 @@
 {{
     config(
       materialized='view',
+      meta={'pace_generated': true},
       schema='pace',
       grant_access_to=[
         {'project': 'stream-machine-development', 'dataset': 'dbt_pace'}
@@ -28,7 +29,7 @@ select
   end `userid`,
   case
     when ('administrator' IN ( SELECT `userGroup` FROM `user_groups` )) then `email`
-    else 'banaan@banaan.com'
+    else 'foo@bar.com'
   end `email`,
   `age`,
   `transactionamount`,

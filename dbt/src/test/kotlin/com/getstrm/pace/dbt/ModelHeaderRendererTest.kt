@@ -44,7 +44,8 @@ class ModelHeaderRendererTest {
             #}
             {{
                 config(
-                  materialized='view'
+                  materialized='view',
+                  meta={'pace_generated': true}
                 )
             }}
         
@@ -80,6 +81,7 @@ class ModelHeaderRendererTest {
             {{
                 config(
                   materialized='view',
+                  meta={'pace_generated': true},
                   database='my_other_db',
                   schema='my_other_schema'
                 )
@@ -120,6 +122,7 @@ class ModelHeaderRendererTest {
             {{
                 config(
                   materialized='view',
+                  meta={'pace_generated': true},
                   schema='my_other_schema',
                   grant_access_to=[
                     {'project': 'my_db', 'dataset': 'my_schema'}
@@ -161,7 +164,8 @@ class ModelHeaderRendererTest {
             #}
             {{
                 config(
-                  materialized='view'
+                  materialized='view',
+                  meta={'pace_generated': true}
                 )
             }}
         
