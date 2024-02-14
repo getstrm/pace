@@ -123,16 +123,16 @@ object ManifestParser {
                 val transformsNode = objectMapper.createObjectNode()
                 transformsNode.set<ObjectNode>("transforms", transforms)
 
-                val fieldTransforms =
+                val fieldTransform =
                     DataPolicy.RuleSet.FieldTransform.newBuilder().apply {
                         protoJsonParser.merge(transformsNode.toString().reader(), this)
                     }
-                fieldTransforms.field = field {
+                fieldTransform.field = field {
                     // We only need to specify the name here, the full details are under the
                     // source fields
                     nameParts += column.name
                 }
-                fieldTransforms
+                fieldTransform.build()
             } else null
         }
 
@@ -142,6 +142,7 @@ object ManifestParser {
             val ruleSet =
                 dataPolicyBuilder.ruleSetsBuilderList.firstOrNull()?.clearFieldTransforms()
                     ?: DataPolicy.RuleSet.newBuilder()
+            ruleSet.addAllFieldTransforms(fieldTransforms)
             ruleSet.setRuleSetTarget(dataPolicyBuilder)
             // Todo: maybe add a basic validation in case of multiple rule sets?
             dataPolicyBuilder.clearRuleSets()
@@ -150,7 +151,10 @@ object ManifestParser {
     }
 
     private fun mergePolicyFromModelMeta(model: DbtModel, dataPolicyBuilder: DataPolicy.Builder) {
+        val enabled = model.meta["pace_enabled"]?.asBoolean()
         model.meta["pace_rule_sets"]?.let {
+            if (enabled == false) return
+            
             val ruleSetsNode = objectMapper.createObjectNode()
             ruleSetsNode.set<ObjectNode>("rule_sets", it)
 

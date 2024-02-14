@@ -6,7 +6,6 @@ models:
       - name: transactionid
       - name: userid
         meta:
-          pace_enabled: false
           pace_transforms:
             - principals: [ { group: fraud_and_risk }, { group: administrator } ]
               identity: { }
