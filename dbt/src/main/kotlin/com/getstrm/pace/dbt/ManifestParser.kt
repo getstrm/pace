@@ -59,7 +59,7 @@ object ManifestParser {
         val ruleSets = meta["pace_rule_sets"] as? ArrayNode
         val enabled = meta["pace_enabled"]?.asBoolean()
         val hasRuleSets = ruleSets.isNotNullOrEmpty() && enabled != false
-        return hasColumnTransforms || hasRuleSets
+        return hasColumnTransforms || hasRuleSets || enabled == true
     }
 
     private fun createDataPolicy(
@@ -108,6 +108,16 @@ object ManifestParser {
         mergePolicyFromModelMeta(model, dataPolicyBuilder)
         mergeFieldTransformsFromColumnMeta(model, dataPolicyBuilder)
 
+        if (dataPolicyBuilder.ruleSetsList.isEmpty()) {
+            // If at this point we still have no rule sets, pace_enabled was explicitly set to true
+            // in the model meta, meaning a dbt model will be generated that doesn't change anything
+            // from the source model. We add an empty rule set to make sure the model is generated.
+            val emptyRuleSet = DataPolicy.RuleSet.newBuilder().apply {
+                setRuleSetTarget(dataPolicyBuilder)
+            }
+            dataPolicyBuilder.addRuleSets(emptyRuleSet)
+        }
+
         return dataPolicyBuilder.build()
     }
 
@@ -154,7 +164,7 @@ object ManifestParser {
         val enabled = model.meta["pace_enabled"]?.asBoolean()
         model.meta["pace_rule_sets"]?.let {
             if (enabled == false) return
-            
+
             val ruleSetsNode = objectMapper.createObjectNode()
             ruleSetsNode.set<ObjectNode>("rule_sets", it)
 

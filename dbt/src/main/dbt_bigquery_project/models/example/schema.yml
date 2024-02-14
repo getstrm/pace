@@ -12,6 +12,8 @@ models:
           - not_null
         tags:
           - pii
+    meta:
+      pace_enabled: true
 
   - name: my_second_dbt_model
     description: "A starter dbt model"
