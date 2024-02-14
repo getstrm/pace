@@ -11,6 +11,7 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceNode
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.resourceUrn
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE
+import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -36,7 +37,9 @@ object ManifestParser {
                 .map { (_, node) -> objectMapper.convertValue<DbtModel>(node) }
                 .toList()
         val platformType = manifestObjectNode["metadata"]["adapter_type"].asText().toPlatformType()
-        return modelNodes.map {
+        return modelNodes.filter {
+            it.isPaceEnabled()
+        }.map {
             val policy = createDataPolicy(platformType, it)
             try {
                 validator.validate(policy) { skipCheckPrincipals = true }
@@ -45,6 +48,18 @@ object ManifestParser {
                 DbtPolicy(policy, it, e.badRequest.fieldViolationsList)
             }
         }
+    }
+
+    private fun DbtModel.isPaceEnabled(): Boolean {
+        val hasColumnTransforms = columns.any { (_, column) ->
+            val transforms = column.meta["pace_transforms"] as? ArrayNode
+            val enabled = column.meta["pace_enabled"]?.asBoolean()
+            transforms.isNotNullOrEmpty() && enabled != false
+        }
+        val ruleSets = meta["pace_rule_sets"] as? ArrayNode
+        val enabled = meta["pace_enabled"]?.asBoolean()
+        val hasRuleSets = ruleSets.isNotNullOrEmpty() && enabled != false
+        return hasColumnTransforms || hasRuleSets
     }
 
     private fun createDataPolicy(
@@ -100,52 +115,46 @@ object ManifestParser {
         model: DbtModel,
         dataPolicyBuilder: DataPolicy.Builder
     ) {
-        val hasColumnTransforms =
-            model.columns.any { (_, column) ->
-                val transforms = column.meta["pace"]?.get("transforms")
-                transforms != null && transforms.isArray && transforms.toList().isNotEmpty()
-            }
+        val fieldTransforms = model.columns.mapNotNull { (_, column) ->
+            val transforms = column.meta["pace_transforms"] as? ArrayNode
+            val enabled = column.meta["pace_enabled"]?.asBoolean()
 
-        if (hasColumnTransforms) {
+            if (transforms.isNotNullOrEmpty() && enabled != false) {
+                val transformsNode = objectMapper.createObjectNode()
+                transformsNode.set<ObjectNode>("transforms", transforms)
+
+                val fieldTransforms =
+                    DataPolicy.RuleSet.FieldTransform.newBuilder().apply {
+                        protoJsonParser.merge(transformsNode.toString().reader(), this)
+                    }
+                fieldTransforms.field = field {
+                    // We only need to specify the name here, the full details are under the
+                    // source fields
+                    nameParts += column.name
+                }
+                fieldTransforms
+            } else null
+        }
+
+        if (fieldTransforms.isNotEmpty()) {
             // Field transforms on columns have precedence over transforms in the model meta,
             // so we clear them here, and also keep only the first rule set.
             val ruleSet =
                 dataPolicyBuilder.ruleSetsBuilderList.firstOrNull()?.clearFieldTransforms()
                     ?: DataPolicy.RuleSet.newBuilder()
             ruleSet.setRuleSetTarget(dataPolicyBuilder)
-
             // Todo: maybe add a basic validation in case of multiple rule sets?
             dataPolicyBuilder.clearRuleSets()
-
             dataPolicyBuilder.addRuleSets(ruleSet)
-
-            model.columns.forEach { (_, column) ->
-                val transforms = column.meta["pace"]?.get("transforms")
-                if (transforms != null && transforms.isArray && transforms.toList().isNotEmpty()) {
-                    val transformsNode = objectMapper.createObjectNode()
-                    transformsNode.set<ObjectNode>("transforms", transforms)
-
-                    val fieldTransforms =
-                        DataPolicy.RuleSet.FieldTransform.newBuilder().apply {
-                            protoJsonParser.merge(transformsNode.toString().reader(), this)
-                        }
-                    fieldTransforms.field = field {
-                        // We only need to specify the name here, the full details are under the
-                        // source fields
-                        nameParts += column.name
-                    }
-
-                    dataPolicyBuilder.ruleSetsBuilderList
-                        .first()
-                        .addFieldTransforms(fieldTransforms)
-                }
-            }
         }
     }
 
     private fun mergePolicyFromModelMeta(model: DbtModel, dataPolicyBuilder: DataPolicy.Builder) {
-        model.meta["pace"]?.let {
-            protoJsonParser.merge(it.toString().reader(), dataPolicyBuilder)
+        model.meta["pace_rule_sets"]?.let {
+            val ruleSetsNode = objectMapper.createObjectNode()
+            ruleSetsNode.set<ObjectNode>("rule_sets", it)
+
+            protoJsonParser.merge(ruleSetsNode.toString().reader(), dataPolicyBuilder)
 
             dataPolicyBuilder.ruleSetsBuilderList.forEach { ruleSet ->
                 ruleSet.setRuleSetTarget(dataPolicyBuilder)
@@ -197,6 +206,8 @@ object ManifestParser {
             "synapse" -> ProcessingPlatform.PlatformType.SYNAPSE
             else -> throw IllegalArgumentException("Unsupported dbt adapter_type $this")
         }
+
+    private fun ArrayNode?.isNotNullOrEmpty(): Boolean = this != null && this.toList().isNotEmpty()
 }
 
 data class DbtPolicy(

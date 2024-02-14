@@ -27,7 +27,5 @@ seeds:
 models:
   dbt_postgres_project:
     # Config indicated by + and applies to all files under models/example/
-    example:
-      +materialized: view
     staging:
       +materialized: view

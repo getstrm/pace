@@ -11,7 +11,7 @@ models:
           - unique
           - not_null
         tags:
-          - banaan
+          - pii
 
   - name: my_second_dbt_model
     description: "A starter dbt model"
@@ -22,14 +22,14 @@ models:
           - unique
           - not_null
     meta:
-      pace:
-        rule_sets:
-          - field_transforms:
-              - field:
-                  name_parts: [ id ]
-                transforms:
-                  - principals: [ { group: fraud_and_risk }, { group: administrator } ]
-                    identity: { }
-                  - principals: [ ]
-                    fixed:
-                      value: "42"
+      pace_enabled: true
+      pace_rule_sets:
+        - field_transforms:
+            - field:
+                name_parts: [ id ]
+              transforms:
+                - principals: [ { group: fraud_and_risk }, { group: administrator } ]
+                  identity: { }
+                - principals: [ ]
+                  fixed:
+                    value: "42"
