@@ -150,5 +150,3 @@ Looking for a visual of PACE to include somewhere (preferably the blog you're wr
    <img src="./assets/svg/pace-logo-orange-outline.svg" alt="Logo">
   </a>
 </p>
-
-
