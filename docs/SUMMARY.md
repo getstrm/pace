@@ -48,6 +48,7 @@
 ## Runtimes
 
 * [Overview](runtimes/overview/overview.md)
+  * [Containerized dbt module](runtimes/overview/containerized_dbt_module.md)
 
 ## Plugins
 
