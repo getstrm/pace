@@ -45,68 +45,73 @@ class ManifestParserTest {
                 it.policy.ruleSetsList.size shouldBe 1
             }
 
-        dbtPolicy.policy shouldBe
-            dataPolicy {
-                metadata = metadata {
-                    title = "dbt_postgres_project.staging.stg_demo"
-                    description = ""
+        dbtPolicy.policy shouldBe dataPolicy {
+            metadata = metadata {
+                title = "dbt_postgres_project.staging.stg_demo"
+                description = ""
+            }
+            source = source {
+                ref = resourceUrn {
+                    platform = processingPlatform { platformType = POSTGRES }
+                    integrationFqn = "postgres.public.stg_demo"
+                    resourcePath.addAll(listOfNodes("postgres", "public", "stg_demo"))
                 }
-                source = source {
+
+                fields.addAll(
+                    listOf(
+                        field { nameParts += "transactionid" },
+                        field { nameParts += "userid" },
+                        field { nameParts += "email" },
+                        field { nameParts += "age" },
+                        field { nameParts += "transactionamount" },
+                        field { nameParts += "brand" },
+                    ),
+                )
+            }
+            ruleSets += ruleSet {
+                target = target {
+                    type = DBT_SQL
                     ref = resourceUrn {
                         platform = processingPlatform { platformType = POSTGRES }
-                        integrationFqn = "postgres.public.stg_demo"
-                        resourcePath.addAll(listOfNodes("postgres", "public", "stg_demo"))
-                    }
-
-                    fields.addAll(
-                        listOf(
-                            field { nameParts += "transactionid" },
-                            field { nameParts += "userid" },
-                            field { nameParts += "email" },
-                            field { nameParts += "age" },
-                            field { nameParts += "transactionamount" },
-                            field { nameParts += "brand" },
+                        integrationFqn = "my_other_db.my_other_schema.my_custom_view_name"
+                        resourcePath.addAll(
+                            listOfNodes(
+                                "my_other_db",
+                                "my_other_schema",
+                                "my_custom_view_name",
+                            ),
                         )
-                    )
+                    }
                 }
-                ruleSets += ruleSet {
-                    target = target {
-                        type = DBT_SQL
-                        ref = resourceUrn {
-                            platform = processingPlatform { platformType = POSTGRES }
-                            integrationFqn = "postgres.public.stg_demo_view"
-                            resourcePath.addAll(listOfNodes("postgres", "public", "stg_demo_view"))
-                        }
+                fieldTransforms += fieldTransform {
+                    field = field { nameParts += "userid" }
+                    transforms += transform {
+                        principals += principal { group = "fraud_and_risk" }
+                        principals += principal { group = "administrator" }
+                        identity = identity {}
                     }
-                    fieldTransforms += fieldTransform {
-                        field = field { nameParts += "userid" }
-                        transforms += transform {
+                    transforms += transform { fixed = fixed { value = "42" } }
+                }
+                fieldTransforms += fieldTransform {
+                    field = field { nameParts += "email" }
+                    transforms += transform {
+                        principals += principal { group = "administrator" }
+                        identity = identity {}
+                    }
+                    transforms += transform { fixed = fixed { value = "'banaan@banaan.com'" } }
+                }
+                filters += filter {
+                    genericFilter = genericFilter {
+                        conditions += genericFilterCondition {
+                            principals += principal { group = "administrator" }
                             principals += principal { group = "fraud_and_risk" }
-                            principals += principal { group = "administrator" }
-                            identity = identity {}
+                            condition = "true"
                         }
-                        transforms += transform { fixed = fixed { value = "42" } }
-                    }
-                    fieldTransforms += fieldTransform {
-                        field = field { nameParts += "email" }
-                        transforms += transform {
-                            principals += principal { group = "administrator" }
-                            identity = identity {}
-                        }
-                        transforms += transform { fixed = fixed { value = "'banaan@banaan.com'" } }
-                    }
-                    filters += filter {
-                        genericFilter = genericFilter {
-                            conditions += genericFilterCondition {
-                                principals += principal { group = "administrator" }
-                                principals += principal { group = "fraud_and_risk" }
-                                condition = "true"
-                            }
-                            conditions += genericFilterCondition { condition = "age > 8" }
-                        }
+                        conditions += genericFilterCondition { condition = "age > 8" }
                     }
                 }
             }
+        }
     }
 
     @Test
@@ -122,27 +127,26 @@ class ManifestParserTest {
         val dataPolicy = actual.first().policy
         dataPolicy.ruleSetsList.size shouldBe 1
 
-        dataPolicy.ruleSetsList.first() shouldBe
-            ruleSet {
-                target = target {
-                    type = DBT_SQL
-                    ref = resourceUrn {
-                        platform = processingPlatform { platformType = POSTGRES }
-                        integrationFqn = "postgres.public.stg_demo_view"
-                        resourcePath.addAll(listOfNodes("postgres", "public", "stg_demo_view"))
-                    }
-                }
-                fieldTransforms += fieldTransform {
-                    field = field { nameParts += "email" }
-                    transforms += transform {
-                        principals += principal { group = "administrator" }
-                        identity = identity {}
-                    }
-                    transforms += transform { fixed = fixed { value = "'banaan@banaan.com'" } }
+        dataPolicy.ruleSetsList.first() shouldBe ruleSet {
+            target = target {
+                type = DBT_SQL
+                ref = resourceUrn {
+                    platform = processingPlatform { platformType = POSTGRES }
+                    integrationFqn = "postgres.public.stg_demo_view"
+                    resourcePath.addAll(listOfNodes("postgres", "public", "stg_demo_view"))
                 }
             }
+            fieldTransforms += fieldTransform {
+                field = field { nameParts += "email" }
+                transforms += transform {
+                    principals += principal { group = "administrator" }
+                    identity = identity {}
+                }
+                transforms += transform { fixed = fixed { value = "'banaan@banaan.com'" } }
+            }
+        }
     }
-    
+
     @Test
     fun `model and column meta - fully disabled`() {
         // Given a dbt manifest that is fully disabled
@@ -150,9 +154,9 @@ class ManifestParserTest {
 
         // When it is transformed into a list of data policies
         val actual = ManifestParser.createDataPolicies(manifest)
-        
+
         // Then
-        TODO("only test rule sets here, the rest is tested in the model and column meta test at the top")
+        actual.shouldBeEmpty()
     }
 
     @Test
@@ -164,7 +168,29 @@ class ManifestParserTest {
         val actual = ManifestParser.createDataPolicies(manifest)
 
         // Then
-        TODO("only test rule sets here, the rest is tested in the model and column meta test at the top")
+        actual.size shouldBe 1
+        val dataPolicy = actual.first().policy
+        dataPolicy.ruleSetsList.size shouldBe 1
+        dataPolicy.ruleSetsList.first() shouldBe ruleSet {
+            target = target {
+                type = DBT_SQL
+                ref = resourceUrn {
+                    platform = processingPlatform { platformType = POSTGRES }
+                    integrationFqn = "postgres.public.stg_demo_view"
+                    resourcePath.addAll(listOfNodes("postgres", "public", "stg_demo_view"))
+                }
+            }
+            filters += filter {
+                genericFilter = genericFilter {
+                    conditions += genericFilterCondition {
+                        principals += principal { group = "administrator" }
+                        principals += principal { group = "fraud_and_risk" }
+                        condition = "true"
+                    }
+                    conditions += genericFilterCondition { condition = "age > 8" }
+                }
+            }
+        }
     }
 
     @Test
@@ -176,7 +202,65 @@ class ManifestParserTest {
         val actual = ManifestParser.createDataPolicies(manifest)
 
         // Then
-        TODO("only test rule sets here, the rest is tested in the model and column meta test at the top")
+        actual.shouldBeEmpty()
+    }
+
+    @Test
+    fun `no policy configuration - enabled explicitly`() {
+        // Given a dbt manifest with no policy configuration but which is enabled explicitly
+        val manifest = readManifest("no_config_enabled_explicitly.json")
+
+        // When it is transformed into a list of data policies
+        val actual = ManifestParser.createDataPolicies(manifest)
+
+        // Then a policy with an "empty" rule set is generated
+        actual.size shouldBe 1
+        actual.first().policy shouldBe dataPolicy {
+            metadata = metadata {
+                title = "dbt_postgres_project.staging.stg_demo"
+                description = ""
+            }
+            source = source {
+                ref = resourceUrn {
+                    platform = processingPlatform { platformType = POSTGRES }
+                    integrationFqn = "postgres.public.stg_demo"
+                    resourcePath.addAll(listOfNodes("postgres", "public", "stg_demo"))
+                }
+
+                fields.addAll(
+                    listOf(
+                        field { nameParts += "transactionid" },
+                        field { nameParts += "userid" },
+                        field { nameParts += "email" },
+                        field { nameParts += "age" },
+                        field { nameParts += "transactionamount" },
+                        field { nameParts += "brand" },
+                    ),
+                )
+            }
+            ruleSets += ruleSet {
+                target = target {
+                    type = DBT_SQL
+                    ref = resourceUrn {
+                        platform = processingPlatform { platformType = POSTGRES }
+                        integrationFqn = "postgres.public.stg_demo_view"
+                        resourcePath.addAll(listOfNodes("postgres", "public", "stg_demo_view"))
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `models generated by pace should be skipped`() {
+        // Given a dbt manifest with a model generated by pace
+        val manifest = readManifest("model_generated_by_pace.json")
+
+        // When it is transformed into a list of data policies
+        val actual = ManifestParser.createDataPolicies(manifest)
+
+        // Then
+        actual.shouldBeEmpty()
     }
 
     private fun readManifest(filename: String): JsonNode {

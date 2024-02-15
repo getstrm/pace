@@ -23,6 +23,7 @@
           "name": "userid",
           "description": "",
           "meta": {
+            "pace_enabled": false,
             "pace_transforms": [
               {
                 "principals": [
@@ -52,6 +53,7 @@
           "name": "email",
           "description": "",
           "meta": {
+            "pace_enabled": false,
             "pace_transforms": [
               {
                 "principals": [
