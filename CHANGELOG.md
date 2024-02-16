@@ -1,3 +1,10 @@
+# [1.0.0-alpha.64](https://github.com/getstrm/pace/compare/v1.0.0-alpha.63...v1.0.0-alpha.64) (2024-02-15)
+
+
+### Features
+
+* add h2 support for PACE db ([#210](https://github.com/getstrm/pace/issues/210)) ([53b37f0](https://github.com/getstrm/pace/commit/53b37f0bc7b72a4087e9ca60c9a9a69bfbc18897))
+
 # [1.0.0-alpha.63](https://github.com/getstrm/pace/compare/v1.0.0-alpha.62...v1.0.0-alpha.63) (2024-02-14)
 
 
