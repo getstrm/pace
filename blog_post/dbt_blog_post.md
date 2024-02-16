@@ -4,7 +4,7 @@ When we released our first alpha version of PACE a couple of months ago, it was 
 (Spring Boot) server application. Integrating with various data processing platforms, and pulling
 metadata from a number of data catalogs, PACE started our journey towards open-source data access
 policy management. Users can define data policies (column masks/transforms, row filters) in
-a yaml format, and enforce them on their processing platform by using the PACE cli (command line
+a `yaml` format, and enforce them on their processing platform by using the PACE [CLI](https://github.com/getstrm/cli) (command line
 interface), or alternatively the REST or gRPC API directly. Currently, PACE applies the policies by
 generating platform-specific SQL statements that create views on the targeted platform, which in
 their turn leverage native access controls to implement the desired access policy. Got a table with
@@ -39,7 +39,7 @@ follows:
    column level, under dbt's `meta` sections (see the example below).
 2. After a `dbt compile` or `dbt run`, dbt's `target/manifest.json` file is updated as usual,
    containing the project's complete configuration, including the PACE policy specifications.
-3. The user runs the PACE dbt module (currently a java jar file) from the dbt project's root, which
+3. The user runs the PACE dbt module (currently a Java jar file) from the dbt project's root, which
    results in the creation of additional model files, each containing the platform-specific SQL that
    implements the policy.
 4. During the next `dbt run` execution, dbt creates the secure PACE views on the target platform.
