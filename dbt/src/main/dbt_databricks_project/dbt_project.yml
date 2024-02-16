@@ -1,0 +1,29 @@
+name: 'dbt_databricks_project'
+version: '1.0.0'
+config-version: 2
+
+profile: 'dbt_databricks_project'
+
+model-paths: [ "models" ]
+analysis-paths: [ "analyses" ]
+test-paths: [ "tests" ]
+seed-paths: [ "seeds" ]
+macro-paths: [ "macros" ]
+snapshot-paths: [ "snapshots" ]
+
+clean-targets: # directories to be removed by `dbt clean`
+  - "target"
+  - "dbt_packages"
+
+seeds:
+  dbt_databricks_project:
+    demo:
+      +enabled: true
+      +quote_columns: false
+      +column_types:
+        column_name: datatype
+      +delimiter: ","
+
+models:
+  dbt_databricks_project:
+    +materialized: view

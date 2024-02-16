@@ -10,6 +10,7 @@ can install the required packages with the following command:
 ```shell
 pip install dbt-postgres
 pip install dbt-bigquery
+pip install dbt-databricks
 ```
 
 The directories `dbt_bigquery_project` and `dbt_postgres_project` have been created with the

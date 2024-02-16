@@ -1,0 +1,12 @@
+dbt_databricks_project:
+  target: dev
+  outputs:
+    dev:
+      type: databricks
+      catalog: pace-dbt
+      schema: demo
+      host: "{{ env_var('DBR_HOST') }}"
+      http_path: "{{ env_var('DBR_HTTP_PATH') }}"
+      auth_type: oauth # Required if using OAuth-based authentication
+      client_id: "{{ env_var('DBR_CLIENT_ID') }}" # The ID of your OAuth application. Required if using OAuth-based authentication
+      client_secret: "{{ env_var('DBR_CLIENT_SECRET') }}" # OAuth client secret. # Required if using OAuth-based authentication
