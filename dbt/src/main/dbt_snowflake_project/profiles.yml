@@ -1,0 +1,24 @@
+dbt_snowflake_project:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      # Copy this with the `copy account identifier` button in the Snowflake web interface
+      # https://docs.snowflake.com/en/_images/ui-snowsight-account-identifier.png
+      # Replace the `.` with `-`, otherwise this won't work
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT_NAME') }}"
+
+      # User/password auth
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+
+      role: ACCOUNTADMIN
+      database: PACE
+      warehouse: COMPUTE_WH
+      schema: ONLINE_RETAIL
+      threads: 1
+
+      connect_retries: 2
+      connect_timeout: 5 # default: 10
+      retry_on_database_errors: false
+      retry_all: true

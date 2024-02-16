@@ -1,0 +1,41 @@
+version: 2
+
+models:
+  - name: retail_2010
+    columns:
+      - name: COUNTRY
+        type: Varchar
+      - name: CUSTOMERID
+        type: Integer
+        meta:
+          pace:
+            transforms:
+              - principals: [ { group: ACCOUNTADMIN } ]
+                identity: { }
+              - principals: [ ]
+                nullify: {}
+      - name: DESCRIPTION
+        type: Varchar
+      - name: INVOICE
+        type: Varchar
+      - name: INVOICEDATE
+        type: Timestamp
+      - name: PRICE
+        type: Number
+      - name: QUANTITY
+        type: Number
+      - name: STOCKCODE
+        type: Varchar
+    meta:
+      pace:
+        rule_sets:
+          - target:
+              ref:
+                integration_fqn: 'pace.online_retail.retail_2010_secured'
+            filters:
+              - generic_filter:
+                  conditions:
+                    - principals: [ { group: ACCOUNTADMIN }, { group: FRAUD_AND_RISK } ]
+                      condition: "true"
+                    - principals: [ ]
+                      condition: "COUNTRY like 'Germany'"
