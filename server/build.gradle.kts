@@ -93,7 +93,7 @@ dependencies {
     implementation("build.buf.gen:getstrm_pace_grpc_java:1.61.1.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.4.1.1.$generatedBufDependencyVersion")
     implementation(
-        "build.buf.gen:getstrm_pace_protocolbuffers_java:25.2.0.1.$generatedBufDependencyVersion"
+        "build.buf.gen:getstrm_pace_protocolbuffers_java:25.3.0.1.$generatedBufDependencyVersion"
     )
     implementation("build.buf:protovalidate:0.1.9")
 
