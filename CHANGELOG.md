@@ -1,3 +1,10 @@
+# [1.0.0-alpha.65](https://github.com/getstrm/pace/compare/v1.0.0-alpha.64...v1.0.0-alpha.65) (2024-02-16)
+
+
+### Features
+
+* **pace-171:** add dbt snowflake example ([#207](https://github.com/getstrm/pace/issues/207)) ([1c28e50](https://github.com/getstrm/pace/commit/1c28e50e5f895e20d93beebc3668ffd0f16462ea))
+
 # [1.0.0-alpha.64](https://github.com/getstrm/pace/compare/v1.0.0-alpha.63...v1.0.0-alpha.64) (2024-02-15)
 
 
