@@ -4,40 +4,25 @@
 {{
     config(
       materialized='view',
-      schema='pace',
-      grant_access_to=[
-        {'project': 'stream-machine-development', 'dataset': 'dbt_pace'}
-      ]
+      meta={'pace_generated': true}
     )
 }}
 
-with
-  user_groups as (
-    select userGroup
-    from `stream-machine-development.user_groups.user_groups`
-    where userEmail = SESSION_USER()
-  )
 select
-  `transactionid`,
+  transactionid,
   case
-    when (
-      ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` ))
-      or ('administrator' IN ( SELECT `userGroup` FROM `user_groups` ))
-    ) then `userid`
-    else 42
-  end `userid`,
+    when (is_account_group_member('administrator')) then userid
+    else null
+  end userid,
   case
-    when ('administrator' IN ( SELECT `userGroup` FROM `user_groups` )) then `email`
-    else 'banaan@banaan.com'
-  end `email`,
-  `age`,
-  `transactionamount`,
-  `brand`
+    when (is_account_group_member('administrator')) then email
+    else regexp_replace('email', '^.*(@.*)$', '****$1')
+  end email,
+  age,
+  transactionamount,
+  brand
 from {{ ref('stg_demo') }}
 where case
-  when (
-    ('administrator' IN ( SELECT `userGroup` FROM `user_groups` ))
-    or ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` ))
-  ) then true
-  else age > 8
+  when (is_account_group_member('administrator')) then true
+  else age > 18
 end
