@@ -36,6 +36,10 @@ dependencies {
     implementation("build.buf:protovalidate:0.1.9")
 
     // Test dependencies
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "com.vaadin.external.google", module = "android-json")
+    }
+    testImplementation("com.h2database:h2")
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
 }

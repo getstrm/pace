@@ -52,13 +52,23 @@ jobs:
         run: |
           make copy-json-schema-to-resources
 
-      # JVM artifact
+      # JVM artifacts
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
       - uses: gradle/actions/setup-gradle@v3
-      - run: ./gradlew prepareForDocker -PciBuild -PgeneratedBufDependencyVersion=${{ env.BUF_DEPENDENCY_VERSION }}
+      - run: ./gradlew build prepareForDocker -PciBuild -PgeneratedBufDependencyVersion=${{ env.BUF_DEPENDENCY_VERSION }}
+      - name: Upload
+        env:
+          GITHUB_TOKEN: ${{secrets.GH_TOKEN}}
+        run: |
+          tag_name="${GITHUB_REF##*/}"
+          mkdir artifacts
+          find . -type d -name "libs" -not -path "./core/*" -not -path "./build/*" | xargs -I{} find "{}" -type f -name "*.jar" | xargs -I{} sh -c 'cp "{}" "./artifacts/$(echo {} | cut -d / -f 2).jar"'
+          gh release upload  "$tag_name" $(find artifacts -type f -name "*.jar" -printf "%p ")
+
+      # Build container image
       - name: "Generate Proto Filedescriptor"
         # Normally generated in the Gradle prepareForDocker step, but the ciBuild flag disables that
         run: |
