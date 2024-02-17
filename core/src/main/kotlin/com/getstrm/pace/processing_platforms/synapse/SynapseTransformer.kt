@@ -1,13 +1,17 @@
+package com.getstrm.pace.processing_platforms.synapse
+
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.exceptions.PaceStatusException
+import com.getstrm.pace.processing_platforms.ProcessingPlatformRenderer
 import com.getstrm.pace.processing_platforms.ProcessingPlatformTransformer
 import com.getstrm.pace.util.fullName
 import com.google.rpc.BadRequest
 import org.jooq.Field
 import org.jooq.impl.DSL
 
-class SynapseTransformer : ProcessingPlatformTransformer {
+object SynapseTransformer : ProcessingPlatformTransformer(ProcessingPlatformRenderer.DEFAULT) {
+
     override fun regexpReplace(
         field: DataPolicy.Field,
         regexp: DataPolicy.RuleSet.FieldTransform.Transform.Regexp

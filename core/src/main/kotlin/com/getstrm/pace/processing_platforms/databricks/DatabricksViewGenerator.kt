@@ -12,7 +12,11 @@ import org.jooq.impl.DSL
 class DatabricksViewGenerator(
     dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {}
-) : ProcessingPlatformViewGenerator(dataPolicy, customJooqSettings = customJooqSettings) {
+) : ProcessingPlatformViewGenerator(
+    dataPolicy,
+    transformer = DatabricksTransformer,
+    customJooqSettings = customJooqSettings,
+) {
     override fun toPrincipalCondition(
         principals: List<DataPolicy.Principal>,
         target: DataPolicy.Target?

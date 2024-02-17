@@ -114,9 +114,11 @@ class H2ViewGeneratorTest {
             underTest.toJooqField(field, fieldTransform, DataPolicy.Target.getDefaultInstance())
 
         // Then
+        // Fixme: when calling toJooqField directly, there is additional escaping on the field
+        // alias, for some reason.
         jooqField.toSql() shouldBe
             "case when false then '****' when true then 'REDACTED EMAIL' " +
-                "else 'stoelpoot' end \"email\""
+            "else 'stoelpoot' end \"email\""
     }
 
     @Test
@@ -280,12 +282,12 @@ as
 select
   transactionId,
   case
-    when false then "userId"
-    else hash(1234, '"userId"')
+    when false then userId
+    else hash(1234, 'userId')
   end userId,
   case
-    when true then regexp_replace("email", '^.*(@.*)${'$'}', '****${'$'}1')
-    when false then "email"
+    when true then regexp_replace(email, '^.*(@.*)${'$'}', '****${'$'}1')
+    when false then email
     else '****'
   end email,
   age,
@@ -307,7 +309,7 @@ where (
     else true
   end
   and transactionAmount < 10
-);"""
+);""",
             )
     }
 

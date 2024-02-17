@@ -5,9 +5,14 @@ import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 
 interface ProcessingPlatformRenderer {
-    fun renderName(name: String): String = defaultDslContext.renderNamedParams(DSL.name(name))
+    fun renderName(name: String): String
 
     companion object {
-        private val defaultDslContext = DSL.using(SQLDialect.DEFAULT, defaultJooqSettings)
+        val DEFAULT = object : ProcessingPlatformRenderer {
+            private val defaultDslContext = DSL.using(SQLDialect.DEFAULT, defaultJooqSettings())
+
+            override fun renderName(name: String): String =
+                defaultDslContext.renderNamedParams(DSL.name(name))
+        }
     }
 }

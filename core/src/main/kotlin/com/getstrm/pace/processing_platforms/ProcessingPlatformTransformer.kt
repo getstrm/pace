@@ -1,5 +1,6 @@
 package com.getstrm.pace.processing_platforms
 
+import org.jooq.Field as JooqField
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Aggregation
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Detokenize
@@ -18,7 +19,6 @@ import com.github.drapostolos.typeparser.TypeParser
 import com.github.drapostolos.typeparser.TypeParserException
 import com.google.rpc.BadRequest
 import com.google.rpc.DebugInfo
-import org.jooq.Field as JooqField
 import org.jooq.Parser
 import org.jooq.impl.DSL
 import org.jooq.impl.ParserException
@@ -31,21 +31,23 @@ val CAPTURING_GROUP_REGEX = Regex("""\$(\d+)""")
  * [DataPolicy.RuleSet.FieldTransform.Transform]s. Functions can be overridden to support platform
  * specific implementations of transforms.
  */
-interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
+open class ProcessingPlatformTransformer(
+    private val renderer: ProcessingPlatformRenderer,
+) : ProcessingPlatformRenderer by renderer {
 
-    fun regexpReplace(field: DataPolicy.Field, regexp: Regexp): JooqField<*> =
+    open fun regexpReplace(field: DataPolicy.Field, regexp: Regexp): JooqField<*> =
         if (regexp.replacement.isNullOrEmpty()) {
             DSL.field(
                 "regexp_extract({0}, {1})",
                 String::class.java,
-                renderName(field.fullName()),
+                DSL.field(renderName(field.fullName())),
                 DSL.`val`(regexp.regexp),
             )
         } else {
             DSL.field(
                 "regexp_replace({0}, {1}, {2})",
                 String::class.java,
-                renderName(field.fullName()),
+                DSL.field(renderName(field.fullName())),
                 DSL.`val`(regexp.regexp),
                 DSL.`val`(regexp.replacement),
             )
@@ -55,7 +57,11 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
      * Create a jOOQ field from a fixed value. If [implicitType] is true, the fixed value will be
      * used as is, without casting to the field's data type.
      */
-    fun fixed(field: DataPolicy.Field, fixed: Fixed, implicitType: Boolean = false): JooqField<*> {
+    open fun fixed(
+        field: DataPolicy.Field,
+        fixed: Fixed,
+        implicitType: Boolean
+    ): JooqField<*> {
         return if (implicitType) {
             DSL.inlined(DSL.field(fixed.value))
         } else {
@@ -67,7 +73,7 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
 
     // Fixme: hash implementations differ significantly between platforms and are often limited to a
     // single (output) type. We may need casting etc.
-    fun hash(field: DataPolicy.Field, hash: Hash): JooqField<*> =
+    open fun hash(field: DataPolicy.Field, hash: Hash): JooqField<*> =
         if (hash.hasSeed()) {
             DSL.field(
                 "hash({0}, {1})",
@@ -83,7 +89,7 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
             )
         }
 
-    fun sqlStatement(parser: Parser, sqlStatement: SqlStatement): JooqField<*> {
+    open fun sqlStatement(parser: Parser, sqlStatement: SqlStatement): JooqField<*> {
         try {
             parser.parseField(sqlStatement.statement)
         } catch (e: ParserException) {
@@ -97,11 +103,12 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
         return DSL.field(sqlStatement.statement)
     }
 
-    fun nullify(): JooqField<*> = DSL.inline<Any>(null)
+    open fun nullify(): JooqField<*> = DSL.inline<Any>(null)
 
-    fun identity(field: DataPolicy.Field): JooqField<*> = DSL.field(renderName(field.fullName()))
+    open fun identity(field: DataPolicy.Field): JooqField<*> =
+        DSL.field(renderName(field.fullName()))
 
-    fun detokenize(
+    open fun detokenize(
         field: DataPolicy.Field,
         detokenize: Detokenize,
         sourceRef: String,
@@ -115,7 +122,10 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
             DSL.unquotedName("${renderName(sourceRef)}.${renderName(field.fullName())}"),
         )
 
-    fun numericRounding(field: DataPolicy.Field, numericRounding: NumericRounding): JooqField<*> =
+    open fun numericRounding(
+        field: DataPolicy.Field,
+        numericRounding: NumericRounding
+    ): JooqField<*> =
         when (numericRounding.roundingCase) {
             NumericRounding.RoundingCase.CEIL ->
                 DSL.ceil(
@@ -156,7 +166,7 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
                 )
         }
 
-    fun aggregation(field: DataPolicy.Field, aggregation: Aggregation): JooqField<*> {
+    open fun aggregation(field: DataPolicy.Field, aggregation: Aggregation): JooqField<*> {
         val jooqField = DSL.field(renderName(field.fullName()), Float::class.java)
 
         val jooqAggregation =
@@ -247,5 +257,3 @@ interface ProcessingPlatformTransformer : ProcessingPlatformRenderer {
             )
     }
 }
-
-object DefaultProcessingPlatformTransformer : ProcessingPlatformTransformer

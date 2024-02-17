@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 class H2TransformerTest {
 
-    private val underTest = H2Transformer()
+    private val underTest = H2Transformer
 
     @Test
     fun `regexp extract should use regexp_substr`() {
@@ -23,7 +23,7 @@ class H2TransformerTest {
         val result = underTest.regexpReplace(field, regexp)
 
         // Then
-        result.toSql() shouldBe "regexp_substr(\"my_field\", '@\\w+\\.com\$')"
+        result.toSql() shouldBe "regexp_substr(my_field, '@\\w+\\.com\$')"
     }
 
     @Test
@@ -41,6 +41,6 @@ class H2TransformerTest {
 
         // Then
         result.toSql() shouldBe
-            """regexp_replace("my_field", 'foo(\w+) bar(\w+)', 'fizz${'$'}1buzz${'$'}2baz${'$'}')"""
+            """regexp_replace(my_field, 'foo(\w+) bar(\w+)', 'fizz${'$'}1buzz${'$'}2baz${'$'}')"""
     }
 }

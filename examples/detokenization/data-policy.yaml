@@ -33,6 +33,9 @@ source:
       type: varchar
   ref:
     integration_fqn: public.transactions
+    platform:
+      id: detokenization-example-connection
+      platform_type: POSTGRES
 rule_sets:
   - target:
       ref: 

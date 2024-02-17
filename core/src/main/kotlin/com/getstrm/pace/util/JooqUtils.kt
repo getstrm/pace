@@ -14,14 +14,13 @@ import org.slf4j.LoggerFactory
 
 private val log by lazy { LoggerFactory.getLogger("JooqUtils") }
 
-val defaultJooqSettings: Settings =
-    Settings()
-        // This makes sure we can use platform-specific functions (or UDFs)
-        .withParseUnknownFunctions(ParseUnknownFunctions.IGNORE)
-        // This follows the exact naming from the data policy's field names
-        .withParseNameCase(ParseNameCase.AS_IS)
-        // This ensures that we explicitly need to quote names
-        .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
+fun defaultJooqSettings(): Settings = Settings()
+    // This makes sure we can use platform-specific functions (or UDFs)
+    .withParseUnknownFunctions(ParseUnknownFunctions.IGNORE)
+    // This follows the exact naming from the data policy's field names
+    .withParseNameCase(ParseNameCase.AS_IS)
+    // This ensures that we explicitly need to quote names
+    .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
 
 fun DataPolicy.Field.sqlDataType(): DataType<*> =
     try {

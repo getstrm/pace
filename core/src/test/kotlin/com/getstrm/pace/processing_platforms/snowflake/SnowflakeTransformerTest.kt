@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 class SnowflakeTransformerTest {
 
-    private val underTest = SnowflakeTransformer()
+    private val underTest = SnowflakeTransformer
 
     @Test
     fun `regexp extract should use regexp_substr`() {
