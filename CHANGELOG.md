@@ -1,3 +1,10 @@
+# [1.0.0-alpha.66](https://github.com/getstrm/pace/compare/v1.0.0-alpha.65...v1.0.0-alpha.66) (2024-02-19)
+
+
+### Features
+
+* **pace-175:** various pace-dbt improvements ([#214](https://github.com/getstrm/pace/issues/214)) ([87b1b0c](https://github.com/getstrm/pace/commit/87b1b0c244ae25c18b466f98e3741f1d007c8b1d))
+
 # [1.0.0-alpha.65](https://github.com/getstrm/pace/compare/v1.0.0-alpha.64...v1.0.0-alpha.65) (2024-02-16)
 
 
