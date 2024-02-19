@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 class PostgresTransformerTest {
 
-    private val underTest = PostgresTransformer()
+    private val underTest = PostgresTransformer
 
     @Test
     fun `regexp replace should use a single backtick for capturing group backreferences`() {

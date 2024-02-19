@@ -1,5 +1,6 @@
 package com.getstrm.pace.processing_platforms
 
+import org.jooq.Field as JooqField
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.AGGREGATION
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.TransformCase.DETOKENIZE
@@ -24,7 +25,6 @@ import java.sql.Timestamp
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.DatePart
-import org.jooq.Field as JooqField
 import org.jooq.Queries
 import org.jooq.Record
 import org.jooq.SQLDialect
@@ -44,9 +44,10 @@ import org.jooq.impl.DSL.using
 
 abstract class ProcessingPlatformViewGenerator(
     protected val dataPolicy: DataPolicy,
-    private val transformer: ProcessingPlatformTransformer = DefaultProcessingPlatformTransformer,
+    private val transformer: ProcessingPlatformTransformer,
     customJooqSettings: Settings.() -> Unit = {},
-) : ProcessingPlatformRenderer {
+) : ProcessingPlatformRenderer by transformer {
+
     abstract fun toPrincipalCondition(
         principals: List<DataPolicy.Principal>,
         target: DataPolicy.Target? = null
@@ -77,7 +78,7 @@ abstract class ProcessingPlatformViewGenerator(
         }
 
     protected open val jooq: DSLContext =
-        using(SQLDialect.DEFAULT, defaultJooqSettings.apply(customJooqSettings))
+        using(SQLDialect.DEFAULT, defaultJooqSettings().apply(customJooqSettings))
 
     open fun createOrReplaceView(name: String) = jooq.createOrReplaceView(name)
 

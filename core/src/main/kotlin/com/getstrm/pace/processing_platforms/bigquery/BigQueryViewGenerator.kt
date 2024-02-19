@@ -26,8 +26,8 @@ class BigQueryViewGenerator(
 ) :
     ProcessingPlatformViewGenerator(
         dataPolicy,
-        transformer = BigQueryTransformer(),
-        customJooqSettings = customJooqSettings
+        transformer = BigQueryTransformer,
+        customJooqSettings = customJooqSettings,
     ) {
 
     /**
@@ -103,9 +103,6 @@ class BigQueryViewGenerator(
             )
         }
     }
-
-    override fun renderName(name: String): String =
-        bigQueryDsl.renderNamedParams(DSL.quotedName(name))
 
     override fun selectWithAdditionalHeaderStatements(
         fields: List<Field<*>>

@@ -2,12 +2,13 @@ package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import com.getstrm.pace.processing_platforms.CAPTURING_GROUP_REGEX
+import com.getstrm.pace.processing_platforms.ProcessingPlatformRenderer
 import com.getstrm.pace.processing_platforms.ProcessingPlatformTransformer
 import com.getstrm.pace.util.fullName
 import org.jooq.Field
 import org.jooq.impl.DSL
 
-class SnowflakeTransformer : ProcessingPlatformTransformer {
+object SnowflakeTransformer : ProcessingPlatformTransformer(ProcessingPlatformRenderer.DEFAULT) {
 
     override fun regexpReplace(
         field: DataPolicy.Field,

@@ -14,11 +14,11 @@ class H2Client {
     private val dataSource: HikariDataSource =
         HikariDataSource(
             HikariConfig().apply {
-                jdbcUrl = "jdbc:h2:mem:;DATABASE_TO_UPPER=false"
+                jdbcUrl = "jdbc:h2:mem:;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DATABASE_TO_LOWER=TRUE"
                 username = "sa"
                 password = ""
                 maximumPoolSize = 1
-            }
+            },
         )
     val jooq: DSLContext = DSL.using(dataSource.connection, SQLDialect.H2)
 

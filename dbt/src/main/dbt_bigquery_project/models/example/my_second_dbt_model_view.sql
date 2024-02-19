@@ -3,7 +3,8 @@
 #}
 {{
     config(
-      materialized='view'
+      materialized='view',
+      meta={'pace_generated': true}
     )
 }}
 

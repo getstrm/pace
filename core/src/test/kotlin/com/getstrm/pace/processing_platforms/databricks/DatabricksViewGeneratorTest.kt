@@ -158,7 +158,7 @@ class DatabricksViewGeneratorTest {
             underTest.toJooqField(attribute, fieldTransform, DataPolicy.Target.getDefaultInstance())
 
         // Then
-        field.toSql() shouldBe "regexp_replace('email', '^.*(@.*)\$', '****\$1') \"email\""
+        field.toSql() shouldBe "regexp_replace(email, '^.*(@.*)\$', '****\$1') \"email\""
     }
 
     @Test
@@ -331,7 +331,7 @@ select
     when (
       (is_account_group_member('analytics'))
       or (is_account_group_member('marketing'))
-    ) then regexp_replace('email', '^.*(@.*)${'$'}', '****${'$'}1')
+    ) then regexp_replace(email, '^.*(@.*)${'$'}', '****${'$'}1')
     when (
       (is_account_group_member('fraud-and-risk'))
       or (is_account_group_member('admin'))
@@ -357,7 +357,7 @@ where (
     else true
   end
   and transactionAmount < 10
-);"""
+);""",
             )
     }
 
@@ -382,7 +382,7 @@ select
     when (
       (is_account_group_member('analytics'))
       or (is_account_group_member('marketing'))
-    ) then regexp_replace('email', '^.*(@.*)${'$'}', '****${'$'}1')
+    ) then regexp_replace(email, '^.*(@.*)${'$'}', '****${'$'}1')
     when (
       (is_account_group_member('fraud-and-risk'))
       or (is_account_group_member('admin'))
@@ -397,7 +397,7 @@ select
   itemCount,
   date,
   purpose
-from mycatalog.my_schema.gddemo;"""
+from mycatalog.my_schema.gddemo;""",
             )
     }
 

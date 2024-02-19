@@ -14,12 +14,11 @@ import org.jooq.impl.DSL
 class SnowflakeViewGenerator(
     dataPolicy: DataPolicy,
     customJooqSettings: Settings.() -> Unit = {},
-) :
-    ProcessingPlatformViewGenerator(
-        dataPolicy,
-        transformer = SnowflakeTransformer(),
-        customJooqSettings = customJooqSettings
-    ) {
+) : ProcessingPlatformViewGenerator(
+    dataPolicy,
+    transformer = SnowflakeTransformer,
+    customJooqSettings = customJooqSettings,
+) {
     override fun toPrincipalCondition(
         principals: List<DataPolicy.Principal>,
         target: DataPolicy.Target?

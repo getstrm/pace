@@ -23,11 +23,11 @@ class PostgresViewGenerator(
 ) :
     ProcessingPlatformViewGenerator(
         dataPolicy,
-        transformer = PostgresTransformer(),
-        customJooqSettings = customJooqSettings
+        transformer = PostgresTransformer,
+        customJooqSettings = customJooqSettings,
     ) {
     override val jooq: DSLContext =
-        DSL.using(SQLDialect.POSTGRES, defaultJooqSettings.apply(customJooqSettings))
+        DSL.using(SQLDialect.POSTGRES, defaultJooqSettings().apply(customJooqSettings))
 
     override fun additionalFooterStatements(): Queries {
         val grants =
@@ -76,15 +76,6 @@ class PostgresViewGenerator(
                 }
             )
         }
-    }
-
-    override fun renderName(name: String): String {
-        if (name.contains('.')) {
-            // Full references containing schema and table name should be quoted separately
-            return name.split('.').joinToString(".") { jooq.renderNamedParams(DSL.quotedName(it)) }
-        }
-
-        return jooq.renderNamedParams(DSL.quotedName(name))
     }
 
     override fun selectWithAdditionalHeaderStatements(

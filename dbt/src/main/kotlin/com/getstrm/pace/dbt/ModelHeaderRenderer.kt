@@ -22,6 +22,7 @@ class ModelHeaderRenderer(
     fun render(): String {
         header.append(AUTO_GENERATED_WARNING)
         config.add("materialized='view'")
+        config.add("meta={'pace_generated': true}")
         configureDatabaseAndSchema()
         authorizeBigQueryView()
 

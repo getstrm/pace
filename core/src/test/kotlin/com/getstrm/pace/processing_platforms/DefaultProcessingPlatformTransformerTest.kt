@@ -13,11 +13,13 @@ import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.junit.jupiter.api.Test
 
-class DefaultProcessingPlatformTransformerTest {
+class ProcessingPlatformTransformerTest {
+
+    private val underTest = ProcessingPlatformTransformer(ProcessingPlatformRenderer.DEFAULT)
 
     @Test
     fun `render name`() {
-        DefaultProcessingPlatformTransformer.renderName("myschema.my_field") shouldBe
+        underTest.renderName("myschema.my_field") shouldBe
             "myschema.my_field"
     }
 
@@ -31,10 +33,10 @@ class DefaultProcessingPlatformTransformerTest {
                 .build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.regexpReplace(field, regexp)
+        val result = underTest.regexpReplace(field, regexp)
 
         // Then
-        result.toSql() shouldBe "regexp_extract('my_field', 'foo(bar)')"
+        result.toSql() shouldBe "regexp_extract(my_field, 'foo(bar)')"
     }
 
     @Test
@@ -48,10 +50,10 @@ class DefaultProcessingPlatformTransformerTest {
                 .build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.regexpReplace(field, regexp)
+        val result = underTest.regexpReplace(field, regexp)
 
         // Then
-        result.toSql() shouldBe "regexp_replace('my_field', 'foo(\\w+)', 'baz\$1')"
+        result.toSql() shouldBe "regexp_replace(my_field, 'foo(\\w+)', 'baz\$1')"
     }
 
     @Test
@@ -62,7 +64,7 @@ class DefaultProcessingPlatformTransformerTest {
             DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("foo").build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.fixed(field, fixed)
+        val result = underTest.fixed(field, fixed, false)
 
         // Then
         result shouldBe DSL.`val`("foo")
@@ -76,7 +78,7 @@ class DefaultProcessingPlatformTransformerTest {
             DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("1234").build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.fixed(field, fixed)
+        val result = underTest.fixed(field, fixed, false)
 
         // Then
         result shouldBe DSL.`val`("1234")
@@ -90,7 +92,7 @@ class DefaultProcessingPlatformTransformerTest {
             DataPolicy.RuleSet.FieldTransform.Transform.Fixed.newBuilder().setValue("1234").build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.fixed(field, fixed)
+        val result = underTest.fixed(field, fixed, false)
 
         // Then
         result shouldBe DSL.`val`(1234)
@@ -105,7 +107,7 @@ class DefaultProcessingPlatformTransformerTest {
 
         // Then
         shouldThrow<BadRequestException> {
-                DefaultProcessingPlatformTransformer.fixed(field, fixed)
+            underTest.fixed(field, fixed, false)
             }
             .apply {
                 message shouldBe
@@ -132,7 +134,7 @@ class DefaultProcessingPlatformTransformerTest {
             DataPolicy.RuleSet.FieldTransform.Transform.Hash.newBuilder().setSeed(1234).build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.hash(field, hash)
+        val result = underTest.hash(field, hash)
 
         // Then
         result.toSql() shouldBe "hash(1234, 'my_field')"
@@ -145,7 +147,7 @@ class DefaultProcessingPlatformTransformerTest {
         val hash = DataPolicy.RuleSet.FieldTransform.Transform.Hash.getDefaultInstance()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.hash(field, hash)
+        val result = underTest.hash(field, hash)
 
         // Then
         result.toSql() shouldBe "hash('my_field')"
@@ -161,7 +163,7 @@ class DefaultProcessingPlatformTransformerTest {
         val parser = DSL.using(SQLDialect.DEFAULT).parser()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.sqlStatement(parser, sqlStatement)
+        val result = underTest.sqlStatement(parser, sqlStatement)
 
         // Then
         result.toSql() shouldBe "case when my_field = 'foo' then 'bar' else 'baz' end"
@@ -177,10 +179,10 @@ class DefaultProcessingPlatformTransformerTest {
 
         // Then
         shouldThrow<BadRequestException> {
-                DefaultProcessingPlatformTransformer.sqlStatement(
-                    DSL.using(SQLDialect.DEFAULT).parser(),
-                    sqlStatement
-                )
+            underTest.sqlStatement(
+                DSL.using(SQLDialect.DEFAULT).parser(),
+                sqlStatement,
+            )
             }
             .apply {
                 message shouldBe
@@ -200,7 +202,7 @@ class DefaultProcessingPlatformTransformerTest {
     @Test
     fun nullify() {
         // When
-        val result = DefaultProcessingPlatformTransformer.nullify()
+        val result = underTest.nullify()
 
         // Then
         result shouldBe DSL.inline<Any>(null)
@@ -212,7 +214,7 @@ class DefaultProcessingPlatformTransformerTest {
         val field = namedField("my_field")
 
         // When
-        val result = DefaultProcessingPlatformTransformer.identity(field)
+        val result = underTest.identity(field)
 
         // Then
         result.toSql() shouldBe "my_field"
@@ -231,10 +233,10 @@ class DefaultProcessingPlatformTransformerTest {
 
         // When
         val result =
-            DefaultProcessingPlatformTransformer.detokenize(
+            underTest.detokenize(
                 tokenizedField,
                 detokenize,
-                "my_schema.my_table"
+                "my_schema.my_table",
             )
 
         // Then
@@ -255,7 +257,7 @@ class DefaultProcessingPlatformTransformerTest {
                 .build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.numericRounding(field, ceil)
+        val result = underTest.numericRounding(field, ceil)
 
         // Then
         result.toSql() shouldBe "(ceil((transactionamount / 2E2)) * 2E2)"
@@ -274,7 +276,7 @@ class DefaultProcessingPlatformTransformerTest {
                 .build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.numericRounding(field, ceil)
+        val result = underTest.numericRounding(field, ceil)
 
         // Then
         result.toSql() shouldBe "(floor((transactionamount / -2E2)) * -2E2)"
@@ -293,7 +295,7 @@ class DefaultProcessingPlatformTransformerTest {
                 .build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.numericRounding(field, round)
+        val result = underTest.numericRounding(field, round)
 
         // Then
         result.toSql() shouldBe "round(transactionamount, -1)"
@@ -313,7 +315,7 @@ class DefaultProcessingPlatformTransformerTest {
                 .build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.numericRounding(field, round)
+        val result = underTest.numericRounding(field, round)
 
         // Then
         result.toSql() shouldBe "(round((transactionamount / 5E0), 0) * 5E0)"
@@ -327,7 +329,7 @@ class DefaultProcessingPlatformTransformerTest {
             Aggregation.newBuilder().setSum(Aggregation.Sum.getDefaultInstance()).build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.aggregation(sumField, sumAggregation)
+        val result = underTest.aggregation(sumField, sumAggregation)
 
         // Then
         result.toSql() shouldBe "sum(transactionamount) over()"
@@ -345,7 +347,7 @@ class DefaultProcessingPlatformTransformerTest {
                 .build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.aggregation(sumField, sumAggregation)
+        val result = underTest.aggregation(sumField, sumAggregation)
 
         // Then
         result.toSql() shouldBe "sum(transactionamount) over(partition by brand, age)"
@@ -363,7 +365,7 @@ class DefaultProcessingPlatformTransformerTest {
                 .build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.aggregation(avgField, avgAggregation)
+        val result = underTest.aggregation(avgField, avgAggregation)
 
         // Then
         result.toSql() shouldBe
@@ -382,7 +384,7 @@ class DefaultProcessingPlatformTransformerTest {
                 .build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.aggregation(avgField, avgAggregation)
+        val result = underTest.aggregation(avgField, avgAggregation)
 
         // Then
         result.toSql() shouldBe
@@ -401,7 +403,7 @@ class DefaultProcessingPlatformTransformerTest {
                 .build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.aggregation(avgField, avgAggregation)
+        val result = underTest.aggregation(avgField, avgAggregation)
 
         // Then
         result.toSql() shouldBe
@@ -420,7 +422,7 @@ class DefaultProcessingPlatformTransformerTest {
                 .build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.aggregation(minField, minAggregation)
+        val result = underTest.aggregation(minField, minAggregation)
 
         // Then
         result.toSql() shouldBe "min(transactionamount) over(partition by brand, age)"
@@ -438,7 +440,7 @@ class DefaultProcessingPlatformTransformerTest {
                 .build()
 
         // When
-        val result = DefaultProcessingPlatformTransformer.aggregation(maxField, maxAggregation)
+        val result = underTest.aggregation(maxField, maxAggregation)
 
         // Then
         result.toSql() shouldBe "max(transactionamount) over(partition by brand, age)"

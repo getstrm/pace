@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 
 class BigQueryTransformerTest {
 
-    private val underTest = BigQueryTransformer { withRenderFormatted(true) }
+    private val underTest = BigQueryTransformer
 
     @Test
     fun `names should be rendered with backticks`() {

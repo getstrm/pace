@@ -1,6 +1,6 @@
 package com.getstrm.pace.processing_platforms.synapse
 
-import SynapseTransformer
+import org.jooq.Field as JooqField
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.Filter.GenericFilter
 import com.getstrm.pace.exceptions.InternalException
@@ -15,7 +15,6 @@ import kotlin.math.min
 import org.jooq.Condition
 import org.jooq.CreateViewAsStep
 import org.jooq.DatePart
-import org.jooq.Field as JooqField
 import org.jooq.Queries
 import org.jooq.Record
 import org.jooq.conf.Settings
@@ -24,8 +23,8 @@ import org.jooq.impl.DSL
 class SynapseViewGenerator(dataPolicy: DataPolicy, customJooqSettings: Settings.() -> Unit = {}) :
     ProcessingPlatformViewGenerator(
         dataPolicy,
-        transformer = SynapseTransformer(),
-        customJooqSettings = customJooqSettings
+        transformer = SynapseTransformer,
+        customJooqSettings = customJooqSettings,
     ) {
     fun grantSelectPrivileges(): Queries {
         val grants =

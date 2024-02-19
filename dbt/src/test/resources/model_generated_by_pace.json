@@ -1,0 +1,81 @@
+{
+  "metadata": {
+    "adapter_type": "postgres"
+  },
+  "nodes": {
+    "example1": {
+      "database": "postgres",
+      "schema": "public",
+      "name": "stg_demo",
+      "description": "",
+      "resource_type": "model",
+      "columns": {
+        "transactionid": {
+          "name": "transactionid",
+          "description": "",
+          "meta": {},
+          "data_type": null,
+          "constraints": [],
+          "quote": null,
+          "tags": []
+        },
+        "userid": {
+          "name": "userid",
+          "description": "",
+          "meta": {},
+          "data_type": null,
+          "constraints": [],
+          "quote": null,
+          "tags": []
+        },
+        "email": {
+          "name": "email",
+          "description": "",
+          "meta": {},
+          "data_type": null,
+          "constraints": [],
+          "quote": null,
+          "tags": []
+        },
+        "age": {
+          "name": "age",
+          "description": "",
+          "meta": {},
+          "data_type": null,
+          "constraints": [],
+          "quote": null,
+          "tags": []
+        },
+        "transactionamount": {
+          "name": "transactionamount",
+          "description": "",
+          "meta": {},
+          "data_type": null,
+          "constraints": [],
+          "quote": null,
+          "tags": []
+        },
+        "brand": {
+          "name": "brand",
+          "description": "",
+          "meta": {},
+          "data_type": null,
+          "constraints": [],
+          "quote": null,
+          "tags": []
+        }
+      },
+      "tags": [],
+      "meta": {
+        "pace_generated": true,
+        "pace_enabled": true
+      },
+      "fqn": [
+        "dbt_postgres_project",
+        "staging",
+        "stg_demo"
+      ],
+      "original_file_path": "models/staging/stg_demo.sql"
+    }
+  }
+}

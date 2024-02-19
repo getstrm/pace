@@ -18,20 +18,20 @@ class H2ViewGenerator(
     private val principalToApply: DataPolicy.Principal?,
     sourceRefOverride: String,
     customJooqSettings: Settings.() -> Unit = {}
-) :
-    ProcessingPlatformViewGenerator(
-        dataPolicy
-            .toBuilder()
-            .setSource(
-                dataPolicy.source
-                    .toBuilder()
-                    .setRef(resourceUrn { integrationFqn = sourceRefOverride })
-                    .build()
-            )
-            .build(),
-        transformer = H2Transformer(),
-        customJooqSettings = customJooqSettings
-    ) {
+) : ProcessingPlatformViewGenerator(
+    dataPolicy
+        .toBuilder()
+        .setSource(
+            dataPolicy.source
+                .toBuilder()
+                .setRef(resourceUrn { integrationFqn = sourceRefOverride })
+                .build(),
+        )
+        .build(),
+    transformer = H2Transformer,
+    customJooqSettings = customJooqSettings,
+) {
+
     override fun toPrincipalCondition(
         principals: List<DataPolicy.Principal>,
         target: DataPolicy.Target?
