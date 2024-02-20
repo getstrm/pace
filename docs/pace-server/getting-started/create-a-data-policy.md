@@ -6,9 +6,9 @@ description: Complete walkthrough of creating a Data Policy
 
 ## Introduction
 
-For this section, we assume you have either created a connection to a [`Processing Platform`](../reference/integrations/processing-platform-integrations/) or a [`Data Catalog`](../reference/integrations/data-catalog-integrations/) or you are familiar with the structure of your source data. You will, naturally, also need to have an instance of `PACE` running. We give a step-by-step walkthrough on how to create a `Data Policy`.&#x20;
+For this section, we assume you have either created a connection to a [`Processing Platform`](../../reference/integrations/processing-platform-integrations/) or a [`Data Catalog`](../../reference/integrations/data-catalog-integrations/) or you are familiar with the structure of your source data. You will, naturally, also need to have an instance of `PACE` running. We give a step-by-step walkthrough on how to create a `Data Policy`.
 
-Please refer to the [schema.md](../data-policy/schema.md "mention"), [principals.md](../data-policy/principals.md "mention") and [rule-set](../data-policy/rule-set/ "mention") sections for additional explanations.
+Please refer to the [schema.md](../../data-policy/schema.md "mention"), [principals.md](../../data-policy/principals.md "mention") and [rule-set](../../data-policy/rule-set/ "mention") sections for additional explanations.
 
 ## Source Data
 
@@ -124,17 +124,17 @@ data_policy:
 {% endtab %}
 {% endtabs %}
 
-As you can see, the [`Rule Sets`](../data-policy/rule-set/) are empty and only the refs and `source.fields` have been populated. This dataset consists of 2 columns: `email`, `age`. Now that we know our data's structure, the next step is populating the yaml with a `Rule Set`.
+As you can see, the [`Rule Sets`](../../data-policy/rule-set/) are empty and only the refs and `source.fields` have been populated. This dataset consists of 2 columns: `email`, `age`. Now that we know our data's structure, the next step is populating the yaml with a `Rule Set`.
 
 If you do not have a `Processing Platform` or `Data Catalog` connected yet, use the blueprint policy from above to define the structure of your data by hand.
 
 ## Define Rule Sets
 
-In this example we will show one `Rule Set`, with one `Field Transform` and one `Filter`. If you define multiple `Rule Sets` in your data policy, multiple views will be created. For a more extensive explanation on `Rule Sets`, we provide more in-depth documentation on [`Principals`](../data-policy/principals.md), [`Field Transforms`](../data-policy/rule-set/field-transform.md) and [`Filters`](../data-policy/rule-set/filter.md).
+In this example we will show one `Rule Set`, with one `Field Transform` and one `Filter`. If you define multiple `Rule Sets` in your data policy, multiple views will be created. For a more extensive explanation on `Rule Sets`, we provide more in-depth documentation on [`Principals`](../../data-policy/principals.md), [`Field Transforms`](../../data-policy/rule-set/field-transform.md) and [`Filters`](../../data-policy/rule-set/filter.md).
 
 ### Target
 
-Let's start by defining the reference to the target table. We have chosen the target schema to be the same as the source schema. The [`Target`](../data-policy/rule-set/target.md) should then be defined as
+Let's start by defining the reference to the target table. We have chosen the target schema to be the same as the source schema. The [`Target`](../../data-policy/rule-set/target.md) should then be defined as
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -169,7 +169,7 @@ rule_sets:
 
 ### Field Transform
 
-We define one `Field Transform` and add it to the `Rule Set`. Our transform concerns the `email` field. The `field` definition is corresponding to the same field in the source fields. We define a [`Transform`](../data-policy/rule-set/field-transform.md#transforms) for the _Marketing_ (`MKTNG`) principal and one for the _Fraud and Risk_ (`F&R`) principal. For the _Marketing_ principal the _local-part_ of the email is replaced by `****` while leaving the `@` and the domain as-is, using a regular expression with replacement. For the _Fraud and Risk_ principal we apply an `identity` transform, returning the email as-is. Finally, if the viewer is not a member of either of these Principals, a fixed value `****` is returned instead of the email. More guidance and examples on how to define `Transforms` see the [docs](../data-policy/rule-set/field-transform.md#transforms).
+We define one `Field Transform` and add it to the `Rule Set`. Our transform concerns the `email` field. The `field` definition is corresponding to the same field in the source fields. We define a [`Transform`](../../data-policy/rule-set/field-transform.md#transforms) for the _Marketing_ (`MKTNG`) principal and one for the _Fraud and Risk_ (`F&R`) principal. For the _Marketing_ principal the _local-part_ of the email is replaced by `****` while leaving the `@` and the domain as-is, using a regular expression with replacement. For the _Fraud and Risk_ principal we apply an `identity` transform, returning the email as-is. Finally, if the viewer is not a member of either of these Principals, a fixed value `****` is returned instead of the email. More guidance and examples on how to define `Transforms` see the [docs](../../data-policy/rule-set/field-transform.md#transforms).
 
 {% tabs %}
 {% tab title="YAML" %}
@@ -653,4 +653,4 @@ Depending on what `Principal` groups you are in, you will find that the actual d
 {% endtab %}
 {% endtabs %}
 
-For more examples and explanation visit the [`Rule Set` Documentation](../data-policy/rule-set/).
+For more examples and explanation visit the [`Rule Set` Documentation](../../data-policy/rule-set/).

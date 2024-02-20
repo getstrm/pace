@@ -4,7 +4,7 @@ description: Generate a Data Policy using the OpenAI plugin
 
 # Data Policy Generation
 
-Extensibility is an important aspect of PACE. Functionality can be added through [_plugins_](../plugins/definition.md), the first type of which is the **OpenAI plugin**. More detail on creating your own plugins will follow soon. In this tutorial, we cover our OpenAI Data Policy Generator implementation.
+Extensibility is an important aspect of PACE. Functionality can be added through [_plugins_](../pace-server/definition/), the first type of which is the **OpenAI plugin**. More detail on creating your own plugins will follow soon. In this tutorial, we cover our OpenAI Data Policy Generator implementation.
 
 ```shell
 pace list plugins
@@ -20,7 +20,7 @@ plugins:
 
 This plugin has two actions, we'll explore the GENERATE\_DATA\_POLICY action in this tutorial
 
-The [OpenAI Data Policy Generator](../plugins/built-in/openai.md) uses the OpenAI Chat API to generate a Rule Set for a given blueprint Data Policy, based on a textual description of filters and field transforms.
+The [OpenAI Data Policy Generator](../pace-server/definition/built-in/openai.md) uses the OpenAI Chat API to generate a Rule Set for a given blueprint Data Policy, based on a textual description of filters and field transforms.
 
 {% hint style="warning" %}
 An OpenAI API key is required for this tutorial. You can generate one in the OpenAI platform at [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys). We recommend creating a new API key for this PACE plugin.

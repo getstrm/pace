@@ -95,7 +95,7 @@ volumes:
 
 To start pace, execute `docker compose up` in the directory containing your `docker-compose.yaml` file. You should see the Spring Boot startup logs, which will end with `Started PaceApplicationKt [...]` , if all went well.
 
-Next up, you can start interacting with your PACE instance, by accessing the [REST interface](../reference/api-reference/rest.md), [gRPC interface](https://github.com/getstrm/pace/tree/alpha/protos) or through the [CLI](https://github.com/getstrm/cli). Here's an example listing the available Data Catalog integrations through the REST interface:
+Next up, you can start interacting with your PACE instance, by accessing the [REST interface](../../reference/api-reference/rest.md), [gRPC interface](https://github.com/getstrm/pace/tree/alpha/protos) or through the [CLI](https://github.com/getstrm/cli). Here's an example listing the available Data Catalog integrations through the REST interface:
 
 {% tabs %}
 {% tab title="CLI" %}

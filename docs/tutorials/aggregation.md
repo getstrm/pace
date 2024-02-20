@@ -4,7 +4,7 @@ description: Aggregate sensitive data
 
 # Aggregation
 
-This tutorial assumes that you have completed the [quickstart](../readme/quickstart.md) section of the docs. The prerequisites for this tutorial are the same as mentioned there.
+This tutorial assumes that you have completed the [quickstart](../pace-server/getting-started/quickstart.md) section of the docs. The prerequisites for this tutorial are the same as mentioned there.
 
 The goal of this tutorial is to be able to aggregate data based on simple prerequisites. Some data may be considered sensitive in itself, but when aggregated lose the sensitivity while preserving statistical value.
 

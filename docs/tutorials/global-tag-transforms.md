@@ -4,7 +4,7 @@ description: Create Data Policies with blueprint transforms
 
 # Global Tag Transforms
 
-This tutorial assumes that you have completed the [quickstart](../readme/quickstart.md) section of the docs. The prerequisites for this tutorial are the same as mentioned there.
+This tutorial assumes that you have completed the [quickstart](../pace-server/getting-started/quickstart.md) section of the docs. The prerequisites for this tutorial are the same as mentioned there.
 
 The goal of this tutorial is to be able to fetch a Data Policy with a ruleset included, based on tags that are attached to a field on the respective processing platform. This enables the end-user to define transforms once, and reuse them without leaving the data processing platform or data catalog.
 
@@ -117,7 +117,7 @@ Furthermore, one Processing Platform of type _postgres_ is configured, named `gl
 
 This is the Global Transform we'll be creating in this tutorial. It uses tags on the processing platform, which are attached to fields in the data schema, and therefore, is of type `tag_transform`.
 
-A global transform allows for specifying multiple transforms based on the principal of the data consumer, similar to how it's done [when creating rule sets](../getting-started/create-a-data-policy.md#upsert-the-data-policy). In fact, this transform is translated into a rule set of its own, as we'll see later in the tutorial.
+A global transform allows for specifying multiple transforms based on the principal of the data consumer, similar to how it's done [when creating rule sets](../pace-server/getting-started/create-a-data-policy.md#upsert-the-data-policy). In fact, this transform is translated into a rule set of its own, as we'll see later in the tutorial.
 
 </details>
 

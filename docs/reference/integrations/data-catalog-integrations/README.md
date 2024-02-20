@@ -153,7 +153,7 @@ source:
 
 ```
 
-We would typically redirect the output of this command into a file `> blueprint.yaml`, and add a rule set to the file. See [create-a-data-policy.md](../../../getting-started/create-a-data-policy.md "mention")for details on how to do this.
+We would typically redirect the output of this command into a file `> blueprint.yaml`, and add a rule set to the file. See [create-a-data-policy.md](../../../pace-server/getting-started/create-a-data-policy.md "mention")for details on how to do this.
 
 ## Configuring a Data Catalog connection
 

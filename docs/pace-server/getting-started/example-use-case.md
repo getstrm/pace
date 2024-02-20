@@ -9,6 +9,6 @@ description: >-
 
 
 
-<figure><img src="../.gitbook/assets/image.png" alt="" width="248"><figcaption><p>Image courtesy of Midjourney v5</p></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image.png" alt="" width="248"><figcaption><p>Image courtesy of Midjourney v5</p></figcaption></figure>
 
 {% embed url="https://youtu.be/-bWFO55-q2A" %}

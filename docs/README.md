@@ -1,20 +1,16 @@
----
-description: Welcome to the PACE docs!
----
-
-# Getting Started
+# What is PACE?
 
 **About PACE**
 
 {% hint style="info" %}
-Looking for a non-tech intro to PACE? Start with a video of a[ simple use case](readme/example-use-case.md) .
+Looking for a non-tech intro to PACE? Start with a video of a[ simple use case](pace-server/getting-started/example-use-case.md) .
 {% endhint %}
 
 PACE is the **P**olicy **A**s **C**ode **E**ngine. It helps you to programmatically create and apply a data policy to a processing platform (like [Databricks](tutorials/databricks.md), Snowflake or BigQuery). Through a data contract, you can apply filters, field transforms and access settings to create a view inside a data platform.
 
 _`Data policy IN, dynamic view OUT`_ is the easiest way to describe it.
 
-Jump right in with our [quickstart](readme/quickstart.md), or read on and watch our 5-minute intro below with the most import principles and concepts.&#x20;
+Jump right in with our [quickstart](pace-server/getting-started/quickstart.md), or read on and watch our 5-minute intro below with the most import principles and concepts.&#x20;
 
 **ProblemsPACE**
 

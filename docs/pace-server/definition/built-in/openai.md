@@ -11,7 +11,7 @@ With the help of OpenAI, you can extend PACE functionality with various actions.
 The following actions are available for this plugin:
 
 * &#x20;`GENERATE_DATA_POLICY`\
-  See an example of this action in the [data-policy-generator.md](../../tutorials/data-policy-generator.md "mention")tutorial.
+  See an example of this action in the [data-policy-generator.md](../../../tutorials/data-policy-generator.md "mention")tutorial.
 * &#x20;`GENERATE_SAMPLE_DATA`
 
 ### Action:  `GENERATE_DATA_POLICY`
