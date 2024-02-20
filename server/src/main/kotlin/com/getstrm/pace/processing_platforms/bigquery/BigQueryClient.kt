@@ -1,5 +1,7 @@
 package com.getstrm.pace.processing_platforms.bigquery
 
+import com.google.cloud.bigquery.Dataset as BQDataset
+import com.google.cloud.bigquery.Table as BQTable
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Lineage
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
@@ -23,11 +25,9 @@ import com.google.cloud.bigquery.Acl
 import com.google.cloud.bigquery.BigQuery
 import com.google.cloud.bigquery.BigQueryException
 import com.google.cloud.bigquery.BigQueryOptions
-import com.google.cloud.bigquery.Dataset as BQDataset
 import com.google.cloud.bigquery.Field
 import com.google.cloud.bigquery.JobId
 import com.google.cloud.bigquery.QueryJobConfiguration
-import com.google.cloud.bigquery.Table as BQTable
 import com.google.cloud.bigquery.TableDefinition
 import com.google.cloud.bigquery.TableId
 import com.google.cloud.datacatalog.lineage.v1.BatchSearchLinkProcessesRequest
@@ -185,6 +185,8 @@ class BigQueryClient(
             log.info("useIamCheckExtension is true, skipping listGroups")
             return emptyList<Group>().withPageInfo()
         }
+        // FIXME pagination for listing groups not in place. As the amount of user groups will
+        // likely not be ridiculously large, we will fetch them all for now
         val query =
             """
             SELECT
@@ -192,8 +194,6 @@ class BigQueryClient(
             FROM
               ${config.userGroupsTable}
             ORDER BY userGroup
-            LIMIT ${pageParameters.pageSize}
-            OFFSET ${pageParameters.skip}
         """
                 .trimIndent()
         val queryConfig = QueryJobConfiguration.newBuilder(query).setUseLegacySql(false).build()

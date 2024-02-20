@@ -1,0 +1,4 @@
+# Make sure to fill out the variables below in order to use the Snowflake example dbt project
+export SNOWFLAKE_USER=""
+export SNOWFLAKE_PASSWORD=""
+export SNOWFLAKE_ACCOUNT_NAME=""

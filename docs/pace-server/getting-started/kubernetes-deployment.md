@@ -22,7 +22,7 @@ In a directory of your choice, create the following three spec files. (Again, ad
 
 ### Application configuration
 
-In the [Quickstart](../readme/quickstart.md), we showed how the Spring Boot application configuration file was mounted as a volume in the PACE Docker container using Docker compose. For Kubernetes, you could use a similar approach. We suggest creating a [Kubernetes Secret](https://kubernetes.io/docs/concepts/configuration/secret/) containing the entire application configuration yaml as `stringData`, for example:
+In the [Quickstart](quickstart.md), we showed how the Spring Boot application configuration file was mounted as a volume in the PACE Docker container using Docker compose. For Kubernetes, you could use a similar approach. We suggest creating a [Kubernetes Secret](https://kubernetes.io/docs/concepts/configuration/secret/) containing the entire application configuration yaml as `stringData`, for example:
 
 {% code title="pace-config-secret.yaml" %}
 ```yaml

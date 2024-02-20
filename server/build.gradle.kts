@@ -77,7 +77,7 @@ dependencies {
 
     // Self-managed dependencies
     implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
-    implementation("com.databricks:databricks-sdk-java:0.18.0")
+    implementation("com.databricks:databricks-sdk-java:0.19.0")
     implementation("com.microsoft.sqlserver:mssql-jdbc:12.6.0.jre11")
     implementation(
         "org.springframework.cloud:spring-cloud-starter-kubernetes-fabric8-config:$springCloudKubernetesVersion"
@@ -93,7 +93,7 @@ dependencies {
     implementation("build.buf.gen:getstrm_pace_grpc_java:1.61.1.1.$generatedBufDependencyVersion")
     implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.4.1.1.$generatedBufDependencyVersion")
     implementation(
-        "build.buf.gen:getstrm_pace_protocolbuffers_java:25.2.0.1.$generatedBufDependencyVersion"
+        "build.buf.gen:getstrm_pace_protocolbuffers_java:25.3.0.1.$generatedBufDependencyVersion"
     )
     implementation("build.buf:protovalidate:0.1.9")
 

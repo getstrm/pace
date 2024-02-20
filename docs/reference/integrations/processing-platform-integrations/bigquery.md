@@ -32,9 +32,13 @@ To keep track of the group [principals.md](../../../data-policy/principals.md "m
 
 A user may appear in multiple rows, one per group. Changes to this table will immediately affect the query results on PACE authorized views for the modified users.
 
+{% hint style="warning" %}
+The table must be located in the same region where the PACE views are created.
+{% endhint %}
+
 #### PACE application properties
 
-After following the above steps, provide the corresponding [configuration](../../../getting-started/example-configuration-file.md) to the PACE application for each BigQuery instance you want to connect with. For example:
+After following the above steps, provide the corresponding [configuration](../../../pace-server/getting-started/example-configuration-file.md) to the PACE application for each BigQuery instance you want to connect with. For example:
 
 ```yaml
 app:

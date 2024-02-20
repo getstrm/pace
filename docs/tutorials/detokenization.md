@@ -4,7 +4,7 @@ description: Create Data Policies that detokenize previously tokenized data
 
 # Detokenization
 
-This tutorial assumes that you have completed the [quickstart](../readme/quickstart.md) section of the docs. The prerequisites for this tutorial are the same as mentioned there.
+This tutorial assumes that you have completed the [quickstart](../pace-server/getting-started/quickstart.md) section of the docs. The prerequisites for this tutorial are the same as mentioned there.
 
 The goal of this tutorial is to create a Data Policy that detokenizes previously tokenized data. Tokenization is a powerful data security method, especially when tokens are random, such as UUIDs. With PACE's `Detokenize` transform, we can implement data policies that provide the original values of tokenized data to authorized data consumers.
 

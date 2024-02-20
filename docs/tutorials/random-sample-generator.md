@@ -4,7 +4,7 @@ description: Generate some Random Sample Values using the OpenAI plugin
 
 # Random Sample Generation
 
-Extensibility is an important aspect of PACE. Functionality can be added through [_plugins_](../plugins/definition.md), the first type of which is the **OpenAI plugin**. More detail on creating your own plugins will follow soon. In this tutorial, we cover our OpenAI Data Policy Generator implementation.
+Extensibility is an important aspect of PACE. Functionality can be added through [_plugins_](../pace-server/definition/), the first type of which is the **OpenAI plugin**. More detail on creating your own plugins will follow soon. In this tutorial, we cover our OpenAI Data Policy Generator implementation.
 
 ```shell
 pace list plugins
@@ -20,7 +20,7 @@ plugins:
 
 This plugin has two actions, we'll explore the GENERATE\_SAMPLE\_DATA action in this tutorial
 
-The [OpenAI ](../plugins/built-in/openai.md)plugin GENERATE\_SAMPLE\_DATA action uses the OpenAI Chat API to create random sample data for a given table definition, that one could create for instance via one of the `pace get data-policy ...` command invocations.
+The [OpenAI ](../pace-server/definition/built-in/openai.md)plugin GENERATE\_SAMPLE\_DATA action uses the OpenAI Chat API to create random sample data for a given table definition, that one could create for instance via one of the `pace get data-policy ...` command invocations.
 
 {% hint style="warning" %}
 An OpenAI API key is required for this tutorial. You can generate one in the OpenAI platform at [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys). We recommend creating a new API key for this PACE plugin

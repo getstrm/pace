@@ -44,6 +44,7 @@ static_resources:
                           "@type": "type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy"
                           allow_origin_string_match:
                             - prefix: "http://localhost:3000"
+                            - prefix: "https://console.demo.getstrm.com"
                           allow_methods: "POST, OPTIONS"
                           allow_headers: "keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout,authorization"
                           max_age: "1728000"

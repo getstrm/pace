@@ -16,7 +16,7 @@ The goal of this tutorial is to run the standalone example, create a Data Policy
 The source of the standalone example can be found in the [GitHub repository](https://github.com/getstrm/pace/tree/alpha/examples/standalone/).
 
 {% hint style="info" %}
-Make sure you have everything setup according to the [installation](../getting-started/installation.md) steps.
+Make sure you have everything setup according to the [installation](installation.md) steps.
 {% endhint %}
 
 ## Prerequisites
@@ -72,7 +72,7 @@ The compose file is set up without any persistence of data across different star
 
 The compose file contains three services, matching the introduction section of this document:
 
-* **pace\_app** with all [ports](../../examples/standalone/docker-compose.yaml#L18) exposed to the host for all different interfaces (REST, gRPC, and directly to the [Spring Boot app](#user-content-fn-1)[^1]):
+* **pace\_app** with all [ports](../../../examples/standalone/docker-compose.yaml#L18) exposed to the host for all different interfaces (REST, gRPC, and directly to the [Spring Boot app](#user-content-fn-1)[^1]):
   * `8080` -> Spring Boot Actuator
   * `9090` -> Envoy JSON / gRPC Transcoding proxy
   * `50051` -> gRPC
@@ -381,7 +381,7 @@ Ordering of `transforms` is important! The first match determines the behavior o
 
 **Final `data-policy.yaml`**
 
-For the final Data Policy, please have a look at the [file here](../../examples/standalone/data-policy.yaml). This is the file that is used when creating the Data Policy.
+For the final Data Policy, please have a look at the [file here](../../../examples/standalone/data-policy.yaml). This is the file that is used when creating the Data Policy.
 
 ## Creating the Data Policy
 

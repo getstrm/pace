@@ -32,7 +32,7 @@ val CAPTURING_GROUP_REGEX = Regex("""\$(\d+)""")
  * specific implementations of transforms.
  */
 open class ProcessingPlatformTransformer(
-    private val renderer: ProcessingPlatformRenderer,
+    renderer: ProcessingPlatformRenderer,
 ) : ProcessingPlatformRenderer by renderer {
 
     open fun regexpReplace(field: DataPolicy.Field, regexp: Regexp): JooqField<*> =

@@ -1,0 +1,45 @@
+version: 2
+
+models:
+  - name: stg_demo
+    columns:
+      - name: transactionid
+      - name: userid
+        meta:
+          pace_transforms:
+            # The administrator gets the original userid (identity).
+            - principals: [ { group: administrator } ]
+              identity: { }
+            # Everyone else gets a null value.
+            - principals: [ ]
+              nullify: { }
+      - name: email
+        meta:
+          pace_transforms:
+            # Again, the administrator gets the original value.
+            - principals: [ { group: administrator } ]
+              identity: { }
+            # Everyone else gets a partially masked email address using a regular
+            # expression transform.
+            - principals: [ ]
+              regexp:
+                regexp: "^.*(@.*)$"
+                replacement: "****$1"
+      - name: age
+      - name: transactionamount
+      - name: brand
+    meta:
+      pace_rule_sets:
+        - target:
+            ref:
+              integration_fqn: "pace-dbt.demo_public.transactions"
+          filters:
+            - generic_filter:
+                conditions:
+                  # The "true" condition results in every row being shown to
+                  # the administrators.
+                  - principals: [ { group: administrator } ]
+                    condition: "true"
+                  # Everyone else only sees records where the age is greater than 18
+                  - principals: [ ]
+                    condition: "age > 18"

@@ -1,3 +1,17 @@
+# [1.0.0-alpha.66](https://github.com/getstrm/pace/compare/v1.0.0-alpha.65...v1.0.0-alpha.66) (2024-02-19)
+
+
+### Features
+
+* **pace-175:** various pace-dbt improvements ([#214](https://github.com/getstrm/pace/issues/214)) ([87b1b0c](https://github.com/getstrm/pace/commit/87b1b0c244ae25c18b466f98e3741f1d007c8b1d))
+
+# [1.0.0-alpha.65](https://github.com/getstrm/pace/compare/v1.0.0-alpha.64...v1.0.0-alpha.65) (2024-02-16)
+
+
+### Features
+
+* **pace-171:** add dbt snowflake example ([#207](https://github.com/getstrm/pace/issues/207)) ([1c28e50](https://github.com/getstrm/pace/commit/1c28e50e5f895e20d93beebc3668ffd0f16462ea))
+
 # [1.0.0-alpha.64](https://github.com/getstrm/pace/compare/v1.0.0-alpha.63...v1.0.0-alpha.64) (2024-02-15)
 
 

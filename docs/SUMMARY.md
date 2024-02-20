@@ -1,14 +1,28 @@
 # Table of contents
 
-* [Getting Started](README.md)
-  * [Quickstart](readme/quickstart.md)
-  * [Installation](getting-started/installation.md)
-  * [Connect a Processing Platform](getting-started/connect-a-processing-platform.md)
-  * [Connect a Data Catalog](getting-started/connect-a-data-catalog.md)
-  * [Create a Data Policy](getting-started/create-a-data-policy.md)
-  * [Example configuration file](getting-started/example-configuration-file.md)
-  * [Kubernetes Deployment](getting-started/kubernetes-deployment.md)
-  * [Example use case](readme/example-use-case.md)
+* [What is PACE?](README.md)
+* [Runtimes](runtimes.md)
+
+## PACE server
+
+* [Getting Started](pace-server/getting-started/README.md)
+  * [Quickstart](pace-server/getting-started/quickstart.md)
+  * [Installation](pace-server/getting-started/installation.md)
+  * [Connect a Processing Platform](pace-server/getting-started/connect-a-processing-platform.md)
+  * [Connect a Data Catalog](pace-server/getting-started/connect-a-data-catalog.md)
+  * [Create a Data Policy](pace-server/getting-started/create-a-data-policy.md)
+  * [Example configuration file](pace-server/getting-started/example-configuration-file.md)
+  * [Kubernetes Deployment](pace-server/getting-started/kubernetes-deployment.md)
+  * [Example use case](pace-server/getting-started/example-use-case.md)
+* [Plugins](pace-server/definition/README.md)
+  * [Built In](pace-server/definition/built-in/README.md)
+    * [OpenAI](pace-server/definition/built-in/openai.md)
+  * [SDK](pace-server/definition/sdk.md)
+
+## PACE DBT module
+
+* [Getting started](pace-dbt-module/getting-started.md)
+* [Containerized dbt module](pace-dbt-module/containerized\_dbt\_module.md)
 
 ## Data policy
 
@@ -44,18 +58,6 @@
     * [Snowflake](global-actions/global-transforms/processing-platform-tags/snowflake.md)
     * [PostgreSQL](global-actions/global-transforms/processing-platform-tags/postgresql.md)
   * [Data Catalog Tags](global-actions/global-transforms/data-catalog-tags.md)
-
-## Runtimes
-
-* [Overview](runtimes/overview/overview.md)
-  * [Containerized dbt module](runtimes/overview/containerized_dbt_module.md)
-
-## Plugins
-
-* [Definition](plugins/definition.md)
-* [Built In](plugins/built-in/README.md)
-  * [OpenAI](plugins/built-in/openai.md)
-* [SDK](plugins/sdk.md)
 
 ## Reference
 
