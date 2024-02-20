@@ -2,6 +2,7 @@ package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Aggregation
+import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Hash
 import com.getstrm.pace.namedField
 import com.getstrm.pace.toSql
 import io.kotest.matchers.shouldBe
@@ -50,6 +51,32 @@ class BigQueryTransformerTest {
         // Then
         result.toSql() shouldBe
             "avg(cast(`transactionamount` as decimal)) over(partition by `brand`, `age`)"
+    }
+
+    @Test
+    fun `hash - string`() {
+        // Given
+        val field = namedField("email", "string")
+        val hash = Hash.getDefaultInstance()
+
+        // When
+        val result = underTest.hash(field, hash)
+
+        // Then
+        result.toSql() shouldBe "TO_HEX(SHA256(CAST(`email` AS STRING)))"
+    }
+
+    @Test
+    fun `hash - numerical`() {
+        // Given
+        val field = namedField("transactionamount", "integer")
+        val hash = Hash.getDefaultInstance()
+
+        // When
+        val result = underTest.hash(field, hash)
+
+        // Then
+        result.toSql() shouldBe "FARM_FINGERPRINT(CAST(`transactionamount` AS STRING))"
     }
 
     @Test

@@ -103,4 +103,18 @@ class PostgresViewGenerator(
 
         return jooq.with(userGroupSelect).select(fields)
     }
+
+    override fun additionalExtensionStatements(): Queries {
+        return if (
+            this.dataPolicy.ruleSetsList.any { ruleSet ->
+                ruleSet.fieldTransformsList.any { fieldTransform ->
+                    fieldTransform.transformsList.any { it.hasHash() }
+                }
+            }
+        ) {
+            jooq.queries(jooq.query("CREATE EXTENSION IF NOT EXISTS pgcrypto;"))
+        } else {
+            jooq.queries()
+        }
+    }
 }

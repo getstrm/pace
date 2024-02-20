@@ -322,10 +322,13 @@ where (
                 """create or replace view my_catalog.my_schema.gddemo_public
 as
 select
-  transactionId,
+  case
+    when (is_account_group_member('fraud-and-risk')) then hash('transactionId')
+    else transactionId
+  end transactionId,
   case
     when (is_account_group_member('fraud-and-risk')) then userId
-    else hash(1234, 'userId')
+    else sha2(cast(userId as string), 256)
   end userId,
   case
     when (
@@ -373,10 +376,13 @@ where (
                 """create or replace view my_catalog.my_schema.gddemo_public
 as
 select
-  transactionId,
+  case
+    when (is_account_group_member('fraud-and-risk')) then hash('transactionId')
+    else transactionId
+  end transactionId,
   case
     when (is_account_group_member('fraud-and-risk')) then userId
-    else hash(1234, 'userId')
+    else sha2(cast(userId as string), 256)
   end userId,
   case
     when (
@@ -438,6 +444,15 @@ rule_sets:
         integration_fqn: my_catalog.my_schema.gddemo_public
       type: SQL_VIEW
     field_transforms:
+      - field:
+          name_parts:
+            - transactionId
+        transforms:
+          - principals:
+              - group: fraud-and-risk
+            hash: {}
+          - principals: []
+            identity: {}
       - field:
           name_parts:
             - email

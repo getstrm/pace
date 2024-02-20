@@ -283,7 +283,7 @@ select
   transactionId,
   case
     when false then userId
-    else hash(1234, 'userId')
+    else HASH('SHA-256', CAST(userId as varchar))
   end userId,
   case
     when true then regexp_replace(email, '^.*(@.*)${'$'}', '****${'$'}1')

@@ -1,7 +1,5 @@
 package com.getstrm.pace.processing_platforms.bigquery
 
-import com.google.cloud.bigquery.Dataset as BQDataset
-import com.google.cloud.bigquery.Table as BQTable
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.Lineage
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.LineageSummary
@@ -25,9 +23,11 @@ import com.google.cloud.bigquery.Acl
 import com.google.cloud.bigquery.BigQuery
 import com.google.cloud.bigquery.BigQueryException
 import com.google.cloud.bigquery.BigQueryOptions
+import com.google.cloud.bigquery.Dataset as BQDataset
 import com.google.cloud.bigquery.Field
 import com.google.cloud.bigquery.JobId
 import com.google.cloud.bigquery.QueryJobConfiguration
+import com.google.cloud.bigquery.Table as BQTable
 import com.google.cloud.bigquery.TableDefinition
 import com.google.cloud.bigquery.TableId
 import com.google.cloud.datacatalog.lineage.v1.BatchSearchLinkProcessesRequest

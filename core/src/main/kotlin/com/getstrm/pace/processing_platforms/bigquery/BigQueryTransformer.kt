@@ -6,6 +6,7 @@ import com.getstrm.pace.processing_platforms.ProcessingPlatformRenderer
 import com.getstrm.pace.processing_platforms.ProcessingPlatformTransformer
 import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
+import com.getstrm.pace.util.toJooqField
 import org.jooq.Field
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
@@ -37,6 +38,26 @@ object BigQueryTransformer : ProcessingPlatformTransformer(BigQueryRenderer) {
                 DSL.`val`(replacementWithBackslashNotation),
             )
         }
+
+    override fun hash(
+        field: DataPolicy.Field,
+        hash: DataPolicy.RuleSet.FieldTransform.Transform.Hash
+    ): Field<*> {
+        // If the field is a string, we use SHA256, otherwise we use FARM_FINGERPRINT.
+        return if (field.toJooqField().dataType.isNumeric) {
+            DSL.field(
+                "FARM_FINGERPRINT(CAST({0} AS STRING))",
+                Any::class.java,
+                DSL.field(DSL.unquotedName(renderName(field.fullName()))),
+            )
+        } else {
+            DSL.field(
+                "TO_HEX(SHA256(CAST({0} AS STRING)))",
+                Any::class.java,
+                DSL.field(DSL.unquotedName(renderName(field.fullName()))),
+            )
+        }
+    }
 
     private object BigQueryRenderer : ProcessingPlatformRenderer {
 

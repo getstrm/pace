@@ -43,4 +43,30 @@ class SnowflakeTransformerTest {
         result.toSql() shouldBe
             """regexp_replace(my_field, 'foo(\w+) bar(\w+)', 'fizz\\1buzz\\2baz$')"""
     }
+
+    @Test
+    fun `hash - string`() {
+        // Given
+        val field = namedField("email", "string")
+        val hash = DataPolicy.RuleSet.FieldTransform.Transform.Hash.getDefaultInstance()
+
+        // When
+        val result = underTest.hash(field, hash)
+
+        // Then
+        result.toSql() shouldBe "cast(hash(email) as varchar)"
+    }
+
+    @Test
+    fun `hash - numerical`() {
+        // Given
+        val field = namedField("transactionamount", "integer")
+        val hash = DataPolicy.RuleSet.FieldTransform.Transform.Hash.getDefaultInstance()
+
+        // When
+        val result = underTest.hash(field, hash)
+
+        // Then
+        result.toSql() shouldBe "hash(transactionamount)"
+    }
 }

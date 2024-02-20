@@ -65,4 +65,30 @@ class PostgresTransformerTest {
         result.toSql() shouldBe
             "round(avg(cast(\"transactionamount\" as decimal)) over(partition by \"brand\", \"age\"), 0)"
     }
+
+    @Test
+    fun `hash - string`() {
+        // Given
+        val field = namedField("email", "string")
+        val hash = DataPolicy.RuleSet.FieldTransform.Transform.Hash.getDefaultInstance()
+
+        // When
+        val result = underTest.hash(field, hash)
+
+        // Then
+        result.toSql() shouldBe "digest(cast(\"email\" as varchar), 'sha256')"
+    }
+
+    @Test
+    fun `hash - numerical`() {
+        // Given
+        val field = namedField("transactionamount", "integer")
+        val hash = DataPolicy.RuleSet.FieldTransform.Transform.Hash.getDefaultInstance()
+
+        // When
+        val result = underTest.hash(field, hash)
+
+        // Then
+        result.toSql() shouldBe "hashtextextended(cast(\"transactionamount\" as varchar), 0)"
+    }
 }

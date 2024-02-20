@@ -58,6 +58,7 @@ abstract class ProcessingPlatformViewGenerator(
     ): SelectSelectStep<Record> = jooq.select(fields)
 
     protected open fun additionalFooterStatements(): Queries = DSL.queries()
+    protected open fun additionalExtensionStatements(): Queries = DSL.queries()
 
     protected open fun DataPolicy.RuleSet.Filter.RetentionFilter.Condition.toRetentionCondition(
         field: DataPolicy.Field
@@ -89,7 +90,7 @@ abstract class ProcessingPlatformViewGenerator(
                 createOrReplaceView(renderName(targetView)).`as`(toSelectStatement(ruleSet))
             }
 
-        val allQueries = queries + additionalFooterStatements()
+        val allQueries =  additionalExtensionStatements() + queries + additionalFooterStatements()
 
         return jooq.queries(allQueries)
     }
