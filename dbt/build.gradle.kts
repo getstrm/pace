@@ -14,6 +14,7 @@ project.version =
 
 plugins {
     id("com.github.johnrengelman.shadow")
+    id("org.graalvm.buildtools.native") version "0.9.28"
 }
 
 dependencies {
@@ -58,4 +59,13 @@ tasks {
     build {
         dependsOn(shadowJar)
     }
+}
+
+graalvmNative {
+    binaries {
+        getByName("main") {
+            imageName.set("pace-dbt")
+        }
+    }
+    toolchainDetection = false
 }
