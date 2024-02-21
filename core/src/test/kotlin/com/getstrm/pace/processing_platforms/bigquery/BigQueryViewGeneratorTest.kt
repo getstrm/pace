@@ -273,10 +273,13 @@ with
     where userEmail = SESSION_USER()
   )
 select
-  `transactionId`,
+  case
+    when ('FINANCE' IN ( SELECT `userGroup` FROM `user_groups` )) then FARM_FINGERPRINT(CAST(`transactionId` AS STRING))
+    else `transactionId`
+  end `transactionId`,
   case
     when ('FRAUD_DETECTION' IN ( SELECT `userGroup` FROM `user_groups` )) then CAST(userId AS string)
-    else TO_HEX(SHA256(CAST(userId AS string)))
+    else TO_HEX(SHA256(CAST(`userId` AS STRING)))
   end `userId`,
   case
     when (
@@ -326,10 +329,13 @@ where (
                 """create or replace view `my_target_project.my_target_dataset.my_target_view`
 as
 select
-  `transactionId`,
+  case
+    when ("True" in (select principal_check_routines.check_principal_access("group:FINANCE", "my_target_dataset", "my_target_view"))) then FARM_FINGERPRINT(CAST(`transactionId` AS STRING))
+    else `transactionId`
+  end `transactionId`,
   case
     when ("True" in (select principal_check_routines.check_principal_access("group:FRAUD_DETECTION", "my_target_dataset", "my_target_view"))) then CAST(userId AS string)
-    else TO_HEX(SHA256(CAST(userId AS string)))
+    else TO_HEX(SHA256(CAST(`userId` AS STRING)))
   end `userId`,
   case
     when (
@@ -369,7 +375,7 @@ where (
     fun `roles, permissions and groups bigquery test`() {
         // Given
         underTest =
-            BigQueryViewGenerator(dataPolicyBigQueryIAM, null, useIamCheckExtension = true) {
+            BigQueryViewGenerator(dataPolicyBigQueryIAMCheck, null, useIamCheckExtension = true) {
                 withRenderFormatted(true)
             }
         underTest
@@ -489,6 +495,16 @@ rule_sets:
       type: SQL_VIEW
     field_transforms:
       - field:
+          name_parts: 
+            - transactionId
+          type: "bigint"
+        transforms:
+          - principals:
+              - group: FINANCE
+            hash: {}
+          - principals: []
+            identity: {}
+      - field:
           name_parts:
             - email
           type: "string"
@@ -515,8 +531,7 @@ rule_sets:
             sql_statement:
               statement: "CAST(userId AS string)"
           - principals: []
-            sql_statement:
-              statement: "TO_HEX(SHA256(CAST(userId AS string)))"
+            hash: {}
       - field:
           name_parts:
             - items
@@ -559,7 +574,7 @@ metadata:
               """
                 .toProto<DataPolicy>()
         @Language("yaml")
-        val dataPolicyBigQueryIAM =
+        val dataPolicyBigQueryIAMCheck =
             """
 source:
   ref:

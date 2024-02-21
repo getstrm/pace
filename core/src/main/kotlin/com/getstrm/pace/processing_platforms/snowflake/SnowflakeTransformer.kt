@@ -1,10 +1,12 @@
 package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.processing_platforms.CAPTURING_GROUP_REGEX
 import com.getstrm.pace.processing_platforms.ProcessingPlatformRenderer
 import com.getstrm.pace.processing_platforms.ProcessingPlatformTransformer
 import com.getstrm.pace.util.fullName
+import com.getstrm.pace.util.toJooqField
 import org.jooq.Field
 import org.jooq.impl.DSL
 
@@ -35,4 +37,33 @@ object SnowflakeTransformer : ProcessingPlatformTransformer(ProcessingPlatformRe
                 DSL.`val`(replacementWithBackslashNotation),
             )
         }
+
+    override fun hash(
+        field: DataPolicy.Field,
+        hash: DataPolicy.RuleSet.FieldTransform.Transform.Hash
+    ): Field<*> {
+        val hashField =
+            if (hash.hasSeed()) {
+                DSL.field(
+                    "hash({0}, {1})",
+                    Any::class.java,
+                    DSL.unquotedName(renderName(field.fullName())),
+                    DSL.`val`(hash.seed),
+                )
+            } else {
+                DSL.field(
+                    "hash({0})",
+                    Any::class.java,
+                    DSL.unquotedName(renderName(field.fullName())),
+                )
+            }
+        val dataType =field.toJooqField().dataType
+        return if (dataType.isNumeric) {
+            hashField
+        } else if (dataType.isString) {
+            DSL.cast(hashField, String::class.java)
+        } else {
+            throwUnimplemented("Hashing a ${dataType.typeName} type")
+        }
+    }
 }

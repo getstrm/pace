@@ -1,11 +1,13 @@
 package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.processing_platforms.CAPTURING_GROUP_REGEX
 import com.getstrm.pace.processing_platforms.ProcessingPlatformRenderer
 import com.getstrm.pace.processing_platforms.ProcessingPlatformTransformer
 import com.getstrm.pace.util.defaultJooqSettings
 import com.getstrm.pace.util.fullName
+import com.getstrm.pace.util.toJooqField
 import org.jooq.Field
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
@@ -34,6 +36,28 @@ object PostgresTransformer : ProcessingPlatformTransformer(PostgresRenderer) {
                 DSL.`val`(replacementWithBackslashNotation),
             )
         }
+
+    override fun hash(
+        field: DataPolicy.Field,
+        hash: DataPolicy.RuleSet.FieldTransform.Transform.Hash
+    ): Field<*> {
+        val dataType = field.toJooqField().dataType
+        return if (dataType.isNumeric) {
+            DSL.field(
+                "hashtextextended(cast({0} as varchar), ${if (hash.hasSeed()) hash.seed else 0})",
+                String::class.java,
+                DSL.field(DSL.unquotedName(renderName(field.fullName()))),
+            )
+        } else if (dataType.isString) {
+            DSL.field(
+                "digest(cast({0} as varchar), 'sha256')",
+                String::class.java,
+                DSL.field(DSL.unquotedName(renderName(field.fullName()))),
+            )
+        } else {
+            throwUnimplemented("Hashing a ${dataType.typeName} type")
+        }
+    }
 
     private object PostgresRenderer : ProcessingPlatformRenderer {
         private val dslContext = DSL.using(SQLDialect.POSTGRES, defaultJooqSettings())
