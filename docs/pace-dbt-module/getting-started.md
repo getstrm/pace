@@ -202,6 +202,10 @@ models:
 ```
 {% endcode %}
 
+{% hint style="warning" %}
+If you wish to include a hash transform using dbt, it is required to define the data type of the field in the `schema.yml`
+{% endhint %}
+
 ### Additional configuration for BigQuery
 
 When using PACE dbt with BigQuery, a `pace_user_groups_table` meta key must be specified with the full ID of the table that contains the user group mapping. See also [#user-group-mapping-table](../reference/integrations/processing-platform-integrations/bigquery.md#user-group-mapping-table "mention").
