@@ -10,8 +10,6 @@ generating platform-specific SQL statements that create secure views on the targ
 their turn leverage native access controls to implement the desired access policy. Got a table with
 with sensitive (customer) data? Let PACE create a (privacy-)safe view for it!
 
-[//]: # (Todo: an illustration here?)
-
 
 ## When PACE met dbt
 After putting PACE out to the public, we started getting similar feedback from people who shared one
@@ -22,6 +20,8 @@ SQL statements that translate to tables or views, but with the power of templati
 improved structuring and reuse of SQL code. Dbt also functions, to some extent, as a data catalog:
 data owners can specify metadata about their models, and dbt projects inherently provide a
 fairly extensive overview of all available data products, including lineage insights.
+
+![dbt_diagram.png](dbt_diagram.png)
 
 
 ## Modularizing PACE for dbt support
