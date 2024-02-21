@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.snowflake
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.processing_platforms.CAPTURING_GROUP_REGEX
 import com.getstrm.pace.processing_platforms.ProcessingPlatformRenderer
 import com.getstrm.pace.processing_platforms.ProcessingPlatformTransformer
@@ -56,10 +57,13 @@ object SnowflakeTransformer : ProcessingPlatformTransformer(ProcessingPlatformRe
                     DSL.unquotedName(renderName(field.fullName())),
                 )
             }
-        return if (field.toJooqField().dataType.isNumeric) {
+        val dataType =field.toJooqField().dataType
+        return if (dataType.isNumeric) {
             hashField
-        } else {
+        } else if (dataType.isString) {
             DSL.cast(hashField, String::class.java)
+        } else {
+            throwUnimplemented("Hashing a ${dataType.typeName} type")
         }
     }
 }

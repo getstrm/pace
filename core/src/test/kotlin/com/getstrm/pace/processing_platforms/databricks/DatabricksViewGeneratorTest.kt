@@ -323,7 +323,7 @@ where (
 as
 select
   case
-    when (is_account_group_member('fraud-and-risk')) then hash('transactionId')
+    when (is_account_group_member('fraud-and-risk')) then hash(transactionId)
     else transactionId
   end transactionId,
   case
@@ -377,7 +377,7 @@ where (
 as
 select
   case
-    when (is_account_group_member('fraud-and-risk')) then hash('transactionId')
+    when (is_account_group_member('fraud-and-risk')) then hash(transactionId)
     else transactionId
   end transactionId,
   case

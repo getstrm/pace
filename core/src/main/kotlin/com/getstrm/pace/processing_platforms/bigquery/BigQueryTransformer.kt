@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.bigquery
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.processing_platforms.CAPTURING_GROUP_REGEX
 import com.getstrm.pace.processing_platforms.ProcessingPlatformRenderer
 import com.getstrm.pace.processing_platforms.ProcessingPlatformTransformer
@@ -43,19 +44,22 @@ object BigQueryTransformer : ProcessingPlatformTransformer(BigQueryRenderer) {
         field: DataPolicy.Field,
         hash: DataPolicy.RuleSet.FieldTransform.Transform.Hash
     ): Field<*> {
+        val dataType = field.toJooqField().dataType
         // If the field is a string, we use SHA256, otherwise we use FARM_FINGERPRINT.
-        return if (field.toJooqField().dataType.isNumeric) {
+        return if (dataType.isNumeric) {
             DSL.field(
                 "FARM_FINGERPRINT(CAST({0} AS STRING))",
                 Any::class.java,
                 DSL.field(DSL.unquotedName(renderName(field.fullName()))),
             )
-        } else {
+        } else if (dataType.isString) {
             DSL.field(
                 "TO_HEX(SHA256(CAST({0} AS STRING)))",
                 Any::class.java,
                 DSL.field(DSL.unquotedName(renderName(field.fullName()))),
             )
+        } else {
+            throwUnimplemented("Hashing a ${dataType.typeName} type")
         }
     }
 

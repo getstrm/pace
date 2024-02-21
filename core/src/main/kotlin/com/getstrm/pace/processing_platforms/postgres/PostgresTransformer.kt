@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.processing_platforms.CAPTURING_GROUP_REGEX
 import com.getstrm.pace.processing_platforms.ProcessingPlatformRenderer
 import com.getstrm.pace.processing_platforms.ProcessingPlatformTransformer
@@ -40,18 +41,21 @@ object PostgresTransformer : ProcessingPlatformTransformer(PostgresRenderer) {
         field: DataPolicy.Field,
         hash: DataPolicy.RuleSet.FieldTransform.Transform.Hash
     ): Field<*> {
-        return if (field.toJooqField().dataType.isNumeric) {
+        val dataType = field.toJooqField().dataType
+        return if (dataType.isNumeric) {
             DSL.field(
                 "hashtextextended(cast({0} as varchar), ${if (hash.hasSeed()) hash.seed else 0})",
                 String::class.java,
                 DSL.field(DSL.unquotedName(renderName(field.fullName()))),
             )
-        } else {
+        } else if (dataType.isString) {
             DSL.field(
                 "digest(cast({0} as varchar), 'sha256')",
                 String::class.java,
                 DSL.field(DSL.unquotedName(renderName(field.fullName()))),
             )
+        } else {
+            throwUnimplemented("Hashing a ${dataType.typeName} type")
         }
     }
 

@@ -1,6 +1,7 @@
 package com.getstrm.pace.processing_platforms.h2
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.exceptions.throwUnimplemented
 import com.getstrm.pace.processing_platforms.ProcessingPlatformRenderer
 import com.getstrm.pace.processing_platforms.ProcessingPlatformTransformer
 import com.getstrm.pace.util.defaultJooqSettings
@@ -44,18 +45,21 @@ object H2Transformer : ProcessingPlatformTransformer(H2Renderer) {
         field: DataPolicy.Field,
         hash: DataPolicy.RuleSet.FieldTransform.Transform.Hash
     ): Field<*> {
-        return if (field.toJooqField().dataType.isNumeric) {
+        val dataType = field.toJooqField().dataType
+        return if (dataType.isNumeric) {
             DSL.field(
                 "ORA_HASH({0})",
                 Any::class.java,
                 DSL.unquotedName(renderName(field.fullName())),
             )
-        } else {
+        } else if (dataType.isString) {
             DSL.field(
                 "HASH('SHA-256', CAST({0} as varchar))",
                 Any::class.java,
                 DSL.unquotedName(renderName(field.fullName())),
             )
+        } else {
+            throwUnimplemented("Hashing a ${dataType.typeName} type")
         }
     }
 }

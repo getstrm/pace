@@ -36,13 +36,13 @@ object SynapseTransformer : ProcessingPlatformTransformer(ProcessingPlatformRend
         field: DataPolicy.Field,
         hash: DataPolicy.RuleSet.FieldTransform.Transform.Hash
     ): Field<*> =
-        if (field.toJooqField().dataType.isNumeric) {
-            throwUnimplemented("Hashing for numeric types in Synapse")
-        } else {
+        if (field.toJooqField().dataType.isString) {
             DSL.field(
                 "HASHBYTES('SHA2_512', {0})",
                 Any::class.java,
                 DSL.unquotedName(field.fullName()),
             )
+        } else {
+            throwUnimplemented("Hashing for ${field.toJooqField().dataType.typeName} type in Synapse")
         }
 }

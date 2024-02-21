@@ -3,8 +3,10 @@ package com.getstrm.pace.processing_platforms.bigquery
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Aggregation
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy.RuleSet.FieldTransform.Transform.Hash
+import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.namedField
 import com.getstrm.pace.toSql
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
@@ -77,6 +79,16 @@ class BigQueryTransformerTest {
 
         // Then
         result.toSql() shouldBe "FARM_FINGERPRINT(CAST(`transactionamount` AS STRING))"
+    }
+
+    @Test
+    fun `hash - not valid`() {
+        // Given
+        val field = namedField("timestamp", "timestamp")
+        val hash = Hash.getDefaultInstance()
+
+        // Then
+        shouldThrow<InternalException> { underTest.hash(field, hash) }
     }
 
     @Test

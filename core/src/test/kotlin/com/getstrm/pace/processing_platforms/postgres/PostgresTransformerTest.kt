@@ -1,8 +1,10 @@
 package com.getstrm.pace.processing_platforms.postgres
 
 import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
+import com.getstrm.pace.exceptions.InternalException
 import com.getstrm.pace.namedField
 import com.getstrm.pace.toSql
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
@@ -90,5 +92,15 @@ class PostgresTransformerTest {
 
         // Then
         result.toSql() shouldBe "hashtextextended(cast(\"transactionamount\" as varchar), 0)"
+    }
+
+    @Test
+    fun `hash - not valid`() {
+        // Given
+        val field = namedField("timestamp", "timestamp")
+        val hash = DataPolicy.RuleSet.FieldTransform.Transform.Hash.getDefaultInstance()
+
+        // Then
+        shouldThrow<InternalException> {  underTest.hash(field, hash) }
     }
 }
