@@ -1,4 +1,8 @@
+import com.fasterxml.jackson.databind.util.NativeImageUtil
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.graalvm.buildtools.gradle.dsl.NativeImageOptions
+import org.jetbrains.kotlin.fir.expressions.builder.buildArgumentList
+import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 
 val generatedBufDependencyVersion: String by rootProject.extra
 val kotestVersion = rootProject.ext["kotestVersion"] as String
@@ -65,7 +69,13 @@ graalvmNative {
     binaries {
         getByName("main") {
             imageName.set("pace-dbt")
+            classpath("$projectDir/build/classes/kotlin/main/")
+            mainClass.set("com.getstrm.pace.dbt.MainKt")
+            buildArgs.add("--trace-class-initialization=org.slf4j.LoggerFactory")
         }
     }
     toolchainDetection = false
 }
+
+
+
