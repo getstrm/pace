@@ -1,8 +1,10 @@
 import com.fasterxml.jackson.databind.util.NativeImageUtil
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions
+import org.gradle.internal.impldep.org.bouncycastle.its.asn1.EndEntityType.app
 import org.jetbrains.kotlin.fir.expressions.builder.buildArgumentList
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
+import org.springframework.boot.loader.tools.MainClassFinder
 
 val generatedBufDependencyVersion: String by rootProject.extra
 val kotestVersion = rootProject.ext["kotestVersion"] as String
@@ -19,6 +21,7 @@ project.version =
 plugins {
     id("com.github.johnrengelman.shadow")
     id("org.graalvm.buildtools.native") version "0.9.28"
+    id("application")
 }
 
 dependencies {
@@ -65,17 +68,19 @@ tasks {
     }
 }
 
+application {
+    mainClass.set("com.getstrm.pace.dbt.MainKt")
+}
+
 graalvmNative {
     binaries {
         getByName("main") {
             imageName.set("pace-dbt")
             classpath("$projectDir/build/classes/kotlin/main/")
             mainClass.set("com.getstrm.pace.dbt.MainKt")
-            buildArgs.add("--trace-class-initialization=org.slf4j.LoggerFactory")
+            buildArgs.add("--initialize-at-build-time=org.slf4j.impl.StaticLoggerBinder,org.slf4j.LoggerFactory,ch.qos.logback.classic.Logger,ch.qos.logback.core.spi.AppenderAttachableImpl,ch.qos.logback.core.status.StatusBase,ch.qos.logback.classic.Level,ch.qos.logback.core.status.InfoStatus,ch.qos.logback.classic.PatternLayout,ch.qos.logback.core.CoreConstants,ch.qos.logback.core.util.Loader,ch.qos.logback.core.util.StatusPrinter")
+
         }
     }
     toolchainDetection = false
 }
-
-
-

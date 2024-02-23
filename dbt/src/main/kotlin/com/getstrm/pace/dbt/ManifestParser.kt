@@ -15,14 +15,18 @@ import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.getstrm.pace.exceptions.BadRequestException
 import com.getstrm.pace.service.DataPolicyValidator
 import com.google.protobuf.util.JsonFormat
 import com.google.rpc.BadRequest.FieldViolation
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding
 
-object ManifestParser {
+class ManifestParser {
 
-    private val objectMapper = jacksonObjectMapper().apply { setPropertyNamingStrategy(SNAKE_CASE) }
+    private val objectMapper =
+        jacksonObjectMapper().apply { setPropertyNamingStrategy(SNAKE_CASE) }
+
     private val protoJsonParser = JsonFormat.parser().ignoringUnknownFields()
     private val validator = DataPolicyValidator()
 
@@ -34,7 +38,7 @@ object ManifestParser {
                 .fields()
                 .asSequence()
                 .filter { (_, node) -> (node as ObjectNode)["resource_type"].asText() == "model" }
-                .map { (_, node) -> objectMapper.convertValue<DbtModel>(node) }
+                .map { (_, node) -> objectMapper.readValue(objectMapper.writeValueAsString(node),DbtModel::class.java) }
                 .toList()
         val platformType = manifestObjectNode["metadata"]["adapter_type"].asText().toPlatformType()
         return modelNodes.filter {
@@ -71,29 +75,29 @@ object ManifestParser {
     ): DataPolicy {
         val dataPolicyBuilder =
             dataPolicy {
-                    metadata = metadata {
-                        // Since the model FQN differs from the db/schema/table path on the
-                        // underlying platform,
-                        // and purely depends on DBT project id, and the directory structure used,
-                        // we "store" the fqn in the title for now. I.e. the title represents the
-                        // source
-                        // model's fqn, and the source resource path represents the actual path on
-                        // the platform.
-                        title = model.fqn.joinToString(".")
-                        description = model.description.orEmpty()
-                        tags.addAll(model.tags)
+                metadata = metadata {
+                    // Since the model FQN differs from the db/schema/table path on the
+                    // underlying platform,
+                    // and purely depends on DBT project id, and the directory structure used,
+                    // we "store" the fqn in the title for now. I.e. the title represents the
+                    // source
+                    // model's fqn, and the source resource path represents the actual path on
+                    // the platform.
+                    title = model.fqn.joinToString(".")
+                    description = model.description.orEmpty()
+                    tags.addAll(model.tags)
+                }
+                source = source {
+                    ref = resourceUrn {
+                        platform = processingPlatform { this.platformType = platformType }
+                        val resourcePathComponents =
+                            listOf(model.database, model.schema, model.name)
+                        integrationFqn = resourcePathComponents.joinToString(".")
+                        resourcePath.addAll(
+                                resourcePathComponents.map { resourceNode { name = it } },
+                        )
                     }
-                    source = source {
-                        ref = resourceUrn {
-                            platform = processingPlatform { this.platformType = platformType }
-                            val resourcePathComponents =
-                                listOf(model.database, model.schema, model.name)
-                            integrationFqn = resourcePathComponents.joinToString(".")
-                            resourcePath.addAll(
-                                resourcePathComponents.map { resourceNode { name = it } }
-                            )
-                        }
-                        fields.addAll(
+                    fields.addAll(
                             model.columns.values.map { column ->
                                 field {
                                     // TODO doesn't handle nested?
@@ -102,10 +106,10 @@ object ManifestParser {
                                     // TODO reuse sqlDataType
                                     column.dataType?.let { type = it }
                                 }
-                            }
-                        )
-                    }
+                            },
+                    )
                 }
+            }
                 .toBuilder()
 
         mergePolicyFromModelMeta(model, dataPolicyBuilder)
@@ -203,9 +207,11 @@ object ManifestParser {
 
                 refBuilder.integrationFqn = "${dataPolicyBuilder.source.ref.integrationFqn}_view"
             }
+
             refBuilder.integrationFqn.isEmpty() && refBuilder.resourcePathList.isNotEmpty() -> {
                 refBuilder.integrationFqn = refBuilder.resourcePathList.joinToString(".")
             }
+
             refBuilder.integrationFqn.isNotEmpty() && refBuilder.resourcePathList.isEmpty() -> {
                 refBuilder.addAllResourcePath(
                     refBuilder.integrationFqn.split(".").map { resourceNode { name = it } },

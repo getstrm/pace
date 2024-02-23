@@ -25,7 +25,7 @@ select
       ('fraud_and_risk' IN ( SELECT `userGroup` FROM `user_groups` ))
       or ('administrator' IN ( SELECT `userGroup` FROM `user_groups` ))
     ) then `userid`
-    else 42
+    else hash('`userid`')
   end `userid`,
   case
     when ('administrator' IN ( SELECT `userGroup` FROM `user_groups` )) then `email`

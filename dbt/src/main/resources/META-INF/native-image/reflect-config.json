@@ -1,0 +1,463 @@
+[
+{
+  "name":"[Lcom.fasterxml.jackson.databind.deser.Deserializers;"
+},
+{
+  "name":"[Lcom.fasterxml.jackson.databind.deser.KeyDeserializers;"
+},
+{
+  "name":"[Lcom.fasterxml.jackson.databind.deser.ValueInstantiators;"
+},
+{
+  "name":"[Lcom.fasterxml.jackson.databind.ser.Serializers;"
+},
+{
+  "name":"[Lcom.zaxxer.hikari.util.ConcurrentBag$IConcurrentBagEntry;"
+},
+{
+  "name":"[Ljava.sql.Statement;"
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog",
+  "methods":[{"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy",
+  "methods":[{"name":"getMetadata","parameterTypes":[] }, {"name":"getRuleSets","parameterTypes":["int"] }, {"name":"getRuleSetsCount","parameterTypes":[] }, {"name":"getRuleSetsList","parameterTypes":[] }, {"name":"getSource","parameterTypes":[] }, {"name":"hasMetadata","parameterTypes":[] }, {"name":"hasSource","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Builder",
+  "methods":[{"name":"addRuleSets","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet"] }, {"name":"clearMetadata","parameterTypes":[] }, {"name":"clearRuleSets","parameterTypes":[] }, {"name":"clearSource","parameterTypes":[] }, {"name":"getMetadata","parameterTypes":[] }, {"name":"getMetadataBuilder","parameterTypes":[] }, {"name":"getRuleSets","parameterTypes":["int"] }, {"name":"getRuleSetsBuilder","parameterTypes":["int"] }, {"name":"getRuleSetsCount","parameterTypes":[] }, {"name":"getRuleSetsList","parameterTypes":[] }, {"name":"getSource","parameterTypes":[] }, {"name":"getSourceBuilder","parameterTypes":[] }, {"name":"hasMetadata","parameterTypes":[] }, {"name":"hasSource","parameterTypes":[] }, {"name":"setMetadata","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Metadata"] }, {"name":"setRuleSets","parameterTypes":["int","build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet"] }, {"name":"setSource","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Source"] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Field",
+  "methods":[{"name":"getNameParts","parameterTypes":["int"] }, {"name":"getNamePartsCount","parameterTypes":[] }, {"name":"getNamePartsList","parameterTypes":[] }, {"name":"getRequired","parameterTypes":[] }, {"name":"getTags","parameterTypes":["int"] }, {"name":"getTagsCount","parameterTypes":[] }, {"name":"getTagsList","parameterTypes":[] }, {"name":"getType","parameterTypes":[] }, {"name":"getTypeBytes","parameterTypes":[] }, {"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Field$Builder",
+  "methods":[{"name":"addNameParts","parameterTypes":["java.lang.String"] }, {"name":"addTags","parameterTypes":["java.lang.String"] }, {"name":"clearNameParts","parameterTypes":[] }, {"name":"clearRequired","parameterTypes":[] }, {"name":"clearTags","parameterTypes":[] }, {"name":"clearType","parameterTypes":[] }, {"name":"getNameParts","parameterTypes":["int"] }, {"name":"getNamePartsCount","parameterTypes":[] }, {"name":"getNamePartsList","parameterTypes":[] }, {"name":"getRequired","parameterTypes":[] }, {"name":"getTags","parameterTypes":["int"] }, {"name":"getTagsCount","parameterTypes":[] }, {"name":"getTagsList","parameterTypes":[] }, {"name":"getType","parameterTypes":[] }, {"name":"setNameParts","parameterTypes":["int","java.lang.String"] }, {"name":"setRequired","parameterTypes":["boolean"] }, {"name":"setTags","parameterTypes":["int","java.lang.String"] }, {"name":"setType","parameterTypes":["java.lang.String"] }, {"name":"setTypeBytes","parameterTypes":["com.google.protobuf.ByteString"] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Metadata",
+  "methods":[{"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Principal",
+  "methods":[{"name":"getGroup","parameterTypes":[] }, {"name":"getGroupBytes","parameterTypes":[] }, {"name":"getPermission","parameterTypes":[] }, {"name":"getPermissionBytes","parameterTypes":[] }, {"name":"getPrincipalCase","parameterTypes":[] }, {"name":"getRole","parameterTypes":[] }, {"name":"getRoleBytes","parameterTypes":[] }, {"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Principal$Builder",
+  "methods":[{"name":"clearGroup","parameterTypes":[] }, {"name":"clearPermission","parameterTypes":[] }, {"name":"clearPrincipal","parameterTypes":[] }, {"name":"clearRole","parameterTypes":[] }, {"name":"getGroup","parameterTypes":[] }, {"name":"getPermission","parameterTypes":[] }, {"name":"getPrincipalCase","parameterTypes":[] }, {"name":"getRole","parameterTypes":[] }, {"name":"setGroup","parameterTypes":["java.lang.String"] }, {"name":"setGroupBytes","parameterTypes":["com.google.protobuf.ByteString"] }, {"name":"setPermission","parameterTypes":["java.lang.String"] }, {"name":"setPermissionBytes","parameterTypes":["com.google.protobuf.ByteString"] }, {"name":"setRole","parameterTypes":["java.lang.String"] }, {"name":"setRoleBytes","parameterTypes":["com.google.protobuf.ByteString"] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet",
+  "methods":[{"name":"getFieldTransforms","parameterTypes":["int"] }, {"name":"getFieldTransformsCount","parameterTypes":[] }, {"name":"getFieldTransformsList","parameterTypes":[] }, {"name":"getFilters","parameterTypes":["int"] }, {"name":"getFiltersCount","parameterTypes":[] }, {"name":"getFiltersList","parameterTypes":[] }, {"name":"getTarget","parameterTypes":[] }, {"name":"hasTarget","parameterTypes":[] }, {"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$Builder",
+  "methods":[{"name":"addFieldTransforms","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform"] }, {"name":"addFilters","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$Filter"] }, {"name":"clearFieldTransforms","parameterTypes":[] }, {"name":"clearFilters","parameterTypes":[] }, {"name":"clearTarget","parameterTypes":[] }, {"name":"getFieldTransforms","parameterTypes":["int"] }, {"name":"getFieldTransformsBuilder","parameterTypes":["int"] }, {"name":"getFieldTransformsCount","parameterTypes":[] }, {"name":"getFieldTransformsList","parameterTypes":[] }, {"name":"getFilters","parameterTypes":["int"] }, {"name":"getFiltersBuilder","parameterTypes":["int"] }, {"name":"getFiltersCount","parameterTypes":[] }, {"name":"getFiltersList","parameterTypes":[] }, {"name":"getTarget","parameterTypes":[] }, {"name":"getTargetBuilder","parameterTypes":[] }, {"name":"hasTarget","parameterTypes":[] }, {"name":"setFieldTransforms","parameterTypes":["int","build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform"] }, {"name":"setFilters","parameterTypes":["int","build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$Filter"] }, {"name":"setTarget","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Target"] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform",
+  "methods":[{"name":"getField","parameterTypes":[] }, {"name":"getTransforms","parameterTypes":["int"] }, {"name":"getTransformsCount","parameterTypes":[] }, {"name":"getTransformsList","parameterTypes":[] }, {"name":"hasField","parameterTypes":[] }, {"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Builder",
+  "methods":[{"name":"addTransforms","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform"] }, {"name":"clearField","parameterTypes":[] }, {"name":"clearTransforms","parameterTypes":[] }, {"name":"getField","parameterTypes":[] }, {"name":"getFieldBuilder","parameterTypes":[] }, {"name":"getTransforms","parameterTypes":["int"] }, {"name":"getTransformsBuilder","parameterTypes":["int"] }, {"name":"getTransformsCount","parameterTypes":[] }, {"name":"getTransformsList","parameterTypes":[] }, {"name":"hasField","parameterTypes":[] }, {"name":"setField","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Field"] }, {"name":"setTransforms","parameterTypes":["int","build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform"] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform",
+  "methods":[{"name":"getAggregation","parameterTypes":[] }, {"name":"getDetokenize","parameterTypes":[] }, {"name":"getFixed","parameterTypes":[] }, {"name":"getHash","parameterTypes":[] }, {"name":"getIdentity","parameterTypes":[] }, {"name":"getNullify","parameterTypes":[] }, {"name":"getNumericRounding","parameterTypes":[] }, {"name":"getPrincipals","parameterTypes":["int"] }, {"name":"getPrincipalsCount","parameterTypes":[] }, {"name":"getPrincipalsList","parameterTypes":[] }, {"name":"getRegexp","parameterTypes":[] }, {"name":"getSqlStatement","parameterTypes":[] }, {"name":"getTransformCase","parameterTypes":[] }, {"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Aggregation",
+  "methods":[{"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Builder",
+  "methods":[{"name":"addPrincipals","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Principal"] }, {"name":"clearAggregation","parameterTypes":[] }, {"name":"clearDetokenize","parameterTypes":[] }, {"name":"clearFixed","parameterTypes":[] }, {"name":"clearHash","parameterTypes":[] }, {"name":"clearIdentity","parameterTypes":[] }, {"name":"clearNullify","parameterTypes":[] }, {"name":"clearNumericRounding","parameterTypes":[] }, {"name":"clearPrincipals","parameterTypes":[] }, {"name":"clearRegexp","parameterTypes":[] }, {"name":"clearSqlStatement","parameterTypes":[] }, {"name":"clearTransform","parameterTypes":[] }, {"name":"getAggregation","parameterTypes":[] }, {"name":"getAggregationBuilder","parameterTypes":[] }, {"name":"getDetokenize","parameterTypes":[] }, {"name":"getDetokenizeBuilder","parameterTypes":[] }, {"name":"getFixed","parameterTypes":[] }, {"name":"getFixedBuilder","parameterTypes":[] }, {"name":"getHash","parameterTypes":[] }, {"name":"getHashBuilder","parameterTypes":[] }, {"name":"getIdentity","parameterTypes":[] }, {"name":"getIdentityBuilder","parameterTypes":[] }, {"name":"getNullify","parameterTypes":[] }, {"name":"getNullifyBuilder","parameterTypes":[] }, {"name":"getNumericRounding","parameterTypes":[] }, {"name":"getNumericRoundingBuilder","parameterTypes":[] }, {"name":"getPrincipals","parameterTypes":["int"] }, {"name":"getPrincipalsBuilder","parameterTypes":["int"] }, {"name":"getPrincipalsCount","parameterTypes":[] }, {"name":"getPrincipalsList","parameterTypes":[] }, {"name":"getRegexp","parameterTypes":[] }, {"name":"getRegexpBuilder","parameterTypes":[] }, {"name":"getSqlStatement","parameterTypes":[] }, {"name":"getSqlStatementBuilder","parameterTypes":[] }, {"name":"getTransformCase","parameterTypes":[] }, {"name":"setAggregation","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Aggregation"] }, {"name":"setDetokenize","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Detokenize"] }, {"name":"setFixed","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Fixed"] }, {"name":"setHash","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Hash"] }, {"name":"setIdentity","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Identity"] }, {"name":"setNullify","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Nullify"] }, {"name":"setNumericRounding","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$NumericRounding"] }, {"name":"setPrincipals","parameterTypes":["int","build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Principal"] }, {"name":"setRegexp","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Regexp"] }, {"name":"setSqlStatement","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$SqlStatement"] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Detokenize",
+  "methods":[{"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Fixed",
+  "methods":[{"name":"getValue","parameterTypes":[] }, {"name":"getValueBytes","parameterTypes":[] }, {"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Fixed$Builder",
+  "methods":[{"name":"clearValue","parameterTypes":[] }, {"name":"getValue","parameterTypes":[] }, {"name":"setValue","parameterTypes":["java.lang.String"] }, {"name":"setValueBytes","parameterTypes":["com.google.protobuf.ByteString"] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Hash",
+  "methods":[{"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Identity",
+  "methods":[{"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Nullify",
+  "methods":[{"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$NumericRounding",
+  "methods":[{"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$Regexp",
+  "methods":[{"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$FieldTransform$Transform$SqlStatement",
+  "methods":[{"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$Filter",
+  "methods":[{"name":"getFilterCase","parameterTypes":[] }, {"name":"getGenericFilter","parameterTypes":[] }, {"name":"getRetentionFilter","parameterTypes":[] }, {"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$Filter$Builder",
+  "methods":[{"name":"clearFilter","parameterTypes":[] }, {"name":"clearGenericFilter","parameterTypes":[] }, {"name":"clearRetentionFilter","parameterTypes":[] }, {"name":"getFilterCase","parameterTypes":[] }, {"name":"getGenericFilter","parameterTypes":[] }, {"name":"getGenericFilterBuilder","parameterTypes":[] }, {"name":"getRetentionFilter","parameterTypes":[] }, {"name":"getRetentionFilterBuilder","parameterTypes":[] }, {"name":"setGenericFilter","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$Filter$GenericFilter"] }, {"name":"setRetentionFilter","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$Filter$RetentionFilter"] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$Filter$GenericFilter",
+  "methods":[{"name":"getConditions","parameterTypes":["int"] }, {"name":"getConditionsCount","parameterTypes":[] }, {"name":"getConditionsList","parameterTypes":[] }, {"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$Filter$GenericFilter$Builder",
+  "methods":[{"name":"addConditions","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$Filter$GenericFilter$Condition"] }, {"name":"clearConditions","parameterTypes":[] }, {"name":"getConditions","parameterTypes":["int"] }, {"name":"getConditionsBuilder","parameterTypes":["int"] }, {"name":"getConditionsCount","parameterTypes":[] }, {"name":"getConditionsList","parameterTypes":[] }, {"name":"setConditions","parameterTypes":["int","build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$Filter$GenericFilter$Condition"] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$Filter$GenericFilter$Condition",
+  "methods":[{"name":"getCondition","parameterTypes":[] }, {"name":"getConditionBytes","parameterTypes":[] }, {"name":"getPrincipals","parameterTypes":["int"] }, {"name":"getPrincipalsCount","parameterTypes":[] }, {"name":"getPrincipalsList","parameterTypes":[] }, {"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$Filter$GenericFilter$Condition$Builder",
+  "methods":[{"name":"addPrincipals","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Principal"] }, {"name":"clearCondition","parameterTypes":[] }, {"name":"clearPrincipals","parameterTypes":[] }, {"name":"getCondition","parameterTypes":[] }, {"name":"getPrincipals","parameterTypes":["int"] }, {"name":"getPrincipalsBuilder","parameterTypes":["int"] }, {"name":"getPrincipalsCount","parameterTypes":[] }, {"name":"getPrincipalsList","parameterTypes":[] }, {"name":"setCondition","parameterTypes":["java.lang.String"] }, {"name":"setConditionBytes","parameterTypes":["com.google.protobuf.ByteString"] }, {"name":"setPrincipals","parameterTypes":["int","build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Principal"] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$RuleSet$Filter$RetentionFilter",
+  "methods":[{"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Source",
+  "methods":[{"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Target",
+  "methods":[{"name":"getRef","parameterTypes":[] }, {"name":"getType","parameterTypes":[] }, {"name":"getTypeValue","parameterTypes":[] }, {"name":"hasRef","parameterTypes":[] }, {"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Target$Builder",
+  "methods":[{"name":"clearRef","parameterTypes":[] }, {"name":"clearType","parameterTypes":[] }, {"name":"getRef","parameterTypes":[] }, {"name":"getRefBuilder","parameterTypes":[] }, {"name":"getType","parameterTypes":[] }, {"name":"getTypeValue","parameterTypes":[] }, {"name":"hasRef","parameterTypes":[] }, {"name":"setRef","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn"] }, {"name":"setType","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Target$TargetType"] }, {"name":"setTypeValue","parameterTypes":["int"] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy$Target$TargetType",
+  "methods":[{"name":"getValueDescriptor","parameterTypes":[] }, {"name":"valueOf","parameterTypes":["com.google.protobuf.Descriptors$EnumValueDescriptor"] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform",
+  "methods":[{"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceNode",
+  "methods":[{"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn",
+  "methods":[{"name":"getCatalog","parameterTypes":[] }, {"name":"getIntegrationCase","parameterTypes":[] }, {"name":"getIntegrationFqn","parameterTypes":[] }, {"name":"getIntegrationFqnBytes","parameterTypes":[] }, {"name":"getPlatform","parameterTypes":[] }, {"name":"getResourcePath","parameterTypes":["int"] }, {"name":"getResourcePathCount","parameterTypes":[] }, {"name":"getResourcePathList","parameterTypes":[] }, {"name":"hasIntegrationFqn","parameterTypes":[] }, {"name":"newBuilder","parameterTypes":[] }]
+},
+{
+  "name":"build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceUrn$Builder",
+  "methods":[{"name":"addResourcePath","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceNode"] }, {"name":"clearCatalog","parameterTypes":[] }, {"name":"clearIntegration","parameterTypes":[] }, {"name":"clearIntegrationFqn","parameterTypes":[] }, {"name":"clearPlatform","parameterTypes":[] }, {"name":"clearResourcePath","parameterTypes":[] }, {"name":"getCatalog","parameterTypes":[] }, {"name":"getCatalogBuilder","parameterTypes":[] }, {"name":"getIntegrationCase","parameterTypes":[] }, {"name":"getIntegrationFqn","parameterTypes":[] }, {"name":"getPlatform","parameterTypes":[] }, {"name":"getPlatformBuilder","parameterTypes":[] }, {"name":"getResourcePath","parameterTypes":["int"] }, {"name":"getResourcePathBuilder","parameterTypes":["int"] }, {"name":"getResourcePathCount","parameterTypes":[] }, {"name":"getResourcePathList","parameterTypes":[] }, {"name":"hasIntegrationFqn","parameterTypes":[] }, {"name":"setCatalog","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.DataCatalog"] }, {"name":"setIntegrationFqn","parameterTypes":["java.lang.String"] }, {"name":"setIntegrationFqnBytes","parameterTypes":["com.google.protobuf.ByteString"] }, {"name":"setPlatform","parameterTypes":["build.buf.gen.getstrm.pace.api.entities.v1alpha.ProcessingPlatform"] }, {"name":"setResourcePath","parameterTypes":["int","build.buf.gen.getstrm.pace.api.entities.v1alpha.ResourceNode"] }]
+},
+{
+  "name":"ch.qos.logback.classic.encoder.PatternLayoutEncoder",
+  "queryAllPublicMethods":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"ch.qos.logback.classic.joran.SerializedModelConfigurator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"ch.qos.logback.classic.pattern.DateConverter",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"ch.qos.logback.classic.pattern.LevelConverter",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"ch.qos.logback.classic.pattern.LineSeparatorConverter",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"ch.qos.logback.classic.pattern.LoggerConverter",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"ch.qos.logback.classic.pattern.MDCConverter",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"ch.qos.logback.classic.pattern.MessageConverter",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"ch.qos.logback.classic.pattern.ThreadConverter",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"ch.qos.logback.classic.util.DefaultJoranConfigurator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"ch.qos.logback.core.ConsoleAppender",
+  "queryAllPublicMethods":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"ch.qos.logback.core.OutputStreamAppender",
+  "methods":[{"name":"setEncoder","parameterTypes":["ch.qos.logback.core.encoder.Encoder"] }]
+},
+{
+  "name":"ch.qos.logback.core.encoder.Encoder",
+  "methods":[{"name":"valueOf","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"ch.qos.logback.core.encoder.LayoutWrappingEncoder",
+  "methods":[{"name":"setParent","parameterTypes":["ch.qos.logback.core.spi.ContextAware"] }]
+},
+{
+  "name":"ch.qos.logback.core.pattern.PatternLayoutEncoderBase",
+  "methods":[{"name":"setPattern","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"ch.qos.logback.core.spi.ContextAware",
+  "methods":[{"name":"valueOf","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"com.fasterxml.jackson.databind.JsonNode"
+},
+{
+  "name":"com.fasterxml.jackson.databind.ext.Java7SupportImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.getstrm.pace.dbt.Column",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.String","java.lang.String","java.util.List","java.lang.String","java.util.Map"] }, {"name":"<init>","parameterTypes":["java.lang.String","java.lang.String","java.util.List","java.lang.String","java.util.Map","int","kotlin.jvm.internal.DefaultConstructorMarker"] }]
+},
+{
+  "name":"com.getstrm.pace.dbt.DbtModel",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.String","java.lang.String","java.lang.String","java.lang.String","java.util.Map","java.util.List","java.util.Map","java.util.List","java.lang.String"] }, {"name":"<init>","parameterTypes":["java.lang.String","java.lang.String","java.lang.String","java.lang.String","java.util.Map","java.util.List","java.util.Map","java.util.List","java.lang.String","int","kotlin.jvm.internal.DefaultConstructorMarker"] }]
+},
+{
+  "name":"com.google.protobuf.ExtensionRegistry",
+  "methods":[{"name":"getEmptyRegistry","parameterTypes":[] }]
+},
+{
+  "name":"com.ibm.icu.text.Collator"
+},
+{
+  "name":"com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.zaxxer.hikari.HikariConfig",
+  "allDeclaredFields":true
+},
+{
+  "name":"com.zaxxer.hikari.pool.PoolBase",
+  "fields":[{"name":"catalog"}]
+},
+{
+  "name":"com.zaxxer.hikari.pool.PoolEntry",
+  "fields":[{"name":"state"}]
+},
+{
+  "name":"java.io.FilePermission"
+},
+{
+  "name":"java.io.Serializable",
+  "allDeclaredFields":true,
+  "allDeclaredClasses":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"java.lang.Class",
+  "methods":[{"name":"getPermittedSubclasses","parameterTypes":[] }, {"name":"getRecordComponents","parameterTypes":[] }, {"name":"isRecord","parameterTypes":[] }, {"name":"isSealed","parameterTypes":[] }]
+},
+{
+  "name":"java.lang.ClassValue"
+},
+{
+  "name":"java.lang.Object"
+},
+{
+  "name":"java.lang.RuntimePermission"
+},
+{
+  "name":"java.lang.String"
+},
+{
+  "name":"java.lang.Thread",
+  "methods":[{"name":"ofVirtual","parameterTypes":[] }]
+},
+{
+  "name":"java.lang.ThreadBuilders$VirtualThreadBuilder",
+  "methods":[{"name":"factory","parameterTypes":[] }]
+},
+{
+  "name":"java.net.NetPermission"
+},
+{
+  "name":"java.net.SocketPermission"
+},
+{
+  "name":"java.net.URLPermission",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.String","java.lang.String"] }]
+},
+{
+  "name":"java.nio.Buffer",
+  "fields":[{"name":"address"}]
+},
+{
+  "name":"java.security.AllPermission"
+},
+{
+  "name":"java.security.SecurityPermission"
+},
+{
+  "name":"java.sql.SQLException",
+  "fields":[{"name":"next"}]
+},
+{
+  "name":"java.util.List"
+},
+{
+  "name":"java.util.Map"
+},
+{
+  "name":"java.util.PropertyPermission"
+},
+{
+  "name":"java.util.concurrent.atomic.AtomicBoolean",
+  "fields":[{"name":"value"}]
+},
+{
+  "name":"java.util.concurrent.atomic.AtomicReference",
+  "fields":[{"name":"value"}]
+},
+{
+  "name":"javax.smartcardio.CardPermission"
+},
+{
+  "name":"kotlin.Any"
+},
+{
+  "name":"kotlin.Boolean"
+},
+{
+  "name":"kotlin.Int"
+},
+{
+  "name":"kotlin.Metadata",
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"bv","parameterTypes":[] }, {"name":"d1","parameterTypes":[] }, {"name":"d2","parameterTypes":[] }, {"name":"k","parameterTypes":[] }, {"name":"mv","parameterTypes":[] }, {"name":"pn","parameterTypes":[] }, {"name":"xi","parameterTypes":[] }, {"name":"xs","parameterTypes":[] }]
+},
+{
+  "name":"kotlin.SafePublicationLazyImpl",
+  "fields":[{"name":"_value"}]
+},
+{
+  "name":"kotlin.String"
+},
+{
+  "name":"kotlin.collections.List"
+},
+{
+  "name":"kotlin.collections.Map"
+},
+{
+  "name":"kotlin.jvm.internal.DefaultConstructorMarker"
+},
+{
+  "name":"kotlin.reflect.jvm.internal.ReflectionFactoryImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"kotlin.reflect.jvm.internal.impl.resolve.scopes.DescriptorKindFilter",
+  "allPublicFields":true
+},
+{
+  "name":"libcore.io.Memory"
+},
+{
+  "name":"org.h2.Driver"
+},
+{
+  "name":"org.h2.mvstore.MVStore$TxCounter",
+  "fields":[{"name":"counter"}]
+},
+{
+  "name":"org.h2.mvstore.Page",
+  "fields":[{"name":"pos"}]
+},
+{
+  "name":"org.jooq.impl.SQLDataType"
+},
+{
+  "name":"org.jooq.util.cubrid.CUBRIDDataType"
+},
+{
+  "name":"org.jooq.util.derby.DerbyDataType"
+},
+{
+  "name":"org.jooq.util.firebird.FirebirdDataType"
+},
+{
+  "name":"org.jooq.util.h2.H2DataType"
+},
+{
+  "name":"org.jooq.util.hsqldb.HSQLDBDataType"
+},
+{
+  "name":"org.jooq.util.ignite.IgniteDataType"
+},
+{
+  "name":"org.jooq.util.mariadb.MariaDBDataType"
+},
+{
+  "name":"org.jooq.util.mysql.MySQLDataType"
+},
+{
+  "name":"org.jooq.util.postgres.PostgresDataType"
+},
+{
+  "name":"org.jooq.util.sqlite.SQLiteDataType"
+},
+{
+  "name":"org.jooq.util.yugabytedb.YugabyteDBDataType"
+},
+{
+  "name":"org.robolectric.Robolectric"
+},
+{
+  "name":"sun.misc.Unsafe",
+  "allDeclaredFields":true,
+  "methods":[{"name":"arrayBaseOffset","parameterTypes":["java.lang.Class"] }, {"name":"arrayIndexScale","parameterTypes":["java.lang.Class"] }, {"name":"copyMemory","parameterTypes":["long","long","long"] }, {"name":"copyMemory","parameterTypes":["java.lang.Object","long","java.lang.Object","long","long"] }, {"name":"getBoolean","parameterTypes":["java.lang.Object","long"] }, {"name":"getByte","parameterTypes":["long"] }, {"name":"getByte","parameterTypes":["java.lang.Object","long"] }, {"name":"getDouble","parameterTypes":["java.lang.Object","long"] }, {"name":"getFloat","parameterTypes":["java.lang.Object","long"] }, {"name":"getInt","parameterTypes":["long"] }, {"name":"getInt","parameterTypes":["java.lang.Object","long"] }, {"name":"getLong","parameterTypes":["long"] }, {"name":"getLong","parameterTypes":["java.lang.Object","long"] }, {"name":"getObject","parameterTypes":["java.lang.Object","long"] }, {"name":"objectFieldOffset","parameterTypes":["java.lang.reflect.Field"] }, {"name":"putBoolean","parameterTypes":["java.lang.Object","long","boolean"] }, {"name":"putByte","parameterTypes":["long","byte"] }, {"name":"putByte","parameterTypes":["java.lang.Object","long","byte"] }, {"name":"putDouble","parameterTypes":["java.lang.Object","long","double"] }, {"name":"putFloat","parameterTypes":["java.lang.Object","long","float"] }, {"name":"putInt","parameterTypes":["long","int"] }, {"name":"putInt","parameterTypes":["java.lang.Object","long","int"] }, {"name":"putLong","parameterTypes":["long","long"] }, {"name":"putLong","parameterTypes":["java.lang.Object","long","long"] }, {"name":"putObject","parameterTypes":["java.lang.Object","long","java.lang.Object"] }]
+},
+{
+  "name":"sun.security.provider.SHA2$SHA256",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+}
+]

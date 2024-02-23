@@ -130,7 +130,9 @@ class DataPolicyValidator {
                 }
             }
 
-            checkValidFixedValues(dataPolicy.source, ruleSet)
+            if (!dataPolicyValidatorConfig.skipTypeCheck) {
+                checkValidFixedValues(dataPolicy.source, ruleSet)
+            }
 
             // check for every row filter that the principals overlap with groups in the processing
             // platform
@@ -258,6 +260,20 @@ class DataPolicyValidator {
                     fieldTransform.transformsList.filter { it.hasFixed() }.map { it.fixed.value }
             }
 
+        val jooq: DSLContext =
+            DSL.using(
+                HikariDataSource(
+                    HikariConfig().apply {
+                        jdbcUrl = "jdbc:h2:mem:;DATABASE_TO_UPPER=false"
+                        username = "sa"
+                        password = ""
+                        maximumPoolSize = 1
+                    },
+                )
+                    .connection,
+                SQLDialect.H2,
+            )
+
         fixedTransformValues.forEach { (field, fixedValues) ->
             fixedValues.forEach { fixedValue ->
                 try {
@@ -303,21 +319,4 @@ class DataPolicyValidator {
             BadRequestException.Code.INVALID_ARGUMENT,
             BadRequest.newBuilder().addAllFieldViolations(fieldViolations).build(),
         )
-
-    companion object {
-        // We need an actual datasource to validate fixed values against their field's data type
-        private val jooq: DSLContext =
-            DSL.using(
-                HikariDataSource(
-                        HikariConfig().apply {
-                            jdbcUrl = "jdbc:h2:mem:;DATABASE_TO_UPPER=false"
-                            username = "sa"
-                            password = ""
-                            maximumPoolSize = 1
-                        },
-                    )
-                    .connection,
-                SQLDialect.H2,
-            )
-    }
 }

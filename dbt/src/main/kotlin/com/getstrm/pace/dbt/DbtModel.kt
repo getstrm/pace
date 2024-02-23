@@ -2,6 +2,7 @@ package com.getstrm.pace.dbt
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.JsonNode
+import java.io.Serializable
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DbtModel(
@@ -14,7 +15,7 @@ data class DbtModel(
     val meta: Map<String, JsonNode> = emptyMap(),
     val fqn: List<String> = emptyList(),
     val originalFilePath: String = "",
-)
+) : Serializable
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Column(
@@ -23,4 +24,4 @@ data class Column(
     val tags: List<String> = emptyList(),
     val dataType: String? = null,
     val meta: Map<String, JsonNode> = emptyMap(),
-)
+) : Serializable

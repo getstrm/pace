@@ -4,13 +4,13 @@ import build.buf.gen.getstrm.pace.api.entities.v1alpha.DataPolicy
 import java.io.File
 import org.jetbrains.annotations.VisibleForTesting
 
-class ModelWriter(private val policy: DataPolicy, private val sourceModel: DbtModel) {
+class ModelWriter(private val policy: DataPolicy, private val sourceModel: DbtModel, private val basePath: String) {
 
     fun write() {
         // Todo: take global transforms into account
         val viewGenerator = ViewGeneratorFactory.create(policy, sourceModel)
         viewGenerator.toSelectStatement(inlineParameters = true).forEach { (target, query) ->
-            val targetFilePath = targetFilePath(target)
+            val targetFilePath = "$basePath/${targetFilePath(target)}"
             val file = File(targetFilePath)
             val header = ModelHeaderRenderer(sourceModel, target).render()
             file.writeText("$header\n$query\n")
