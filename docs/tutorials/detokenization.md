@@ -237,7 +237,7 @@ We can use the PACE CLI to retrieve a blueprint policy for the `transactions` ta
 {% code fullWidth="false" %}
 ```
 pace get data-policy --blueprint \
-  --processing-platform detokenization-example-connection \ 
+  --processing-platform detokenization-example-connection \
   --database detokenization \
   --schema public \
    transactions 
@@ -314,13 +314,14 @@ rule_sets:
       ref:
         integration_fqn: public.transactions_view
     filters:
-      - conditions:
-        - principals:
-          - group: fraud_and_risk
-          - group: fraud_investigation
-          condition: "true"
-        - principals: []
-          condition: "region <> 'Europe'"
+      - generic_filter:
+          conditions:
+            - principals:
+                - group: fraud_and_risk
+                - group: fraud_investigation
+              condition: "true"
+            - principals: []
+              condition: "region <> 'Europe'"
 ```
 
 The condition is defined in (standard) SQL, compatible with the target platform (our Postgres database in this case). Next, we can codify the remaining requirements as field transforms, resulting in the below rule set specification. See our [overview of transforms](../data-policy/rule-set/field-transform.md) for more details on their configuration.

@@ -277,8 +277,7 @@ pace get data-policy --blueprint \
     --processing-platform global_transforms-sample-connection \
     --database global_transforms \
     --schema public \
-    demo vim
-    
+    demo
 ```
 
 Which returns the following data policy.

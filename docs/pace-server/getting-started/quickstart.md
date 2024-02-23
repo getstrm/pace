@@ -233,7 +233,7 @@ pace list groups --processing-platform standalone-sample-connection
 
 Which results in the following groups, that have been configured by the `data.sql` init script:
 
-```bash
+```yaml
 groups:
 - administrator
 - fraud_and_risk
@@ -251,22 +251,16 @@ pace list tables --processing-platform standalone-sample-connection \
 
 Which results in the following table:
 
-```
+```yaml
 page_info:
   total: 1
 tables:
 - id: demo
   name: demo
   schema:
-    database:
-      display_name: standalone
-      id: standalone
-      processing_platform:
-        id: standalone-sample-connection
-        platform_type: POSTGRES
-      type: POSTGRES
     id: public
-    name: public
+    database:
+      id: standalone
 ```
 
 ### The Data Policy file
@@ -339,11 +333,12 @@ In YAML, this would look as follows:
 
 ```yaml
 filters:
-  - conditions:
-      - principals: [ { group: administrator }, { group: fraud_and_risk } ]
-        condition: "true"
-      - principals: [ ]
-        condition: "age > 8"
+  - generic_filter:
+      conditions:
+        - principals: [ { group: administrator }, { group: fraud_and_risk } ]
+          condition: "true"
+        - principals: [ ]
+          condition: "age > 8"
 ```
 
 **Transforms**
@@ -359,20 +354,20 @@ In YAML, this would look as follows:
 
 ```yaml
 field_transforms:
-- field:
-    name_parts: [ email ]
-  transforms:
-    - principals: [ { group: administrator } ]
-      identity: { }
-    - principals: [ { group: marketing } ]
-      regexp:
-        regexp: "^.*(@.*)$"
-        replacement: "****$1"
-    - principals: [ { group: fraud_and_risk } ]
-      identity: { }
-    - principals: [ ]
-      fixed:
-        value: "****"
+  - field:
+      name_parts: [ email ]
+    transforms:
+      - principals: [ { group: administrator } ]
+        identity: { }
+      - principals: [ { group: marketing } ]
+        regexp:
+          regexp: "^.*(@.*)$"
+          replacement: "****$1"
+      - principals: [ { group: fraud_and_risk } ]
+        identity: { }
+      - principals: [ ]
+        fixed:
+          value: "****"
 ```
 
 {% hint style="warning" %}
@@ -482,15 +477,14 @@ psql postgresql://other:other@localhost:5431/standalone
 
 Query the view:
 
-```bash
-standalone=> select * from public.demo_view limit 3;
- transactionid | userid | email | age | brand | transactionamount
+<pre class="language-bash"><code class="lang-bash"><strong>standalone=> select * from public.demo_view limit 3;
+</strong> transactionid | userid | email | age | brand | transactionamount
 ---------------+--------+-------+-----+-------+-------------------
      861200791 |      0 | ****  |  33 | Other |               123
      733970993 |      0 | ****  |  16 | Apple |                46
      494723158 |      0 | ****  |  64 | Other |                73
 (3 rows)
-```
+</code></pre>
 
 As you can see, all transforms with an empty principals list (i.e. all other users) are applied here:
 

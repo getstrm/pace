@@ -1,6 +1,6 @@
 # Target
 
-The `Target` is part of a `Rule Set` and defines where the result should be saved.  It requires a reference and type. The platform and database will be derived from the `Source` in the `Data Policy` . The `integration_fqn` or _fully qualified name_ is the full and unique name to be used in the target platform. For example, this could be the view name. Currently we only support creating a SQL view as target `Target Type`, so the type can be omitted.
+The `Target` is part of a `Rule Set` and defines where the result should be saved.  It requires a reference and type. The platform and database will be derived from the `Source` in the `Data Policy` . The `integration_fqn` or _fully qualified name_ is the full and unique name to be used in the target platform. For example, this could be the view name.
 
 ```yaml
 rule_sets:

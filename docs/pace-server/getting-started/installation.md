@@ -69,8 +69,7 @@ services:
 
   pace:
     container_name: pace
-    # you may want to update the image to the latest version
-    image: ghcr.io/getstrm/pace:1.0.0-alpha.7
+    image: ghcr.io/getstrm/pace:latest-alpha
     volumes:
       - ./config/:/app/config/
 
