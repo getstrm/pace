@@ -31,7 +31,7 @@ class ModelWriterTest {
                 )
             }
         }
-        val writer = ModelWriter(dataPolicy {}, sourceModel)
+        val writer = ModelWriter(dataPolicy {}, sourceModel, "")
 
         // When
         val filePath = writer.targetFilePath(target)
@@ -62,7 +62,7 @@ class ModelWriterTest {
                 )
             }
         }
-        val writer = ModelWriter(dataPolicy {}, sourceModel)
+        val writer = ModelWriter(dataPolicy {}, sourceModel, "")
 
         // When
         val filePath = writer.targetFilePath(target)
