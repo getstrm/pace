@@ -1,3 +1,10 @@
+# [1.0.0-alpha.68](https://github.com/getstrm/pace/compare/v1.0.0-alpha.67...v1.0.0-alpha.68) (2024-02-26)
+
+
+### Features
+
+* **pace-183:** allow the option to specify an absolute path ([#221](https://github.com/getstrm/pace/issues/221)) ([8fd940e](https://github.com/getstrm/pace/commit/8fd940e15e2fd2fce95088967e377b0f92487cf5))
+
 # [1.0.0-alpha.67](https://github.com/getstrm/pace/compare/v1.0.0-alpha.66...v1.0.0-alpha.67) (2024-02-21)
 
 
