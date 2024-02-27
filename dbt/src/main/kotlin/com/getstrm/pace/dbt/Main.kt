@@ -21,6 +21,7 @@ fun main(args: Array<String>) {
 
     // Note! Working dir when running this must be the root of the desired dbt project!
     try {
+        System.err.println("Reading manifest.json from $basePath/target/manifest.json")
         val manifestJson =
             File("$basePath/target/manifest.json").readText().let { ObjectMapper().readTree(it) }
 

@@ -11,10 +11,15 @@ class ModelWriter(private val policy: DataPolicy, private val sourceModel: DbtMo
         val viewGenerator = ViewGeneratorFactory.create(policy, sourceModel)
         viewGenerator.toSelectStatement(inlineParameters = true).forEach { (target, query) ->
             val targetFilePath = "$basePath/${targetFilePath(target)}"
-            val file = File(targetFilePath)
-            val header = ModelHeaderRenderer(sourceModel, target).render()
-            file.writeText("$header\n$query\n")
-            println("Generated PACE model $targetFilePath")
+
+            try {
+                val file = File(targetFilePath)
+                val header = ModelHeaderRenderer(sourceModel, target).render()
+                file.writeText("$header\n$query\n")
+                println("Generated PACE model $targetFilePath")
+            } catch (e: Exception) {
+                println("Error writing model to $targetFilePath: $e")
+            }
         }
     }
 
@@ -24,7 +29,10 @@ class ModelWriter(private val policy: DataPolicy, private val sourceModel: DbtMo
      */
     @VisibleForTesting
     fun targetFilePath(target: DataPolicy.Target): String {
-        return sourceModel.originalFilePath.substringBeforeLast("/") +
+        return sourceModel.originalFilePath
+            // Windows uses backslashes, so we need to replace them with forward slashes
+            .replace("\\", "/")
+            .substringBeforeLast("/") +
             "/" +
             target.ref.resourcePathList.last().name +
             ".sql"

@@ -40,6 +40,7 @@ object ManifestParser {
         return modelNodes.filter {
             it.isPaceEnabled()
         }.map {
+            System.err.println("Creating policy for model ${it.originalFilePath}")
             val policy = createDataPolicy(platformType, it)
             try {
                 validator.validate(policy) { skipCheckPrincipals = true }
