@@ -114,7 +114,7 @@ class BigQueryViewGenerator(
                     select(DSL.field("userGroup"))
                         .from(DSL.table(renderName(userGroupsTable!!)))
                         .where(
-                            DSL.lower("userEmail")
+                            DSL.field("lower(userEmail)")
                                 .eq(DSL.lower(DSL.function("SESSION_USER", String::class.java)))
                         )
                 )
