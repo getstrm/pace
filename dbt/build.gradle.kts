@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import java.io.ByteArrayOutputStream
 
 val generatedBufDependencyVersion: String by rootProject.extra
 val kotestVersion = rootProject.ext["kotestVersion"] as String
@@ -48,6 +49,7 @@ tasks.jar {
 val shadowJar = tasks.withType<ShadowJar> {
     isZip64 = true
     mergeServiceFiles()
+    archiveFileName = "dbt.jar"
 
     manifest {
         attributes["Main-Class"] = "com.getstrm.pace.dbt.MainKt"
@@ -59,3 +61,38 @@ tasks {
         dependsOn(shadowJar)
     }
 }
+
+val copyDocker =
+    tasks.register<Copy>("copyDocker") {
+        group = "docker"
+        from("src/main/docker")
+        include("*")
+        into("build/docker")
+        expand(
+            "version" to project.version
+        )
+    }
+
+val copyJarIntoDockerDir =
+    tasks.register<Copy>("copyJarIntoDocker") {
+        group = "docker"
+        dependsOn(shadowJar)
+
+        from("build/libs/dbt.jar")
+        into("build/docker")
+    }
+
+val prepareForDocker =
+    tasks.register("prepareForDocker") {
+        group = "docker"
+        dependsOn("build", copyDocker, copyJarIntoDockerDir)
+    }
+
+val buildDocker =
+    tasks.register<Exec>("buildDocker") {
+        group = "docker"
+        dependsOn(prepareForDocker)
+        workingDir("build/docker")
+
+        commandLine("/usr/bin/env", "docker", "build", ".", "-t", project.properties["dockertag"])
+    }

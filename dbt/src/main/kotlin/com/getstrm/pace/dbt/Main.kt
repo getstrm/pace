@@ -12,7 +12,7 @@ fun main(args: Array<String>) {
     } else if (args.size == 1) {
         args[0]
     } else {
-        println("Either provide 0 arguments or an absolute path to the dbt project directory.")
+        System.err.println("Either provide 0 arguments or an absolute path to the dbt project directory.")
         exitProcess(1)
     }
 
@@ -21,6 +21,7 @@ fun main(args: Array<String>) {
 
     // Note! Working dir when running this must be the root of the desired dbt project!
     try {
+        println("Reading manifest.json from $basePath/target/manifest.json")
         val manifestJson =
             File("$basePath/target/manifest.json").readText().let { ObjectMapper().readTree(it) }
 
@@ -29,13 +30,13 @@ fun main(args: Array<String>) {
             if (violations.isEmpty()) {
                 ModelWriter(policy, sourceModel, basePath).write()
             } else {
-                println(
+                System.err.println(
                     "Skipping policy for source model ${sourceModel.originalFilePath} due to violations: $violations"
                 )
             }
         }
     } catch (e: FileNotFoundException) {
-        println(
+        System.err.println(
             "No manifest.json found in target directory. Make sure you have run dbt compile first, and are working from the dbt project's root dir."
         )
         exitProcess(1)
