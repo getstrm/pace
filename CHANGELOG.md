@@ -1,3 +1,10 @@
+# [1.0.0-alpha.71](https://github.com/getstrm/pace/compare/v1.0.0-alpha.70...v1.0.0-alpha.71) (2024-02-27)
+
+
+### Bug Fixes
+
+* **alpha:** incorrect artifact directory ([1e9f255](https://github.com/getstrm/pace/commit/1e9f2552a020dd61de4fd01c7d6913322039053e))
+
 # [1.0.0-alpha.70](https://github.com/getstrm/pace/compare/v1.0.0-alpha.69...v1.0.0-alpha.70) (2024-02-27)
 
 
