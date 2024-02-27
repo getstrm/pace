@@ -108,8 +108,6 @@ class BigQueryViewGenerator(
         fields: List<Field<*>>
     ): SelectSelectStep<Record> {
         if (useIamCheckExtension) return DSL.select(fields)
-        val x = DSL.lower("userEmail")
-        val y = DSL.field("userEmail")
         val userGroupSelect =
             DSL.unquotedName("user_groups")
                 .`as`(
