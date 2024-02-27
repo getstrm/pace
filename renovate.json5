@@ -2,6 +2,11 @@
     "extends": [
         "github>getstrm/renovate-config//base-renovate-config.json5"
     ],
+    baseBranches: [
+        "main",
+        "alpha",
+        "beta"
+    ],
     "customManagers": [
         {
             // Renovate cannot update build.buf.gen dependencies through the regular Maven datasource manager,
