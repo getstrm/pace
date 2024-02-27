@@ -108,14 +108,16 @@ class BigQueryViewGenerator(
         fields: List<Field<*>>
     ): SelectSelectStep<Record> {
         if (useIamCheckExtension) return DSL.select(fields)
+        val x = DSL.lower("userEmail")
+        val y = DSL.field("userEmail")
         val userGroupSelect =
             DSL.unquotedName("user_groups")
                 .`as`(
                     select(DSL.field("userGroup"))
                         .from(DSL.table(renderName(userGroupsTable!!)))
                         .where(
-                            DSL.field("userEmail")
-                                .eq(DSL.function("SESSION_USER", Boolean::class.java))
+                            DSL.lower("userEmail")
+                                .eq(DSL.lower(DSL.function("SESSION_USER", String::class.java)))
                         )
                 )
         return jooq.with(userGroupSelect).select(fields)
