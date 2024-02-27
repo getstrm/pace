@@ -18,7 +18,7 @@ class ModelWriter(private val policy: DataPolicy, private val sourceModel: DbtMo
                 file.writeText("$header\n$query\n")
                 println("Generated PACE model $targetFilePath")
             } catch (e: Exception) {
-                println("Error writing model to $targetFilePath: $e")
+                System.err.println("Error writing model to $targetFilePath: $e")
             }
         }
     }
