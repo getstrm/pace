@@ -78,6 +78,7 @@ jobs:
 
   build-server-image:
     runs-on: ubuntu-latest
+    needs: [publish-release-artifacts]
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -129,6 +130,7 @@ jobs:
 
   build-dbt-image:
     runs-on: ubuntu-latest
+    needs: [publish-release-artifacts]
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
