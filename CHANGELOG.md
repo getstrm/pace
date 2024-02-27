@@ -1,3 +1,10 @@
+# [1.0.0-alpha.70](https://github.com/getstrm/pace/compare/v1.0.0-alpha.69...v1.0.0-alpha.70) (2024-02-27)
+
+
+### Bug Fixes
+
+* **alpha:** ensure that image builds wait on publish release artifacts task ([b274a05](https://github.com/getstrm/pace/commit/b274a05b0b91cfab593dd7a4b2b08fed018294a0))
+
 # [1.0.0-alpha.69](https://github.com/getstrm/pace/compare/v1.0.0-alpha.68...v1.0.0-alpha.69) (2024-02-27)
 
 
