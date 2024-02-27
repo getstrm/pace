@@ -73,7 +73,7 @@ jobs:
           name: artifacts
           path: |
             **/build/libs
-            **/docker/libs
+            **/build/docker
             protos
 
   build-server-image:
