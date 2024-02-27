@@ -1,3 +1,10 @@
+# [1.0.0-alpha.69](https://github.com/getstrm/pace/compare/v1.0.0-alpha.68...v1.0.0-alpha.69) (2024-02-27)
+
+
+### Features
+
+* **pace-184:** add docker image for dbt module ([#223](https://github.com/getstrm/pace/issues/223)) ([3dc5671](https://github.com/getstrm/pace/commit/3dc5671353315be05342f5c372681cb7618070fb))
+
 # [1.0.0-alpha.68](https://github.com/getstrm/pace/compare/v1.0.0-alpha.67...v1.0.0-alpha.68) (2024-02-26)
 
 
