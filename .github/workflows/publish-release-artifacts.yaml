@@ -67,14 +67,14 @@ jobs:
           mkdir artifacts
           find . -type d -name "libs" -not -path "./core/*" -not -path "./build/*" | xargs -I{} find "{}" -type f -name "*.jar" | xargs -I{} sh -c 'cp "{}" "./artifacts/$(echo {} | cut -d / -f 2).jar"'
           gh release upload  "$tag_name" $(find artifacts -type f -name "*.jar" -printf "%p ")
+      # We tar the artifacts to maintain permissions, see https://github.com/actions/upload-artifact?tab=readme-ov-file#permission-loss
+      - name: Tar artifacts
+        run: tar -cvf artifacts.tar **/build/libs **/build/docker protos
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: artifacts
-          path: |
-            **/build/libs
-            **/build/docker
-            protos
+          path: artifacts.tar
 
   build-server-image:
     runs-on: ubuntu-latest
@@ -84,6 +84,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: artifacts
+      - name: Untar artifacts
+        run: tar -xvf artifacts.tar
       - uses: bufbuild/buf-setup-action@v1
       # Build container image
       - name: "Generate Proto Filedescriptor"
@@ -136,6 +138,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: artifacts
+      - name: Untar artifacts
+        run: tar -xvf artifacts.tar
 
       # Container artifact
       - name: Set up QEMU
