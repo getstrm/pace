@@ -1,3 +1,10 @@
+# [1.0.0-alpha.72](https://github.com/getstrm/pace/compare/v1.0.0-alpha.71...v1.0.0-alpha.72) (2024-02-29)
+
+
+### Bug Fixes
+
+* **ci:** retain permissions on GitHub artifact upload ([4ffaecc](https://github.com/getstrm/pace/commit/4ffaecce8a85d72df1a08d11c24191ebf105a50f))
+
 # [1.0.0-alpha.71](https://github.com/getstrm/pace/compare/v1.0.0-alpha.70...v1.0.0-alpha.71) (2024-02-27)
 
 
