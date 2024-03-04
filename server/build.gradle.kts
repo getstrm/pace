@@ -77,7 +77,7 @@ dependencies {
 
     // Self-managed dependencies
     implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
-    implementation("com.databricks:databricks-sdk-java:0.19.0")
+    implementation("com.databricks:databricks-sdk-java:0.20.0")
     implementation("com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11")
     implementation(
         "org.springframework.cloud:spring-cloud-starter-kubernetes-fabric8-config:$springCloudKubernetesVersion"
@@ -100,7 +100,7 @@ dependencies {
     implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
 
     implementation("com.aallam.openai:openai-client:3.7.0")
-    implementation(platform("io.ktor:ktor-bom:2.3.8"))
+    implementation(platform("io.ktor:ktor-bom:2.3.9"))
     runtimeOnly("io.ktor:ktor-client-okhttp")
     implementation("io.ktor:ktor-client-logging")
 
