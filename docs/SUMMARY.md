@@ -39,6 +39,7 @@
 
 ## Tutorials
 
+* [Demo: interactive editor](tutorials/demo-interactive-editor.md)
 * [Detokenization](tutorials/detokenization.md)
 * [Global Tag Transforms](tutorials/global-tag-transforms.md)
 * [User Defined Functions in Python](tutorials/udfs.md)

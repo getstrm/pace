@@ -3,7 +3,7 @@
 **About PACE**
 
 {% hint style="info" %}
-Looking for a non-tech intro to PACE? Start with a video of a[ simple use case](pace-server/getting-started/example-use-case.md) .
+Looking for a non-tech intro to PACE? Start with an [interactive demo](https://console.demo.getstrm.com/data-policies/data-policy-editor) or video of a[ simple use case](pace-server/getting-started/example-use-case.md) .
 {% endhint %}
 
 PACE is the **P**olicy **A**s **C**ode **E**ngine. It helps you to programmatically create and apply a data policy to a processing platform (like [Databricks](tutorials/databricks.md), Snowflake or BigQuery). Through a data contract, you can apply filters, field transforms and access settings to create a view inside a data platform.
