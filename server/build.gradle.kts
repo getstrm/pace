@@ -76,7 +76,7 @@ dependencies {
     runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
     // Self-managed dependencies
-    implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
+    implementation("net.devh:grpc-server-spring-boot-starter:3.0.0.RELEASE")
     implementation("com.databricks:databricks-sdk-java:0.20.0")
     implementation("com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11")
     implementation(
