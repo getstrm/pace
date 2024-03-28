@@ -37,7 +37,7 @@ project.version =
 
 plugins {
     id("com.bmuschko.docker-remote-api")
-    id("com.apollographql.apollo3") version "3.8.2"
+    id("com.apollographql.apollo3") version "3.8.3"
     id("nu.studer.jooq")
     id("org.flywaydb.flyway")
     id("org.openapi.generator")
@@ -77,7 +77,7 @@ dependencies {
 
     // Self-managed dependencies
     implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
-    implementation("com.databricks:databricks-sdk-java:0.20.0")
+    implementation("com.databricks:databricks-sdk-java:0.21.0")
     implementation("com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11")
     implementation(
         "org.springframework.cloud:spring-cloud-starter-kubernetes-fabric8-config:$springCloudKubernetesVersion"
@@ -97,7 +97,7 @@ dependencies {
     )
     implementation("build.buf:protovalidate:0.2.0")
 
-    implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
+    implementation("com.apollographql.apollo3:apollo-runtime:3.8.3")
 
     implementation("com.aallam.openai:openai-client:3.7.0")
     implementation(platform("io.ktor:ktor-bom:2.3.9"))
