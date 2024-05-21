@@ -14,7 +14,7 @@ pluginManagement {
 
         id("com.google.cloud.artifactregistry.gradle-plugin") version "2.2.1"
         id("nu.studer.jooq") version "9.0"
-        id("org.openapi.generator") version "7.5.0"
+        id("org.openapi.generator") version "7.6.0"
         id("com.bmuschko.docker-remote-api") version "9.4.0"
         id("org.flywaydb.flyway") version flywayVersion
         id("com.diffplug.spotless") version "6.25.0"
