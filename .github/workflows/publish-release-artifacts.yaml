@@ -122,7 +122,7 @@ jobs:
             type=sha
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: server/build/docker
           platforms: linux/amd64,linux/arm64
@@ -168,7 +168,7 @@ jobs:
             type=sha
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: dbt/build/docker
           platforms: linux/amd64,linux/arm64
