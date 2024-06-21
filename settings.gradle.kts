@@ -12,7 +12,7 @@ pluginManagement {
         id("org.jetbrains.kotlin.jvm") version kotlinVersion
         id("org.jetbrains.kotlin.plugin.spring") version kotlinVersion
 
-        id("com.google.cloud.artifactregistry.gradle-plugin") version "2.2.1"
+        id("com.google.cloud.artifactregistry.gradle-plugin") version "2.2.2"
         id("nu.studer.jooq") version "9.0"
         id("org.openapi.generator") version "7.6.0"
         id("com.bmuschko.docker-remote-api") version "9.4.0"
