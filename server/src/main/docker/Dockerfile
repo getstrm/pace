@@ -1,4 +1,4 @@
-FROM envoyproxy/envoy:v1.30-latest as envoy
+FROM envoyproxy/envoy:v1.31-latest as envoy
 
 FROM eclipse-temurin:22-jre-jammy
 
