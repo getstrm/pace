@@ -57,7 +57,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v3
+      - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew build prepareForDocker -PciBuild -PgeneratedBufDependencyVersion=${{ env.BUF_DEPENDENCY_VERSION }}
       - name: Upload
         env:
