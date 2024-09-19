@@ -1,4 +1,4 @@
-FROM eclipse-temurin:22-jre
+FROM eclipse-temurin:23-jre
 
 LABEL org.opencontainers.image.source=https://github.com/getstrm/pace
 
