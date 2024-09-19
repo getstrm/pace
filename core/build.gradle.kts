@@ -31,7 +31,7 @@ dependencies {
     implementation("com.github.drapostolos:type-parser:0.8.1")
     implementation("com.google.protobuf:protobuf-java-util:$protobufJavaUtilVersion")
     implementation(
-        "build.buf.gen:getstrm_pace_protocolbuffers_kotlin:25.3.0.2.$generatedBufDependencyVersion",
+        "build.buf.gen:getstrm_pace_protocolbuffers_kotlin:28.2.0.1.$generatedBufDependencyVersion",
     )
     implementation("build.buf:protovalidate:0.2.0")
 
