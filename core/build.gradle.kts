@@ -33,7 +33,7 @@ dependencies {
     implementation(
         "build.buf.gen:getstrm_pace_protocolbuffers_kotlin:25.3.0.2.$generatedBufDependencyVersion",
     )
-    implementation("build.buf:protovalidate:0.2.0")
+    implementation("build.buf:protovalidate:0.4.2")
 
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
