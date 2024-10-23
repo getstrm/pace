@@ -76,7 +76,7 @@ dependencies {
     runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
     // Self-managed dependencies
-    implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
+    implementation("net.devh:grpc-server-spring-boot-starter:3.1.0.RELEASE")
     implementation("com.databricks:databricks-sdk-java:0.20.0")
     implementation("com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11")
     implementation(
@@ -100,7 +100,7 @@ dependencies {
     implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
 
     implementation("com.aallam.openai:openai-client:3.7.0")
-    implementation(platform("io.ktor:ktor-bom:2.3.9"))
+    implementation(platform("io.ktor:ktor-bom:3.0.0"))
     runtimeOnly("io.ktor:ktor-client-okhttp")
     implementation("io.ktor:ktor-client-logging")
 
