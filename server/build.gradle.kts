@@ -37,7 +37,7 @@ project.version =
 
 plugins {
     id("com.bmuschko.docker-remote-api")
-    id("com.apollographql.apollo3") version "3.8.2"
+    id("com.apollographql.apollo3") version "3.8.5"
     id("nu.studer.jooq")
     id("org.flywaydb.flyway")
     id("org.openapi.generator")
@@ -58,7 +58,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     // TODO remove once we upgrade Spring: override SnakeYAML dependency, as the one managed by
     // Spring is too old and is vulnerable
-    implementation("org.yaml:snakeyaml:2.2")
+    implementation("org.yaml:snakeyaml:2.3")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -77,15 +77,15 @@ dependencies {
 
     // Self-managed dependencies
     implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
-    implementation("com.databricks:databricks-sdk-java:0.20.0")
-    implementation("com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11")
+    implementation("com.databricks:databricks-sdk-java:0.34.0")
+    implementation("com.microsoft.sqlserver:mssql-jdbc:12.8.1.jre11")
     implementation(
         "org.springframework.cloud:spring-cloud-starter-kubernetes-fabric8-config:$springCloudKubernetesVersion"
     )
-    implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.77")
+    implementation("com.nimbusds:nimbus-jose-jwt:9.41.2")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")
 
-    implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.34.0"))
+    implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.49.0"))
     implementation("com.google.cloud:google-cloud-bigquery")
     implementation("com.google.cloud:google-cloud-datacatalog")
     implementation("com.google.cloud:google-cloud-datalineage")
@@ -95,12 +95,12 @@ dependencies {
     implementation(
         "build.buf.gen:getstrm_pace_protocolbuffers_java:25.3.0.2.$generatedBufDependencyVersion"
     )
-    implementation("build.buf:protovalidate:0.2.0")
+    implementation("build.buf:protovalidate:0.4.2")
 
-    implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
+    implementation("com.apollographql.apollo3:apollo-runtime:3.8.5")
 
-    implementation("com.aallam.openai:openai-client:3.7.0")
-    implementation(platform("io.ktor:ktor-bom:2.3.9"))
+    implementation("com.aallam.openai:openai-client:3.8.2")
+    implementation(platform("io.ktor:ktor-bom:2.3.12"))
     runtimeOnly("io.ktor:ktor-client-okhttp")
     implementation("io.ktor:ktor-client-logging")
 
@@ -110,8 +110,8 @@ dependencies {
     }
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
-    testImplementation("io.mockk:mockk:1.13.10")
-    testImplementation("io.zonky.test:embedded-postgres:2.0.6")
+    testImplementation("io.mockk:mockk:1.13.13")
+    testImplementation("io.zonky.test:embedded-postgres:2.0.7")
 }
 
 openApiGenerate {
