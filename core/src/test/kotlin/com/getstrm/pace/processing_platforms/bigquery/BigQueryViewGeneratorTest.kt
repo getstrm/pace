@@ -200,7 +200,7 @@ with
   user_groups as (
     select userGroup
     from `my_project.my_dataset.my_user_groups`
-    where userEmail = SESSION_USER()
+    where lower(userEmail) = lower(SESSION_USER())
   )
 select
   `transactionId`,
@@ -232,7 +232,7 @@ with
   user_groups as (
     select userGroup
     from `my_project.my_dataset.my_user_groups`
-    where userEmail = SESSION_USER()
+    where lower(userEmail) = lower(SESSION_USER())
   )
 select
   case
@@ -270,7 +270,7 @@ with
   user_groups as (
     select userGroup
     from `my_project.my_dataset.my_user_groups`
-    where userEmail = SESSION_USER()
+    where lower(userEmail) = lower(SESSION_USER())
   )
 select
   case
