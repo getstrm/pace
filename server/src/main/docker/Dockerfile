@@ -1,6 +1,6 @@
 FROM envoyproxy/envoy:v1.34-latest as envoy
 
-FROM eclipse-temurin:22-jre-jammy
+FROM eclipse-temurin:26-jre-jammy
 
 LABEL org.opencontainers.image.source=https://github.com/getstrm/pace
 
