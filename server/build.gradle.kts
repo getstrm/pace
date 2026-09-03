@@ -76,13 +76,13 @@ dependencies {
     runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
     // Self-managed dependencies
-    implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
+    implementation("net.devh:grpc-server-spring-boot-starter:3.1.0.RELEASE")
     implementation("com.databricks:databricks-sdk-java:0.20.0")
-    implementation("com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11")
+    implementation("com.microsoft.sqlserver:mssql-jdbc:13.4.0.jre11")
     implementation(
         "org.springframework.cloud:spring-cloud-starter-kubernetes-fabric8-config:$springCloudKubernetesVersion"
     )
-    implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.9.1")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.77")
 
     implementation(enforcedPlatform("com.google.cloud:libraries-bom:26.34.0"))
@@ -95,12 +95,12 @@ dependencies {
     implementation(
         "build.buf.gen:getstrm_pace_protocolbuffers_java:25.3.0.2.$generatedBufDependencyVersion"
     )
-    implementation("build.buf:protovalidate:0.2.0")
+    implementation("build.buf:protovalidate:1.3.0")
 
     implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
 
-    implementation("com.aallam.openai:openai-client:3.7.0")
-    implementation(platform("io.ktor:ktor-bom:2.3.9"))
+    implementation("com.aallam.openai:openai-client:4.1.0")
+    implementation(platform("io.ktor:ktor-bom:3.5.2"))
     runtimeOnly("io.ktor:ktor-client-okhttp")
     implementation("io.ktor:ktor-client-logging")
 
