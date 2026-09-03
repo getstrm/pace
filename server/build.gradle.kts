@@ -90,10 +90,10 @@ dependencies {
     implementation("com.google.cloud:google-cloud-datacatalog")
     implementation("com.google.cloud:google-cloud-datalineage")
 
-    implementation("build.buf.gen:getstrm_pace_grpc_java:1.65.1.1.$generatedBufDependencyVersion")
-    implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.4.1.1.$generatedBufDependencyVersion")
+    implementation("build.buf.gen:getstrm_pace_grpc_java:1.84.0.2.$generatedBufDependencyVersion")
+    implementation("build.buf.gen:getstrm_pace_grpc_kotlin:1.5.0.4.$generatedBufDependencyVersion")
     implementation(
-        "build.buf.gen:getstrm_pace_protocolbuffers_java:25.3.0.2.$generatedBufDependencyVersion"
+        "build.buf.gen:getstrm_pace_protocolbuffers_java:25.8.0.2.$generatedBufDependencyVersion"
     )
     implementation("build.buf:protovalidate:0.2.0")
 
