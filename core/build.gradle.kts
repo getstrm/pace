@@ -28,12 +28,12 @@ dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
 
     // Self-managed dependencies
-    implementation("com.github.drapostolos:type-parser:0.8.1")
+    implementation("com.github.drapostolos:type-parser:0.9.0")
     implementation("com.google.protobuf:protobuf-java-util:$protobufJavaUtilVersion")
     implementation(
         "build.buf.gen:getstrm_pace_protocolbuffers_kotlin:25.3.0.2.$generatedBufDependencyVersion",
     )
-    implementation("build.buf:protovalidate:0.2.0")
+    implementation("build.buf:protovalidate:0.14.0")
 
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
