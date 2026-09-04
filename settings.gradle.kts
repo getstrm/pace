@@ -13,18 +13,18 @@ pluginManagement {
         id("org.jetbrains.kotlin.plugin.spring") version kotlinVersion
 
         id("com.google.cloud.artifactregistry.gradle-plugin") version "2.2.2"
-        id("nu.studer.jooq") version "9.0"
+        id("nu.studer.jooq") version "10.2.1"
         id("org.openapi.generator") version "7.6.0"
-        id("com.bmuschko.docker-remote-api") version "9.4.0"
+        id("com.bmuschko.docker-remote-api") version "10.0.0"
         id("org.flywaydb.flyway") version flywayVersion
-        id("com.diffplug.spotless") version "6.25.0"
+        id("com.diffplug.spotless") version "8.10.2"
 
         // For the DBT module, which doesn't use the spring boot jar
         id("com.github.johnrengelman.shadow") version "8.1.1"
     }
 }
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
 buildscript {
