@@ -21,7 +21,7 @@ dependencies {
     // We let spring boot manage a few dependencies, even though we don't start a Spring application from this module.
     implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
     implementation("org.springframework.boot:spring-boot-starter-jooq")
-    implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
+    implementation("net.devh:grpc-server-spring-boot-starter:3.1.0.RELEASE")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
@@ -33,7 +33,7 @@ dependencies {
     implementation(
         "build.buf.gen:getstrm_pace_protocolbuffers_kotlin:25.3.0.2.$generatedBufDependencyVersion",
     )
-    implementation("build.buf:protovalidate:0.2.0")
+    implementation("build.buf:protovalidate:1.3.0")
 
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
